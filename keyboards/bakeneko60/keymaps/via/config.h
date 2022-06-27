@@ -1,0 +1,73 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
+#pragma once
+
+/*
+  Enable Apple Fn
+
+  see https://gist.github.com/fauxpark/010dcf5d6377c3a71ac98ce37414c6c4
+
+  Product Ids
+	0201  USB Keyboard [Alps or Logitech, M2452]
+	0202  Keyboard [ALPS]
+	0205  Extended Keyboard [Mitsumi]
+	0206  Extended Keyboard [Mitsumi]
+	020b  Pro Keyboard [Mitsumi, A1048/US layout]
+	020c  Extended Keyboard [Mitsumi]
+	020d  Pro Keyboard [Mitsumi, A1048/JIS layout]
+	020e  Internal Keyboard/Trackpad (ANSI)
+	020f  Internal Keyboard/Trackpad (ISO)
+	0214  Internal Keyboard/Trackpad (ANSI)
+	0215  Internal Keyboard/Trackpad (ISO)
+	0216  Internal Keyboard/Trackpad (JIS)
+	0217  Internal Keyboard/Trackpad (ANSI)
+	0218  Internal Keyboard/Trackpad (ISO)
+	0219  Internal Keyboard/Trackpad (JIS)
+	021a  Internal Keyboard/Trackpad (ANSI)
+	021b  Internal Keyboard/Trackpad (ISO)
+	021c  Internal Keyboard/Trackpad (JIS)
+	021d  Aluminum Mini Keyboard (ANSI)
+	021e  Aluminum Mini Keyboard (ISO)
+	021f  Aluminum Mini Keyboard (JIS)
+	0220  Aluminum Keyboard (ANSI)
+	0221  Aluminum Keyboard (ISO)
+	0222  Aluminum Keyboard (JIS)
+	0223  Internal Keyboard/Trackpad (ANSI)
+	0224  Internal Keyboard/Trackpad (ISO)
+	0225  Internal Keyboard/Trackpad (JIS)
+	0229  Internal Keyboard/Trackpad (ANSI)
+	022a  Internal Keyboard/Trackpad (MacBook Pro) (ISO)
+	022b  Internal Keyboard/Trackpad (MacBook Pro) (JIS)
+	0230  Internal Keyboard/Trackpad (MacBook Pro 4,1) (ANSI)
+	0231  Internal Keyboard/Trackpad (MacBook Pro 4,1) (ISO)
+	0232  Internal Keyboard/Trackpad (MacBook Pro 4,1) (JIS)
+	0236  Internal Keyboard/Trackpad (ANSI)
+	0237  Internal Keyboard/Trackpad (ISO)
+	0238  Internal Keyboard/Trackpad (JIS)
+	023f  Internal Keyboard/Trackpad (ANSI)
+	0240  Internal Keyboard/Trackpad (ISO)
+	0241  Internal Keyboard/Trackpad (JIS)
+	0242  Internal Keyboard/Trackpad (ANSI)
+	0243  Internal Keyboard/Trackpad (ISO)
+	0244  Internal Keyboard/Trackpad (JIS)
+	0245  Internal Keyboard/Trackpad (ANSI)
+	0246  Internal Keyboard/Trackpad (ISO)
+	0247  Internal Keyboard/Trackpad (JIS)
+	024a  Internal Keyboard/Trackpad (MacBook Air) (ISO)
+	024d  Internal Keyboard/Trackpad (MacBook Air) (ISO)
+	024f  Aluminium Keyboard (ANSI)
+	0250  Aluminium Keyboard (ISO)
+	0252  Internal Keyboard/Trackpad (ANSI)
+	0253  Internal Keyboard/Trackpad (ISO)
+	0254  Internal Keyboard/Trackpad (JIS)
+	0259  Internal Keyboard/Trackpad
+	025a  Internal Keyboard/Trackpad
+	0263  Apple Internal Keyboard / Trackpad (MacBook Retina)
+	0267  Magic Keyboard A1644
+	0269  Magic Mouse 2 (Lightning connector)
+	0273  Internal Keyboard/Trackpad (ISO)
+*/
+#undef VENDOR_ID
+#undef PRODUCT_ID
+#define VENDOR_ID    0x05AC
+#define PRODUCT_ID   0x0267

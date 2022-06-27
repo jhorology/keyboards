@@ -1,0 +1,3 @@
+VIA_ENABLE = yes
+NKRO_ENABLE = no
+APPLE_FN_ENABLE = yes

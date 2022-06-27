@@ -1,0 +1,8 @@
+dist/
+.DS_Store
+*~
+.\#*
+\#*\#
+*.hex
+*.bin
+*.log
