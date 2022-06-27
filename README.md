@@ -1,6 +1,11 @@
 # keyboards
 This is a personal project for my own keyboards.
 
+## Custom Keycodes
+| Code | Define | Descrption|
+|------|--------|-----------|
+| 0x00BF | KC_APPLE_FN,KC_APFN | Apple Fn/Globe key|
+
 ## Amethyst Shortcuts
 |Shortcut|Descrption|
 |--------|----------|
