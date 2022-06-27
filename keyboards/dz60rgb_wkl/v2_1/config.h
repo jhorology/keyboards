@@ -84,7 +84,7 @@
 */
 #ifdef APPLE_FN_ENABLE
   #define VENDOR_ID    0x05AC
-  #define PRODUCT_ID   0x0267
+  #define PRODUCT_ID   0x024F
 #else
   #define VENDOR_ID    0x445A
   #define PRODUCT_ID   0x1321

@@ -1,7 +1,7 @@
 {
   "name": "Ciel 60",
   "vendorId": "0x05AC",
-  "productId": "0x0267",
+  "productId": "0x024F",
   "lighting": "none",
   "matrix": { "rows": 5, "cols": 15 },
   "layouts": {
