@@ -3,14 +3,16 @@ VIAL_ENABLE = yes
 LTO_ENABLE = yes
 QMK_SETTINGS = no
 
-# Apple Fn/Globe key patch
-# see https://gist.github.com/fauxpark/010dcf5d6377c3a71ac98ce37414c6c4
-NKRO_ENABLE = no
-APPLE_FN_ENABLE = yes
-
 # reducing firmware size
 # see https://get.vial.today/docs/firmware-size.html
 
 # TAP_DANCE_ENABLE = no
 # COMBO_ENABLE = no
-KEY_OVERRIDE_ENABLE = no
+# KEY_OVERRIDE_ENABLE = no
+RGB_MATRIX_ENABLE = no
+
+# Apple Fn/Globe key patch
+# see https://gist.github.com/fauxpark/010dcf5d6377c3a71ac98ce37414c6c4
+NKRO_ENABLE = no
+APPLE_FN_ENABLE = yes
+

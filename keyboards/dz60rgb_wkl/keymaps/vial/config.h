@@ -13,4 +13,8 @@
 // #define VIAL_COMBO_ENTRIES 4
 // #define VIAL_KEY_OVERRIDE_ENTRIES 4
 
+// polling rate
+// see https://github.com/qmk/qmk_firmware/blob/master/docs/config_options.md
+
 // #define USB_POLLING_INTERVAL_MS 4
+// #define QMK_KEYS_PER_SCAN 4
