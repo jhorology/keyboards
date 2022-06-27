@@ -20,7 +20,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "config_common.h"
 
 /* USB Device descriptor parameter */
-#define VENDOR_ID       0x5052
+/*
+  Enable Apple Fn
+
+  see https://gist.github.com/fauxpark/010dcf5d6377c3a71ac98ce37414c6c4
+
+*/
+#ifdef APPLE_FN_ENABLE
+  #define VENDOR_ID    0x05AC
+#else
+  #define VENDOR_ID    0x5052
+#endif
 #define MANUFACTURER    PrimeKB
 
 /* key matrix size */

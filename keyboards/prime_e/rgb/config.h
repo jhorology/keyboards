@@ -86,12 +86,11 @@
 	0273  Internal Keyboard/Trackpad (ISO)
 */
 #ifdef APPLE_FN_ENABLE
-  #define VENDOR_ID    0x05AC
   #define PRODUCT_ID   0x0267
 #else
   #define PRODUCT_ID   0x0052
-  #define DEVICE_VER   0x0001
 #endif
+#define DEVICE_VER     0x0001
 #define PRODUCT        Prime_E RGB
 
 #define RGB_DI_PIN B7

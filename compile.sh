@@ -32,13 +32,13 @@ qmk compile -j 4 -kb my_keyboards/bakeneko60 -km "$KEYMAP"
 mv "$QMK_HOME/my_keyboards_bakeneko60_$KEYMAP.hex" bakeneko60_${SUFFIX}.hex
 
 qmk compile -j 4 -kb my_keyboards/ciel60 -km "$KEYMAP"
-mv "$QMK_HOME/my_keyboards_ciel60_vial.hex" "ciel60_${SUFFIX}.hex"
+mv "$QMK_HOME/my_keyboards_ciel60_$KEYMAP.hex" "ciel60_${SUFFIX}.hex"
 
 qmk compile -j 4 -kb my_keyboards/qk65/solder -km "$KEYMAP"
-mv "$QMK_HOME/my_keyboards_qk65_solder_vial.hex" qk65_solder_${SUFFIX}.hex
+mv "$QMK_HOME/my_keyboards_qk65_solder_$KEYMAP.hex" qk65_solder_${SUFFIX}.hex
 
 qmk compile -j 4 -kb my_keyboards/prime_e/rgb -km "$KEYMAP"
-mv "$QMK_HOME/my_keyboards_prime_e_rgb_vial.hex" prime_e_rgb_${SUFFIX}.hex
+mv "$QMK_HOME/my_keyboards_prime_e_rgb_$KEYMAP.hex" prime_e_rgb_${SUFFIX}.hex
 
 qmk compile -j 4 -kb my_keyboards/dz60rgb_wkl/v2_1 -km "$KEYMAP"
-mv "$QMK_HOME/my_keyboards_dz60rgb_wkl_v2_1_vial.bin" dz60rgb_wkl_v2_1_${SUFFIX}.bin
+mv "$QMK_HOME/my_keyboards_dz60rgb_wkl_v2_1_$KEYMAP.bin" dz60rgb_wkl_v2_1_${SUFFIX}.bin
