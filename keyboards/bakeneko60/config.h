@@ -88,8 +88,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   029a  Magic Keyboard with Touch ID (ANSI)
 */
 #ifdef APPLE_FN_ENABLE
-  #define VENDOR_ID    0x021d
-  #define PRODUCT_ID   0x024F
+  #define VENDOR_ID    0x05Ac
+  #define PRODUCT_ID   0x021d
 #else
   #define VENDOR_ID    0x3A0E
   #define PRODUCT_ID   0xCBDC
