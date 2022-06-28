@@ -1,0 +1,126 @@
+{
+  "title": "HHKB Hybrid(PFU limmited)",
+  "rules": [
+    {
+      "description": "HHKB Hybrid: remap right_option to fn",
+      "manipulators": [
+        {
+          "description": "Remap right_option to fn",
+          "type": "basic",
+          "from": {
+            "key_code": "right_option",
+            "modifiers": {
+              "optional": ["any"]
+            }
+          },
+          "to": [
+            {
+              "key_code": "fn"
+            }
+          ],
+          "conditions": [
+            {
+              "type": "device_if",
+              "identifiers": [
+                {
+                  "vendor_id": 1278,
+                  "product_id": 33,
+                  "description": "HHKB Hybrid"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": "HHKB Hybrid: remap fn + I,O,P to F16,F17,F18",
+      "manipulators": [
+        {
+          "description": "Remap fn + I to F16",
+          "type": "basic",
+          "from": {
+            "key_code": "i",
+            "modifiers": {
+              "mandatory": ["fn"],
+              "optional": ["any"]
+            }
+          },
+          "to": [
+            {
+              "key_code": "f16"
+            }
+          ],
+          "conditions": [
+            {
+              "type": "device_if",
+              "identifiers": [
+                {
+                  "vendor_id": 1278,
+                  "product_id": 33,
+                  "description": "HHKB Hybrid"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "description": "Remap fn + O to F17",
+          "type": "basic",
+          "from": {
+            "key_code": "o",
+            "modifiers": {
+              "mandatory": ["fn"],
+              "optional": ["any"]
+            }
+          },
+          "to": [
+            {
+              "key_code": "f17"
+            }
+          ],
+          "conditions": [
+            {
+              "type": "device_if",
+              "identifiers": [
+                {
+                  "vendor_id": 1278,
+                  "product_id": 33,
+                  "description": "HHKB Hybrid"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "description": "Remap fn + P to F18",
+          "type": "basic",
+          "from": {
+            "key_code": "p",
+            "modifiers": {
+              "mandatory": ["fn"],
+              "optional": ["any"]
+            }
+          },
+          "to": [
+            {
+              "key_code": "f18"
+            }
+          ],
+          "conditions": [
+            {
+              "type": "device_if",
+              "identifiers": [
+                {
+                  "vendor_id": 1278,
+                  "product_id": 33,
+                  "description": "HHKB Hybrid"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
