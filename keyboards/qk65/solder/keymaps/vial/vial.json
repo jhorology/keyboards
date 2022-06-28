@@ -1,7 +1,7 @@
 {
   "name": "QK65 Solder",
   "vendorId": "0x05AC",
-  "productId": "0x024F",
+  "productId": "0x0230",
   "lighting": "none",
   "matrix": {
     "rows": 5,

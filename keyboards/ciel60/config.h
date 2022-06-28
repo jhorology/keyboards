@@ -44,19 +44,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 	021a  Internal Keyboard/Trackpad (ANSI)
 	021b  Internal Keyboard/Trackpad (ISO)
 	021c  Internal Keyboard/Trackpad (JIS)
-	021d  Aluminum Mini Keyboard (ANSI)
+	021d  Aluminum Mini Keyboard (ANSI)                       --> bakeneko60
 	021e  Aluminum Mini Keyboard (ISO)
 	021f  Aluminum Mini Keyboard (JIS)
-	0220  Aluminum Keyboard (ANSI)
+	0220  Aluminum Keyboard (ANSI)                            ---> ciel60
 	0221  Aluminum Keyboard (ISO)
 	0222  Aluminum Keyboard (JIS)
-	0223  Internal Keyboard/Trackpad (ANSI)
+	0223  Internal Keyboard/Trackpad (ANSI)                   ---> D60
 	0224  Internal Keyboard/Trackpad (ISO)
 	0225  Internal Keyboard/Trackpad (JIS)
-	0229  Internal Keyboard/Trackpad (ANSI)
+	0229  Internal Keyboard/Trackpad (ANSI)                   ---> Prime_E
 	022a  Internal Keyboard/Trackpad (MacBook Pro) (ISO)
 	022b  Internal Keyboard/Trackpad (MacBook Pro) (JIS)
-	0230  Internal Keyboard/Trackpad (MacBook Pro 4,1) (ANSI)
+	0230  Internal Keyboard/Trackpad (MacBook Pro 4,1) (ANSI) ---> QK65
 	0231  Internal Keyboard/Trackpad (MacBook Pro 4,1) (ISO)
 	0232  Internal Keyboard/Trackpad (MacBook Pro 4,1) (JIS)
 	0236  Internal Keyboard/Trackpad (ANSI)
@@ -73,7 +73,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 	0247  Internal Keyboard/Trackpad (JIS)
 	024a  Internal Keyboard/Trackpad (MacBook Air) (ISO)
 	024d  Internal Keyboard/Trackpad (MacBook Air) (ISO)
-	024f  Aluminium Keyboard (ANSI)
+	024f  Aluminium Keyboard (ANSI)                         ---> Keychron
 	0250  Aluminium Keyboard (ISO)
 	0252  Internal Keyboard/Trackpad (ANSI)
 	0253  Internal Keyboard/Trackpad (ISO)
@@ -83,11 +83,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 	0263  Apple Internal Keyboard / Trackpad (MacBook Retina)
 	0267  Magic Keyboard A1644
 	0269  Magic Mouse 2 (Lightning connector)
+  026c  Magic Keyboard with Numeric Keypad (ANSI)
 	0273  Internal Keyboard/Trackpad (ISO)
+  029a  Magic Keyboard with Touch ID (ANSI)
 */
 #ifdef APPLE_FN_ENABLE
   #define VENDOR_ID    0x05AC
-  #define PRODUCT_ID   0x024F
+  #define PRODUCT_ID   0x0220
 #else
   #define VENDOR_ID    0xC41C
   #define PRODUCT_ID   0x0001

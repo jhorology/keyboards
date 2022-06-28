@@ -49,6 +49,15 @@ This is a personal project for my own keyboards.
 | shift + F15 (Pause) | Swap focused window clockwise |
 | F16 | Force windows to be reevaluated |
 
+## Product Ids
+| Id | Keyboad | Descrption|
+|------|--------|-----------|
+| 0x021d | Bakeneko 60 | Aluminum Mini Keyboard (ANSI) |
+| 0x0220 | Ciel 60 | Aluminum Keyboard (ANSI) |
+| 0x0223 | D60 | Internal Keyboard/Trackpad (ANSI) |
+| 0x0229 | Prime_E | Internal Keyboard/Trackpad (ANSI) |
+| 0x0230 | QK65 | Internal Keyboard/Trackpad (MacBook Pro 4,1) (ANSI) |
+
 ## References
 - qmk_firmware
   - [git](https://github.com/qmk/qmk_firmware)
