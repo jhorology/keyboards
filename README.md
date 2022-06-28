@@ -6,6 +6,32 @@ This is a personal project for my own keyboards.
 |------|--------|-----------|
 | 0x00BF | KC_APPLE_FN,KC_APFN | Apple Fn/Globe key|
 
+## Apple Fn/Globe Shortcuts
+|Shortcut|Descrption|
+|--------|----------|
+| Fn/Globe + F1 | Decrease display brightness |
+| Fn/Globe + F2 | Increase display brightness |
+| Fn/Globe + F3 | Mission control |
+| Fn/Globe + F4 | Open Launchpad |
+| Fn/Globe + F5 |  F5 |
+| Fn/Globe + F6 |  F6 |
+| Fn/Globe + F7 | Medaa track prev |
+| Fn/Globe + F8 | Medaa play/pause |
+| Fn/Globe + F9 | Medaa track next |
+| Fn/Globe + F10 | Mute audio |
+| Fn/Globe + F11 | Increase audio volume|
+| Fn/Globe + F12 | Decrease audio volume|
+| Fn/Globe + Space | Hey Siri |
+| Fn/Globe + Q | Quick Notes |
+| Fn/Globe + E | Open Emoji (Character Viewer) |
+| Fn/Globe + A | Focus Dock |
+| Fn/Globe + D | Enable Dictation |
+| Fn/Globe + F | Toggle full screen mode |
+| Fn/Globe + H | Show Desktop |
+| Fn/Globe + C | Show Control Ceneter |
+| Fn/Globe + N | Show Notifications |
+| Fn/Globe + M | Show Menubar |
+
 ## Amethyst Shortcuts
 |Shortcut|Descrption|
 |--------|----------|
