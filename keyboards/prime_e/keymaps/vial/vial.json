@@ -1,7 +1,7 @@
 {
   "name": "PRIME_E",
   "vendorId": "0x05AC",
-  "productId": "0x0229",
+  "productId": "0x0220",
   "lighting": "qmk_backlight",
   "matrix": { "rows": 4, "cols": 13 },
   "layouts": {

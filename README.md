@@ -53,10 +53,10 @@ This is a personal project for my own keyboards.
 | Id | Keyboad | Descrption|
 |------|--------|-----------|
 | 0x021d | Bakeneko 60 | Aluminum Mini Keyboard (ANSI) |
-| 0x0220 | Ciel 60 | Aluminum Keyboard (ANSI) |
-| 0x0223 | D60 | Internal Keyboard/Trackpad (ANSI) |
-| 0x0229 | Prime_E | Internal Keyboard/Trackpad (ANSI) |
-| 0x0230 | QK65 | Internal Keyboard/Trackpad (MacBook Pro 4,1) (ANSI) |
+| "      | Ciel 60 | " |
+| "      | D60 | " |
+| 0x0220 | Prime_E | Aluminum Keyboard (ANSI) |
+| 0x024F | QK65 | Aluminium Keyboard (ANSI)<br/>Keychron K seriese uses this ID |
 
 ## References
 - qmk_firmware

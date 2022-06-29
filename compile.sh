@@ -19,8 +19,8 @@ mkdir -p dist
 cd "$QMK_HOME"
 # checkout to revert changes.
 git checkout --recurse-submodules .
-git pull
-make git-submodule
+# git pull
+# make git-submodule
 make clean
 
 # change QMK_HOME directory
