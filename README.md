@@ -15,9 +15,9 @@ This is a personal project for my own keyboards.
 | Fn/Globe + F4 | Open Launchpad |
 | Fn/Globe + F5 |  F5 |
 | Fn/Globe + F6 |  F6 |
-| Fn/Globe + F7 | Medaa track prev |
-| Fn/Globe + F8 | Medaa play/pause |
-| Fn/Globe + F9 | Medaa track next |
+| Fn/Globe + F7 | Media track prev |
+| Fn/Globe + F8 | Media play/pause |
+| Fn/Globe + F9 | Media track next |
 | Fn/Globe + F10 | Mute audio |
 | Fn/Globe + F11 | Increase audio volume|
 | Fn/Globe + F12 | Decrease audio volume|
