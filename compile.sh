@@ -19,8 +19,8 @@ mkdir -p dist
 cd "$QMK_HOME"
 # checkout to revert changes.
 git checkout --recurse-submodules .
-# git pull
-# make git-submodule
+git pull
+make git-submodule
 make clean
 
 # change QMK_HOME directory
@@ -30,6 +30,7 @@ if [ $QMK_HOME != $CURRENT_QMK_HOME ]; then
     qmk --verbose setup -y -H .
 fi
 
+#          KEYMAP    BUILD DATE        QMK/VIA-QMK REVISION
 VERSION="${KEYMAP}_$(date +"%Y%m%d")_$(git rev-parse --short HEAD)"
 
 # Apple Fn/Globe key patch
@@ -56,4 +57,4 @@ qmk compile -j 4 -kb my_keyboards/prime_e/rgb -km $KEYMAP
 mv "$QMK_HOME/my_keyboards_prime_e_rgb_$KEYMAP.hex" prime_e_rgb_$VERSION.hex
 
 qmk compile -j 4 -kb my_keyboards/dz60rgb_wkl/v2_1 -km $KEYMAP
-mv "$QMK_HOME/my_keyboards_dz60rgb_wkl_v2_1_$KEYMAP.bin" dz60rgb_wkl_v2_1_$VERSION.bin
+mv "$QMK_HOME/my_keyboards_dz60rgb_wkl_v2_1_$KEYMAP.bin" d60_hhkb_$VERSION.bin
