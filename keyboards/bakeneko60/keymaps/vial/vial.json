@@ -4,9 +4,9 @@
   "productId": "0x021d",
   "customKeycodes": [
     {
-      "name": "Apple\n🌐",
+      "name": "Apple\nfn🌐",
       "title": "Apple Fn/Globe Key",
-      "shortName": "Apple\n🌐"
+      "shortName": "Apple\nfn🌐"
     }
   ],
   "lighting": "none",

@@ -6,9 +6,9 @@
   "maintainer": "dztech",
   "customKeycodes": [
     {
-      "name": "Apple\n🌐",
+      "name": "Apple\nfn🌐",
       "title": "Apple Fn/Globe Key",
-      "shortName": "Apple\n🌐"
+      "shortName": "Apple\nfn🌐"
     }
   ],
   "layouts": {
