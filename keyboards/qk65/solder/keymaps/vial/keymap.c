@@ -17,6 +17,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include QMK_KEYBOARD_H
 
+enum via_custom_keycodes {
+  APPLE_FN = USER00
+};
+
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
   [0] = LAYOUT_65_ansi_blocker_tsangan_split_bs(
@@ -25,7 +29,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_LBRC, KC_RBRC, KC_BSPC, KC_PGUP,
         KC_LCTL, KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_QUOT,          KC_ENT,  KC_PGDN,
         KC_LSFT,          KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH, KC_RSFT, MO(1),   KC_END,
-        KC_APFN, KC_LALT, KC_LGUI,                            KC_SPC,                    MO(2),                     KC_MPRV, KC_MPLY, KC_MNXT
+        APPLE_FN,KC_LALT, KC_LGUI,                            KC_SPC,                    MO(2),                     KC_MPRV, KC_MPLY, KC_MNXT
     ),
 
   [1] = LAYOUT_65_ansi_blocker_tsangan_split_bs(
@@ -53,3 +57,16 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     )
 
 };
+
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+  switch (keycode) {
+  case APPLE_FN:
+    if (record->event.pressed) {
+      register_code(KC_APFN);
+    } else {
+      unregister_code(KC_APFN);
+    }
+    break;
+  }
+  return true;
+}

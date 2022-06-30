@@ -2,6 +2,13 @@
   "name": "PRIME_E",
   "vendorId": "0x05AC",
   "productId": "0x0220",
+  "customKeycodes": [
+    {
+      "name": "Apple\n🌐",
+      "title": "Apple Fn/Globe Key",
+      "shortName": "Apple\n🌐"
+    }
+  ],
   "lighting": "qmk_backlight",
   "matrix": { "rows": 4, "cols": 13 },
   "layouts": {

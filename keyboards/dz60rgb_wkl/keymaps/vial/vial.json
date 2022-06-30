@@ -4,6 +4,13 @@
   "productId": "0x021D",
   "url": "",
   "maintainer": "dztech",
+  "customKeycodes": [
+    {
+      "name": "Apple\n🌐",
+      "title": "Apple Fn/Globe Key",
+      "shortName": "Apple\n🌐"
+    }
+  ],
   "layouts": {
     "LAYOUT_60_tsangan_hhkb": {
       "layout": [

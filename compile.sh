@@ -2,15 +2,15 @@
 
 # configuration
 
-# QMK_HOME="$HOME/Documents/Sources/vial-qmk"
-# KEYMAP="vial"
-QMK_HOME="$HOME/Documents/Sources/qmk_firmware"
-KEYMAP="via"
+QMK_HOME="$HOME/Documents/Sources/vial-qmk"
+KEYMAP="vial"
+# QMK_HOME="$HOME/Documents/Sources/qmk_firmware"
+# KEYMAP="via"
 
 cd "$(dirname $0)"
 
 if [ -s .config ]; then
-    source .config
+  source .config
 fi
 
 PROJECT=$(pwd)
@@ -27,7 +27,7 @@ make clean
 CURRENT_QMK_HOME=$(qmk config -ro user.qmk_home)
 CURRENT_QMK_HOME=${CURRENT_QMK_HOME/"user.qmk_home="/}
 if [ $QMK_HOME != $CURRENT_QMK_HOME ]; then
-    qmk --verbose setup -y -H .
+  qmk --verbose setup -y -H .
 fi
 
 #          KEYMAP    BUILD DATE        QMK/VIA-QMK REVISION

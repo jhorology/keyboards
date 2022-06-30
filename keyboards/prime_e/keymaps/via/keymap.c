@@ -18,13 +18,17 @@
 #define MO1_SPC LT(1, KC_SPC)
 #define SFT_SPC RSFT_T(KC_SPC)
 
+enum via_custom_keycodes {
+  APPLE_FN = USER00
+};
+
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [0] = LAYOUT
   (
    KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,        KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_BSLS, KC_BSPC,
    KC_LCTL, KC_A,    KC_S,    KC_D,    KC_F,    KC_G,        KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_ENT,
    KC_LSFT, KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,        KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH, KC_RSFT,
-   KC_APFN, KC_LGUI,                   KC_LALT, MO1_SPC,     SFT_SPC, MO(2),                              KC_RGUI,   MO(3)
+   APPLE_FN,KC_LGUI,                   KC_LALT, MO1_SPC,     SFT_SPC, MO(2),                              KC_RGUI,   MO(3)
    ),
 
   [1] = LAYOUT
@@ -74,4 +78,17 @@ layer_state_t layer_state_set_user(layer_state_t state) {
   writePin(B2, (highestLayer & 0x01) != 0);
   writePin(B3, (highestLayer & 0x02) != 0);
   return state;
+}
+
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+  switch (keycode) {
+  case APPLE_FN:
+    if (record->event.pressed) {
+      register_code(KC_APFN);
+    } else {
+      unregister_code(KC_APFN);
+    }
+    break;
+  }
+  return true;
 }
