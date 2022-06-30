@@ -2,9 +2,9 @@
 This is a personal project for my own keyboards.
 
 ## Custom Keycodes
-| Code | Define | Descrption|
-|------|--------|-----------|
-| 0x00BF | KC_APPLE_FN,KC_APFN | Apple Fn/Globe key|
+| Code | Descrption|
+|------|-----------|
+| USER00 | Apple fn/🌐 key |
 
 ## Apple Fn/Globe Shortcuts
 |Shortcut|Descrption|
