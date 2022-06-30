@@ -9,6 +9,7 @@ KEYMAP="vial"
 
 cd "$(dirname $0)"
 
+# .config can override QMK_HOME, KEYMAP
 if [ -s .config ]; then
   source .config
 fi
