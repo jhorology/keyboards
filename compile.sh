@@ -1,15 +1,17 @@
 #!/bin/bash -eu
 
 # configuration
-
 QMK_HOME="$HOME/Documents/Sources/vial-qmk"
 KEYMAP="vial"
 # QMK_HOME="$HOME/Documents/Sources/qmk_firmware"
 # KEYMAP="via"
+QMK_ZQ_HOME="$HOME/Documents/Sources/qmk-zq"
 
+# PROJECT
+# -----------------------------------
 cd "$(dirname $0)"
 
-# .config can override QMK_HOME, KEYMAP
+# .config can override QMK_HOME, KEYMAP, QMK_ZQ_HOME
 if [ -s .config ]; then
   source .config
 fi
@@ -17,6 +19,13 @@ fi
 PROJECT=$(pwd)
 mkdir -p dist
 
+# QMK_ZQ
+# -----------------------------------
+cd "$QMK_ZQ_HOME"
+git pull
+
+# QMK_HOME
+# -----------------------------------
 cd "$QMK_HOME"
 # checkout to revert changes.
 git checkout --recurse-submodules .
@@ -31,8 +40,13 @@ if [ $QMK_HOME != $CURRENT_QMK_HOME ]; then
   qmk --verbose setup -y -H .
 fi
 
-#          KEYMAP    BUILD DATE        QMK/VIA-QMK REVISION
+#          KEYMAP    BUILD DATE        QMK/VIAL-QMK REVISION
 VERSION="${KEYMAP}_$(date +"%Y%m%d")_$(git rev-parse --short HEAD)"
+
+# add suport STM32F103xB UF2 bootloader
+# see https://www.zfrontier.com/app/flow/eMzZjJZRgP6z
+cp -f "$QMK_ZQ_HOME"/platforms/chibios/boards/STM32_F103_STM32DUINO/ld/STM32F103x8_uf2.ld platforms/chibios/boards/STM32_F103_STM32DUINO/ld/
+cp -f "$QMK_ZQ_HOME"/platforms/chibios/boards/STM32_F103_STM32DUINO/ld/STM32F103xB_uf2.ld platforms/chibios/boards/STM32_F103_STM32DUINO/ld/
 
 # Apple Fn/Globe key patch
 # see https://gist.github.com/fauxpark/010dcf5d6377c3a71ac98ce37414c6c4
@@ -43,7 +57,12 @@ if [ ! -L "$QMK_HOME/keyboards/my_keyboards" ]; then
   ln -s "${PROJECT}/keyboards" keyboards/my_keyboards
 fi
 
+# dist
+# -----------------------------------
 cd "$PROJECT/dist"
+
+qmk --verbose compile -j 4 -kb my_keyboards/bakeneko60 -km $KEYMAP
+mv "$QMK_HOME/my_keyboards_bakeneko60_$KEYMAP.hex" bakeneko60_$VERSION.hex
 
 qmk compile -j 4 -kb my_keyboards/bakeneko60 -km $KEYMAP
 mv "$QMK_HOME/my_keyboards_bakeneko60_$KEYMAP.hex" bakeneko60_$VERSION.hex
@@ -59,3 +78,6 @@ mv "$QMK_HOME/my_keyboards_prime_e_rgb_$KEYMAP.hex" prime_e_rgb_$VERSION.hex
 
 qmk compile -j 4 -kb my_keyboards/dz60rgb_wkl/v2_1 -km $KEYMAP
 mv "$QMK_HOME/my_keyboards_dz60rgb_wkl_v2_1_$KEYMAP.bin" d60_hhkb_$VERSION.bin
+
+qmk compile -j 4 -kb my_keyboards/fk680pro_v2 -km $KEYMAP
+mv "$QMK_HOME/my_keyboards_fk680pro_v2_$KEYMAP.uf2" fk680pro_v2_$VERSION.uf2

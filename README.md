@@ -67,6 +67,10 @@ This is a personal project for my own keyboards.
   - [vial-qmk](https://github.com/vial-kb/vial-qmk)
   - [docs](https://get.vial.today/)
 - [VIA](https://www.caniusevia.com/)
+- STM32F103xB UF2 bootloader
+  - [qmk-zq](https://github.com/zhaqian12/qmk_firmware)
+  - [ZQ-Keyboards](https://github.com/zhaqian12/ZQ-Keyboard)
+  - [zfrontier article](https://www.zfrontier.com/app/flow/eMzZjJZRgP6z)
 - Amethyst
   - [git](https://github.com/ianyh/Amethyst)
   - [docs](https://ianyh.com/amethyst)

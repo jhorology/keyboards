@@ -1,11 +1,11 @@
 diff --git a/builddefs/common_features.mk b/builddefs/common_features.mk
-index 08d186d656..2084b728f3 100644
+index c976b8296d..037522f287 100644
 --- a/builddefs/common_features.mk
 +++ b/builddefs/common_features.mk
-@@ -766,6 +766,10 @@ ifeq ($(strip $(JOYSTICK_ENABLE)), yes)
+@@ -773,6 +773,10 @@ ifeq ($(strip $(JOYSTICK_ENABLE)), yes)
      endif
  endif
- 
+
 +ifeq ($(strip $(APPLE_FN_ENABLE)), yes)
 +    OPT_DEFS += -DAPPLE_FN_ENABLE
 +endif
@@ -99,7 +99,7 @@ index 20b3e459d2..4d4e2a8be3 100644
  #define ACTION_USAGE_CONSUMER(id) ACTION(ACT_USAGE, PAGE_CONSUMER << 10 | (id))
 +#define ACTION_APPLE_FN() ACTION(ACT_APPLE_FN, 0)
  #define ACTION_MOUSEKEY(key) ACTION(ACT_MOUSEKEY, key)
- 
+
  /** \brief Layer Actions
 diff --git a/quantum/keycode.h b/quantum/keycode.h
 index 3c80a386d1..c0e0ab6aa6 100644
@@ -110,13 +110,13 @@ index 3c80a386d1..c0e0ab6aa6 100644
  #define IS_SYSTEM(code) (KC_PWR <= (code) && (code) <= KC_WAKE)
  #define IS_CONSUMER(code) (KC_MUTE <= (code) && (code) <= KC_BRID)
 +#define IS_APPLE_FN(code) (KC_APFN == (code))
- 
+
  #define IS_MOUSEKEY(code) (KC_MS_UP <= (code) && (code) <= KC_MS_ACCEL2)
  #define IS_MOUSEKEY_MOVE(code) (KC_MS_UP <= (code) && (code) <= KC_MS_RIGHT)
 @@ -206,6 +207,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  #define KC_BRIU KC_BRIGHTNESS_UP
  #define KC_BRID KC_BRIGHTNESS_DOWN
- 
+
 +/* Apple Fn */
 +#define KC_APFN KC_APPLE_FN
 +
@@ -133,7 +133,7 @@ index 3c80a386d1..c0e0ab6aa6 100644
 +    /* Apple Fn */
 +    KC_APPLE_FN,
  };
- 
+
  enum mouse_keys {
 diff --git a/quantum/keymap_common.c b/quantum/keymap_common.c
 index a91b2a0b36..e400376a1d 100644
