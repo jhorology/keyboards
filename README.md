@@ -57,6 +57,7 @@ This is a personal project for my own keyboards.
 | "      | D60 | " |
 | 0x0220 | Prime_E | Aluminum Keyboard (ANSI) |
 | 0x024F | QK65 | Aluminium Keyboard (ANSI)<br/>Keychron K seriese uses this ID |
+| "      | FK680Pro V2 | " |
 
 ## References
 - qmk_firmware
