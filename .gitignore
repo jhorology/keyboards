@@ -1,4 +1,5 @@
 dist/
+.config
 .DS_Store
 *~
 .\#*
@@ -6,4 +7,3 @@ dist/
 *.hex
 *.bin
 *.log
-.config

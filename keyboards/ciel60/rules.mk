@@ -16,5 +16,10 @@ NKRO_ENABLE = no            # Enable N-Key Rollover
 BACKLIGHT_ENABLE = no       # Enable keyboard backlight functionality
 RGBLIGHT_ENABLE = no        # Enable keyboard RGB underglow
 AUDIO_ENABLE = no           # Audio output
+LTO_ENABLE = yes            # Link time optimization
+# Apple Fn/Globe key patch
+# see https://gist.github.com/fauxpark/010dcf5d6377c3a71ac98ce37414c6c4
+NKRO_ENABLE = no
+APPLE_FN_ENABLE = yes
 
 LAYOUTS = 60_ansi_split_bs_rshift 60_ansi 60_tsangan_hhkb
