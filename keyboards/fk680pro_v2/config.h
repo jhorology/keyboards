@@ -112,23 +112,14 @@
 #define LOCKING_SUPPORT_ENABLE
 #define LOCKING_RESYNC_ENABLE
 
-// #define FORCE_NKRO
-
 #ifdef RGB_MATRIX_ENABLE
-// TODO pin remap is needed, TIM2_CH1 -> PA15/
-// how to override chibios initialization?
-// http://forum.chibios.org/viewtopic.php?t=1885
-// https://community.st.com/s/question/0D50X00009XkZipSAF/stm32f103-pa15-as-gpio
-// https://community.st.com/s/question/0D50X00009XkbxeSAB/can-tim2ch1-not-etr-be-remapped-to-pa15-or-anywhere
-// https://electronics.stackexchange.com/questions/566770/pa15-doesnt-work-as-gpio-even-after-enabling-gpio-remap-swj-jtagdisable
-// https://github.com/libopencm3/libopencm3/issues/1187
-// https://www.stm32duino.com/viewtopic.php?t=713
+// TIM2_CH1 is remmaped PA15 by board_init()
 #define RGB_DI_PIN A15
 #define RGBLED_NUM 110  //  matrix 70 + underglow 40
 #define DRIVER_LED_TOTAL RGBLED_NUM
 #define WS2812_PWM_DRIVER PWMD2
 #define WS2812_PWM_CHANNEL 1
-#define WS2812_PWM_PAL_MODE 1                 // PA15->TIM2_CH1 1:TIM2_CH1_ETR 2:PA15 3:SPI1_NSS
+// #define WS2812_PWM_PAL_MODE 1              // TIM2_CH1 0:TIM2_CH1_ETR 1:PA15 2:SPI1_NSS
 #define WS2812_DMA_STREAM STM32_DMA1_STREAM2  // DMA Stream for TIMx_UP, see the respective reference manual for the appropriate values for your MCU.
 #define WS2812_DMA_CHANNEL 2
 

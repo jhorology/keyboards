@@ -70,7 +70,7 @@ led_config_t g_led_config = {
   {
     // key matrix
     // key matrix south to north
-    4,4,4, 0, 4, 0,   4,4,4,4,4,4,
+    4,4,4, 4, 4, 4,   4,4,4,4,4,4,
     4,4,4,4,4,4,4,4,4,4,4,  4,4,4,
     4,4,4,4,4,4,4,4,4,4,4,4,  4,4,
     4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
@@ -90,6 +90,16 @@ led_config_t g_led_config = {
     2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
   }
 };
+#endif
+
+#if defined(RGB_MATRIX_ENABLE) || defined(RGBLIGHT_ENABLE)
+void board_init(void) {
+  // TIM2 remap PA15, PB3, PA2,PA3
+  AFIO->MAPR = (AFIO->MAPR & ~AFIO_MAPR_TIM2_REMAP) | AFIO_MAPR_TIM2_REMAP_0;
+
+  //JTAG-DP Disabled and SW-DP Enabled
+  AFIO->MAPR = (AFIO->MAPR & ~AFIO_MAPR_SWJ_CFG) | AFIO_MAPR_SWJ_CFG_JTAGDISABLE;
+}
 #endif
 
 #ifdef RGB_DISABLE_WHEN_USB_SUSPENDED

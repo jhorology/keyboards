@@ -19,8 +19,7 @@ BACKLIGHT_ENABLE = no          # Enable keyboard backlight functionality
 RGBLIGHT_ENABLE = no           # Enable keyboard RGB underglow
 AUDIO_ENABLE = no              # Audio output
 SLEEP_LED_ENABLE = no
-# TODO  To enable RGB LED, pin remap is needed, TIM2_CH1 -> PA15
-RGB_MATRIX_ENABLE = no        # Use RGB matrix
+RGB_MATRIX_ENABLE = yes        # Use RGB matrix
 RGB_MATRIX_DRIVER = WS2812
 WS2812_DRIVER = pwm
 LTO_ENABLE = yes               # Link time optimization
