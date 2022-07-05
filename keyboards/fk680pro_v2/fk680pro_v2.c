@@ -19,6 +19,16 @@
 
 #ifdef RGB_MATRIX_ENABLE
 #define xx NO_LED
+
+typedef union {
+  uint32_t raw;
+  struct {
+    uint8_t  rgb_led_mode :3;
+  };
+} user_config_t;
+user_config_t user_config;
+
+
 led_config_t g_led_config = {
   // Key Matrix to LED Index
   {
@@ -92,7 +102,29 @@ led_config_t g_led_config = {
 };
 #endif
 
-#if defined(RGB_MATRIX_ENABLE) || defined(RGBLIGHT_ENABLE)
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+  switch (keycode) {
+#ifdef APPLE_FN_ENABLE
+  case APPLE_FN:
+    if (record->event.pressed) {
+      register_code(KC_APFN);
+    } else {
+      unregister_code(KC_APFN);
+    }
+    break;
+#endif
+#ifdef RGB_MATRIX_ENABLE
+  case RGB_CYMD:
+    if (record->event.pressed) {
+      update_rgb_matrix_flags((user_config.rgb_led_mode + 1) & 0x03);
+    }
+    break;
+  }
+#endif
+  return true;
+}
+
+#ifdef RGB_MATRIX_ENABLE
 void board_init(void) {
   // TIM2 remap PA15, PB3, PA2,PA3
   AFIO->MAPR = (AFIO->MAPR & ~AFIO_MAPR_TIM2_REMAP) | AFIO_MAPR_TIM2_REMAP_0;
@@ -100,7 +132,11 @@ void board_init(void) {
   //JTAG-DP Disabled and SW-DP Enabled
   AFIO->MAPR = (AFIO->MAPR & ~AFIO_MAPR_SWJ_CFG) | AFIO_MAPR_SWJ_CFG_JTAGDISABLE;
 }
-#endif
+
+void keyboard_post_init_kb(void) {
+  user_config.raw = eeconfig_read_user();
+  update_rgb_matrix_flags(user_config.rgb_led_mode);
+}
 
 #ifdef RGB_DISABLE_WHEN_USB_SUSPENDED
 void suspend_power_down_kb(void) {
@@ -111,5 +147,20 @@ void suspend_power_down_kb(void) {
 void suspend_wakeup_init_kb(void) {
   rgb_matrix_set_suspend_state(false);
   suspend_wakeup_init_user();
+}
+#endif
+
+void update_rgb_matrix_flags(uint8_t mode) {
+  led_flags_t flags = LED_FLAG_NONE;
+  flags |= (mode & 0x01) ? LED_FLAG_KEYLIGHT : 0;
+  flags |= (mode & 0x02) ? LED_FLAG_UNDERGLOW : 0;
+  rgb_matrix_set_flags(flags);
+  if (mode != 3) {
+    rgb_matrix_set_color_all(0, 0, 0);
+  }
+  if (mode != user_config.rgb_led_mode) {
+    user_config.rgb_led_mode = mode;
+    eeconfig_update_user(user_config.raw);
+  }
 }
 #endif

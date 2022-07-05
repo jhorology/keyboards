@@ -31,3 +31,21 @@
 	{ K300,  K301,  K302,  K303,  K304,  K305,  K306,  K307,  K308,  K309,  K310,  KC_NO, K312,  K313,  K314 }, \
 	{ K400,  K401,  K402,  KC_NO, KC_NO, K405,  KC_NO, KC_NO, KC_NO, K409,  K410,  K411,  K412,  K413,  K414 } \
 }
+
+
+// custom keycodes
+
+// cycle through on/off mode
+// all off -> keylight on -> underglow on -> both on
+#define RGB_CYMD USER00
+
+#ifdef APPLE_FN_ENABLE
+#define APPLE_FN USER01
+#else
+#define APPLE_FN KC_RALT
+#endif
+
+
+#ifdef RGB_MATRIX_ENABLE
+void update_rgb_matrix_flags(uint8_t mode);
+#endif

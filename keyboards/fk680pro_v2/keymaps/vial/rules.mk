@@ -6,6 +6,8 @@ QMK_SETTINGS = no
 # see https://get.vial.today/docs/firmware-size.htmlhttps://get.vial.today/docs/firmware-size.html
 # MOUSEKEY_ENABLE = no          # Mouse keys
 # TAP_DANCE_ENABLE = no
-# COMBO_ENABLE = no
-# KEY_OVERRIDE_ENABLE = no
-RGB_MATRIX_ENABLE = no        # Use RGB matrix
+COMBO_ENABLE = no
+KEY_OVERRIDE_ENABLE = no
+# RGB_MATRIX_ENABLE = no        # Use RGB matrix
+USE_PROCESS_STACKSIZE = 0x0400
+USE_EXCEPTIONS_STACKSIZE = 0x0200

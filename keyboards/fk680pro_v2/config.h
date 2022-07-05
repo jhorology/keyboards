@@ -94,7 +94,7 @@
   #define PRODUCT_ID      0xAA0F
 #endif
 #define DEVICE_VER      0x0001
-#define MANUFACTURER    ZhaQian
+#define MANUFACTURER    Epomaker
 #define PRODUCT         FK680ProV2
 
 
@@ -119,7 +119,6 @@
 #define DRIVER_LED_TOTAL RGBLED_NUM
 #define WS2812_PWM_DRIVER PWMD2
 #define WS2812_PWM_CHANNEL 1
-// #define WS2812_PWM_PAL_MODE 1              // TIM2_CH1 0:TIM2_CH1_ETR 1:PA15 2:SPI1_NSS
 #define WS2812_DMA_STREAM STM32_DMA1_STREAM2  // DMA Stream for TIMx_UP, see the respective reference manual for the appropriate values for your MCU.
 #define WS2812_DMA_CHANNEL 2
 
@@ -132,8 +131,9 @@
 
 #define RGB_MATRIX_FRAMEBUFFER_EFFECTS
 #define RGB_MATRIX_KEYPRESSES
-#define RGB_MATRIX_KEYRELEASES
+// #define RGB_MATRIX_KEYRELEASES
 
+#ifndef VIA_ENABLE
 #define ENABLE_RGB_MATRIX_ALPHAS_MODS               // Static dual hue, speed is hue for secondary hue
 #define ENABLE_RGB_MATRIX_GRADIENT_UP_DOWN          // Static gradient top to bottom, speed controls how much gradient changes
 #define ENABLE_RGB_MATRIX_GRADIENT_LEFT_RIGHT       // Static gradient left to right, speed controls how much gradient changes
@@ -163,10 +163,13 @@
 #define ENABLE_RGB_MATRIX_PIXEL_FRACTAL             // Single hue fractal filled keys pulsing horizontally out to edges
 #define ENABLE_RGB_MATRIX_PIXEL_FLOW                // Pulsing RGB flow along LED wiring with random hues
 #define ENABLE_RGB_MATRIX_PIXEL_RAIN                // Randomly light keys with random hues#define ENABLE_RGB_MATRIX_ALPHAS_MODS
+#endif
 
 #ifdef RGB_MATRIX_FRAMEBUFFER_EFFECTS
 #define ENABLE_RGB_MATRIX_TYPING_HEATMAP            // How hot is your WPM!
+#ifndef VIA_ENABLE
 #define ENABLE_RGB_MATRIX_DIGITAL_RAIN              // That famous computer simulation
+#endif
 #endif
 
 #if defined(RGB_MATRIX_KEYPRESSES) || defined(RGB_MATRIX_KEYRELEASES)

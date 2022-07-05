@@ -15,10 +15,6 @@
  */
 #include QMK_KEYBOARD_H
 
-enum via_custom_keycodes {
-  APPLE_FN = USER00
-};
-
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 	[0] = LAYOUT
@@ -41,7 +37,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   (
    _______, KC_F13,   KC_F14, KC_F15,  KC_F16,  KC_F17,  KC_F18,  KC_F19,  KC_F20,  KC_F21,  KC_F22,  KC_F23,  KC_F24,  _______, RESET,
    _______, _______, _______, _______, _______, _______, _______, _______, KC_F16,  KC_F17,  KC_F18,  _______, _______, _______, _______,
-   _______, RGB_TOG, RGB_VAI, RGB_SPI, RGB_HUI, RGB_SAI, _______, _______, _______, _______, _______, _______,          _______, _______,
+   _______, RGB_CYMD,RGB_VAI, RGB_SPI, RGB_HUI, RGB_SAI, _______, _______, _______, _______, _______, _______,          _______, _______,
    _______, RGB_MOD, RGB_VAD, RGB_SPD, RGB_HUD, RGB_SAD, _______, _______, _______, _______, _______,          _______, _______, _______,
    _______, _______, _______,                   _______,                            _______, _______, _______, _______, _______, _______
    ),
@@ -54,16 +50,3 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
    _______, _______, _______,                   _______,                            _______, _______, _______, _______, _______, _______
    )
 };
-
-bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-  switch (keycode) {
-  case APPLE_FN:
-    if (record->event.pressed) {
-      register_code(KC_APFN);
-    } else {
-      unregister_code(KC_APFN);
-    }
-    break;
-  }
-  return true;
-}
