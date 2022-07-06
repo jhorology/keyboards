@@ -1,5 +1,4 @@
-/* Copyright 2022 ZhaQian
- * Modified 2022 by jhorology
+/* Copyright 2022 jhorology
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,14 +19,7 @@
 #ifdef RGB_MATRIX_ENABLE
 #define xx NO_LED
 
-typedef union {
-  uint32_t raw;
-  struct {
-    uint8_t  rgb_led_mode :3;
-  };
-} user_config_t;
-user_config_t user_config;
-
+user_config_t g_user_config;
 
 led_config_t g_led_config = {
   // Key Matrix to LED Index
@@ -102,6 +94,7 @@ led_config_t g_led_config = {
 };
 #endif
 
+__attribute__ ((weak))
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
 #ifdef APPLE_FN_ENABLE
@@ -116,7 +109,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 #ifdef RGB_MATRIX_ENABLE
   case RGB_CYMD:
     if (record->event.pressed) {
-      update_rgb_matrix_flags((user_config.rgb_led_mode + 1) & 0x03);
+      update_rgb_matrix_flags((g_user_config.rgb_led_mode + 1) & 0x03);
     }
     break;
   }
@@ -125,25 +118,30 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 }
 
 #ifdef RGB_MATRIX_ENABLE
+__attribute__ ((weak))
 void board_init(void) {
-  // TIM2 remap PA15, PB3, PA2,PA3
-  AFIO->MAPR = (AFIO->MAPR & ~AFIO_MAPR_TIM2_REMAP) | AFIO_MAPR_TIM2_REMAP_0;
-
-  //JTAG-DP Disabled and SW-DP Enabled
-  AFIO->MAPR = (AFIO->MAPR & ~AFIO_MAPR_SWJ_CFG) | AFIO_MAPR_SWJ_CFG_JTAGDISABLE;
+  // JTAG-DP Disabled and SW-DP Enabled
+  // TIM2 remap PA15, PB3, PA2, PA3
+  // FK680ProV2 use PA15 as PWM for WS2812 LEDs
+  AFIO->MAPR = (AFIO->MAPR & ~(AFIO_MAPR_SWJ_CFG | AFIO_MAPR_TIM2_REMAP))
+    | AFIO_MAPR_SWJ_CFG_JTAGDISABLE
+    | AFIO_MAPR_TIM2_REMAP_0;
 }
 
+__attribute__ ((weak))
 void keyboard_post_init_kb(void) {
-  user_config.raw = eeconfig_read_user();
-  update_rgb_matrix_flags(user_config.rgb_led_mode);
+  g_user_config.raw = eeconfig_read_user();
+  update_rgb_matrix_flags(g_user_config.rgb_led_mode);
 }
 
 #ifdef RGB_DISABLE_WHEN_USB_SUSPENDED
+__attribute__ ((weak))
 void suspend_power_down_kb(void) {
   rgb_matrix_set_suspend_state(true);
   suspend_power_down_user();
 }
 
+__attribute__ ((weak))
 void suspend_wakeup_init_kb(void) {
   rgb_matrix_set_suspend_state(false);
   suspend_wakeup_init_user();
@@ -158,9 +156,9 @@ void update_rgb_matrix_flags(uint8_t mode) {
   if (mode != 3) {
     rgb_matrix_set_color_all(0, 0, 0);
   }
-  if (mode != user_config.rgb_led_mode) {
-    user_config.rgb_led_mode = mode;
-    eeconfig_update_user(user_config.raw);
+  if (mode != g_user_config.rgb_led_mode) {
+    g_user_config.rgb_led_mode = mode;
+    eeconfig_update_user(g_user_config.raw);
   }
 }
 #endif

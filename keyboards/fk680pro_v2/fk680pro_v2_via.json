@@ -5,7 +5,7 @@
   "customKeycodes": [
     {
       "name": "RGB\non/off",
-      "title": "Cycle through RGB on/off mode",
+      "title": "Cycle through RGB on/off modes",
       "shortName": "RGB\non/off"
     },
     {

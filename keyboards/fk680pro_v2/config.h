@@ -1,5 +1,4 @@
-/* Copyright 2022 ZhaQian
- * Modified 2022 by jhorology
+/* Copyright 2022 jhorology
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -133,7 +132,6 @@
 #define RGB_MATRIX_KEYPRESSES
 // #define RGB_MATRIX_KEYRELEASES
 
-#ifndef VIA_ENABLE
 #define ENABLE_RGB_MATRIX_ALPHAS_MODS               // Static dual hue, speed is hue for secondary hue
 #define ENABLE_RGB_MATRIX_GRADIENT_UP_DOWN          // Static gradient top to bottom, speed controls how much gradient changes
 #define ENABLE_RGB_MATRIX_GRADIENT_LEFT_RIGHT       // Static gradient left to right, speed controls how much gradient changes
@@ -160,6 +158,8 @@
 #define ENABLE_RGB_MATRIX_HUE_BREATHING             // Hue shifts up a slight ammount at the same time, then shifts back
 #define ENABLE_RGB_MATRIX_HUE_PENDULUM              // Hue shifts up a slight ammount in a wave to the right, then back to the left
 #define ENABLE_RGB_MATRIX_HUE_WAVE                  // Hue shifts up a slight ammount and then back down in a wave to the right
+// reducing RAM usage for VIAL
+#ifndef VIAL_ENABLE
 #define ENABLE_RGB_MATRIX_PIXEL_FRACTAL             // Single hue fractal filled keys pulsing horizontally out to edges
 #define ENABLE_RGB_MATRIX_PIXEL_FLOW                // Pulsing RGB flow along LED wiring with random hues
 #define ENABLE_RGB_MATRIX_PIXEL_RAIN                // Randomly light keys with random hues#define ENABLE_RGB_MATRIX_ALPHAS_MODS
@@ -167,11 +167,10 @@
 
 #ifdef RGB_MATRIX_FRAMEBUFFER_EFFECTS
 #define ENABLE_RGB_MATRIX_TYPING_HEATMAP            // How hot is your WPM!
-#ifndef VIA_ENABLE
+// reducing RAM usage for VIAL
+#ifndef VIAL_ENABLE
 #define ENABLE_RGB_MATRIX_DIGITAL_RAIN              // That famous computer simulation
 #endif
-#endif
-
 #if defined(RGB_MATRIX_KEYPRESSES) || defined(RGB_MATRIX_KEYRELEASES)
 #define ENABLE_RGB_MATRIX_SOLID_REACTIVE_SIMPLE     // Pulses keys hit to hue & value then fades value out
 #define ENABLE_RGB_MATRIX_SOLID_REACTIVE            // Static single hue, pulses keys hit to shifted hue then fades to current hue
@@ -185,6 +184,7 @@
 #define ENABLE_RGB_MATRIX_MULTISPLASH               // Full gradient & value pulse away from multiple key hits then fades value out
 #define ENABLE_RGB_MATRIX_SOLID_SPLASH              // Hue & value pulse away from a single key hit then fades value out
 #define ENABLE_RGB_MATRIX_SOLID_MULTISPLASH         // Hue & value pulse away from multiple key hits then fades value out
+#endif
 #endif
 
 #endif
