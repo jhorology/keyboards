@@ -18,5 +18,3 @@ LTO_ENABLE = yes           # Link time optimization
 # see https://gist.github.com/fauxpark/010dcf5d6377c3a71ac98ce37414c6c4
 NKRO_ENABLE = no
 APPLE_FN_ENABLE = yes
-
-DEFAULT_FOLDER = primekb/prime_e/std

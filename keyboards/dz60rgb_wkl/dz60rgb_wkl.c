@@ -142,7 +142,7 @@ __attribute__((weak)) void rgb_matrix_indicators_user(void) {
 }
 #endif
 
-#ifdef APPLE_FN_ENABLED
+#ifdef APPLE_FN_ENABLE
 __attribute__((weak)) bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
         case APPLE_FN:

@@ -1,5 +1,6 @@
 /*
   Copyright 2019 Holten Campbell
+  Modified 2922 jhorology
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -88,12 +89,12 @@
   029a  Magic Keyboard with Touch ID (ANSI)                 ---> that I own
 */
 #ifdef APPLE_FN_ENABLE
-  #define PRODUCT_ID   0x0220
+#    define PRODUCT_ID 0x0220
 #else
-  #define PRODUCT_ID   0x0052
+#    define PRODUCT_ID 0x0052
 #endif
-#define DEVICE_VER     0x0001
-#define PRODUCT        Prime_E RGB
+#define DEVICE_VER 0x0001
+#define PRODUCT Prime_E RGB
 
 #define RGB_DI_PIN B7
 #define RGBLED_NUM 8

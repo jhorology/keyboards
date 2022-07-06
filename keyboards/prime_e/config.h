@@ -1,5 +1,6 @@
 /*
 Copyright 2019 Holten Campbell
+Modified 2922 jhorology
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -27,19 +28,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 #ifdef APPLE_FN_ENABLE
-  #define VENDOR_ID    0x05AC
+#    define VENDOR_ID 0x05AC
 #else
-  #define VENDOR_ID    0x5052
+#    define VENDOR_ID 0x5052
 #endif
-#define MANUFACTURER    PrimeKB
+#define MANUFACTURER PrimeKB
 
 /* key matrix size */
 #define MATRIX_ROWS 4
 #define MATRIX_COLS 13
 
 /* Keyboard Matrix Assignments */
-#define MATRIX_ROW_PINS { E6, C7, B5, B4 }
-#define MATRIX_COL_PINS { F0, F1, F4, F5, F6, F7, D6, D4, D5, D3, D2, D1, D0 }
+#define MATRIX_ROW_PINS \
+    { E6, C7, B5, B4 }
+#define MATRIX_COL_PINS \
+    { F0, F1, F4, F5, F6, F7, D6, D4, D5, D3, D2, D1, D0 }
 
 /* COL2ROW, ROW2COL */
 #define DIODE_DIRECTION COL2ROW

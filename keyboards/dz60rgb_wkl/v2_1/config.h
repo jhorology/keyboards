@@ -92,8 +92,8 @@
 #    define PRODUCT_ID 0x1321
 #endif
 #define DEVICE_VER 0x0003
-#define MANUFACTURER DZTECH
-#define PRODUCT DZ60RGB_WKL
+#define MANUFACTURER KBDfans
+#define PRODUCT D60 HHKB
 
 /* key matrix size */
 #define MATRIX_ROWS 5
@@ -155,9 +155,11 @@
 #        define ENABLE_RGB_MATRIX_HUE_BREATHING          // Hue shifts up a slight ammount at the same time, then shifts back
 #        define ENABLE_RGB_MATRIX_HUE_PENDULUM           // Hue shifts up a slight ammount in a wave to the right, then back to the left
 #        define ENABLE_RGB_MATRIX_HUE_WAVE               // Hue shifts up a slight ammount and then back down in a wave to the right
-#        define ENABLE_RGB_MATRIX_PIXEL_FRACTAL          // Single hue fractal filled keys pulsing horizontally out to edges
-#        define ENABLE_RGB_MATRIX_PIXEL_FLOW             // Pulsing RGB flow along LED wiring with random hues
-#        define ENABLE_RGB_MATRIX_PIXEL_RAIN             // Randomly light keys with random hues#define ENABLE_RGB_MATRIX_ALPHAS_MODS
+#        ifndef VIA_ENABLE
+#            define ENABLE_RGB_MATRIX_PIXEL_FRACTAL // Single hue fractal filled keys pulsing horizontally out to edges
+#            define ENABLE_RGB_MATRIX_PIXEL_FLOW    // Pulsing RGB flow along LED wiring with random hues
+#            define ENABLE_RGB_MATRIX_PIXEL_RAIN    // Randomly light keys with random hues#define ENABLE_RGB_MATRIX_ALPHAS_MODS
+#        endif
 #    endif
 
 #    ifdef RGB_MATRIX_FRAMEBUFFER_EFFECTS
@@ -178,10 +180,8 @@
 #        define ENABLE_RGB_MATRIX_SOLID_REACTIVE_MULTINEXUS // Hue & value pulse away on the same column and row of multiple key hits then fades value out
 #        define ENABLE_RGB_MATRIX_SPLASH                    // Full gradient & value pulse away from a single key hit then fades value out
 #        ifndef VIAL_ENABLE
-#            define ENABLE_RGB_MATRIX_MULTISPLASH // Full gradient & value pulse away from multiple key hits then fades value out
-#        endif                                    //
-#        define ENABLE_RGB_MATRIX_SOLID_SPLASH    // Hue & value pulse away from a single key hit then fades value out
-#        ifndef VIAL_ENABLE
+#            define ENABLE_RGB_MATRIX_MULTISPLASH       // Full gradient & value pulse away from multiple key hits then fades value out
+#            define ENABLE_RGB_MATRIX_SOLID_SPLASH      // Hue & value pulse away from a single key hit then fades value out
 #            define ENABLE_RGB_MATRIX_SOLID_MULTISPLASH // Hue & value pulse away from multiple key hits then fades value out
 #        endif
 #    endif

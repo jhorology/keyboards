@@ -17,10 +17,11 @@
 #include "fk680pro_v2.h"
 
 #ifdef RGB_MATRIX_ENABLE
-#define xx NO_LED
+#    define xx NO_LED
 
 user_config_t g_user_config;
 
+// clang-format off
 led_config_t g_led_config = {
   // Key Matrix to LED Index
   {
@@ -92,73 +93,73 @@ led_config_t g_led_config = {
     2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
   }
 };
+// clang-format on
 #endif
 
-__attribute__ ((weak))
-bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-  switch (keycode) {
+__attribute__((weak)) bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    switch (keycode) {
 #ifdef APPLE_FN_ENABLE
-  case APPLE_FN:
+        case APPLE_FN:
+            process_apple_fn(keycode, record);
+            break;
+#endif
+#ifdef RGB_MATRIX_ENABLE
+        case RGB_CYMD:
+            if (record->event.pressed) {
+                update_rgb_matrix_flags((g_user_config.rgb_led_mode + 1) & 0x03);
+            }
+            break;
+    }
+#endif
+    return true;
+}
+
+#ifdef APPLE_FN_ENABLE
+void process_apple_fn(uint16_t keycode, keyrecord_t *record) {
     if (record->event.pressed) {
-      register_code(KC_APFN);
+        register_code(KC_APFN);
     } else {
-      unregister_code(KC_APFN);
+        unregister_code(KC_APFN);
     }
-    break;
-#endif
-#ifdef RGB_MATRIX_ENABLE
-  case RGB_CYMD:
-    if (record->event.pressed) {
-      update_rgb_matrix_flags((g_user_config.rgb_led_mode + 1) & 0x03);
-    }
-    break;
-  }
-#endif
-  return true;
 }
+#endif
 
 #ifdef RGB_MATRIX_ENABLE
-__attribute__ ((weak))
-void board_init(void) {
-  // JTAG-DP Disabled and SW-DP Enabled
-  // TIM2 remap PA15, PB3, PA2, PA3
-  // FK680ProV2 use PA15 as PWM for WS2812 LEDs
-  AFIO->MAPR = (AFIO->MAPR & ~(AFIO_MAPR_SWJ_CFG | AFIO_MAPR_TIM2_REMAP))
-    | AFIO_MAPR_SWJ_CFG_JTAGDISABLE
-    | AFIO_MAPR_TIM2_REMAP_0;
+__attribute__((weak)) void board_init(void) {
+    // JTAG-DP Disabled and SW-DP Enabled
+    // TIM2 remap PA15, PB3, PA2, PA3
+    // FK680ProV2 use PA15 as PWM for WS2812 LEDs
+    AFIO->MAPR = (AFIO->MAPR & ~(AFIO_MAPR_SWJ_CFG | AFIO_MAPR_TIM2_REMAP)) | AFIO_MAPR_SWJ_CFG_JTAGDISABLE | AFIO_MAPR_TIM2_REMAP_0;
 }
 
-__attribute__ ((weak))
-void keyboard_post_init_kb(void) {
-  g_user_config.raw = eeconfig_read_user();
-  update_rgb_matrix_flags(g_user_config.rgb_led_mode);
+__attribute__((weak)) void keyboard_post_init_kb(void) {
+    g_user_config.raw = eeconfig_read_user();
+    update_rgb_matrix_flags(g_user_config.rgb_led_mode);
 }
 
-#ifdef RGB_DISABLE_WHEN_USB_SUSPENDED
-__attribute__ ((weak))
-void suspend_power_down_kb(void) {
-  rgb_matrix_set_suspend_state(true);
-  suspend_power_down_user();
+#    ifdef RGB_DISABLE_WHEN_USB_SUSPENDED
+__attribute__((weak)) void suspend_power_down_kb(void) {
+    rgb_matrix_set_suspend_state(true);
+    suspend_power_down_user();
 }
 
-__attribute__ ((weak))
-void suspend_wakeup_init_kb(void) {
-  rgb_matrix_set_suspend_state(false);
-  suspend_wakeup_init_user();
+__attribute__((weak)) void suspend_wakeup_init_kb(void) {
+    rgb_matrix_set_suspend_state(false);
+    suspend_wakeup_init_user();
 }
-#endif
+#    endif
 
 void update_rgb_matrix_flags(uint8_t mode) {
-  led_flags_t flags = LED_FLAG_NONE;
-  flags |= (mode & 0x01) ? LED_FLAG_KEYLIGHT : 0;
-  flags |= (mode & 0x02) ? LED_FLAG_UNDERGLOW : 0;
-  rgb_matrix_set_flags(flags);
-  if (mode != 3) {
-    rgb_matrix_set_color_all(0, 0, 0);
-  }
-  if (mode != g_user_config.rgb_led_mode) {
-    g_user_config.rgb_led_mode = mode;
-    eeconfig_update_user(g_user_config.raw);
-  }
+    led_flags_t flags = LED_FLAG_NONE;
+    flags |= (mode & 0x01) ? LED_FLAG_KEYLIGHT : 0;
+    flags |= (mode & 0x02) ? LED_FLAG_UNDERGLOW : 0;
+    rgb_matrix_set_flags(flags);
+    if (mode != 3) {
+        rgb_matrix_set_color_all(0, 0, 0);
+    }
+    if (mode != g_user_config.rgb_led_mode) {
+        g_user_config.rgb_led_mode = mode;
+        eeconfig_update_user(g_user_config.raw);
+    }
 }
 #endif

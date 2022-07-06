@@ -32,16 +32,12 @@
   { K30, K31, K32, K33, K34, K35, K36, K37, K38, K39, K3A, K3B, XXX, K3D }, \
   { K40, K41, K42, XXX, XXX, K45, XXX, XXX, XXX, XXX, K4A, K4B, XXX, K4D } \
 }
-
 // clang-format on
 
-#define LAYOUT_HHKB LAYOUT_60_hhkb LAYOUT_60_tsangan
-
 // VIA custom keycodes
-#ifdef APPLE_FN_ENABLED
+#ifdef APPLE_FN_ENABLE
 #    define APPLE_FN USER00
 void process_apple_fn(uint16_t keycode, keyrecord_t *record);
 #else
-// remap Right Alt to Apple Fn via karabiner-elements
 #    define APPLE_FN KC_RALT
 #endif

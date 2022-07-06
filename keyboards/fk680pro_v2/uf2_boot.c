@@ -22,8 +22,8 @@
 #define MAGIC_REG *(volatile uint32_t*)0x20004000
 
 void bootloader_jump(void) {
-  MAGIC_REG = MAGIC_BOOT;
-  NVIC_SystemReset();
+    MAGIC_REG = MAGIC_BOOT;
+    NVIC_SystemReset();
 }
 
 void enter_bootloader_mode_if_requested(void) {}
