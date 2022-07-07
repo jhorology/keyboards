@@ -1,6 +1,7 @@
 #pragma once
 
 #include "quantum.h"
+#include "lib/apple_fn.h"
 
 #define XXX KC_NO
 
@@ -33,11 +34,3 @@
   { K40, K41, K42, XXX, XXX, K45, XXX, XXX, XXX, XXX, K4A, K4B, XXX, K4D } \
 }
 // clang-format on
-
-// VIA custom keycodes
-#ifdef APPLE_FN_ENABLE
-#    define APPLE_FN USER00
-void process_apple_fn(uint16_t keycode, keyrecord_t *record);
-#else
-#    define APPLE_FN KC_RALT
-#endif

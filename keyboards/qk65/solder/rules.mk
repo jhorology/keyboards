@@ -22,4 +22,4 @@ LTO_ENABLE = yes
 NKRO_ENABLE = no
 APPLE_FN_ENABLE = yes
 
-LAYOUTS = 65_ansi_blocker 65_ansi_blocker_split_bs 65_ansi_blocker_tsangan 65_iso_blocker 65_iso_blocker_split_bs
+SRC += lib/apple_fn.c

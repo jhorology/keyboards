@@ -39,22 +39,3 @@ layer_state_t layer_state_set_user(layer_state_t state) {
     writePin(B3, (highestLayer & 0x02) != 0);
     return state;
 }
-
-#ifdef APPLE_FN_ENABLE
-__attribute__((weak)) bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-    switch (keycode) {
-        case APPLE_FN:
-            process_apple_fn(keycode, record);
-            break;
-    }
-    return true;
-}
-
-void process_apple_fn(uint16_t keycode, keyrecord_t *record) {
-    if (record->event.pressed) {
-        register_code(KC_APFN);
-    } else {
-        unregister_code(KC_APFN);
-    }
-}
-#endif

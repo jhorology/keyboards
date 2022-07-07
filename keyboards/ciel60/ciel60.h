@@ -17,6 +17,7 @@
 #pragma once
 
 #include "quantum.h"
+#include "lib/apple_fn.h"
 
 // clang-format off
 #define LAYOUT_60_ansi_split_bs_rshift( \
@@ -61,11 +62,3 @@
   { k400,  k401,  k402,  KC_NO, KC_NO, KC_NO, KC_NO, k407,  KC_NO, KC_NO, KC_NO, k411,  KC_NO, k413,  k414 } \
 }
 // clang-format on
-
-// VIA custom keycodes
-#ifdef APPLE_FN_ENABLE
-#    define APPLE_FN USER00
-void process_apple_fn(uint16_t keycode, keyrecord_t *record);
-#else
-#    define APPLE_FN KC_RALT
-#endif

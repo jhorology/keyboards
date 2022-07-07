@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include "quantum.h"
+#include "lib/apple_fn.h"
 
 #define ___ KC_NO
 
@@ -165,11 +166,3 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   { K40, K41, K42, ___, K44, ___, ___, ___, K48, ___, ___, ___, K4C, K4D, K4E } \
 }
 // clang-format on
-
-// VIA custom keycodes
-#ifdef APPLE_FN_ENABLE
-#    define APPLE_FN USER00
-void process_apple_fn(uint16_t keycode, keyrecord_t *record);
-#else
-#    define APPLE_FN KC_RALT
-#endif

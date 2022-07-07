@@ -96,7 +96,7 @@ led_config_t g_led_config = {
 // clang-format on
 #endif
 
-__attribute__((weak)) bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
 #ifdef APPLE_FN_ENABLE
         case APPLE_FN:
@@ -113,16 +113,6 @@ __attribute__((weak)) bool process_record_user(uint16_t keycode, keyrecord_t *re
 #endif
     return true;
 }
-
-#ifdef APPLE_FN_ENABLE
-void process_apple_fn(uint16_t keycode, keyrecord_t *record) {
-    if (record->event.pressed) {
-        register_code(KC_APFN);
-    } else {
-        unregister_code(KC_APFN);
-    }
-}
-#endif
 
 #ifdef RGB_MATRIX_ENABLE
 __attribute__((weak)) void board_init(void) {

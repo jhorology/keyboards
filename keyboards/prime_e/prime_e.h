@@ -18,6 +18,7 @@
 #pragma once
 
 #include "quantum.h"
+#include "lib/apple_fn.h"
 
 // clang-format off
 #define LAYOUT( \
@@ -31,11 +32,3 @@
   { K200,  K201,  K202,  K203,  K204,   K205,  K206,  K207,  K208,  K209,  K210,  K211,  K212 }, \
   { K300,  K301,  KC_NO, K303,  K304,   KC_NO, K306,  KC_NO, K308,  KC_NO, KC_NO, K311,  K312 } \
 }
-// clang-format on
-// VIA custom keycodes
-#ifdef APPLE_FN_ENABLE
-#    define APPLE_FN USER00
-void process_apple_fn(uint16_t keycode, keyrecord_t *record);
-#else
-#    define APPLE_FN KC_RALT
-#endif

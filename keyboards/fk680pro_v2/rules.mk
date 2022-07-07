@@ -31,3 +31,4 @@ APPLE_FN_ENABLE = yes
 
 OPT_DEFS += -DCORTEX_ENABLE_WFI_IDLE=TRUE
 SRC += uf2_boot.c
+SRC += lib/apple_fn.c

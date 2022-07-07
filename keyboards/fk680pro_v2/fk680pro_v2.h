@@ -17,6 +17,7 @@
 #pragma once
 
 #include "quantum.h"
+#include "lib/apple_fn.h"
 
 // clang-format off
 #define LAYOUT( \
@@ -38,18 +39,9 @@
 
 // cycle through on/off mode
 // all off -> keylight on -> underglow on -> both on
-#define RGB_CYMD USER00
-
-#ifdef APPLE_FN_ENABLE
-#    define APPLE_FN USER01
-void process_apple_fn(uint16_t keycode, keyrecord_t *record);
-
-#else
-#    define APPLE_FN KC_RALT
-#endif
+#define RGB_CYMD USER01
 
 #ifdef RGB_MATRIX_ENABLE
-
 typedef union {
     uint32_t raw;
     struct {

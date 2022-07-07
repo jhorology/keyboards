@@ -4,14 +4,14 @@
   "productId": "0x24F",
   "customKeycodes": [
     {
-      "name": "RGB\non/off",
-      "title": "Cycle through RGB on/off modes",
-      "shortName": "RGB\non/off"
-    },
-    {
       "name": "Apple\nfn/glove",
       "title": "Apple Fn/Globe Key",
       "shortName": "Apple\nfn"
+    },
+    {
+      "name": "RGB\non/off",
+      "title": "Cycle through RGB on/off modes",
+      "shortName": "RGB\non/off"
     }
   ],
   "lighting": {
