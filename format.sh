@@ -2,6 +2,6 @@
 
 cd "$(dirname $0)"
 
-find . -name *.h -exec clang-format -i {} \;
-find . -name *.c -exec clang-format -i {} \;
+find . -name *.h -not -path "*/\.*" -exec clang-format -i {} \;
+find . -name *.c -not -path "*/\.*" -exec clang-format -i {} \;
 prettier --write ./**/*.json

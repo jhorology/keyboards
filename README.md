@@ -2,9 +2,10 @@
 This is a personal project for my own keyboards.
 
 ## Custom Keycodes
-| Code | Descrption|
-|------|-----------|
-| USER00 | Apple fn/🌐 key |
+| Code | Descrption| Notes|
+|------|-----------|--------
+| USER00 | Apple fn/🌐 key ||
+| USER01 | Cycle through RGB on/off modes | FK680ProV2 only |
 
 ## Apple Fn/Globe Shortcuts
 |Shortcut|Descrption|
@@ -30,7 +31,7 @@ This is a personal project for my own keyboards.
 | Fn/Globe + H | Show Desktop |
 | Fn/Globe + C | Show Control Ceneter |
 | Fn/Globe + N | Show Notifications |
-| Fn/Globe + M | Show Menubar |
+| Fn/Globe + M | Focus Menubar |
 
 ## Amethyst Shortcuts
 |Shortcut|Descrption|
@@ -68,7 +69,7 @@ This is a personal project for my own keyboards.
   - [vial-qmk](https://github.com/vial-kb/vial-qmk)
   - [docs](https://get.vial.today/)
 - [VIA](https://www.caniusevia.com/)
-- STM32F103xB UF2 bootloader
+- [STM32F103xB UF2 bootloader](https://github.com/mmoskal/uf2-stm32f103)
   - [qmk-zq](https://github.com/zhaqian12/qmk_firmware)
   - [ZQ-Keyboards](https://github.com/zhaqian12/ZQ-Keyboard)
   - [zfrontier article](https://www.zfrontier.com/app/flow/eMzZjJZRgP6z)

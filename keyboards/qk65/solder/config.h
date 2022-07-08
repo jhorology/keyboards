@@ -88,11 +88,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   029a  Magic Keyboard with Touch ID (ANSI)                 ---> that I own
 */
 #ifdef APPLE_FN_ENABLE
-#    define VENDOR_ID 0x05AC
-#    define PRODUCT_ID 0x024F
+#define VENDOR_ID 0x05AC
+#define PRODUCT_ID 0x024F
 #else
-#    define VENDOR_ID 0x4F53  // 0x4F53  for qwertykeys
-#    define PRODUCT_ID 0x5153 // 0x5153 QS for QK65 Solder
+#define VENDOR_ID 0x4F53   // 0x4F53  for qwertykeys
+#define PRODUCT_ID 0x5153  // 0x5153 QS for QK65 Solder
 #endif
 #define DEVICE_VER 0x0001
 #define MANUFACTURER qwetykeys
@@ -104,9 +104,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /* Keyboard Matrix Assignments */
 #define MATRIX_ROW_PINS \
-    { B0, B7, D0, D1, D2 }
+  { B0, B7, D0, D1, D2 }
 #define MATRIX_COL_PINS \
-    { D5, D4, D6, D7, B4, B5, B6, C6, C7, F7, F6, F5, F4, F1, F0 }
+  { D5, D4, D6, D7, B4, B5, B6, C6, C7, F7, F6, F5, F4, F1, F0 }
 /* COL2ROW, ROW2COL */
 #define DIODE_DIRECTION COL2ROW
 

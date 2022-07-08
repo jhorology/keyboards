@@ -17,25 +17,23 @@
 #include "prime_e.h"
 
 void matrix_init_user(void) {
-    // set CapsLock LED to output and low
-    setPinOutput(B1);
-    writePinLow(B1);
-    // #layer LED
-    setPinOutput(B2);
-    writePinLow(B2);
-    setPinOutput(B3);
-    writePinLow(B3);
+  // set CapsLock LED to output and low
+  setPinOutput(B1);
+  writePinLow(B1);
+  // #layer LED
+  setPinOutput(B2);
+  writePinLow(B2);
+  setPinOutput(B3);
+  writePinLow(B3);
 }
 
-void led_set_user(uint8_t usb_led) {
-    writePin(B1, IS_LED_ON(usb_led, USB_LED_CAPS_LOCK));
-}
+void led_set_user(uint8_t usb_led) { writePin(B1, IS_LED_ON(usb_led, USB_LED_CAPS_LOCK)); }
 
 // function for layer indicator LED
 layer_state_t layer_state_set_user(layer_state_t state) {
-    // indicate #layer
-    layer_state_t highestLayer = get_highest_layer(state);
-    writePin(B2, (highestLayer & 0x01) != 0);
-    writePin(B3, (highestLayer & 0x02) != 0);
-    return state;
+  // indicate #layer
+  layer_state_t highestLayer = get_highest_layer(state);
+  writePin(B2, (highestLayer & 0x01) != 0);
+  writePin(B3, (highestLayer & 0x02) != 0);
+  return state;
 }

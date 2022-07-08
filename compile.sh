@@ -6,13 +6,13 @@ QMK_HOME="$HOME/Documents/Sources/vial-qmk"
 KEYMAP="vial"
 # QMK_HOME="$HOME/Documents/Sources/qmk_firmware"
 # KEYMAP="via"
-QMK_UPDATE=true
+UPDATE_QMK=true
 
 # PROJECT
 # -----------------------------------
 cd "$(dirname $0)"
 
-# .config can override QMK_HOME, KEYMAP, KEYBOARDS, QMK_UPDATE
+# .config can override QMK_HOME, KEYMAP, KEYBOARDS, UPDATE_QMK
 if [ -s .config ]; then
   source .config
 fi
@@ -26,7 +26,7 @@ mkdir -p dist
 # QMK_HOME
 # -----------------------------------
 cd "$QMK_HOME"
-if $QMK_UPDATE; then
+if $UPDATE_QMK; then
   # checkout to revert changes.
   git checkout --recurse-submodules .
   git pull

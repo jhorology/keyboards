@@ -88,11 +88,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   029a  Magic Keyboard with Touch ID (ANSI)                 ---> that I own
 */
 #ifdef APPLE_FN_ENABLE
-#    define VENDOR_ID 0x05AC
-#    define PRODUCT_ID 0x021d
+#define VENDOR_ID 0x05AC
+#define PRODUCT_ID 0x021d
 #else
-#    define VENDOR_ID 0xC41C
-#    define PRODUCT_ID 0x0001
+#define VENDOR_ID 0xC41C
+#define PRODUCT_ID 0x0001
 #endif
 #define DEVICE_VER 0x0001
 #define MANUFACTURER ChickenMan
@@ -102,9 +102,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MATRIX_COLS 15
 
 #define MATRIX_ROW_PINS \
-    { C5, C4, B0, C7, B7 }
+  { C5, C4, B0, C7, B7 }
 #define MATRIX_COL_PINS \
-    { C6, B6, B5, B4, B3, B2, B1, D6, D5, D4, D3, D2, D1, D0, C2 }
+  { C6, B6, B5, B4, B3, B2, B1, D6, D5, D4, D3, D2, D1, D0, C2 }
 #define UNUSED_PINS
 #define DIODE_DIRECTION COL2ROW
 

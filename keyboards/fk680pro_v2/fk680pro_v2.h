@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include "quantum.h"
 #include "lib/apple_fn.h"
+#include "quantum.h"
 
 // clang-format off
 #define LAYOUT( \
@@ -43,10 +43,10 @@
 
 #ifdef RGB_MATRIX_ENABLE
 typedef union {
-    uint32_t raw;
-    struct {
-        uint8_t rgb_led_mode : 3;
-    };
+  uint32_t raw;
+  struct {
+    uint8_t rgb_led_mode : 3;
+  };
 } user_config_t;
 extern user_config_t g_user_config;
 

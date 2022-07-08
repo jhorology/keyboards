@@ -17,8 +17,8 @@
 
 #pragma once
 
-#include "quantum.h"
 #include "lib/apple_fn.h"
+#include "quantum.h"
 
 // clang-format off
 #define LAYOUT( \

@@ -17,8 +17,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "quantum.h"
 #include "lib/apple_fn.h"
+#include "quantum.h"
 
 #define ___ KC_NO
 

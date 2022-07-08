@@ -1,7 +1,7 @@
 #pragma once
 
-#include "quantum.h"
 #include "lib/apple_fn.h"
+#include "quantum.h"
 
 #define XXX KC_NO
 
