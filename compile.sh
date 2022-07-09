@@ -1,5 +1,26 @@
 #!/bin/zsh -eu
 
+# PROJECT
+# -----------------------------------
+PROJECT=$(realpath $0:h)
+cd "$PROJECT"
+zparseopts -D -E -F -- \
+  {h,-help}=help  \
+  -qmk-home:=qmk_home \
+  -vial-qmk-home:=vial_qmk_home \
+  -without-update-qmk=without_update_qmk \
+  -without-vial=without_vial \
+  -without-apple_fn=without_apple_fn \
+    || return
+
+
+if (( $#help )); then
+  print -rC1 --      \
+    "$0:t [-h|--help]" \
+    "$0:t [--qmk-home <QMK_HOME>] [--vial-qmk-home <VIAL_QMK_HOME>] [--without-qmk-update] [--without-vial] [--without-apple-fn] [<TARGET...>]"
+  return
+fi
+
 local -A KEYBOARDS=(
   bakeneko60 bakeneko60:hex
   ciel60     ciel60:hex
@@ -11,39 +32,39 @@ local -A KEYBOARDS=(
 
 # configuration
 # -----------------------------------
-# configuration defaults
+
+# defaults
 TARGETS=(bakeneko60 ciel60 qk65 prime_e d60 fk680)
 VIAL_QMK_HOME="$HOME/Documents/Sources/vial-qmk"
 QMK_HOME="$HOME/Documents/Sources/qmk_firmware"
 VIAL_ENABLE=yes
 APPLE_FN_ENABLE=yes
-UPDATE_QMK=false
+UPDATE_QMK=true
 
-# PROJECT
+# .config
+#  override configuration
 # -----------------------------------
-cd "$(dirname $0)"
-
-# .config can override configuration
 [ -s .config ] &&  source .config
 
-# arguments can override TARGETS
-[ $# -ge 1 ] && TARGETS=("$@")
-
+# option parameters
+# -----------------------------------
+(( $#qmk_home )) && QMK_HOME=${qmk_home[-1]##=}
+(( $#vial_qmk_home )) && VIAL_QMK_HOME=${vial_qmk_home[-1]##=}
+(( $#without_update_qmk )) && UPDATE_QMK=false
+(( $#without_vial )) && VIAL_ENABLE=no
+(( $#without_apple_fn )) && APPLE_FN_ENABLE=no
+(( $#@ )) && TARGETS=("$@")
 [ $VIAL_ENABLE = "yes" ] && QMK_HOME="$VIAL_QMK_HOME"
-
-PROJECT=$(pwd)
-mkdir -p dist
 
 MAKE_TARGETS=()
 local -A BUILD_FIRMWARES=()
 for target in $TARGETS; do
-  # split ":" [1]=make target [2]=extension
   kbd=(${(@s/:/)KEYBOARDS[$target]})
-  make_target=my_keyboards/$kbd[1]
-  firmware="$QMK_HOME/${make_target//\//_}_default.$kbd[2]"
-  MAKE_TARGETS=($MAKE_TARGETS $make_target)
-  BUILD_FIRMWARES[$target]=$firmware
+  MAKE_TARGETS=($MAKE_TARGETS my_keyboards/$kbd[1])
+  BUILD_FIRMWARES[$target]="$QMK_HOME/my_keyboards_${kbd[1]//\//_}_default.$kbd[2]"
 done
+
+mkdir -p dist
 
 # QMK_HOME
 # -----------------------------------
@@ -64,7 +85,7 @@ if $UPDATE_QMK; then
   fi
 fi
 
-make -j 8 $MAKE_TARGETS[*] VIAL_ENABLE=${VIAL_ENABLE} APPLE_FN_ENABLE=${APPLE_FN_ENABLE}
+make -j 10 $MAKE_TARGETS[*] VIAL_ENABLE=${VIAL_ENABLE} APPLE_FN_ENABLE=${APPLE_FN_ENABLE}
 
 
 VERSION="$(date +"%Y%m%d")_$(git rev-parse --short HEAD)"
@@ -73,9 +94,7 @@ if [ $VIAL_ENABLE = "yes" ]; then
 else
   VERSION="via_$VERSION"
 fi
-if [ $APPLE_FN_ENABLE = "yes" ]; then
-  VERSION="applefn_$VERSION"
-fi
+[ $APPLE_FN_ENABLE = "yes" ] && VERSION="applefn_$VERSION"
 
 # dist
 # -----------------------------------

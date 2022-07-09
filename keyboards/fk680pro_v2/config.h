@@ -89,8 +89,8 @@
 #define VENDOR_ID 0x05Ac
 #define PRODUCT_ID 0x024f
 #else
-#define VENDOR_ID 0x00AA
-#define PRODUCT_ID 0xAA0F
+#define VENDOR_ID 0xFEED
+#define PRODUCT_ID 0x6060
 #endif
 #define DEVICE_VER 0x0001
 #define MANUFACTURER Epomaker
