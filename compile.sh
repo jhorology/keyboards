@@ -72,21 +72,20 @@ cd "$QMK_HOME"
 
 [ ! -L keyboards/my_keyboards ] && ln -s "${PROJECT}/keyboards" keyboards/my_keyboards
 
+# checkout to revert changes.
+git checkout --recurse-submodules .
+
 if $UPDATE_QMK; then
-  # checkout to revert changes.
-  git checkout --recurse-submodules .
   git pull
   make git-submodule
   make clean
-  if [ $APPLE_FN_ENABLE = "yes" ]; then
-      # Apple Fn/Globe key patch
-      # see https://gist.github.com/fauxpark/010dcf5d6377c3a71ac98ce37414c6c4
-      patch -p1 < "${PROJECT}/patches/applefn.patch"
-  fi
 fi
 
-make -j 10 $MAKE_TARGETS[*] VIAL_ENABLE=${VIAL_ENABLE} APPLE_FN_ENABLE=${APPLE_FN_ENABLE}
+# Apple Fn/Globe key patch
+# see https://gist.github.com/fauxpark/010dcf5d6377c3a71ac98ce37414c6c4
+[ $APPLE_FN_ENABLE = "yes" ] && patch -p1 < "${PROJECT}/patches/applefn.patch"
 
+make -j 10 $MAKE_TARGETS[*] VIAL_ENABLE=${VIAL_ENABLE} APPLE_FN_ENABLE=${APPLE_FN_ENABLE}
 
 VERSION="$(date +"%Y%m%d")_$(git rev-parse --short HEAD)"
 if [ $VIAL_ENABLE = "yes" ]; then
