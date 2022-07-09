@@ -13,3 +13,24 @@ BOOTLOADER = custom
 RGB_MATRIX_ENABLE = yes        # Use RGB matrix
 RGB_MATRIX_DRIVER = WS2812
 WS2812_DRIVER = pwm
+
+# reducing firmware size
+ifeq ($(strip $(VIAL_ENABLE)), yes)
+  # -10 bytes
+  # MOUSEKEY_ENABLE = no
+
+  # -1080 bytes
+  # TAP_DANCE_ENABLE = no
+
+  #  -864 bytes
+  COMBO_ENABLE = no
+
+  #  -944 bytes
+  KEY_OVERRIDE_ENABLE = no
+
+  # RGB_MATRIX_ENABLE = no
+
+  # default 0x0800, 0x0400
+  USE_PROCESS_STACKSIZE = 0x0400
+  USE_EXCEPTIONS_STACKSIZE = 0x0200
+endif

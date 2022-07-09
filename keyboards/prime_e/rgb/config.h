@@ -98,7 +98,25 @@
 
 #define RGB_DI_PIN B7
 #define RGBLED_NUM 8
-// reducing firmware size
+
+/*
+  polling rate
+  see https://github.com/qmk/qmk_firmware/blob/master/docs/config_options.md
+*/
+#define USB_POLLING_INTERVAL_MS 1
+#define QMK_KEYS_PER_SCAN 6
+
+/* Vial-specific definitions. */
+#ifdef VIAL_ENABLE
+#define VIAL_KEYBOARD_UID \
+  { 0xF3, 0xB8, 0xA3, 0x29, 0x37, 0x91, 0xFD, 0xA2 }
+#define VIAL_UNLOCK_COMBO_ROWS \
+  { 0, 1 }
+#define VIAL_UNLOCK_COMBO_COLS \
+  { 0, 12 }
+#endif
+
+/* reducing firmware size */
 #ifndef VIAL_ENABLE
 #define RGBLIGHT_ANIMATIONS
 #endif

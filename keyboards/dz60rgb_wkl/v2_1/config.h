@@ -196,7 +196,19 @@
 #define DRIVER_LED_TOTAL 62
 #endif
 
-// polling rate
-// see https://github.com/qmk/qmk_firmware/blob/master/docs/config_options.md
+/*
+  polling rate
+  see https://github.com/qmk/qmk_firmware/blob/master/docs/config_options.md
+*/
 #define USB_POLLING_INTERVAL_MS 1
 #define QMK_KEYS_PER_SCAN 6
+
+/* Vial-specific definitions. */
+#ifdef VIAL_ENABLE
+#define VIAL_KEYBOARD_UID \
+  { 0xC3, 0xB7, 0xF6, 0xE8, 0x92, 0xC7, 0x5F, 0x5F }
+#define VIAL_UNLOCK_COMBO_ROWS \
+  { 0, 2 }
+#define VIAL_UNLOCK_COMBO_COLS \
+  { 0, 13 }
+#endif

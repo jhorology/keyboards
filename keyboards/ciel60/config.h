@@ -119,3 +119,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #define USB_POLLING_INTERVAL_MS 1
 #define QMK_KEYS_PER_SCAN 6
+
+/* Vial-specific definitions. */
+#ifdef VIAL_ENABLE
+#define VIAL_KEYBOARD_UID \
+  { 0xC5, 0xA0, 0x98, 0xD4, 0x2F, 0xE1, 0x1A, 0x7B }
+#define VIAL_UNLOCK_COMBO_ROWS \
+  { 0, 2 }
+#define VIAL_UNLOCK_COMBO_COLS \
+  { 0, 13 }
+#endif

@@ -1,86 +1,88 @@
-#!/bin/bash -eu
+#!/bin/zsh -eu
+
+local -A KEYBOARDS=(
+  bakeneko60 bakeneko60:hex
+  ciel60     ciel60:hex
+  qk65       qk65/solder:hex
+  prime_e    prime_e/rgb:hex
+  d60        dz60rgb_wkl/v2_1:bin
+  fk680      fk680pro_v2:uf2
+)
 
 # configuration
-KEYBOARDS=(bakeneko60 ciel60 qk65 prime_e d60 fk680)
-QMK_HOME="$HOME/Documents/Sources/vial-qmk"
-KEYMAP="vial"
-# QMK_HOME="$HOME/Documents/Sources/qmk_firmware"
-# KEYMAP="via"
-UPDATE_QMK=true
+# -----------------------------------
+# configuration defaults
+TARGETS=(bakeneko60 ciel60 qk65 prime_e d60 fk680)
+VIAL_QMK_HOME="$HOME/Documents/Sources/vial-qmk"
+QMK_HOME="$HOME/Documents/Sources/qmk_firmware"
+VIAL_ENABLE=yes
+APPLE_FN_ENABLE=yes
+UPDATE_QMK=false
 
 # PROJECT
 # -----------------------------------
 cd "$(dirname $0)"
 
-# .config can override QMK_HOME, KEYMAP, KEYBOARDS, UPDATE_QMK
-if [ -s .config ]; then
-  source .config
-fi
+# .config can override configuration
+[ -s .config ] &&  source .config
 
-# argument can override KEYBOARDS
-[ $# -ge 1 ] && KEYBOARDS=("$@")
+# arguments can override TARGETS
+[ $# -ge 1 ] && TARGETS=("$@")
+
+[ $VIAL_ENABLE = "yes" ] && QMK_HOME="$VIAL_QMK_HOME"
 
 PROJECT=$(pwd)
 mkdir -p dist
 
+MAKE_TARGETS=()
+local -A BUILD_FIRMWARES=()
+for target in $TARGETS; do
+  # split ":" [1]=make target [2]=extension
+  kbd=(${(@s/:/)KEYBOARDS[$target]})
+  make_target=my_keyboards/$kbd[1]
+  firmware="$QMK_HOME/${make_target//\//_}_default.$kbd[2]"
+  MAKE_TARGETS=($MAKE_TARGETS $make_target)
+  BUILD_FIRMWARES[$target]=$firmware
+done
+
 # QMK_HOME
 # -----------------------------------
 cd "$QMK_HOME"
+
+[ ! -L keyboards/my_keyboards ] && ln -s "${PROJECT}/keyboards" keyboards/my_keyboards
+
 if $UPDATE_QMK; then
   # checkout to revert changes.
   git checkout --recurse-submodules .
   git pull
   make git-submodule
   make clean
-  # Apple Fn/Globe key patch
-  # see https://gist.github.com/fauxpark/010dcf5d6377c3a71ac98ce37414c6c4
-  patch -p1 < "${PROJECT}/patches/applefn.patch"
+  if [ $APPLE_FN_ENABLE = "yes" ]; then
+      # Apple Fn/Globe key patch
+      # see https://gist.github.com/fauxpark/010dcf5d6377c3a71ac98ce37414c6c4
+      patch -p1 < "${PROJECT}/patches/applefn.patch"
+  fi
 fi
 
-# change QMK_HOME directory
-CURRENT_QMK_HOME=$(qmk config -ro user.qmk_home)
-CURRENT_QMK_HOME=${CURRENT_QMK_HOME/"user.qmk_home="/}
-if [ $QMK_HOME != $CURRENT_QMK_HOME ]; then
-  qmk --verbose setup -y -H .
+make -j 8 $MAKE_TARGETS[*] VIAL_ENABLE=${VIAL_ENABLE} APPLE_FN_ENABLE=${APPLE_FN_ENABLE}
+
+
+VERSION="$(date +"%Y%m%d")_$(git rev-parse --short HEAD)"
+if [ $VIAL_ENABLE = "yes" ]; then
+  VERSION="vial_$VERSION"
+else
+  VERSION="via_$VERSION"
 fi
-
-# filename format  KEYMAP   BUILD DATE         QMK/VIAL-QMK REVISION
-VERSION="applefn_${KEYMAP}_$(date +"%Y%m%d")_$(git rev-parse --short HEAD)"
-
-if [ ! -L "$QMK_HOME/keyboards/my_keyboards" ]; then
-  ln -s "${PROJECT}/keyboards" keyboards/my_keyboards
+if [ $APPLE_FN_ENABLE = "yes" ]; then
+  VERSION="applefn_$VERSION"
 fi
 
 # dist
 # -----------------------------------
 cd "$PROJECT/dist"
 
-if [[ " ${KEYBOARDS[*]} " =~ " bakeneko60 " ]]; then
-  qmk compile -j 8 -kb my_keyboards/bakeneko60 -km $KEYMAP
-  mv "$QMK_HOME/my_keyboards_bakeneko60_$KEYMAP.hex" bakeneko60_$VERSION.hex
-fi
-
-if [[ " ${KEYBOARDS[*]} " =~ " ciel60 " ]]; then
-  qmk compile -j 8 -kb my_keyboards/ciel60 -km $KEYMAP
-  mv "$QMK_HOME/my_keyboards_ciel60_$KEYMAP.hex" ciel60_$VERSION.hex
-fi
-
-if [[ " ${KEYBOARDS[*]} " =~ " qk65 " ]]; then
-  qmk compile -j 8 -kb my_keyboards/qk65/solder -km $KEYMAP
-  mv "$QMK_HOME/my_keyboards_qk65_solder_$KEYMAP.hex" qk65_solder_$VERSION.hex
-fi
-
-if [[ " ${KEYBOARDS[*]} " =~ " prime_e " ]]; then
-  qmk compile -j 8 -kb my_keyboards/prime_e/rgb -km $KEYMAP
-  mv "$QMK_HOME/my_keyboards_prime_e_rgb_$KEYMAP.hex" prime_e_rgb_$VERSION.hex
-fi
-
-if [[ " ${KEYBOARDS[*]} " =~ " d60 " ]]; then
-  qmk compile -j 8 -kb my_keyboards/dz60rgb_wkl/v2_1 -km $KEYMAP
-  mv "$QMK_HOME/my_keyboards_dz60rgb_wkl_v2_1_$KEYMAP.bin" d60_hhkb_$VERSION.bin
-fi
-
-if [[ " ${KEYBOARDS[*]} " =~ " fk680 " ]]; then
-  qmk compile -j 8 -kb my_keyboards/fk680pro_v2 -km $KEYMAP
-  mv "$QMK_HOME/my_keyboards_fk680pro_v2_$KEYMAP.uf2" fk680pro_v2_$VERSION.uf2
-fi
+for target in $TARGETS; do
+  # split ":" [1]=make target [2]=extension
+  kbd=(${(@s/:/)KEYBOARDS[$target]})
+  mv $BUILD_FIRMWARES[$target] ${target}_$VERSION.$kbd[2]
+done
