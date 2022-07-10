@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "prime_e.h"
+#include "prime_e_rgb.h"
 
 void matrix_init_user(void) {
   // set CapsLock LED to output and low

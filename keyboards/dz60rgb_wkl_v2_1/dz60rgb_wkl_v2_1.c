@@ -1,4 +1,4 @@
-#include "dz60rgb_wkl.h"
+#include "dz60rgb_wkl_v2_1.h"
 
 #define xx NO_LED
 #ifdef RGB_MATRIX_ENABLE

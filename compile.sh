@@ -5,28 +5,28 @@
 PROJECT=$(realpath $0:h)
 cd "$PROJECT"
 zparseopts -D -E -F -- \
-  {h,-help}=help  \
-  -qmk-home:=qmk_home \
-  -vial-qmk-home:=vial_qmk_home \
-  -without-update-qmk=without_update_qmk \
-  -without-vial=without_vial \
-  -without-apple_fn=without_apple_fn \
-    || return
+           {h,-help}=help  \
+           -qmk-home:=qmk_home \
+           -vial-qmk-home:=vial_qmk_home \
+           -without-update-qmk=without_update_qmk \
+           -without-vial=without_vial \
+           -without-apple_fn=without_apple_fn \
+  || return
 
 
 if (( $#help )); then
   print -rC1 --      \
-    "$0:t [-h|--help]" \
-    "$0:t [--qmk-home <QMK_HOME>] [--vial-qmk-home <VIAL_QMK_HOME>] [--without-qmk-update] [--without-vial] [--without-apple-fn] [<TARGET...>]"
+        "$0:t [-h|--help]" \
+        "$0:t [--qmk-home <QMK_HOME>] [--vial-qmk-home <VIAL_QMK_HOME>] [--without-update-qmk] [--without-vial] [--without-apple-fn] [<TARGET...>]"
   return
 fi
 
 local -A KEYBOARDS=(
   bakeneko60 bakeneko60:hex
   ciel60     ciel60:hex
-  qk65       qk65/solder:hex
-  prime_e    prime_e/rgb:hex
-  d60        dz60rgb_wkl/v2_1:bin
+  qk65       qk65_solder:hex
+  prime_e    prime_e_rgb:hex
+  d60        dz60rgb_wkl_v2_1:bin
   fk680      fk680pro_v2:uf2
 )
 
@@ -57,11 +57,9 @@ UPDATE_QMK=true
 [ $VIAL_ENABLE = "yes" ] && QMK_HOME="$VIAL_QMK_HOME"
 
 MAKE_TARGETS=()
-local -A BUILD_FIRMWARES=()
 for target in $TARGETS; do
   kbd=(${(@s/:/)KEYBOARDS[$target]})
   MAKE_TARGETS=($MAKE_TARGETS my_keyboards/$kbd[1])
-  BUILD_FIRMWARES[$target]="$QMK_HOME/my_keyboards_${kbd[1]//\//_}_default.$kbd[2]"
 done
 
 mkdir -p dist
@@ -102,5 +100,5 @@ cd "$PROJECT/dist"
 for target in $TARGETS; do
   # split ":" [1]=make target [2]=extension
   kbd=(${(@s/:/)KEYBOARDS[$target]})
-  mv $BUILD_FIRMWARES[$target] ${target}_$VERSION.$kbd[2]
+  mv "$QMK_HOME/my_keyboards_${kbd[1]//\//_}_default.$kbd[2]" ${target}_$VERSION.$kbd[2]
 done
