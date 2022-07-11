@@ -18,6 +18,7 @@ zparseopts -D -E -F -- \
 if (( $#help )); then
   print -rC1 --      \
         "$0:t [-h|--help]" \
+        "$0:t [-c|--clean]" \
         "$0:t [--qmk-home <QMK_HOME>] [--vial-qmk-home <VIAL_QMK_HOME>] [--without-update-qmk] [--without-vial] [--without-apple-fn] [<TARGET...>]"
   return
 fi
@@ -76,6 +77,7 @@ if $CLEAN; then
   # checkout to revert changes.
   git checkout --recurse-submodules .
   git clean -dfx
+  return
 fi
 
 if $UPDATE_QMK; then
