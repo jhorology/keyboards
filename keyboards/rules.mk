@@ -15,10 +15,6 @@ LTO_ENABLE = yes            # Link time optimization
 
 VIA_ENABLE = yes
 
-ifeq ($(strip $(VIAL_ENABLE)), yes)
-  QMK_SETTINGS = no
-endif
-
 ifeq ($(strip $(APPLE_FN_ENABLE)), yes)
   # see https://gist.github.com/fauxpark/010dcf5d6377c3a71ac98ce37414c6c4
   NKRO_ENABLE = no
