@@ -139,7 +139,7 @@ void rgb_matrix_indicators_user(void) {
   bool caps_lock = host_keyboard_led_state().caps_lock;
   static bool caps_lock_old;
   if (caps_lock || caps_lock_old) {
-    rgb_matrix_set_color(CAPS_LOCK_LED, caps_lock ? 255 : 0, 0, 0);
+    rgb_matrix_set_color(CAPS_LOCK_LED, caps_lock ? rgb_matrix_get_val() : 0, 0, 0);
   }
   caps_lock_old = caps_lock;
 }
