@@ -6,6 +6,7 @@ PROJECT=$(realpath $0:h)
 cd "$PROJECT"
 zparseopts -D -E -F -- \
            {h,-help}=help  \
+           -clean=clean \
            -qmk-home:=qmk_home \
            -vial-qmk-home:=vial_qmk_home \
            -without-update-qmk=without_update_qmk \
@@ -35,6 +36,7 @@ local -A KEYBOARDS=(
 
 # defaults
 TARGETS=(bakeneko60 ciel60 qk65 prime_e d60 fk680)
+CLEAN=false
 VIAL_QMK_HOME="$HOME/Documents/Sources/vial-qmk"
 QMK_HOME="$HOME/Documents/Sources/qmk_firmware"
 VIAL_ENABLE=yes
@@ -48,6 +50,7 @@ UPDATE_QMK=true
 
 # option parameters
 # -----------------------------------
+(( $#clean )) && CLEAN=true
 (( $#qmk_home )) && QMK_HOME=${qmk_home[-1]##=}
 (( $#vial_qmk_home )) && VIAL_QMK_HOME=${vial_qmk_home[-1]##=}
 (( $#without_update_qmk )) && UPDATE_QMK=false
@@ -68,22 +71,29 @@ mkdir -p dist
 # -----------------------------------
 cd "$QMK_HOME"
 
-[ ! -L keyboards/my_keyboards ] && ln -s "${PROJECT}/keyboards" keyboards/my_keyboards
-
-# checkout to revert changes.
-git checkout --recurse-submodules .
-
-if $UPDATE_QMK; then
-  git pull
-  make git-submodule
+if $CLEAN; then
   make clean
+  # checkout to revert changes.
+  git checkout --recurse-submodules .
+  git clean -dfx
 fi
 
-# Apple Fn/Globe key patch
-# see https://gist.github.com/fauxpark/010dcf5d6377c3a71ac98ce37414c6c4
-[ $APPLE_FN_ENABLE = "yes" ] && patch -p1 < "${PROJECT}/patches/applefn.patch"
+if $UPDATE_QMK; then
+  # checkout to revert changes.
+  git checkout --recurse-submodules .
+  git pull
+  make git-submodule
+fi
 
-make -j 10 $MAKE_TARGETS[*] VIAL_ENABLE=${VIAL_ENABLE} APPLE_FN_ENABLE=${APPLE_FN_ENABLE}
+if [ $APPLE_FN_ENABLE = "yes" ] && [ -z "$(rg APPLE_FN_ENABLE $QMK_HOME/quantum/keymap_common.c)" ]; then
+  # checkout to revert changes.
+  git checkout --recurse-submodules .
+  patch -p1 < "${PROJECT}/patches/applefn.patch"
+fi
+
+[ ! -L keyboards/my_keyboards ] && ln -s "${PROJECT}/keyboards" keyboards/my_keyboards
+
+make -j 10 $MAKE_TARGETS[*] VIAL_ENABLE=$VIAL_ENABLE APPLE_FN_ENABLE=$APPLE_FN_ENABLE
 
 VERSION="$(date +"%Y%m%d")_$(git rev-parse --short HEAD)"
 if [ $VIAL_ENABLE = "yes" ]; then
