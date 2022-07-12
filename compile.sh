@@ -18,7 +18,7 @@ zparseopts -D -E -F -- \
 if (( $#help )); then
   print -rC1 --      \
         "$0:t [-h|--help]" \
-        "$0:t [-c|--clean]" \
+        "$0:t [-c|--clean] [--qmk-home <QMK_HOME>] [--vial-qmk-home <VIAL_QMK_HOME>]" \
         "$0:t [--qmk-home <QMK_HOME>] [--vial-qmk-home <VIAL_QMK_HOME>] [--without-update-qmk] [--without-vial] [--without-apple-fn] [<TARGET...>]"
   return
 fi
@@ -37,7 +37,6 @@ local -A KEYBOARDS=(
 
 # defaults
 TARGETS=(bakeneko60 ciel60 qk65 prime_e d60 fk680)
-CLEAN=false
 VIAL_QMK_HOME="$HOME/Documents/Sources/vial-qmk"
 QMK_HOME="$HOME/Documents/Sources/qmk_firmware"
 VIAL_ENABLE=yes
@@ -51,14 +50,32 @@ UPDATE_QMK=true
 
 # option parameters
 # -----------------------------------
-(( $#clean )) && CLEAN=true
 (( $#qmk_home )) && QMK_HOME=${qmk_home[-1]##=}
 (( $#vial_qmk_home )) && VIAL_QMK_HOME=${vial_qmk_home[-1]##=}
 (( $#without_update_qmk )) && UPDATE_QMK=false
 (( $#without_vial )) && VIAL_ENABLE=no
 (( $#without_apple_fn )) && APPLE_FN_ENABLE=no
 (( $#@ )) && TARGETS=("$@")
-[ $VIAL_ENABLE = "yes" ] && QMK_HOME="$VIAL_QMK_HOME"
+
+if (( $#clean )); then
+  rm -rf dist
+
+  find . -name '*~' -exec rm -f {} \;
+  find . -name '.DS_Store' -exec rm -f {} \;
+
+  cd "$QMK_HOME"
+  make clean
+  # checkout to revert changes.
+  git checkout --recurse-submodules .
+  git clean -dfx
+
+  cd "$VIAL_QMK_HOME"
+  make clean
+  # checkout to revert changes.
+  git checkout --recurse-submodules .
+  git clean -dfx
+  return
+fi
 
 MAKE_TARGETS=()
 for target in $TARGETS; do
@@ -70,15 +87,8 @@ mkdir -p dist
 
 # QMK_HOME
 # -----------------------------------
+[ $VIAL_ENABLE = "yes" ] && QMK_HOME="$VIAL_QMK_HOME"
 cd "$QMK_HOME"
-
-if $CLEAN; then
-  make clean
-  # checkout to revert changes.
-  git checkout --recurse-submodules .
-  git clean -dfx
-  return
-fi
 
 if $UPDATE_QMK; then
   # checkout to revert changes.

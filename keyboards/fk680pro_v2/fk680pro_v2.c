@@ -94,7 +94,7 @@ led_config_t g_led_config = {
 };
 // clang-format on
 
-#define CAPS_LOCK_LED 3  // right side of spacebar
+#define CAPS_LOCK_LED 3  // left side of spacebar
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
@@ -131,8 +131,8 @@ void suspend_power_down_kb(void) {
 }
 
 void suspend_wakeup_init_kb(void) {
-  rgb_matrix_set_suspend_state(false);
   suspend_wakeup_init_user();
+  rgb_matrix_set_suspend_state(false);
 }
 
 void rgb_matrix_indicators_user(void) {
