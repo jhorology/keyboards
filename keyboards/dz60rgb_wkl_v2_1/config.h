@@ -205,3 +205,9 @@
 #define VIAL_UNLOCK_COMBO_COLS \
   { 0, 13 }
 #endif
+
+#ifdef VIA_ENABLE
+#define LAYOUT_HHKB 0x0
+#define LAYOUT_TSANGAN 0x1
+#define VIA_EEPROM_LAYOUT_OPTIONS_DEFAULT LAYOUT_HHKB
+#endif

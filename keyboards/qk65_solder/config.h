@@ -119,3 +119,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define VIAL_UNLOCK_COMBO_COLS \
   { 0, 13 }
 #endif
+
+#ifdef VIA_ENABLE
+#define LAYOUT_SPLIT_BS 0x8
+#define LAYOUT_ISO_ENTER 0x4
+#define LAYOUT_SPLIT_LEFT_SHIFT 0x2
+#define LAYOUT_BOTTOM_ROW_6dot25U 0x0
+#define LAYOUT_BOTTOM_ROW_7U 0x1
+#define VIA_EEPROM_LAYOUT_OPTIONS_DEFAULT (LAYOUT_SPLIT_BS + LAYOUT_BOTTOM_ROW_7U)
+#endif
