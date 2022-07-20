@@ -108,18 +108,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define UNUSED_PINS
 #define DIODE_DIRECTION COL2ROW
 
-#define DEBOUNCE 5
-
-#define LOCKING_SUPPORT_ENABLE
-#define LOCKING_RESYNC_ENABLE
-
-/*
-  polling rate
-  see https://github.com/qmk/qmk_firmware/blob/master/docs/config_options.md
-*/
-#define USB_POLLING_INTERVAL_MS 1
-#define QMK_KEYS_PER_SCAN 6
-
 /* Vial-specific definitions. */
 #ifdef VIAL_ENABLE
 #define VIAL_KEYBOARD_UID \

@@ -118,9 +118,6 @@
 /* COL2ROW, ROW2COL*/
 #define DIODE_DIRECTION COL2ROW
 
-/* Debounce reduces chatter (unintended double-presses) - set 0 if debouncing is not needed */
-#define DEBOUNCE 3
-
 #ifdef RGB_MATRIX_ENABLE
 #define RGB_DISABLE_AFTER_TIMEOUT 0     // number of ticks to wait until disabling effects
 #define RGB_DISABLE_WHEN_USB_SUSPENDED  // turn off effects when suspended
@@ -195,13 +192,6 @@
 #define DRIVER_COUNT 1
 #define DRIVER_LED_TOTAL 62
 #endif
-
-/*
-  polling rate
-  see https://github.com/qmk/qmk_firmware/blob/master/docs/config_options.md
-*/
-#define USB_POLLING_INTERVAL_MS 1
-#define QMK_KEYS_PER_SCAN 6
 
 /* Vial-specific definitions. */
 #ifdef VIAL_ENABLE

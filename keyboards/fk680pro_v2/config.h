@@ -107,11 +107,6 @@
 
 #define DIODE_DIRECTION COL2ROW
 
-#define DEBOUNCE 5
-
-#define LOCKING_SUPPORT_ENABLE
-#define LOCKING_RESYNC_ENABLE
-
 #ifdef RGB_MATRIX_ENABLE
 // TIM2_CH1 is remmaped PA15 by board_init()
 #define RGB_DI_PIN A15
@@ -124,7 +119,7 @@
                       // MCU.
 #define WS2812_DMA_CHANNEL 2
 
-#define RGB_MATRIX_MAXIMUM_BRIGHTNESS 200
+// #define RGB_MATRIX_MAXIMUM_BRIGHTNESS 200
 #define RGB_DISABLE_WHEN_USB_SUSPENDED true
 
 // RGB Matrix Animation modes. Explicitly enabled
@@ -157,13 +152,13 @@
 #define ENABLE_RGB_MATRIX_DUAL_BEACON             // Full gradient spinning around center of keyboard
 #define ENABLE_RGB_MATRIX_RAINBOW_BEACON          // Full tighter gradient spinning around center of keyboard
 #define ENABLE_RGB_MATRIX_RAINBOW_PINWHEELS       // Full dual gradients spinning two halfs of keyboard
-#define ENABLE_RGB_MATRIX_RAINDROPS               // Randomly changes a single key's hue
-#define ENABLE_RGB_MATRIX_JELLYBEAN_RAINDROPS     // Randomly changes a single key's hue and saturation
-#define ENABLE_RGB_MATRIX_HUE_BREATHING           // Hue shifts up a slight ammount at the same time, then shifts back
-#define ENABLE_RGB_MATRIX_HUE_PENDULUM  // Hue shifts up a slight ammount in a wave to the right, then back to the left
-#define ENABLE_RGB_MATRIX_HUE_WAVE      // Hue shifts up a slight ammount and then back down in a wave to the right
 // reducing RAM usage for VIAL
 #ifndef VIAL_ENABLE
+#define ENABLE_RGB_MATRIX_RAINDROPS            // Randomly changes a single key's hue
+#define ENABLE_RGB_MATRIX_JELLYBEAN_RAINDROPS  // Randomly changes a single key's hue and saturation
+#define ENABLE_RGB_MATRIX_HUE_BREATHING        // Hue shifts up a slight ammount at the same time, then shifts back
+#define ENABLE_RGB_MATRIX_HUE_PENDULUM   // Hue shifts up a slight ammount in a wave to the right, then back to the left
+#define ENABLE_RGB_MATRIX_HUE_WAVE       // Hue shifts up a slight ammount and then back down in a wave to the right
 #define ENABLE_RGB_MATRIX_PIXEL_FRACTAL  // Single hue fractal filled keys pulsing horizontally out to edges
 #define ENABLE_RGB_MATRIX_PIXEL_FLOW     // Pulsing RGB flow along LED wiring with random hues
 #define ENABLE_RGB_MATRIX_PIXEL_RAIN     // Randomly light keys with random hues#define ENABLE_RGB_MATRIX_ALPHAS_MODS
@@ -196,13 +191,6 @@
 #endif
 
 #endif
-
-/*
-  polling rate
-  see https://github.com/qmk/qmk_firmware/blob/master/docs/config_options.md
-*/
-#define USB_POLLING_INTERVAL_MS 1
-#define QMK_KEYS_PER_SCAN 6
 
 /* Vial-specific definitions. */
 #ifdef VIAL_ENABLE

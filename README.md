@@ -5,7 +5,8 @@ This is a personal project for my own keyboards.
 | Code | Descrption| Notes|
 |------|-----------|--------
 | USER00 | Apple fn/🌐 key ||
-| USER01 | Cycle through RGB on/off modes | FK680ProV2 only |
+| USER01 | Apple fn/🌐 key with remapping F1-12 to 1-0,minus,equal keys ||
+| USER02 | Cycle through RGB on/off modes | FK680ProV2 only |
 
 ## Apple Fn/Globe Shortcuts
 |Shortcut|Descrption|

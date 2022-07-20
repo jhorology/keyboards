@@ -110,19 +110,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /* COL2ROW, ROW2COL */
 #define DIODE_DIRECTION COL2ROW
 
-/* Debounce reduces chatter (unintended double-presses) - set 0 if debouncing is not needed */
-#define DEBOUNCE 5
-
-/* NKRO */
-// #define FORCE_NKRO
-
-/*
-  polling rate
-  see https://github.com/qmk/qmk_firmware/blob/master/docs/config_options.md
-*/
-#define USB_POLLING_INTERVAL_MS 1
-#define QMK_KEYS_PER_SCAN 6
-
 /* Vial-specific definitions. */
 #ifdef VIAL_ENABLE
 #define VIAL_KEYBOARD_UID \

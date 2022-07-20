@@ -7,6 +7,11 @@
       "name": "Apple\nfn🌐",
       "title": "Apple Fn/Globe Key",
       "shortName": "Apple\nfn🌐"
+    },
+    {
+      "name": "Apple\n🌐+FK",
+      "title": "Apple Fn/Globe Key with remapping F1-12 to \"1\"-\"=\" keys",
+      "shortName": "Apple\n🌐+FK"
     }
   ],
   "lighting": "none",
@@ -15,11 +20,7 @@
     "cols": 15
   },
   "layouts": {
-    "labels": [
-      "Split Backspace",
-      "Split Right Shift",
-      ["Bottom Row", "ANSI", "Tsangan"]
-    ],
+    "labels": ["Split Backspace", "Split Right Shift", ["Bottom Row", "ANSI", "Tsangan"]],
     "keymap": [
       [
         {

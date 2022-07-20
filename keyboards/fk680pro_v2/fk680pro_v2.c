@@ -101,13 +101,22 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 #ifdef APPLE_FN_ENABLE
     case APPLE_FN:
       process_apple_fn(keycode, record);
-      break;
+      return false;
+    case APPLE_FF:
+      process_apple_ff(keycode, record);
+      return false;
+    case KC_1 ... KC_0:
+      return process_apple_ff_fkey(keycode - KC_1, record);
+    case KC_MINS:
+      return process_apple_ff_fkey(10, record);
+    case KC_EQL:
+      return process_apple_ff_fkey(11, record);
 #endif
     case RGB_CYMD:
       if (record->event.pressed) {
         update_rgb_matrix_flags((g_user_config.rgb_led_mode + 1) & 0x03);
+        return false;
       }
-      break;
   }
   return true;
 }
