@@ -39,7 +39,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [2] = LAYOUT
   (
     KC_CAPS, KC_F1,   KC_F2,   KC_F3,   KC_F4,   _______,    _______, KC_PSCR, KC_SLCK, KC_PAUS, KC_UP,   KC_INS,  KC_DEL,
-    RGB_TOG, KC_F5,   KC_F6,   KC_F7,   KC_F8,   KC_PAST,    KC_PSLS, KC_HOME, KC_PGUP, KC_LEFT, KC_RGHT, KC_PENT,
+    _______, KC_F5,   KC_F6,   KC_F7,   KC_F8,   KC_PAST,    KC_PSLS, KC_HOME, KC_PGUP, KC_LEFT, KC_RGHT, KC_PENT,
     _______, KC_F9,   KC_F10,  KC_F11,  KC_F12,  _______,    KC_PPLS, KC_PMNS, KC_END,  KC_PGDN, KC_DOWN, _______, _______,
     _______, _______,                   _______, _______,    _______, _______,                            _______, _______
    ),
@@ -47,9 +47,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [3] = LAYOUT
   (
     KC_ESC,  _______, _______, _______, _______, _______,     _______, KC_F16,  KC_F17,  KC_F18,  _______, _______, RESET,
-    _______, KC_VOLD, KC_VOLU, KC_MUTE, KC_EJCT, _______,     RGB_TOG, RGB_VAI, RGB_HUI, RGB_SAI, _______, _______,
+    CL_TOGG, KC_VOLD, KC_VOLU, KC_MUTE, KC_EJCT, _______,     RGB_TOG, RGB_VAI, RGB_HUI, RGB_SAI, _______, _______,
     _______, _______, _______, _______, _______, _______,     RGB_MOD, RGB_VAD, RGB_HUD, RGB_SAD, _______, _______, _______,
-    _______, _______,                   _______, _______,     _______, _______,                            _______, _______
+    _______, AG_TOGG,                   _______, _______,     _______, _______,                            _______, _______
    )
 };
 // clang-format on

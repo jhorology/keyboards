@@ -22,9 +22,6 @@ __attribute__((weak)) bool process_record_user(uint16_t keycode, keyrecord_t *re
     case KC_EQL:
       return process_apple_ff_fkey(11, record);
   }
-#ifdef APPLE_FN_FORCE_FKEY
-
-#endif
   return true;
 }
 
