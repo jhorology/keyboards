@@ -18,6 +18,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include "lib/apple_fn.h"
+#ifdef VIAL_ENABLED
+#include "lib/combo_actions.h"
+#include "lib/key_override_actions.h"
+#endif
+#include "lib/tap_dance_actions.h"
 #include "quantum.h"
 
 #define ___ KC_NO

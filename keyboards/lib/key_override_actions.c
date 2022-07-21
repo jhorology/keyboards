@@ -13,9 +13,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#pragma once
+#include QMK_KEYBOARD_H
 
-// tap dance actions
-enum {
-  ALT_IME = 0,  // LALT, on double tap: ime on/off alt + ~
-};
+#include "key_override_actions.h"
+
+#ifdef VIAL_KEY_OVERRIDE_ENABLE
+const vial_combo_entry_t PROGMEM vial_key_override_actions_default[] = {};
+#endif

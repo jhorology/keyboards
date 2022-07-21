@@ -14,10 +14,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include QMK_KEYBOARD_H
-#include "lib/tap_dance_user.h"
 
 #define MO1_SPC LT(1, KC_SPC)
 #define SFT_SPC RSFT_T(KC_SPC)
+#define ALT_IME TD(TD_ALTIME)
 
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -26,7 +26,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,        KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_BSLS, KC_BSPC,
     KC_LCTL, KC_A,    KC_S,    KC_D,    KC_F,    KC_G,        KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_ENT,
     KC_LSFT, KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,        KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH, KC_RSFT,
-    APPLE_FN,KC_LGUI,                   TD(ALT_IME),MO1_SPC,  SFT_SPC, MO(2),                              KC_RGUI,   MO(3)
+    APPLE_FN,KC_LGUI,                   ALT_IME, MO1_SPC,  SFT_SPC, MO(2),                              KC_RGUI,   MO(3)
    ),
 
   [1] = LAYOUT
