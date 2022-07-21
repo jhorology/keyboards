@@ -15,3 +15,4 @@ ifeq ($(strip $(APPLE_FN_ENABLE)), yes)
   NKRO_ENABLE = no
   SRC += lib/apple_fn.c
 endif
+SRC += lib/tap_dance_user.c

@@ -6,7 +6,7 @@ PROJECT=$(realpath $0:h)
 cd "$PROJECT"
 zparseopts -D -E -F -- \
            {h,-help}=help  \
-           -clean=clean \
+           {c,-clean}=clean \
            -qmk-home:=qmk_home \
            -vial-qmk-home:=vial_qmk_home \
            -without-update-qmk=without_update_qmk \
@@ -37,7 +37,8 @@ local -A KEYBOARDS=(
 
 # defaults
 TARGETS=(bakeneko60 ciel60 qk65 prime_e d60 fk680)
-VIAL_QMK_HOME="$HOME/Documents/Sources/vial-qmk"
+# need forked repository https://github.com/jhorology/vial-qmk
+VIAL_QMK_HOME="$HOME/Documents/Sources/vial-qmk-dev"
 QMK_HOME="$HOME/Documents/Sources/qmk_firmware"
 VIAL_ENABLE=yes
 APPLE_FN_ENABLE=yes

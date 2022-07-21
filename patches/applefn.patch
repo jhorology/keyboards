@@ -5,7 +5,7 @@ index c976b8296d..037522f287 100644
 @@ -773,6 +773,10 @@ ifeq ($(strip $(JOYSTICK_ENABLE)), yes)
      endif
  endif
-
+ 
 +ifeq ($(strip $(APPLE_FN_ENABLE)), yes)
 +    OPT_DEFS += -DAPPLE_FN_ENABLE
 +endif
@@ -14,10 +14,10 @@ index c976b8296d..037522f287 100644
  VALID_USBPD_DRIVER_TYPES = custom vendor
  USBPD_DRIVER ?= vendor
 diff --git a/quantum/action.c b/quantum/action.c
-index 3efed443a3..800a0dd451 100644
+index 4e81a5466f..a07e472048 100644
 --- a/quantum/action.c
 +++ b/quantum/action.c
-@@ -464,6 +464,16 @@ void process_action(keyrecord_t *record, action_t action) {
+@@ -506,6 +506,16 @@ void process_action(keyrecord_t *record, action_t action) {
              }
              break;
  #endif
@@ -34,7 +34,7 @@ index 3efed443a3..800a0dd451 100644
  #ifdef MOUSEKEY_ENABLE
          /* Mouse key */
          case ACT_MOUSEKEY:
-@@ -874,6 +884,12 @@ __attribute__((weak)) void register_code(uint8_t code) {
+@@ -913,6 +923,12 @@ __attribute__((weak)) void register_code(uint8_t code) {
          host_consumer_send(KEYCODE2CONSUMER(code));
      }
  #endif
@@ -47,7 +47,7 @@ index 3efed443a3..800a0dd451 100644
  #ifdef MOUSEKEY_ENABLE
      else if IS_MOUSEKEY (code) {
          mousekey_on(code);
-@@ -934,6 +950,12 @@ __attribute__((weak)) void unregister_code(uint8_t code) {
+@@ -973,6 +989,12 @@ __attribute__((weak)) void unregister_code(uint8_t code) {
      } else if IS_CONSUMER (code) {
          host_consumer_send(0);
      }
@@ -60,7 +60,7 @@ index 3efed443a3..800a0dd451 100644
  #ifdef MOUSEKEY_ENABLE
      else if IS_MOUSEKEY (code) {
          mousekey_off(code);
-@@ -1140,6 +1162,9 @@ void debug_action(action_t action) {
+@@ -1179,6 +1201,9 @@ void debug_action(action_t action) {
          case ACT_USAGE:
              dprint("ACT_USAGE");
              break;
@@ -99,7 +99,7 @@ index 20b3e459d2..4d4e2a8be3 100644
  #define ACTION_USAGE_CONSUMER(id) ACTION(ACT_USAGE, PAGE_CONSUMER << 10 | (id))
 +#define ACTION_APPLE_FN() ACTION(ACT_APPLE_FN, 0)
  #define ACTION_MOUSEKEY(key) ACTION(ACT_MOUSEKEY, key)
-
+ 
  /** \brief Layer Actions
 diff --git a/quantum/keycode.h b/quantum/keycode.h
 index 3c80a386d1..c0e0ab6aa6 100644
@@ -110,13 +110,13 @@ index 3c80a386d1..c0e0ab6aa6 100644
  #define IS_SYSTEM(code) (KC_PWR <= (code) && (code) <= KC_WAKE)
  #define IS_CONSUMER(code) (KC_MUTE <= (code) && (code) <= KC_BRID)
 +#define IS_APPLE_FN(code) (KC_APFN == (code))
-
+ 
  #define IS_MOUSEKEY(code) (KC_MS_UP <= (code) && (code) <= KC_MS_ACCEL2)
  #define IS_MOUSEKEY_MOVE(code) (KC_MS_UP <= (code) && (code) <= KC_MS_RIGHT)
 @@ -206,6 +207,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  #define KC_BRIU KC_BRIGHTNESS_UP
  #define KC_BRID KC_BRIGHTNESS_DOWN
-
+ 
 +/* Apple Fn */
 +#define KC_APFN KC_APPLE_FN
 +
@@ -133,10 +133,10 @@ index 3c80a386d1..c0e0ab6aa6 100644
 +    /* Apple Fn */
 +    KC_APPLE_FN,
  };
-
+ 
  enum mouse_keys {
 diff --git a/quantum/keymap_common.c b/quantum/keymap_common.c
-index a91b2a0b36..e400376a1d 100644
+index c1940f0fd3..d58b5b2bb3 100644
 --- a/quantum/keymap_common.c
 +++ b/quantum/keymap_common.c
 @@ -66,6 +66,11 @@ action_t action_for_keycode(uint16_t keycode) {
@@ -152,7 +152,7 @@ index a91b2a0b36..e400376a1d 100644
          case KC_MS_UP ... KC_MS_ACCEL2:
              action.code = ACTION_MOUSEKEY(keycode);
 diff --git a/tmk_core/protocol/report.c b/tmk_core/protocol/report.c
-index 854b59ae48..ed9659f56d 100644
+index 5755098c60..6498f46750 100644
 --- a/tmk_core/protocol/report.c
 +++ b/tmk_core/protocol/report.c
 @@ -241,6 +241,12 @@ void del_key_bit(report_keyboard_t* keyboard_report, uint8_t code) {
@@ -182,7 +182,7 @@ index 854b59ae48..ed9659f56d 100644
      if (keyboard_protocol && keymap_config.nkro) {
          del_key_bit(keyboard_report, key);
 diff --git a/tmk_core/protocol/usb_descriptor.c b/tmk_core/protocol/usb_descriptor.c
-index 0b992ba6c5..d211fbebda 100644
+index 063bd2c3f1..8d4726c672 100644
 --- a/tmk_core/protocol/usb_descriptor.c
 +++ b/tmk_core/protocol/usb_descriptor.c
 @@ -71,10 +71,22 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM KeyboardReport[] = {
