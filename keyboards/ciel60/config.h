@@ -88,11 +88,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   029a  Magic Keyboard with Touch ID (ANSI)                 ---> that I own
 */
 #ifdef APPLE_FN_ENABLE
-#define VENDOR_ID 0x05AC
-#define PRODUCT_ID 0x021d
+#  define VENDOR_ID 0x05Ac
+// #  define PRODUCT_ID 0x021d  // ANSI
+// #  define PRODUCT_ID 0x021e  // ISO
+#  define PRODUCT_ID 0x021f  // JIS
 #else
-#define VENDOR_ID 0xC41C
-#define PRODUCT_ID 0x0001
+#  define VENDOR_ID 0xC41C
+#  define PRODUCT_ID 0x0001
 #endif
 #define DEVICE_VER 0x0001
 #define MANUFACTURER ChickenMan
@@ -110,18 +112,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /* Vial-specific definitions. */
 #ifdef VIAL_ENABLE
-#define VIAL_KEYBOARD_UID \
-  { 0xC5, 0xA0, 0x98, 0xD4, 0x2F, 0xE1, 0x1A, 0x7B }
-#define VIAL_UNLOCK_COMBO_ROWS \
-  { 0, 2 }
-#define VIAL_UNLOCK_COMBO_COLS \
-  { 0, 13 }
+#  define VIAL_KEYBOARD_UID \
+    { 0xC5, 0xA0, 0x98, 0xD4, 0x2F, 0xE1, 0x1A, 0x7B }
+#  define VIAL_UNLOCK_COMBO_ROWS \
+    { 0, 2 }
+#  define VIAL_UNLOCK_COMBO_COLS \
+    { 0, 13 }
 #endif
 
 /* ViA layout options */
 #ifdef VIA_ENABLE
-#define LAYOUT_OPTION_SPLIT_BS 0x4
-#define LAYOUT_OPTION_SPLIT_RIGHT_SHIFT 0x2
-#define LAYOUT_OPTION_BOTTOM_ROW_ANSI 0
-#define LAYOUT_OPTION_BOTTOM_ROW_TSANGAN 0x1
+#  define LAYOUT_OPTION_SPLIT_BS 0x4
+#  define LAYOUT_OPTION_SPLIT_RIGHT_SHIFT 0x2
+#  define LAYOUT_OPTION_BOTTOM_ROW_ANSI 0
+#  define LAYOUT_OPTION_BOTTOM_ROW_TSANGAN 0x1
 #endif

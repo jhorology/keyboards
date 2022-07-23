@@ -89,12 +89,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   029a  Magic Keyboard with Touch ID (ANSI)                 ---> that I own
 */
 #ifdef APPLE_FN_ENABLE
-#define VENDOR_ID 0x05AC
-#define PRODUCT_ID 0x0220
+#  define VENDOR_ID 0x05AC
+// #  define PRODUCT_ID 0x0220 // ANSI
+// #  define PRODUCT_ID 0x0221 // ISO
+#  define PRODUCT_ID 0x0222  // JIS
 #else
-#define VENDOR_ID 0x5052
-#define DEVICE_VER 0x0001
+#  define VENDOR_ID 0x5052
+#  define PRODUCT_ID 0x0052
 #endif
+#define DEVICE_VER 0x0001
 #define MANUFACTURER PrimeKB
 #define PRODUCT Prime_E RGB
 
@@ -116,18 +119,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /* Vial-specific definitions. */
 #ifdef VIAL_ENABLE
-#define VIAL_KEYBOARD_UID \
-  { 0xF3, 0xB8, 0xA3, 0x29, 0x37, 0x91, 0xFD, 0xA2 }
-#define VIAL_UNLOCK_COMBO_ROWS \
-  { 0, 1 }
-#define VIAL_UNLOCK_COMBO_COLS \
-  { 0, 12 }
+#  define VIAL_KEYBOARD_UID \
+    { 0xF3, 0xB8, 0xA3, 0x29, 0x37, 0x91, 0xFD, 0xA2 }
+#  define VIAL_UNLOCK_COMBO_ROWS \
+    { 0, 1 }
+#  define VIAL_UNLOCK_COMBO_COLS \
+    { 0, 12 }
 #endif
 
 /* reducing firmware size */
 #ifdef VIAL_ENABLE
-#define DYNAMIC_KEYMAP_LAYER_COUNT 4
+#  define DYNAMIC_KEYMAP_LAYER_COUNT 4
 #else
-#define DYNAMIC_KEYMAP_LAYER_COUNT 8
-#define RGBLIGHT_ANIMATIONS
+#  define DYNAMIC_KEYMAP_LAYER_COUNT 8
+#  define RGBLIGHT_ANIMATIONS
 #endif

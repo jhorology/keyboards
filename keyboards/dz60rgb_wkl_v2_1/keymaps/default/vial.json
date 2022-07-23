@@ -1,7 +1,5 @@
 {
   "name": "DZ60RGB WKL",
-  "vendorId": "0x05AC",
-  "productId": "0x021D",
   "customKeycodes": [
     {
       "name": "Apple\nfn🌐",
@@ -10,8 +8,28 @@
     },
     {
       "name": "Apple\n🌐+FK",
-      "title": "Apple Fn/Globe Key with remapping F1-12 to \"1\"-\"=\" keys",
+      "title": "Apple Fn/Globe Key with overriding \"1\"-\"=\" with F1-12",
       "shortName": "Apple\n🌐+FK"
+    },
+    {
+      "name": "USJ\nTOGG",
+      "title": "Toggle enabling key overridng for ANSI layout on JIS environment",
+      "shortName": "USJ\nTOGG"
+    },
+    {
+      "name": "USJ\nON",
+      "title": "Enable key overriding for ANSI layout on JIS environment",
+      "shortName": "USJ\nON"
+    },
+    {
+      "name": "USJ\nOFF",
+      "title": "Disable key overriding for ANSI layout on JIS environment",
+      "shortName": "USJ\nOFF"
+    },
+    {
+      "name": "RGB\non/off",
+      "title": "Cycle through RGB on/off modes",
+      "shortName": "RGB\non/off"
     }
   ],
   "lighting": {

@@ -10,15 +10,13 @@ AUDIO_ENABLE = no           # Audio output
 LTO_ENABLE = yes            # Link time optimization
 VIA_ENABLE = yes
 
+ifeq ($(strip $(VIAL_ENABLE)), no)
+  TAP_DANCE_ENABLE = yes
+endif
+
 ifeq ($(strip $(APPLE_FN_ENABLE)), yes)
   # see https://gist.github.com/fauxpark/010dcf5d6377c3a71ac98ce37414c6c4
   NKRO_ENABLE = no
-  SRC += lib/apple_fn.c
 endif
-
-ifeq ($(strip $(VIAL_ENABLE)), yes)
-  SRC += lib/vial_reset_user.c
-  SRC += lib/combo_actions.c
-  SRC += lib/key_override_actions.c
-endif
-SRC += lib/tap_dance_actions.c
+SRC += lib/my_keyboard_common.c
+SRC += lib/layout_util.c

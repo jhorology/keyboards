@@ -13,10 +13,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include QMK_KEYBOARD_H
+#pragma once
 
-#include "key_override_actions.h"
+#include "quantum.h"
 
-#ifdef VIAL_KEY_OVERRIDE_ENABLE
-const vial_combo_entry_t PROGMEM vial_key_override_actions_default[] = {};
-#endif
+typedef struct {
+  uint8_t src;             // src keycode
+  uint16_t dest;           // destination keycode if not shifted
+  uint16_t dest_on_shift;  // destination keycode if shfited
+} layout_conversion_item_t;
+
+bool process_ansi_layout_on_jis(uint16_t keycode, keyrecord_t *record);

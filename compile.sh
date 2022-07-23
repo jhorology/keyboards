@@ -19,7 +19,7 @@ if (( $#help )); then
   print -rC1 --      \
         "$0:t [-h|--help]" \
         "$0:t [-c|--clean] [--qmk-home <QMK_HOME>] [--vial-qmk-home <VIAL_QMK_HOME>]" \
-        "$0:t [--qmk-home <QMK_HOME>] [--vial-qmk-home <VIAL_QMK_HOME>] [--without-update-qmk] [--without-vial] [--without-apple-fn] [<TARGET...>]"
+        "$0:t [--qmk-home <QMK_HOME>] [--vial-qmk-home <VIAL_QMK_HOME>] [--apple-kb-layout <ansi|iso|jis>] [--without-update-qmk] [--without-vial] [<TARGET...>]"
   return
 fi
 

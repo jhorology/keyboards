@@ -18,6 +18,7 @@ SRC += uf2_boot.c
 
 # reducing RAM usage
 ifeq ($(strip $(VIAL_ENABLE)), yes)
+  QMK_SETTINGS = no
   # -10 bytes
   # MOUSEKEY_ENABLE = no
 

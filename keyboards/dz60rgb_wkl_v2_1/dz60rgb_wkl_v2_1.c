@@ -1,7 +1,6 @@
 #include "dz60rgb_wkl_v2_1.h"
 
 #define xx NO_LED
-#ifdef RGB_MATRIX_ENABLE
 // clang-format off
 const is31_led PROGMEM g_is31_leds[DRIVER_LED_TOTAL] = {
     {0, H_15, G_15, I_15},
@@ -125,19 +124,13 @@ led_config_t g_led_config = {
 };
 // clang-format on
 
-void suspend_power_down_kb(void) {
-  rgb_matrix_set_suspend_state(true);
-  suspend_power_down_user();
-}
+#define CAPS_LOCK_LED 41
 
-void suspend_wakeup_init_kb(void) {
-  rgb_matrix_set_suspend_state(false);
-  suspend_wakeup_init_user();
-}
-
-__attribute__((weak)) void rgb_matrix_indicators_user(void) {
-  if (host_keyboard_led_state().caps_lock) {
-    rgb_matrix_set_color(41, 0xFF, 0xFF, 0xFF);
+void rgb_matrix_indicators_user(void) {
+  bool caps_lock = host_keyboard_led_state().caps_lock;
+  static bool caps_lock_old;
+  if (caps_lock || caps_lock_old) {
+    rgb_matrix_set_color(CAPS_LOCK_LED, caps_lock ? rgb_matrix_get_val() : 0, 0, 0);
   }
+  caps_lock_old = caps_lock;
 }
-#endif

@@ -7,16 +7,32 @@
       "name": "Apple\nfn",
       "title": "Apple Fn/Globe Key",
       "shortName": "Apple\nfn"
+    },
+    {
+      "name": "Apple\nfn+FK",
+      "title": "Apple Fn/Globe Key with overriding \"1\"-\"=\" with F1-12",
+      "shortName": "Apple\nfn+FK"
+    },
+    {
+      "name": "USJ\nTOGG",
+      "title": "Toggle enabling key overridng for ANSI layout on JIS environment",
+      "shortName": "USJ\nTOGG"
+    },
+    {
+      "name": "USJ\nON",
+      "title": "Enable key overriding for ANSI layout on JIS environment",
+      "shortName": "USJ\nON"
+    },
+    {
+      "name": "USJ\nOFF",
+      "title": "Disable key overriding for ANSI layout on JIS environment",
+      "shortName": "USJ\nOFF"
     }
   ],
   "lighting": "none",
   "matrix": { "rows": 5, "cols": 15 },
   "layouts": {
-    "labels": [
-      "Split Backspace",
-      "Split Right Shift",
-      ["Bottom Row", "ANSI", "Tsangan"]
-    ],
+    "labels": ["Split Backspace", "Split Right Shift", ["Bottom Row", "ANSI", "Tsangan"]],
     "keymap": [
       [{ "x": 13 }, "0,13\n\n\n0,1", "0,14\n\n\n0,1"],
       [

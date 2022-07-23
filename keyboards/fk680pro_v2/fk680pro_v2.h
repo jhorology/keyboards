@@ -16,13 +16,7 @@
 
 #pragma once
 
-#include "lib/apple_fn.h"
-#ifdef VIAL_ENABLED
-#include "lib/combo_actions.h"
-#include "lib/key_override_actions.h"
-#endif
-#include "lib/tap_dance_actions.h"
-#include "quantum.h"
+#include "lib/my_keyboard_common.h"
 
 // clang-format off
 #define LAYOUT( \
@@ -44,16 +38,15 @@
 
 // cycle through on/off mode
 // all off -> keylight on -> underglow on -> both on
-#define RGB_CYMD USER02
+#define RGB_CYMD CUSTOM_KEYCODES_SAFE_RANGE
 
 #ifdef RGB_MATRIX_ENABLE
 typedef union {
-  uint32_t raw;
+  uint16_t raw;
   struct {
-    uint8_t rgb_led_mode : 3;
+    uint8_t rgb_led_mode : 2;
   };
-} user_config_t;
-extern user_config_t g_user_config;
+} user_kb_config_t;
 
 void update_rgb_matrix_flags(uint8_t mode);
 #endif

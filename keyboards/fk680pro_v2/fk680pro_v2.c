@@ -96,30 +96,8 @@ led_config_t g_led_config = {
 
 #define CAPS_LOCK_LED 3  // left side of spacebar
 
-bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-  switch (keycode) {
-#ifdef APPLE_FN_ENABLE
-    case APPLE_FN:
-      process_apple_fn(keycode, record);
-      return false;
-    case APPLE_FF:
-      process_apple_ff(keycode, record);
-      return false;
-    case KC_1 ... KC_0:
-      return process_apple_ff_fkey(keycode - KC_1, record);
-    case KC_MINS:
-      return process_apple_ff_fkey(10, record);
-    case KC_EQL:
-      return process_apple_ff_fkey(11, record);
-#endif
-    case RGB_CYMD:
-      if (record->event.pressed) {
-        update_rgb_matrix_flags((g_user_config.rgb_led_mode + 1) & 0x03);
-        return false;
-      }
-  }
-  return true;
-}
+//  qmk/vial/my_keyboard custom hook functsions
+//------------------------------------------
 
 void board_init(void) {
   // JTAG-DP Disabled and SW-DP Enabled
@@ -129,19 +107,21 @@ void board_init(void) {
                AFIO_MAPR_TIM2_REMAP_0;
 }
 
-void keyboard_post_init_kb(void) {
-  g_user_config.raw = eeconfig_read_user();
-  update_rgb_matrix_flags(g_user_config.rgb_led_mode);
+void init_with_config_kb(void) {
+  user_kb_config_t *kb = (user_kb_config_t *)&g_user_config.kb;
+  update_rgb_matrix_flags(kb->rgb_led_mode);
 }
 
-void suspend_power_down_kb(void) {
-  rgb_matrix_set_suspend_state(true);
-  suspend_power_down_user();
-}
-
-void suspend_wakeup_init_kb(void) {
-  suspend_wakeup_init_user();
-  rgb_matrix_set_suspend_state(false);
+bool process_record_user_kb(uint16_t keycode, keyrecord_t *record) {
+  switch (keycode) {
+    case RGB_CYMD:
+      if (record->event.pressed) {
+        user_kb_config_t *kb = (user_kb_config_t *)&g_user_config.kb;
+        update_rgb_matrix_flags((kb->rgb_led_mode + 1) & 0x03);
+        return false;
+      }
+  }
+  return true;
 }
 
 void rgb_matrix_indicators_user(void) {
@@ -153,6 +133,9 @@ void rgb_matrix_indicators_user(void) {
   caps_lock_old = caps_lock;
 }
 
+//  global functions
+//------------------------------------------
+
 void update_rgb_matrix_flags(uint8_t mode) {
   led_flags_t flags = LED_FLAG_NONE;
   flags |= (mode & 1) ? LED_FLAG_KEYLIGHT : 0;
@@ -161,8 +144,9 @@ void update_rgb_matrix_flags(uint8_t mode) {
   if (mode != 3) {
     rgb_matrix_set_color_all(0, 0, 0);
   }
-  if (mode != g_user_config.rgb_led_mode) {
-    g_user_config.rgb_led_mode = mode;
+  user_kb_config_t *kb = (user_kb_config_t *)&g_user_config.kb;
+  if (mode != kb->rgb_led_mode) {
+    kb->rgb_led_mode = mode;
     eeconfig_update_user(g_user_config.raw);
   }
 }
