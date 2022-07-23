@@ -90,7 +90,7 @@ void keyboard_post_init_kb(void) {
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   if (!process_record_user_kb(keycode, record)) return false;
   if (g_user_config.usj_enabled) {
-    if (!process_ansi_layout_on_jis(keycode, record)) return false;
+    if (!process_ansi_layout_on_apple_jis(keycode, record)) return false;
   }
   bool result = true;
   switch (keycode) {

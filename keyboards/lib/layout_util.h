@@ -23,4 +23,4 @@ typedef struct {
   uint16_t dest_on_shift;  // destination keycode if shfited
 } layout_conversion_item_t;
 
-bool process_ansi_layout_on_jis(uint16_t keycode, keyrecord_t *record);
+bool process_ansi_layout_on_apple_jis(uint16_t keycode, keyrecord_t *record);

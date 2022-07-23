@@ -28,7 +28,7 @@ bool process_layout_conversion(layout_conversion_item_t *table, uint16_t table_l
 //   local variables
 //------------------------------------------
 
-static layout_conversion_item_t ansi_on_jis_table[] = {
+static layout_conversion_item_t ansi_on_apple_jis_table[] = {
     // src, dest, dest on shift
     {KC_GRV, JP_GRV, JP_TILD},    // "`", "~"
     {KC_2, 0, JP_AT},             // "@"
@@ -41,7 +41,21 @@ static layout_conversion_item_t ansi_on_jis_table[] = {
     {KC_EQL, JP_EQL, JP_PLUS},    // "=", "+"
     {KC_LBRC, JP_LBRC, JP_LCBR},  // "[", "{"
     {KC_RBRC, JP_RBRC, JP_RCBR},  // "]", "}"
-    // {KC_BSLS, JP_BSLS, JP_PIPE},  // "\", "|"
+
+    {KC_BSLS, LALT(JP_YEN), JP_PIPE},  // "\", "|"
+                                       // TODO
+                                       // some applications (eg.emacs) interprets backslash as Alt + JP_YEN
+                                       // see https://qiita.com/hirokisince1998/items/029741559d7ba7078523
+                                       //
+                                       // for emacs init.el:
+                                       //
+                                       // (define-key global-map [?\M-¥] [?\\])
+                                       // (define-key global-map [?\C-\M-¥] [?\C-\\])
+                                       // (defun isearch-add-backslash()
+                                       // (interactive)
+                                       // (isearch-printing-char ?\\ 1))
+                                       // (define-key isearch-mode-map [?\M-¥] 'isearch-add-backslash)
+                                       //
     // {KC_CAPS, JP_CAPS, JP_EISU},  // CAPSLOCK
     {KC_SCLN, 0, JP_COLN},       // :
     {KC_QUOT, JP_QUOT, JP_DQUO}  // '
@@ -53,9 +67,9 @@ static uint16_t ansi_jis_override_shift_flags;
 // globl functions
 //------------------------------------------
 
-bool process_ansi_layout_on_jis(uint16_t keycode, keyrecord_t *record) {
-  return process_layout_conversion(&ansi_on_jis_table[0], sizeof(ansi_on_jis_table) / sizeof(layout_conversion_item_t),
-                                   keycode, record);
+bool process_ansi_layout_on_apple_jis(uint16_t keycode, keyrecord_t *record) {
+  return process_layout_conversion(&ansi_on_apple_jis_table[0],
+                                   sizeof(ansi_on_apple_jis_table) / sizeof(layout_conversion_item_t), keycode, record);
 }
 
 // local functions
@@ -78,12 +92,17 @@ bool process_layout_conversion(layout_conversion_item_t *table, uint16_t table_l
     bool l_shift = keyboard_report->mods & MOD_BIT(KC_LSFT);
     bool r_shift = keyboard_report->mods & MOD_BIT(KC_RSFT);
     bool shift = l_shift || r_shift;
+    bool alt = keyboard_report->mods & (MOD_BIT(KC_LALT) | MOD_BIT(KC_RALT));
     uint16_t dest_kc = shift ? item->dest_on_shift : item->dest;
     if (dest_kc != 0) {
       if (dest_kc & QK_LSFT) {
         if (!shift) register_code(KC_LSFT);
         register_code(dest_kc & 0xff);
         if (!shift) unregister_code(KC_LSFT);
+      } else if (dest_kc & QK_LALT) {
+        if (!alt) register_code(KC_LALT);
+        register_code(dest_kc & 0xff);
+        if (!alt) unregister_code(KC_LALT);
       } else {
         if (l_shift) unregister_code(KC_LSFT);
         if (r_shift) unregister_code(KC_RSFT);
