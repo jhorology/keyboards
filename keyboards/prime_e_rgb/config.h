@@ -90,9 +90,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #ifdef APPLE_FN_ENABLE
 #  define VENDOR_ID 0x05AC
-// #  define PRODUCT_ID 0x0220 // ANSI
-// #  define PRODUCT_ID 0x0221 // ISO
-#  define PRODUCT_ID 0x0222  // JIS
+#  if APPLE_FAKE_LAYOUT == 0
+#    define PRODUCT_ID 0x0222  // ANSI
+#  elif APPLE_FAKE_LAYOUT == 1
+#    define PRODUCT_ID 0x0223  // ISO
+#  elif APPLE_FAKE_LAYOUT == 2
+#    define PRODUCT_ID 0x0224  // JIS
+#  endif
 #else
 #  define VENDOR_ID 0x5052
 #  define PRODUCT_ID 0x0052

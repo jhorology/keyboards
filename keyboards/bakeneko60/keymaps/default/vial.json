@@ -12,6 +12,11 @@
       "shortName": "Apple\n🌐+FK"
     },
     {
+      "name": "EJ\nTOGG",
+      "title": "Toggle send かな and 英数",
+      "shortName": "EJ\nTOGG"
+    },
+    {
       "name": "USJ\nTOGG",
       "title": "Toggle enabling key overridng for ANSI layout on JIS environment",
       "shortName": "USJ\nTOGG"

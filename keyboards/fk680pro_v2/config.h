@@ -87,9 +87,13 @@
 */
 #ifdef APPLE_FN_ENABLE
 #  define VENDOR_ID 0x05Ac
-// #  define PRODUCT_ID 0x024f  // ANSI
-// #  define PRODUCT_ID 0x0250  // ISO
-#  define PRODUCT_ID 0x0251  // JIS
+#  if APPLE_FAKE_LAYOUT == 0
+#    define PRODUCT_ID 0x024f  // ANSI
+#  elif APPLE_FAKE_LAYOUT == 1
+#    define PRODUCT_ID 0x0250  // ISO
+#  elif APPLE_FAKE_LAYOUT == 2
+#    define PRODUCT_ID 0x0251  // JIS
+#  endif
 #else
 #  define VENDOR_ID 0xFEED
 #  define PRODUCT_ID 0x6060

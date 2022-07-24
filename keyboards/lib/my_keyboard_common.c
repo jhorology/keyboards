@@ -44,13 +44,12 @@ const vial_tap_dance_entry_t PROGMEM vial_tap_dance_actions_default[] = {
     // tap, hold,  double_tap, tap_hold, tapping_term
     [TD_LALT_IME] = {KC_LALT, KC_LALT, LALT(KC_GRV), KC_LALT, TAPPING_TERM},
     [TD_LGUI_EISU] = {KC_LGUI, KC_LGUI, KC_LNG2, KC_LGUI, TAPPING_TERM},
-    [TD_RGUI_KANA] = {KC_RGUI, KC_RGUI, KC_LNG1, KC_LGUI, TAPPING_TERM}};
+    [TD_RGUI_KANA] = {KC_RGUI, KC_RGUI, KC_LNG1, KC_RGUI, TAPPING_TERM},
+    [TD_LGUI_EISU_KANA] = {KC_LGUI, KC_LGUI, EJ_TOGG, KC_LGUI, TAPPING_TERM}};
 #  endif
-
 #  ifdef VIAL_COMBO_ENABLE
 const vial_combo_entry_t PROGMEM vial_combo_actions_default[] = {};
 #  endif
-
 #  ifdef VIAL_KEY_OVERRIDE_ENABLE
 const vial_combo_entry_t PROGMEM vial_key_override_actions_default[] = {};
 #  endif
@@ -59,10 +58,11 @@ qk_tap_dance_action_t tap_dance_actions[] = {
     // Tap once for standard key, twice to toggle layers
     [TD_LALT_IME] = ACTION_TAP_DANCE_DOUBLE(KC_LALT, LALT(KC_GRV)),
     [TD_LGUI_EISU] = ACTION_TAP_DANCE_DOUBLE(KC_LGUI, KC_LNG2),
-    [TD_RGUI_KANA] = ACTION_TAP_DANCE_DOUBLE(KC_RGUI, KC_LNG1)};
+    [TD_RGUI_KANA] = ACTION_TAP_DANCE_DOUBLE(KC_RGUI, KC_LNG1),
+    [TD_LGUI_EISU_KANA] = ACTION_TAP_DANCE_DOUBLE(KC_LGUI, EJ_TOGG)};
 #endif
 
-//   local variavles
+//   local variables
 //------------------------------------------
 
 #ifdef APPLE_FN_ENABLE
@@ -72,6 +72,14 @@ qk_tap_dance_action_t tap_dance_actions[] = {
  */
 static uint16_t apple_ff_flags;
 #endif
+
+typedef union {
+  uint16_t raw;
+  struct {
+    bool eisu_kana : 1;
+  };
+} volatile_state_t;
+volatile_state_t volatile_state;
 
 //  keyboard spcific hook functsions
 //------------------------------------------
@@ -109,6 +117,16 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       } else {
         apple_ff_flags &= 0xfffe;
         unregister_code(KC_APFN);
+      }
+      return false;
+    case EJ_TOGG:
+      if (record->event.pressed) {
+        volatile_state.eisu_kana = !volatile_state.eisu_kana;
+        // KC_LNG1 かな
+        // KC_LNG2 英数
+        register_code(volatile_state.eisu_kana ? KC_LNG1 : KC_LANG2);
+      } else {
+        unregister_code(volatile_state.eisu_kana ? KC_LNG1 : KC_LANG2);
       }
       return false;
     case KC_1 ... KC_0:

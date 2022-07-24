@@ -28,6 +28,7 @@ enum custom_user_keycodes {
 #ifdef APPLE_FN_ENABLE
   APPLE_FN = USER00,  // Apple fn/globe key
   APPLE_FF,           // Apple fn/globe wotb remapping F1-12
+  EJ_TOGG,            // toggle Apple 英数/かな
   USJ_TOGG,           // toggle enabling conversion for ANSI layout on JIS
 #else
   USJ_TOGG = USER00,  // toggle enabling conversion for ANSI layout on JIS
@@ -44,9 +45,10 @@ enum custom_user_keycodes {
 
 // tap dance actions
 enum tap_dance_action_index {
-  TD_LALT_IME = 0,  // LALT, on tap: alt + ~
-  TD_LGUI_EISU,     // LGUI, on tap: mac 英数
-  TD_RGUI_KANA,     // LGUI, on tap: mac かな
+  TD_LALT_IME = 0,    // LALT, on tap: alt + ~
+  TD_LGUI_EISU,       // LGUI, on tap: mac 英数
+  TD_RGUI_KANA,       // LGUI, on tap: mac かな
+  TD_LGUI_EISU_KANA,  // LGUI, on tap: mac toggle 英数/かな
   TAP_DANCE_ACTIONS_DEFAULT_LENGTH
 };
 

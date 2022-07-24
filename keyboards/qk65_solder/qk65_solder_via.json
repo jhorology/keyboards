@@ -14,6 +14,11 @@
       "shortName": "Apple\nfn+FK"
     },
     {
+      "name": "EJ\nTOGG",
+      "title": "Toggle send かな and 英数",
+      "shortName": "EJ\nTOGG"
+    },
+    {
       "name": "USJ\nTOGG",
       "title": "Toggle enabling key overridng for ANSI layout on JIS environment",
       "shortName": "USJ\nTOGG"
@@ -27,11 +32,6 @@
       "name": "USJ\nOFF",
       "title": "Disable key overriding for ANSI layout on JIS environment",
       "shortName": "USJ\nOFF"
-    },
-    {
-      "name": "RGB\non/off",
-      "title": "Cycle through RGB on/off modes",
-      "shortName": "RGB\non/off"
     }
   ],
   "lighting": "none",

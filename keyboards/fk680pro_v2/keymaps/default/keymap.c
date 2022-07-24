@@ -15,9 +15,11 @@
  */
 #include QMK_KEYBOARD_H
 
-#define LALT_IME TD(TD_LALT_IME)
-#define CMD_EISU TD(TD_LGUI_EISU)
-#define CMD_KANA TD(TD_RGUI_KANA)
+#define LALT_IME TD(TD_LALT_IME)        // LALT + ` on double tap, KC_LALT in other case.
+#define CMD_EISU TD(TD_LGUI_EISU)       // KC_LNG2(英数) on double tap, KC_LGUI in other case.
+#define CMD_KANA TD(TD_RGUI_KANA)       // KC_LNG1(かな) on double tap, KC_LGUI in other case.
+#define CMD_TGEJ TD(TD_LGUI_EISU_KANA)  // Toogle send KC_LNG1(かな) and KC_LNG2(英数)
+                                        // on double tap, KC_LGUI in other case.
 
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -27,7 +29,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
    KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_LBRC, KC_RBRC, KC_BSPC, KC_VOLU,
    KC_LCTL, KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_QUOT,          KC_ENT,  KC_VOLD,
    KC_LSFT, KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH,          KC_LSFT, MO(1),   KC_NO,
-   APPLE_FF,KC_LALT, CMD_EISU,                  KC_SPC,                             CMD_KANA,KC_RALT, MO(2),   KC_MPRV, KC_MPLY, KC_MNXT
+   APPLE_FF,KC_LALT, CMD_TGEJ,                  KC_SPC,                             KC_RGUI, KC_RALT, MO(2),   KC_MPRV, KC_MPLY, KC_MNXT
    ),
   [1] = LAYOUT
   (

@@ -24,12 +24,12 @@ if (( $#help )); then
 fi
 
 local -A KEYBOARDS=(
-  bakeneko60 bakeneko60:hex
-  ciel60     ciel60:hex
-  qk65       qk65_solder:hex
-  prime_e    prime_e_rgb:hex
-  d60        dz60rgb_wkl_v2_1:bin
-  fk680      fk680pro_v2:uf2
+  bakeneko60 bakeneko60:hex:0x021d
+  ciel60     ciel60:hex:0x021d
+  qk65       qk65_solder:hex:0x024f
+  prime_e    prime_e_rgb:hex:0x0220
+  d60        dz60rgb_wkl_v2_1:bin:0x021d
+  fk680      fk680pro_v2:uf2:0x024f
 )
 
 # configuration
@@ -42,6 +42,7 @@ VIAL_QMK_HOME="$HOME/Documents/Sources/vial-qmk-dev"
 QMK_HOME="$HOME/Documents/Sources/qmk_firmware"
 VIAL_ENABLE=yes
 APPLE_FN_ENABLE=yes
+APPLE_FAKE_LAYOUT=0 # fake apple product 0:ANSI 1:ISO 2:JIS
 UPDATE_QMK=true
 
 # .config
@@ -106,7 +107,7 @@ fi
 
 [ ! -L keyboards/my_keyboards ] && ln -s "${PROJECT}/keyboards" keyboards/my_keyboards
 
-make -j 10 $MAKE_TARGETS[*] VIAL_ENABLE=$VIAL_ENABLE APPLE_FN_ENABLE=$APPLE_FN_ENABLE
+make -j 10 $MAKE_TARGETS[*] VIAL_ENABLE=$VIAL_ENABLE APPLE_FN_ENABLE=$APPLE_FN_ENABLE APPLE_FAKE_LAYOUT=$APPLE_FAKE_LAYOUT
 
 VERSION="$(date +"%Y%m%d")_$(git rev-parse --short HEAD)"
 if [ $VIAL_ENABLE = "yes" ]; then
