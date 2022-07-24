@@ -12,6 +12,7 @@ zparseopts -D -E -F -- \
            -without-update-qmk=without_update_qmk \
            -without-vial=without_vial \
            -without-apple_fn=without_apple_fn \
+           -apple_fake_layout=apple_fake_layout \
   || return
 
 
@@ -19,17 +20,25 @@ if (( $#help )); then
   print -rC1 --      \
         "$0:t [-h|--help]" \
         "$0:t [-c|--clean] [--qmk-home <QMK_HOME>] [--vial-qmk-home <VIAL_QMK_HOME>]" \
-        "$0:t [--qmk-home <QMK_HOME>] [--vial-qmk-home <VIAL_QMK_HOME>] [--apple-kb-layout <ansi|iso|jis>] [--without-update-qmk] [--without-vial] [<TARGET...>]"
-  return
+        "$0:t [options...] [<TARGET...>]" \
+        "" \
+        "options:" \
+        "  --qmk-home <QMK_HOME>            location for local qmk_firmware repository" \
+        "  --vial-qmk-home <VIAL_QMK_HOME>  location for local vial-qmk repository" \
+        "  --without-update-qmk             don't sync remote repository" \
+        "  --without-vial                   build without VIAL, use QMK_HOME with enabling VIA." \
+        "  --without-apple-fn               don't apply apple_fn.patch" \
+        "  --apple-fake-layout <layoput>    choice fake apple product id 0:ANSI 1:ISO 2:JIS, default 0:ANSI"
+        return
 fi
 
 local -A KEYBOARDS=(
-  bakeneko60 bakeneko60:hex:0x021d
-  ciel60     ciel60:hex:0x021d
-  qk65       qk65_solder:hex:0x024f
-  prime_e    prime_e_rgb:hex:0x0220
-  d60        dz60rgb_wkl_v2_1:bin:0x021d
-  fk680      fk680pro_v2:uf2:0x024f
+  bakeneko60 bakeneko60:hex
+  ciel60     ciel60:hex
+  qk65       qk65_solder:hex
+  prime_e    prime_e_rgb:hex
+  d60        dz60rgb_wkl_v2_1:bin
+  fk680      fk680pro_v2:uf2
 )
 
 # configuration
