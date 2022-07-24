@@ -12,7 +12,7 @@ zparseopts -D -E -F -- \
            -without-update-qmk=without_update_qmk \
            -without-vial=without_vial \
            -without-apple_fn=without_apple_fn \
-           -apple_fake_layout=apple_fake_layout \
+           -apple_fake_layout=:apple_fake_layout \
   || return
 
 
@@ -28,8 +28,8 @@ if (( $#help )); then
         "  --without-update-qmk             don't sync remote repository" \
         "  --without-vial                   build without VIAL, use QMK_HOME with enabling VIA." \
         "  --without-apple-fn               don't apply apple_fn.patch" \
-        "  --apple-fake-layout <layoput>    choice fake apple product id 0:ANSI 1:ISO 2:JIS, default 0:ANSI"
-        return
+        "  --apple-fake-layout <layout>     choice fake apple product id 0:ANSI 1:ISO 2:JIS, default 0:ANSI"
+  return
 fi
 
 local -A KEYBOARDS=(
@@ -66,6 +66,7 @@ UPDATE_QMK=true
 (( $#without_update_qmk )) && UPDATE_QMK=false
 (( $#without_vial )) && VIAL_ENABLE=no
 (( $#without_apple_fn )) && APPLE_FN_ENABLE=no
+(( $#apple_fake_layout )) && APPLE_FAKE_LAYOUT=${apple_fake_layout[-1]##=}
 (( $#@ )) && TARGETS=("$@")
 
 if (( $#clean )); then
