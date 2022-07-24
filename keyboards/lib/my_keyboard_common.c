@@ -90,6 +90,11 @@ __attribute__((weak)) bool process_record_user_kb(uint16_t keycode, keyrecord_t 
 //  qmk/vial custom hook functsions
 //------------------------------------------
 
+void eeconfig_init_user(void) {
+  g_user_config.raw = 0;
+  eeconfig_update_user(g_user_config.raw);
+}
+
 void keyboard_post_init_kb(void) {
   g_user_config.raw = eeconfig_read_user();
   init_with_config_kb();

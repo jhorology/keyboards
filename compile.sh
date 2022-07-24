@@ -12,7 +12,7 @@ zparseopts -D -E -F -- \
            -without-update-qmk=without_update_qmk \
            -without-vial=without_vial \
            -without-apple_fn=without_apple_fn \
-           -apple_fake_layout=:apple_fake_layout \
+           -apple-fake-layout:=apple_fake_layout \
   || return
 
 
