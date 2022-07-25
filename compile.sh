@@ -46,8 +46,7 @@ local -A KEYBOARDS=(
 
 # defaults
 TARGETS=(bakeneko60 ciel60 qk65 prime_e d60 fk680)
-# need forked repository https://github.com/jhorology/vial-qmk
-VIAL_QMK_HOME="$HOME/Documents/Sources/vial-qmk-dev"
+VIAL_QMK_HOME="$HOME/Documents/Sources/vial-qmk"
 QMK_HOME="$HOME/Documents/Sources/qmk_firmware"
 VIAL_ENABLE=yes
 APPLE_FN_ENABLE=yes
@@ -76,12 +75,14 @@ if (( $#clean )); then
   find . -name '.DS_Store' -exec rm -f {} \;
 
   cd "$QMK_HOME"
+  rm -rf keyboards/my_keyboards
   make clean
   # checkout to revert changes.
   git checkout --recurse-submodules .
   git clean -dfx
 
   cd "$VIAL_QMK_HOME"
+  rm -rf keyboards/my_keyboards
   make clean
   # checkout to revert changes.
   git checkout --recurse-submodules .
@@ -109,10 +110,16 @@ if $UPDATE_QMK; then
   make git-submodule
 fi
 
-if [ $APPLE_FN_ENABLE = "yes" ] && [ -z "$(rg APPLE_FN_ENABLE $QMK_HOME/quantum/keymap_common.c)" ]; then
-  # checkout to revert changes.
-  git checkout --recurse-submodules .
-  patch -p1 < "${PROJECT}/patches/applefn.patch"
+if [ $APPLE_FN_ENABLE = "yes" ]; then
+   if [ -z "$(rg APPLE_FN_ENABLE quantum/keymap_common.c)" ]; then
+     patch -p1 < "${PROJECT}/patches/applefn.patch"
+   fi
+   if [ -z "$(rg get_usb_device_descriptor_ptr tmk_core/protocol/usb_descriptor.h)" ]; then
+     patch -p1 < "${PROJECT}/patches/device_descriptor.patch"
+   fi
+fi
+if [ $VIAL_ENABLE = "yes" ] && [ -z "$(rg vial_tap_dance_reset_user quantum/dynamic_keymap.h)" ]; then
+  patch -p1 < "${PROJECT}/patches/vial_eeprom_reset_user.patch"
 fi
 
 [ ! -L keyboards/my_keyboards ] && ln -s "${PROJECT}/keyboards" keyboards/my_keyboards

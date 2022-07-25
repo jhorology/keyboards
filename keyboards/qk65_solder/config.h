@@ -88,17 +88,32 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   029a  Magic Keyboard with Touch ID (ANSI)                 ---> that I own
 */
 #ifdef APPLE_FN_ENABLE
-#  define VENDOR_ID 0x05AC
-#  if APPLE_FAKE_LAYOUT == 0
-#    define PRODUCT_ID 0x024f  // ANSI
-#  elif APPLE_FAKE_LAYOUT == 1
-#    define PRODUCT_ID 0x0250  // ISO
-#  elif APPLE_FAKE_LAYOUT == 2
-#    define PRODUCT_ID 0x0251  // JIS
+#  if APPLE_FAKE_LAYOUT == 0             // ANSI
+#    define VENDOR_ID 0x05Ac             // Apple
+#    define PRODUCT_ID 0x024f            // ANSI
+#    define ALTERNATE_VENDOR_ID 0x05Ac   // Apple
+#    define ALTERNATE_PRODUCT_ID 0x0251  // JIS
+#  elif APPLE_FAKE_LAYOUT == 1           // ISO
+#    define VENDOR_ID 0x05Ac             // Apple
+#    define PRODUCT_ID 0x0250            // ISO
+#    define ALTERNATE_VENDOR_ID 0x05Ac   // Apple
+#    define ALTERNATE_PRODUCT_ID 0x0251  // JIS
+#  elif APPLE_FAKE_LAYOUT == 2           // JIS
+#    define VENDOR_ID 0x05Ac             // Apple
+#    define PRODUCT_ID 0x0251            // JIS
+#    define ALTERNATE_VENDOR_ID 0x05Ac   // Apple
+#    define ALTERNATE_PRODUCT_ID 0x024f  // ANSI
+#  else
+#    define VENDOR_ID 0xFEED  // none Apple
+#    define PRODUCT_ID 0x6060
+#    define ALTERNATE_VENDOR_ID 0x05Ac   // Apple
+#    define ALTERNATE_PRODUCT_ID 0x024f  // ANSI
 #  endif
 #else
-#  define VENDOR_ID 0x4F53   // 0x4F53  for qwertykeys
-#  define PRODUCT_ID 0x5153  // 0x5153 QS for QK65 Solder
+#  define VENDOR_ID 0x4F53             // 0x4F53 for qwertykeys
+#  define PRODUCT_ID 0x5153            // 0x5153 QS for QK65 Solder
+#  define ALTERNATE_VENDOR_ID 0x05Ac   // Apple
+#  define ALTERNATE_PRODUCT_ID 0x024f  // ANSI
 #endif
 #define DEVICE_VER 0x0001
 #define MANUFACTURER qwetykeys

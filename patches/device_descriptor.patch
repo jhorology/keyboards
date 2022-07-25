@@ -1,0 +1,34 @@
+diff --git a/tmk_core/protocol/usb_descriptor.c b/tmk_core/protocol/usb_descriptor.c
+index 063bd2c3f1..48a975def2 100644
+--- a/tmk_core/protocol/usb_descriptor.c
++++ b/tmk_core/protocol/usb_descriptor.c
+@@ -1064,6 +1064,10 @@ const USB_Descriptor_String_t PROGMEM SerialNumberString = {
+
+ // clang-format on
+
++__attribute__((weak)) const USB_Descriptor_Device_t* get_usb_device_descriptor_ptr() {
++    return &DeviceDescriptor;
++}
++
+ /**
+  * This function is called by the library when in device mode, and must be overridden (see library "USB Descriptors"
+  * documentation) by the application code so that the address and size of a requested descriptor can be given
+@@ -1079,5 +1083,5 @@ uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const
+
+     switch (DescriptorType) {
+         case DTYPE_Device:
+-            Address = &DeviceDescriptor;
++            Address = get_usb_device_descriptor_ptr();
+             Size    = sizeof(USB_Descriptor_Device_t);
+
+             break;
+diff --git a/tmk_core/protocol/usb_descriptor.h b/tmk_core/protocol/usb_descriptor.h
+index 6c3424145c..a4c533fbd0 100644
+--- a/tmk_core/protocol/usb_descriptor.h
++++ b/tmk_core/protocol/usb_descriptor.h
+@@ -311,3 +311,5 @@ enum usb_endpoints {
+ #define DIGITIZER_EPSIZE 8
+
+ uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const void** const DescriptorAddress);
++const USB_Descriptor_Device_t* get_usb_device_descriptor_ptr(void);
++extern const USB_Descriptor_Device_t DeviceDescriptor;

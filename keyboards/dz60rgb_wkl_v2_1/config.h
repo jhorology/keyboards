@@ -85,17 +85,27 @@
   029a  Magic Keyboard with Touch ID (ANSI)                 ---> that I own
 */
 #ifdef APPLE_FN_ENABLE
-#  define VENDOR_ID 0x05AC
 #  if APPLE_FAKE_LAYOUT == 0
-#    define PRODUCT_ID 0x021d  // ANSI
+#    define VENDOR_ID 0x05Ac             // Apple
+#    define PRODUCT_ID 0x021d            // ANSI
+#    define ALTERNATE_VENDOR_ID 0x05Ac   // Apple
+#    define ALTERNATE_PRODUCT_ID 0x021f  // JIS
 #  elif APPLE_FAKE_LAYOUT == 1
-#    define PRODUCT_ID 0x021e  // ISO
+#    define VENDOR_ID 0x05Ac             // Apple
+#    define PRODUCT_ID 0x021e            // ISO
+#    define ALTERNATE_VENDOR_ID 0x05Ac   // Apple
+#    define ALTERNATE_PRODUCT_ID 0x021f  // JIS
 #  elif APPLE_FAKE_LAYOUT == 2
-#    define PRODUCT_ID 0x021f  // JIS
+#    define VENDOR_ID 0x05Ac
+#    define PRODUCT_ID 0x021f            // JIS
+#    define ALTERNATE_VENDOR_ID 0x05Ac   // Apple
+#    define ALTERNATE_PRODUCT_ID 0x021d  // ANSI
 #  endif
 #else
 #  define VENDOR_ID 0x445A
 #  define PRODUCT_ID 0x1321
+#  define ALTERNATE_VENDOR_ID 0x05Ac   // Apple
+#  define ALTERNATE_PRODUCT_ID 0x021d  // ANSI
 #endif
 #define DEVICE_VER 0x0003
 #define MANUFACTURER KBDfans

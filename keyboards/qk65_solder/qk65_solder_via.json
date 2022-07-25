@@ -14,6 +14,21 @@
       "shortName": "Apple\nfn+FK"
     },
     {
+      "name": "Apple\nANSI/JIS",
+      "title": "Toggle product_id ANSI or JIS",
+      "shortName": "Toggle\nANSI\nJIS"
+    },
+    {
+      "name": "Apple\nANSI",
+      "title": "Switch product_id to ANSI",
+      "shortName": "Apple\nANSI"
+    },
+    {
+      "name": "Apple\nJIS",
+      "title": "Switch product_id to JIS",
+      "shortName": "Apple\nJIS"
+    },
+    {
       "name": "EJ\nTOGG",
       "title": "Toggle send かな and 英数",
       "shortName": "EJ\nTOGG"

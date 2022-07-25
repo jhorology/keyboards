@@ -25,16 +25,15 @@
 //------------------------------------------
 
 enum custom_user_keycodes {
-#ifdef APPLE_FN_ENABLE
   APPLE_FN = USER00,  // Apple fn/globe key
   APPLE_FF,           // Apple fn/globe wotb remapping F1-12
-  EJ_TOGG,            // toggle Apple 英数/かな
+  USB_TOGG,           // Toggle changeing USB device descriptor default or alternate.
+  USB_NORM,           // Use default USB device descriptor.
+  USB_ALT,            // Use alternate USB device descriptor.
+  EJ_TOGG,            // to ggle send 英数 and /かな
   USJ_TOGG,           // toggle enabling conversion for ANSI layout on JIS
-#else
-  USJ_TOGG = USER00,  // toggle enabling conversion for ANSI layout on JIS
-#endif
-  USJ_ON,   // enable conversion for ANSI layout on JIS.
-  USJ_OFF,  // disable conversion for ANSI layout on JIS.
+  USJ_ON,             // enable conversion for ANSI layout on JIS.
+  USJ_OFF,            // disable conversion for ANSI layout on JIS.
   CUSTOM_KEYCODES_SAFE_RANGE
 };
 
@@ -79,7 +78,8 @@ typedef union {
     union {
       uint16_t common;
       struct {
-        bool usj_enabled : 1;  // ANSI->JIS convertion enabled state.
+        bool usb_alternate : 1;  // enable alternate USB device descriptor.
+        bool usj_enabled : 1;    // ANSI->JIS convertion enabled state.
       };
     };
     uint16_t kb;

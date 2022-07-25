@@ -20,3 +20,4 @@ ifeq ($(strip $(APPLE_FN_ENABLE)), yes)
 endif
 SRC += lib/my_keyboard_common.c
 SRC += lib/layout_util.c
+SRC += lib/alternate_device_descriptor.c

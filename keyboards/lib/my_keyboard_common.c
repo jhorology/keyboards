@@ -22,6 +22,9 @@
 //   local functions
 //------------------------------------------
 
+#ifdef ALTERNATE_PRODUCT_ID
+void set_usb_alternate(bool value);
+#endif
 void set_usj_enabled(bool value);
 
 #ifdef APPLE_FN_ENABLE
@@ -40,6 +43,9 @@ user_config_t g_user_config;
 #ifdef VIAL_ENABLE
 
 #  ifdef VIAL_TAP_DANCE_ENABLE
+/*
+ * pre-defined vial tap dabce
+ */
 const vial_tap_dance_entry_t PROGMEM vial_tap_dance_actions_default[] = {
     // tap, hold,  double_tap, tap_hold, tapping_term
     [TD_LALT_IME] = {KC_LALT, KC_LALT, LALT(KC_GRV), KC_LALT, TAPPING_TERM},
@@ -48,12 +54,21 @@ const vial_tap_dance_entry_t PROGMEM vial_tap_dance_actions_default[] = {
     [TD_LGUI_EISU_KANA] = {KC_LGUI, KC_LGUI, EJ_TOGG, KC_LGUI, TAPPING_TERM}};
 #  endif
 #  ifdef VIAL_COMBO_ENABLE
+/*
+ * pre-defined vial combo
+ */
 const vial_combo_entry_t PROGMEM vial_combo_actions_default[] = {};
 #  endif
 #  ifdef VIAL_KEY_OVERRIDE_ENABLE
+/*
+ * pre-defined key overrride
+ */
 const vial_combo_entry_t PROGMEM vial_key_override_actions_default[] = {};
 #  endif
 #else
+/*
+ * pre-defined tap dabce
+ */
 qk_tap_dance_action_t tap_dance_actions[] = {
     // Tap once for standard key, twice to toggle layers
     [TD_LALT_IME] = ACTION_TAP_DANCE_DOUBLE(KC_LALT, LALT(KC_GRV)),
@@ -95,10 +110,9 @@ void eeconfig_init_user(void) {
   eeconfig_update_user(g_user_config.raw);
 }
 
-void keyboard_post_init_kb(void) {
-  g_user_config.raw = eeconfig_read_user();
-  init_with_config_kb();
-}
+void keyboard_pre_init_kb(void) { g_user_config.raw = eeconfig_read_user(); }
+
+void keyboard_post_init_kb(void) { init_with_config_kb(); }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   if (!process_record_user_kb(keycode, record)) return false;
@@ -124,16 +138,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         unregister_code(KC_APFN);
       }
       return false;
-    case EJ_TOGG:
-      if (record->event.pressed) {
-        volatile_state.eisu_kana = !volatile_state.eisu_kana;
-        // KC_LNG1 かな
-        // KC_LNG2 英数
-        register_code(volatile_state.eisu_kana ? KC_LNG1 : KC_LANG2);
-      } else {
-        unregister_code(volatile_state.eisu_kana ? KC_LNG1 : KC_LANG2);
-      }
-      return false;
     case KC_1 ... KC_0:
       result = process_apple_ff_fkey(keycode - KC_1, record);
       break;
@@ -144,6 +148,27 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       result = process_apple_ff_fkey(11, record);
       break;
 #endif
+#ifdef ALTERNATE_PRODUCT_ID
+    case USB_TOGG:
+      set_usb_alternate(!g_user_config.usb_alternate);
+      return false;
+    case USB_NORM:
+      set_usb_alternate(false);
+      return false;
+    case USB_ALT:
+      set_usb_alternate(true);
+      return false;
+#endif
+    case EJ_TOGG:
+      if (record->event.pressed) {
+        volatile_state.eisu_kana = !volatile_state.eisu_kana;
+        // KC_LNG1 かな
+        // KC_LNG2 英数
+        register_code(volatile_state.eisu_kana ? KC_LNG1 : KC_LANG2);
+      } else {
+        unregister_code(volatile_state.eisu_kana ? KC_LNG1 : KC_LANG2);
+      }
+      return false;
     case USJ_TOGG:
       set_usj_enabled(!g_user_config.usj_enabled);
       return false;
@@ -199,6 +224,7 @@ void vial_key_override_reset_user(uint8_t index, vial_key_override_entry_t *entr
 //   local functions
 //------------------------------------------
 
+#ifdef APPLE_FN_ENABLE
 bool process_apple_ff_fkey(uint16_t fkey_index, keyrecord_t *record) {
   uint16_t flag = 1 << (fkey_index + 1);
   if (record->event.pressed) {
@@ -216,6 +242,18 @@ bool process_apple_ff_fkey(uint16_t fkey_index, keyrecord_t *record) {
   }
   return true;
 }
+#endif
+
+#ifdef ALTERNATE_PRODUCT_ID
+void set_usb_alternate(bool value) {
+  if (value != g_user_config.usb_alternate) {
+    g_user_config.usb_alternate = value;
+    eeconfig_update_user(g_user_config.raw);
+    // restart
+    soft_reset_keyboard();
+  }
+}
+#endif
 
 void set_usj_enabled(bool value) {
   if (value != g_user_config.usj_enabled) {
