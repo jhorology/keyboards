@@ -91,8 +91,8 @@ typedef union {
 
 extern user_config_t g_user_config;
 
-//   keyboard spcific hook functions
+//   keyboard-spcific hook functions
 //------------------------------------------
 
-extern void init_with_config_kb(void);
+extern void init_with_config_user_kb(void);
 extern bool process_record_user_kb(uint16_t keycode, keyrecord_t *record);

@@ -80,17 +80,13 @@ qk_tap_dance_action_t tap_dance_actions[] = {
 //   local variables
 //------------------------------------------
 
-#ifdef APPLE_FN_ENABLE
-/*
-  bit0: apple_fn pressed state
-  biti-12: 1-0, minus, equla keyes remapped state
- */
-static uint16_t apple_ff_flags;
-#endif
-
 typedef union {
   uint16_t raw;
   struct {
+#ifdef APPLE_FN_ENABLE
+    bool apple_ff : 1;
+    uint16_t apple_ff_flags : 12;
+#endif
     bool eisu_kana : 1;
   };
 } volatile_state_t;
@@ -99,7 +95,7 @@ volatile_state_t volatile_state;
 //  keyboard spcific hook functsions
 //------------------------------------------
 
-__attribute__((weak)) void init_with_config_kb(void) {}
+__attribute__((weak)) void init_with_config_user_kb(void) {}
 __attribute__((weak)) bool process_record_user_kb(uint16_t keycode, keyrecord_t *record) { return true; }
 
 //  qmk/vial custom hook functsions
@@ -112,7 +108,7 @@ void eeconfig_init_user(void) {
 
 void keyboard_pre_init_kb(void) { g_user_config.raw = eeconfig_read_user(); }
 
-void keyboard_post_init_kb(void) { init_with_config_kb(); }
+void keyboard_post_init_kb(void) { init_with_config_user_kb(); }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   if (!process_record_user_kb(keycode, record)) return false;
@@ -131,21 +127,21 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       return false;
     case APPLE_FF:
       if (record->event.pressed) {
-        apple_ff_flags |= 1;
+        volatile_state.apple_ff = true;
         register_code(KC_APFN);
       } else {
-        apple_ff_flags &= 0xfffe;
+        volatile_state.apple_ff = false;
         unregister_code(KC_APFN);
       }
       return false;
     case KC_1 ... KC_0:
-      result = process_apple_ff_fkey(keycode - KC_1, record);
+      if (volatile_state.apple_ff) result = process_apple_ff_fkey(keycode - KC_1, record);
       break;
     case KC_MINS:
-      result = process_apple_ff_fkey(10, record);
+      if (volatile_state.apple_ff) result = process_apple_ff_fkey(10, record);
       break;
     case KC_EQL:
-      result = process_apple_ff_fkey(11, record);
+      if (volatile_state.apple_ff) result = process_apple_ff_fkey(11, record);
       break;
 #endif
 #ifdef ALTERNATE_PRODUCT_ID
@@ -226,19 +222,15 @@ void vial_key_override_reset_user(uint8_t index, vial_key_override_entry_t *entr
 
 #ifdef APPLE_FN_ENABLE
 bool process_apple_ff_fkey(uint16_t fkey_index, keyrecord_t *record) {
-  uint16_t flag = 1 << (fkey_index + 1);
+  uint16_t flag = 1 << fkey_index;
   if (record->event.pressed) {
-    if (apple_ff_flags & 1) {
-      apple_ff_flags |= flag;
-      register_code(KC_F1 + fkey_index);
-      return false;
-    }
+    volatile_state.apple_ff_flags |= flag;
+    register_code(KC_F1 + fkey_index);
+    return false;
   } else {
-    if (apple_ff_flags & flag) {
-      apple_ff_flags &= ~flag;
-      unregister_code(KC_F1 + fkey_index);
-      return false;
-    }
+    volatile_state.apple_ff_flags &= ~flag;
+    unregister_code(KC_F1 + fkey_index);
+    return false;
   }
   return true;
 }

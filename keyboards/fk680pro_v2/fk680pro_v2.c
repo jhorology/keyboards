@@ -107,7 +107,7 @@ void board_init(void) {
                AFIO_MAPR_TIM2_REMAP_0;
 }
 
-void init_with_config_kb(void) {
+void init_with_config_user_kb(void) {
   user_kb_config_t *kb = (user_kb_config_t *)&g_user_config.kb;
   update_rgb_matrix_flags(kb->rgb_led_mode);
 }
