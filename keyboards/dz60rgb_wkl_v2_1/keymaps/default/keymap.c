@@ -1,10 +1,11 @@
 #include QMK_KEYBOARD_H
 
-#define LALT_IME TD(TD_LALT_IME)        // LALT + ` on double tap, KC_LALT in other case.
-#define CMD_EISU TD(TD_LGUI_EISU)       // KC_LNG2(英数) on double tap, KC_LGUI in other case.
-#define CMD_KANA TD(TD_RGUI_KANA)       // KC_LNG1(かな) on double tap, KC_LGUI in other case.
-#define CMD_TGEJ TD(TD_LGUI_EISU_KANA)  // Toogle send KC_LNG1(かな) and KC_LNG2(英数)
-                                        // on double tap, KC_LGUI in other case.
+#define LALT_IME TD(TD_LALT_IME)   // LALT + ` on double tap, KC_LALT in other case.
+#define CMD_EISU TD(TD_LGUI_EISU)  // KC_LNG2(英数) on double tap, KC_LGUI in other case.
+#define CMD_KANA TD(TD_RGUI_KANA)  // KC_LNG1(かな) on double tap, KC_LGUI in other case.
+#define CMD_TGEJ \
+  TD(TD_LGUI_EISU_KANA)  // Toogle send KC_LNG1(かな) and KC_LNG2(英数)
+                         // on double tap, KC_LGUI in other case.
 
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {

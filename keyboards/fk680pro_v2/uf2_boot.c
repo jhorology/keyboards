@@ -1,4 +1,5 @@
 /* Copyright 2022 ZhaQian
+ * Modified 2022 Masafumi
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,11 +19,19 @@
 
 #include "bootloader.h"
 
-#define MAGIC_BOOT 0x544F4F42UL
+// see https://github.com/mmoskal/uf2-stm32f103/blob/master/src/stm32f103/target_stm32f103.c#L53
+#define CMD_BOOT 0x544F4F42UL
+#define CMD_APP 0x3f82722aUL
+
 #define MAGIC_REG *(volatile uint32_t*)0x20004000
 
 void bootloader_jump(void) {
-  MAGIC_REG = MAGIC_BOOT;
+  MAGIC_REG = CMD_BOOT;
+  NVIC_SystemReset();
+}
+
+void mcu_reset(void) {
+  MAGIC_REG = CMD_APP;
   NVIC_SystemReset();
 }
 

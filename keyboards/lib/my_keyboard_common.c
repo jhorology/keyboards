@@ -149,13 +149,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       break;
 #endif
 #ifdef ALTERNATE_PRODUCT_ID
-    case USB_TOGG:
+    case DD_TOGG:
       set_usb_alternate(!g_user_config.usb_alternate);
       return false;
-    case USB_NORM:
+    case DD_NRML:
       set_usb_alternate(false);
       return false;
-    case USB_ALT:
+    case DD_ALT:
       set_usb_alternate(true);
       return false;
 #endif

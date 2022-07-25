@@ -27,9 +27,9 @@
 enum custom_user_keycodes {
   APPLE_FN = USER00,  // Apple fn/globe key
   APPLE_FF,           // Apple fn/globe wotb remapping F1-12
-  USB_TOGG,           // Toggle changeing USB device descriptor default or alternate.
-  USB_NORM,           // Use default USB device descriptor.
-  USB_ALT,            // Use alternate USB device descriptor.
+  DD_TOGG,            // Toggle USB device descriptor default or alternate.
+  DD_NRML,            // Use default USB device descriptor.
+  DD_ALT,             // Use alternate USB device descriptor.
   EJ_TOGG,            // to ggle send 英数 and /かな
   USJ_TOGG,           // toggle enabling conversion for ANSI layout on JIS
   USJ_ON,             // enable conversion for ANSI layout on JIS.

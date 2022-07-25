@@ -15,11 +15,12 @@
  */
 #include QMK_KEYBOARD_H
 
-#define LALT_IME TD(TD_LALT_IME)        // LALT + ` on double tap, KC_LALT in other case.
-#define CMD_EISU TD(TD_LGUI_EISU)       // KC_LNG2(英数) on double tap, KC_LGUI in other case.
-#define CMD_KANA TD(TD_RGUI_KANA)       // KC_LNG1(かな) on double tap, KC_LGUI in other case.
-#define CMD_TGEJ TD(TD_LGUI_EISU_KANA)  // Toogle send KC_LNG1(かな) and KC_LNG2(英数)
-                                        // on double tap, KC_LGUI in other case.
+#define LALT_IME TD(TD_LALT_IME)   // LALT + ` on double tap, KC_LALT in other case.
+#define CMD_EISU TD(TD_LGUI_EISU)  // KC_LNG2(英数) on double tap, KC_LGUI in other case.
+#define CMD_KANA TD(TD_RGUI_KANA)  // KC_LNG1(かな) on double tap, KC_LGUI in other case.
+#define CMD_TGEJ \
+  TD(TD_LGUI_EISU_KANA)  // Toogle send KC_LNG1(かな) and KC_LNG2(英数)
+                         // on double tap, KC_LGUI in other case.
 
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -42,8 +43,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [2] = LAYOUT
   (
    _______, KC_F13,   KC_F14, KC_F15,  KC_F16,  KC_F17,  KC_F18,  KC_F19,  KC_F20,  KC_F21,  KC_F22,  KC_F23,  KC_F24,  _______, QK_BOOT,
-   _______, _______, _______, _______, _______, _______, _______, _______, KC_F16,  KC_F17,  KC_F18,  _______, _______, _______, _______,
-   CL_TOGG, USJ_OFF, _______, _______, _______, _______, _______, USJ_ON,  _______, _______, _______, _______,          _______, _______,
+   _______, _______, _______, _______, _______, _______, _______, _______, KC_F16,  KC_F17,  KC_F18,  _______, _______, _______, DD_NRML,
+   CL_TOGG, USJ_OFF, _______, _______, _______, _______, _______, USJ_ON,  _______, _______, _______, _______,          _______, DD_ALT,
    _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,          _______, _______, _______,
    _______, _______, AG_TOGG,                   _______,                            _______, _______, _______, _______, _______, _______
    ),
