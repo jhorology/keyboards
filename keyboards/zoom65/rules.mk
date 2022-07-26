@@ -5,6 +5,7 @@ MCU = atmega32u4
 BOOTLOADER = atmel-dfu
 
 ENCODER_ENABLE = yes        # Enable Encoder
+ENCODER_MAP_ENABLE = yes
 
 # reducing firmware size
 ifeq ($(strip $(VIAL_ENABLE)), yes)

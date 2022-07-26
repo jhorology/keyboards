@@ -43,7 +43,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   ),
   // hhkb-like fn layer
   [2] = LAYOUT_65_ansi_blocker_split_bs(
-    _______, KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,  KC_F12,  KC_INS,  KC_DEL,  _______,
+    _______, KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,  KC_F12,  KC_INS,  KC_DEL,    KC_MPLY,
     KC_CAPS, _______, _______, _______, _______, _______, _______, _______, KC_PSCR, KC_SLCK, KC_PAUS, KC_UP,   _______, _______, _______,
     _______, KC_VOLD, KC_VOLU, KC_MUTE, KC_EJCT, _______, KC_PAST, KC_PSLS, KC_HOME, KC_PGUP, KC_LEFT, KC_RGHT,          KC_PENT, _______,
     _______,          _______, _______, _______, _______, _______, KC_PPLS, KC_PMNS, KC_END,  KC_PGDN, KC_DOWN, _______, _______, _______,
@@ -57,5 +57,16 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     _______,          MAC_OFF, USJ_ON,  _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
     _______, _______, AG_TOGG,                            _______,                   _______, _______,          _______, _______, _______
   )
+};
+
+const uint16_t PROGMEM encoder_map[][NUM_ENCODERS][2] = {
+  // mac base layer
+  [0] = {ENCODER_CCW_CW(KC_VOLD, KC_VOLU)},
+  // standard base layer
+  [1] = {ENCODER_CCW_CW(KC_VOLD, KC_VOLU)},
+  // hhkb-like fn layer
+  [2] = {ENCODER_CCW_CW(KC_MPRV, KC_MNXT)},
+  // settings, application-specific keys
+  [3] = {ENCODER_CCW_CW(KC_VOLD, KC_VOLU)}
 };
 // clang-format on
