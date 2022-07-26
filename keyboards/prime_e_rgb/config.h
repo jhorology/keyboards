@@ -88,28 +88,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   0273  Internal Keyboard/Trackpad (ISO)
   029a  Magic Keyboard with Touch ID (ANSI)                 ---> that I own
 */
+#define VENDOR_ID 0x5052
+#define PRODUCT_ID 0x0052
 #ifdef APPLE_FN_ENABLE
+#  define ALTERNATE_VENDOR_ID 0x05AC  // Apple
 #  if APPLE_FAKE_LAYOUT == 0
-#    define VENDOR_ID 0x05AC             // Apple
-#    define PRODUCT_ID 0x0222            // ANSI
-#    define ALTERNATE_VENDOR_ID 0x05AC   // Apple
-#    define ALTERNATE_PRODUCT_ID 0x0224  // JIS
-#  elif APPLE_FAKE_LAYOUT == 1
-#    define VENDOR_ID 0x05AC             // Apple
-#    define PRODUCT_ID 0x0223            // ISO
-#    define ALTERNATE_VENDOR_ID 0x05AC   // Apple
-#    define ALTERNATE_PRODUCT_ID 0x0224  // JIS
-#  elif APPLE_FAKE_LAYOUT == 2
-#    define VENDOR_ID 0x05AC             // Apple
-#    define PRODUCT_ID 0x0224            // JIS
-#    define ALTERNATE_VENDOR_ID 0x05AC   // Apple
 #    define ALTERNATE_PRODUCT_ID 0x0222  // ANSI
+#  elif APPLE_FAKE_LAYOUT == 1
+#    define ALTERNATE_PRODUCT_ID 0x0223  // ISO
+#  elif APPLE_FAKE_LAYOUT == 2
+#    define ALTERNATE_PRODUCT_ID 0x0224  // JIS
 #  endif
-#else
-#  define VENDOR_ID 0x5052
-#  define PRODUCT_ID 0x0052
-#  define ALTERNATE_VENDOR_ID 0x05AC   // Apple
-#  define ALTERNATE_PRODUCT_ID 0x0222  // ANSI
 #endif
 #define DEVICE_VER 0x0001
 #define MANUFACTURER PrimeKB

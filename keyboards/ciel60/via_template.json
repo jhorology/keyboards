@@ -1,52 +1,7 @@
 {
   "name": "Ciel 60",
-  "customKeycodes": [
-    {
-      "name": "Apple\nfn🌐",
-      "title": "Apple Fn/Globe Key",
-      "shortName": "Apple\nfn🌐"
-    },
-    {
-      "name": "Apple\n🌐+FK",
-      "title": "Apple Fn/Globe Key with overriding \"1\"-\"=\" with F1-12",
-      "shortName": "Apple\n🌐+FK"
-    },
-    {
-      "name": "Apple\nANSI/JIS",
-      "title": "Toggle product_id ANSI or JIS",
-      "shortName": "Toggle\nANSI\nJIS"
-    },
-    {
-      "name": "Apple\nANSI",
-      "title": "Switch product_id to ANSI",
-      "shortName": "Apple\nANSI"
-    },
-    {
-      "name": "Apple\nJIS",
-      "title": "Switch product_id to JIS",
-      "shortName": "Apple\nJIS"
-    },
-    {
-      "name": "EJ\nTOGG",
-      "title": "Toggle send かな and 英数",
-      "shortName": "EJ\nTOGG"
-    },
-    {
-      "name": "USJ\nTOGG",
-      "title": "Toggle enabling key overridng for ANSI layout on JIS environment",
-      "shortName": "USJ\nTOGG"
-    },
-    {
-      "name": "USJ\nON",
-      "title": "Enable key overriding for ANSI layout on JIS environment",
-      "shortName": "USJ\nON"
-    },
-    {
-      "name": "USJ\nOFF",
-      "title": "Disable key overriding for ANSI layout on JIS environment",
-      "shortName": "USJ\nOFF"
-    }
-  ],
+  "vendorId": "0xC41C",
+  "productId": "0x0001",
   "lighting": "none",
   "matrix": { "rows": 5, "cols": 15 },
   "layouts": {

@@ -39,13 +39,14 @@ local -A KEYBOARDS=(
   prime_e    prime_e_rgb:hex
   d60        dz60rgb_wkl_v2_1:bin
   fk680      fk680pro_v2:uf2
+  zoom65     zoom65:hex
 )
 
 # configuration
 # -----------------------------------
 
 # defaults
-TARGETS=(bakeneko60 ciel60 qk65 prime_e d60 fk680)
+TARGETS=(bakeneko60 ciel60 qk65 prime_e d60 fk680 zoom65)
 VIAL_QMK_HOME="$HOME/Documents/Sources/vial-qmk"
 QMK_HOME="$HOME/Documents/Sources/qmk_firmware"
 VIAL_ENABLE=yes
@@ -68,11 +69,14 @@ UPDATE_QMK=true
 (( $#apple_fake_layout )) && APPLE_FAKE_LAYOUT=${apple_fake_layout[-1]##=}
 (( $#@ )) && TARGETS=("$@")
 
+
+
 if (( $#clean )); then
   rm -rf dist
 
   find . -name '*~' -exec rm -f {} \;
   find . -name '.DS_Store' -exec rm -f {} \;
+  find . -name 'vial.json' -exec rm -f {} \;
 
   cd "$QMK_HOME"
   rm -rf keyboards/my_keyboards
@@ -124,6 +128,11 @@ fi
 
 [ ! -L keyboards/my_keyboards ] && ln -s "${PROJECT}/keyboards" keyboards/my_keyboards
 
+# generate vial json file
+if [ $VIAL_ENABLE = "yes" ]; then
+  QMK_HOME=$QMK_HOME "$PROJECT/util/generate_vial_json.js" $MAKE_TARGETS[*]
+fi
+
 make -j 10 $MAKE_TARGETS[*] VIAL_ENABLE=$VIAL_ENABLE APPLE_FN_ENABLE=$APPLE_FN_ENABLE APPLE_FAKE_LAYOUT=$APPLE_FAKE_LAYOUT
 
 VERSION="$(date +"%Y%m%d")_$(git rev-parse --short HEAD)"
@@ -137,6 +146,11 @@ fi
 # dist
 # -----------------------------------
 cd "$PROJECT/dist"
+
+# generate via json file
+if [ $VIAL_ENABLE = "no" ]; then
+  QMK_HOME=$QMK_HOME $PROJECT/util/generate_via_json.js $MAKE_TARGETS[*]
+fi
 
 for target in $TARGETS; do
   # split ":" [1]=make target [2]=extension

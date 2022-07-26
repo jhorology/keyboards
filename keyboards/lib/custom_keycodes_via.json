@@ -1,0 +1,52 @@
+[
+  {
+    "name": "Toggle\nMac",
+    "title": "Toggle fake apple mode with switching base layer 0(mac) or 1",
+    "shortName": "Toggle\nMac"
+  },
+  {
+    "name": "Mac\nON",
+    "title": "Enable fake apple mode with switching base layer 0",
+    "shortName": "Mac\nON"
+  },
+  {
+    "name": "Mac\nOFF",
+    "title": "Enable fake apple mode with switching base layer 1",
+    "shortName": "Mac\nOFF"
+  },
+  {
+    "name": "Apple\nfn",
+    "title": "Apple Fn/Globe Key",
+    "shortName": "Apple\nfn"
+  },
+  {
+    "name": "Apple\nfn+FK",
+    "title": "Apple Fn/Globe Key with overriding \"1\"-\"=\" with F1-12",
+    "shortName": "Apple\nfn+FK"
+  },
+  {
+    "name": "EJ\nTOGG",
+    "title": "Toggle send かな and 英数",
+    "shortName": "EJ\nTOGG"
+  },
+  {
+    "name": "EJ\nTOGG",
+    "title": "Toggle send かな and 英数",
+    "shortName": "EJ\nTOGG"
+  },
+  {
+    "name": "USJ\nTOGG",
+    "title": "Toggle enabling key overridng for ANSI layout on JIS environment",
+    "shortName": "USJ\nTOGG"
+  },
+  {
+    "name": "USJ\nON",
+    "title": "Enable key overriding for ANSI layout on JIS environment",
+    "shortName": "USJ\nON"
+  },
+  {
+    "name": "USJ\nOFF",
+    "title": "Disable key overriding for ANSI layout on JIS environment",
+    "shortName": "USJ\nOFF"
+  }
+]

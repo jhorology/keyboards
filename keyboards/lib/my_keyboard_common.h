@@ -25,15 +25,15 @@
 //------------------------------------------
 
 enum custom_user_keycodes {
-  APPLE_FN = USER00,  // Apple fn/globe key
-  APPLE_FF,           // Apple fn/globe wotb remapping F1-12
-  DD_TOGG,            // Toggle USB device descriptor default or alternate.
-  DD_NRML,            // Use default USB device descriptor.
-  DD_ALT,             // Use alternate USB device descriptor.
-  EJ_TOGG,            // to ggle send 英数 and /かな
-  USJ_TOGG,           // toggle enabling conversion for ANSI layout on JIS
-  USJ_ON,             // enable conversion for ANSI layout on JIS.
-  USJ_OFF,            // disable conversion for ANSI layout on JIS.
+  MAC_TOGG = USER00,  // Toggle enabling fake apple mode with switching base layer 0(apple mode) or 1.
+  MAC_ON,             // Enable fake apple mode with switching base layer 0.
+  MAC_OFF,            // Disable fake apple mode with switching base layer 1.
+  APPLE_FN,           // Apple fn/globe key
+  APPLE_FF,           // Apple fn/globe with remapping F1-12
+  EJ_TOGG,            // Toggle send 英数 and かな
+  USJ_TOGG,           // T oggle enabling conversion for ANSI layout on JIS
+  USJ_ON,             // Enable conversion for ANSI layout on JIS.
+  USJ_OFF,            // Disable conversion for ANSI layout on JIS.
   CUSTOM_KEYCODES_SAFE_RANGE
 };
 
@@ -44,10 +44,10 @@ enum custom_user_keycodes {
 
 // tap dance actions
 enum tap_dance_action_index {
-  TD_LALT_IME = 0,    // LALT, on tap: alt + ~
-  TD_LGUI_EISU,       // LGUI, on tap: mac 英数
-  TD_RGUI_KANA,       // LGUI, on tap: mac かな
-  TD_LGUI_EISU_KANA,  // LGUI, on tap: mac toggle 英数/かな
+  TD_LALT_IME = 0,    // LALT, on double tap: alt + ~
+  TD_LGUI_EISU,       // LGUI, on double tap: mac 英数
+  TD_RGUI_KANA,       // LGUI, on double tap: mac かな
+  TD_LGUI_EISU_KANA,  // LGUI, on double tap: mac toggle send 英数/かな
   TAP_DANCE_ACTIONS_DEFAULT_LENGTH
 };
 
@@ -76,13 +76,13 @@ typedef union {
   uint32_t raw;
   struct {
     union {
-      uint16_t common;
+      uint16_t common;  // common settings
       struct {
-        bool usb_alternate : 1;  // enable alternate USB device descriptor.
-        bool usj_enabled : 1;    // ANSI->JIS convertion enabled state.
+        bool mac : 1;  // mac mode.
+        bool usj : 1;  // ANSI layou on JIS.
       };
     };
-    uint16_t kb;
+    uint16_t kb;  // keyboard-specific settings
   };
 } user_config_t;
 
@@ -90,9 +90,3 @@ typedef union {
 //------------------------------------------
 
 extern user_config_t g_user_config;
-
-//   keyboard-spcific hook functions
-//------------------------------------------
-
-extern void init_with_config_user_kb(void);
-extern bool process_record_user_kb(uint16_t keycode, keyrecord_t *record);

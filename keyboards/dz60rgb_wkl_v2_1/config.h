@@ -84,28 +84,19 @@
   0273  Internal Keyboard/Trackpad (ISO)
   029a  Magic Keyboard with Touch ID (ANSI)                 ---> that I own
 */
+#define VENDOR_ID 0x445A
+#define PRODUCT_ID 0x1321
 #ifdef APPLE_FN_ENABLE
-#  if APPLE_FAKE_LAYOUT == 0
-#    define VENDOR_ID 0x05Ac             // Apple
-#    define PRODUCT_ID 0x021d            // ANSI
-#    define ALTERNATE_VENDOR_ID 0x05Ac   // Apple
-#    define ALTERNATE_PRODUCT_ID 0x021f  // JIS
-#  elif APPLE_FAKE_LAYOUT == 1
-#    define VENDOR_ID 0x05Ac             // Apple
-#    define PRODUCT_ID 0x021e            // ISO
-#    define ALTERNATE_VENDOR_ID 0x05Ac   // Apple
-#    define ALTERNATE_PRODUCT_ID 0x021f  // JIS
-#  elif APPLE_FAKE_LAYOUT == 2
-#    define VENDOR_ID 0x05Ac
-#    define PRODUCT_ID 0x021f            // JIS
-#    define ALTERNATE_VENDOR_ID 0x05Ac   // Apple
-#    define ALTERNATE_PRODUCT_ID 0x021d  // ANSI
+#  ifdef APPLE_FN_ENABLE
+#    define ALTERNATE_VENDOR_ID 0x05Ac  // Apple
+#    if APPLE_FAKE_LAYOUT == 0
+#      define ALTERNATE_PRODUCT_ID 0x021d  // ANSI
+#    elif APPLE_FAKE_LAYOUT == 1
+#      define ALTERNATE_PRODUCT_ID 0x021e  // ISO
+#    elif APPLE_FAKE_LAYOUT == 2
+#      define ALTERNATE_PRODUCT_ID 0x021f  // JIS
+#    endif
 #  endif
-#else
-#  define VENDOR_ID 0x445A
-#  define PRODUCT_ID 0x1321
-#  define ALTERNATE_VENDOR_ID 0x05Ac   // Apple
-#  define ALTERNATE_PRODUCT_ID 0x021d  // ANSI
 #endif
 #define DEVICE_VER 0x0003
 #define MANUFACTURER KBDfans

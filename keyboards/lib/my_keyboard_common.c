@@ -22,10 +22,8 @@
 //   local functions
 //------------------------------------------
 
-#ifdef ALTERNATE_PRODUCT_ID
-void set_usb_alternate(bool value);
-#endif
-void set_usj_enabled(bool value);
+void set_mac(bool value);
+void set_usj(bool value);
 
 #ifdef APPLE_FN_ENABLE
 bool process_apple_ff_fkey(uint16_t fkey_index, keyrecord_t *record);
@@ -96,27 +94,37 @@ volatile_state_t volatile_state;
 //------------------------------------------
 
 __attribute__((weak)) void init_with_config_user_kb(void) {}
-__attribute__((weak)) bool process_record_user_kb(uint16_t keycode, keyrecord_t *record) { return true; }
 
 //  qmk/vial custom hook functsions
 //------------------------------------------
 
-void eeconfig_init_user(void) {
+void eeconfig_init_kb(void) {
   g_user_config.raw = 0;
+  g_user_config.mac = true;
   eeconfig_update_user(g_user_config.raw);
+  eeconfig_init_user();
 }
 
 void keyboard_pre_init_kb(void) { g_user_config.raw = eeconfig_read_user(); }
 
 void keyboard_post_init_kb(void) { init_with_config_user_kb(); }
 
-bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-  if (!process_record_user_kb(keycode, record)) return false;
-  if (g_user_config.usj_enabled) {
+bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
+  if (!process_record_user(keycode, record)) return false;
+  if (g_user_config.usj) {
     if (!process_ansi_layout_on_apple_jis(keycode, record)) return false;
   }
   bool result = true;
   switch (keycode) {
+    case MAC_TOGG:
+      set_mac(!g_user_config.mac);
+      return false;
+    case MAC_ON:
+      set_mac(true);
+      return false;
+    case MAC_OFF:
+      set_mac(false);
+      return false;
 #ifdef APPLE_FN_ENABLE
     case APPLE_FN:
       if (record->event.pressed) {
@@ -144,17 +152,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       if (volatile_state.apple_ff) result = process_apple_ff_fkey(11, record);
       break;
 #endif
-#ifdef ALTERNATE_PRODUCT_ID
-    case DD_TOGG:
-      set_usb_alternate(!g_user_config.usb_alternate);
-      return false;
-    case DD_NRML:
-      set_usb_alternate(false);
-      return false;
-    case DD_ALT:
-      set_usb_alternate(true);
-      return false;
-#endif
     case EJ_TOGG:
       if (record->event.pressed) {
         volatile_state.eisu_kana = !volatile_state.eisu_kana;
@@ -166,13 +163,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       }
       return false;
     case USJ_TOGG:
-      set_usj_enabled(!g_user_config.usj_enabled);
+      set_usj(!g_user_config.usj);
       return false;
     case USJ_ON:
-      set_usj_enabled(true);
+      set_usj(true);
       return false;
     case USJ_OFF:
-      set_usj_enabled(false);
+      set_usj(false);
       return false;
   }
   return result;
@@ -192,27 +189,30 @@ void suspend_wakeup_init_kb(void) {
 
 #ifdef VIAL_ENABLE
 #  ifdef VIAL_TAP_DANCE_ENABLE
-void vial_tap_dance_reset_user(uint8_t index, vial_tap_dance_entry_t *entry) {
+void vial_tap_dance_reset_kb(uint8_t index, vial_tap_dance_entry_t *entry) {
   if (index < TAP_DANCE_ACTIONS_DEFAULT_LENGTH) {
     pgm_memcpy((uint8_t *)entry, (uint8_t *)&vial_tap_dance_actions_default[index], sizeof(vial_tap_dance_entry_t));
   }
+  vial_tap_dance_reset_user(index, entry);
 }
 #  endif
 
 #  ifdef VIAL_COMBO_ENABLE
-void vial_combo_reset_user(uint8_t index, vial_combo_entry_t *entry) {
+void vial_combo_reset_kb(uint8_t index, vial_combo_entry_t *entry) {
   if (index < VIAL_COMBO_ACTIONS_DEFAULT_LENGTH) {
     pgm_memcpy((uint8_t *)entry, (uint8_t *)&vial_combo_actions_default[index], sizeof(vial_combo_entry_t));
   }
+  vial_combo_reset_user(index, entry);
 }
 #  endif
 
 #  ifdef VIAL_KEY_OVERRIDE_ENABLE
-void vial_key_override_reset_user(uint8_t index, vial_key_override_entry_t *entry) {
+void vial_key_override_reset_kb(uint8_t index, vial_key_override_entry_t *entry) {
   if (index < VIAL_KEY_OVERRIDE_ACTIONS_DEFAULT_LENGTH) {
     pgm_memcpy((uint8_t *)entry, (uint8_t *)&vial_key_override_actions_default[index],
                sizeof(vial_key_override_entry_t));
   }
+  vial_key_override_reset_user(index, entry);
 }
 #  endif
 #endif
@@ -236,20 +236,19 @@ bool process_apple_ff_fkey(uint16_t fkey_index, keyrecord_t *record) {
 }
 #endif
 
-#ifdef ALTERNATE_PRODUCT_ID
-void set_usb_alternate(bool value) {
-  if (value != g_user_config.usb_alternate) {
-    g_user_config.usb_alternate = value;
+void set_mac(bool value) {
+  if (value != g_user_config.mac) {
+    g_user_config.mac = value;
     eeconfig_update_user(g_user_config.raw);
-    // restart
+    default_layer_set(value ? 1 : 2);
+    // reboot for changing device descriptor
     soft_reset_keyboard();
   }
 }
-#endif
 
-void set_usj_enabled(bool value) {
-  if (value != g_user_config.usj_enabled) {
-    g_user_config.usj_enabled = value;
+void set_usj(bool value) {
+  if (value != g_user_config.usj) {
+    g_user_config.usj = value;
     eeconfig_update_user(g_user_config.raw);
   }
 }
