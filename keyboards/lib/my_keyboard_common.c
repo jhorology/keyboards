@@ -90,11 +90,6 @@ typedef union {
 } volatile_state_t;
 volatile_state_t volatile_state;
 
-//  keyboard spcific hook functsions
-//------------------------------------------
-
-__attribute__((weak)) void init_with_config_user_kb(void) {}
-
 //  qmk/vial custom hook functsions
 //------------------------------------------
 
@@ -105,9 +100,10 @@ void eeconfig_init_kb(void) {
   eeconfig_init_user();
 }
 
-void keyboard_pre_init_kb(void) { g_user_config.raw = eeconfig_read_user(); }
-
-void keyboard_post_init_kb(void) { init_with_config_user_kb(); }
+void keyboard_pre_init_kb(void) {
+  g_user_config.raw = eeconfig_read_user();
+  keyboard_pre_init_user();
+}
 
 bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
   if (!process_record_user(keycode, record)) return false;

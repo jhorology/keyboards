@@ -107,12 +107,12 @@ void board_init(void) {
                AFIO_MAPR_TIM2_REMAP_0;
 }
 
-void init_with_config_user_kb(void) {
+void keyboard_post_init_user(void) {
   user_kb_config_t *kb = (user_kb_config_t *)&g_user_config.kb;
   update_rgb_matrix_flags(kb->rgb_led_mode);
 }
 
-bool process_record_user_kb(uint16_t keycode, keyrecord_t *record) {
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
     case RGB_CYMD:
       if (record->event.pressed) {
