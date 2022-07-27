@@ -101,8 +101,14 @@ void eeconfig_init_kb(void) {
 }
 
 void keyboard_pre_init_kb(void) {
+  // need none-volatile settings before initilize USB
   g_user_config.raw = eeconfig_read_user();
   keyboard_pre_init_user();
+}
+
+void keyboard_post_init_kb(void) {
+  default_layer_set(g_user_config.mac ? 1 : 2);
+  keyboard_post_init_user();
 }
 
 bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
@@ -236,8 +242,7 @@ void set_mac(bool value) {
   if (value != g_user_config.mac) {
     g_user_config.mac = value;
     eeconfig_update_user(g_user_config.raw);
-    default_layer_set(value ? 1 : 2);
-    // reboot for changing device descriptor
+    // reboot for changing USB device descriptor
     soft_reset_keyboard();
   }
 }

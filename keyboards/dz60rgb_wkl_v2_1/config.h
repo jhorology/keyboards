@@ -133,7 +133,7 @@
 // #define RGB_MATRIX_KEYRELEASES
 
 // reduce firmware size
-#ifndef VIAL_ENABLE
+#ifndef VIA_ENABLE
 #  define ENABLE_RGB_MATRIX_ALPHAS_MODS             // Static dual hue, speed is hue for secondary hue
 #  define ENABLE_RGB_MATRIX_GRADIENT_UP_DOWN        // Static gradient top to bottom, speed controls how much gradient
                                                     // changes
@@ -171,14 +171,14 @@
 #ifdef RGB_MATRIX_FRAMEBUFFER_EFFECTS
 #  define ENABLE_RGB_MATRIX_TYPING_HEATMAP  // How hot is your WPM!
                                             // reduce firmware size
-#  ifndef VIAL_ENABLE
+#  ifndef VIA_ENABLE
 #    define ENABLE_RGB_MATRIX_DIGITAL_RAIN  // That famous computer simulation
 #  endif
 #endif
 
 #if defined(RGB_MATRIX_KEYPRESSES) || defined(RGB_MATRIX_KEYRELEASES)
 // reduce firmware size
-#  ifndef VIAL_ENABLE
+#  ifndef VIA_ENABLE
 #    define ENABLE_RGB_MATRIX_SOLID_REACTIVE_SIMPLE  // Pulses keys hit to hue & value then fades value out
 #    define ENABLE_RGB_MATRIX_SOLID_REACTIVE         // Static single hue, pulses keys hit to shifted hue then fades to
                                                      // current hue
