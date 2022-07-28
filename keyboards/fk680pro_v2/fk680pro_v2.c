@@ -94,8 +94,6 @@ led_config_t g_led_config = {
 };
 // clang-format on
 
-#define CAPS_LOCK_LED 3  // left side of spacebar
-
 //  qmk/vial/my_keyboard custom hook functsions
 //------------------------------------------
 
@@ -107,30 +105,32 @@ void board_init(void) {
                AFIO_MAPR_TIM2_REMAP_0;
 }
 
+void eeconfig_init_user(void) {
+  // qmk user/kb scope
+  //   *_kb scope -> my keyboards common scope
+  //   *_user scope ->keyboard-specific scope
+  g_user_config.raw = 0;
+  g_user_config.rgb_led_mode = 3;
+  eeconfig_update_user(g_user_config.raw);
+}
+
 void keyboard_post_init_user(void) {
-  user_kb_config_t *kb = (user_kb_config_t *)&g_user_config.kb;
-  update_rgb_matrix_flags(kb->rgb_led_mode);
+  // qmk user/kb scope
+  //   *_kb scope -> my keyboards common scope
+  //   *_user scope ->keyboard-specific scope
+  g_user_config.raw = eeconfig_read_user();
+  update_rgb_matrix_flags(g_user_config.rgb_led_mode);
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
     case RGB_CYMD:
       if (record->event.pressed) {
-        user_kb_config_t *kb = (user_kb_config_t *)&g_user_config.kb;
-        update_rgb_matrix_flags((kb->rgb_led_mode + 1) & 0x03);
+        update_rgb_matrix_flags((g_user_config.rgb_led_mode + 1) & 0x03);
         return false;
       }
   }
   return true;
-}
-
-void rgb_matrix_indicators_user(void) {
-  bool caps_lock = host_keyboard_led_state().caps_lock;
-  static bool caps_lock_old;
-  if (caps_lock || caps_lock_old) {
-    rgb_matrix_set_color(CAPS_LOCK_LED, caps_lock ? rgb_matrix_get_val() : 0, 0, 0);
-  }
-  caps_lock_old = caps_lock;
 }
 
 //  global functions
@@ -144,9 +144,8 @@ void update_rgb_matrix_flags(uint8_t mode) {
   if (mode != 3) {
     rgb_matrix_set_color_all(0, 0, 0);
   }
-  user_kb_config_t *kb = (user_kb_config_t *)&g_user_config.kb;
-  if (mode != kb->rgb_led_mode) {
-    kb->rgb_led_mode = mode;
+  if (mode != g_user_config.rgb_led_mode) {
+    g_user_config.rgb_led_mode = mode;
     eeconfig_update_user(g_user_config.raw);
   }
 }

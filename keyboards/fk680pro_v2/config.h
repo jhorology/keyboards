@@ -209,3 +209,6 @@
 #  define VIAL_UNLOCK_COMBO_COLS \
     { 0, 13 }
 #endif
+
+/* definitions for my_keyboard_commoon lib */
+#define CAPS_LOCK_LED 3  // left side of spacebar

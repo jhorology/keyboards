@@ -13,6 +13,7 @@ RGB_MATRIX_DRIVER = IS31FL3733
 
 # reducing firmware size
 ifeq ($(strip $(VIAL_ENABLE)), yes)
+  MOUSEKEY_ENABLE = no
   QMK_SETTINGS = no
   # TAP_DANCE_ENABLE = no
   COMBO_ENABLE = no

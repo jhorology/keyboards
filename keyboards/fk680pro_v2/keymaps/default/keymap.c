@@ -15,12 +15,8 @@
  */
 #include QMK_KEYBOARD_H
 
-#define LALT_IME TD(TD_LALT_IME)   // LALT + ` on double tap, KC_LALT in other case.
-#define CMD_EISU TD(TD_LGUI_EISU)  // KC_LNG2(英数) on double tap, KC_LGUI in other case.
-#define CMD_KANA TD(TD_RGUI_KANA)  // KC_LNG1(かな) on double tap, KC_LGUI in other case.
-#define CMD_TGEJ \
-  TD(TD_LGUI_EISU_KANA)  // Toogle send KC_LNG1(かな) and KC_LNG2(英数)
-                         // on double tap, KC_LGUI in other case.
+#define APFF_EJ TD(TD_APFF_EISU_KANA)  // for mac Apple Fn/Globe + FK override, on tap: 英数, on double tap かな
+#define WIN_LANG TD(TD_LWIN_LANG)      // for win/HHKB, Left Win, on double tap: Win + space
 
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -31,7 +27,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
    KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_LBRC, KC_RBRC, KC_BSPC, KC_VOLU,
    KC_LCTL, KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_QUOT,          KC_ENT,  KC_VOLD,
    KC_LSFT, KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH,          KC_LSFT, MO(2),   KC_NO,
-   APPLE_FF,KC_LALT, CMD_TGEJ,                  KC_SPC,                             KC_RGUI, KC_RALT, MO(3),   KC_MPRV, KC_MPLY, KC_MNXT
+   APFF_EJ, KC_LALT, KC_LGUI,                   KC_SPC,                             KC_RGUI, KC_RALT, MO(3),   KC_MPRV, KC_MPLY, KC_MNXT
    ),
   // standard base layer
   [1] = LAYOUT
@@ -40,13 +36,13 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
    KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_LBRC, KC_RBRC, KC_BSPC, KC_VOLU,
    KC_LCTL, KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_QUOT,          KC_ENT,  KC_VOLD,
    KC_LSFT, KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH,          KC_LSFT, MO(2),   KC_NO,
-   KC_CAPS, KC_LALT, KC_LGUI,                   KC_SPC,                             KC_RGUI, KC_RALT, MO(3),   KC_MPRV, KC_MPLY, KC_MNXT
+   APFF_EJ, KC_LALT, WIN_LANG,                  KC_SPC,                             KC_RGUI, KC_RALT, MO(3),   KC_MPRV, KC_MPLY, KC_MNXT
    ),
   // HHKB-like fn layer
   [2] = LAYOUT
   (
    _______, KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,  KC_F12,  KC_INS,  KC_DEL,
-   KC_CAPS, _______, _______, _______, _______, _______, _______, _______, KC_PSCR, KC_SLCK, KC_PAUS, KC_UP,   _______, _______, _______,
+   KC_CAPS, KC_F16,  KC_F17,  KC_F18,  _______, _______, _______, _______, KC_PSCR, KC_SLCK, KC_PAUS, KC_UP,   _______, _______, _______,
    _______, RGB_CYMD,RGB_VAI, RGB_SPI, RGB_HUI, RGB_SAI, KC_PAST, KC_PSLS, KC_HOME, KC_PGUP, KC_LEFT, KC_RGHT,          KC_PENT, _______,
    _______, RGB_MOD, RGB_VAD, RGB_SPD, RGB_HUD, RGB_SAD, KC_PPLS, KC_PMNS, KC_END,  KC_PGDN, KC_DOWN,          _______, _______, _______,
    _______, _______, _______,                   _______,                            _______, _______, _______, _______, _______, _______
@@ -55,7 +51,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [3] = LAYOUT
   (
    _______, KC_F13,   KC_F14, KC_F15,  KC_F16,  KC_F17,  KC_F18,  KC_F19,  KC_F20,  KC_F21,  KC_F22,  KC_F23,  KC_F24,  _______, QK_BOOT,
-   _______, _______, _______, _______, _______, _______, _______, _______, KC_F16,  KC_F17,  KC_F18,  _______, _______, _______, _______,
+   _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
    CL_TOGG, MAC_ON,  USJ_OFF, _______, _______, _______, _______, _______, _______, _______, _______, _______,          _______, _______,
    _______, MAC_OFF, USJ_ON,  _______, _______, _______, _______, _______, _______, _______, _______,          _______, _______, _______,
    _______, _______, AG_TOGG,                   _______,                            _______, _______, _______, _______, _______, _______

@@ -1,11 +1,10 @@
 #include QMK_KEYBOARD_H
 
-#define LALT_IME TD(TD_LALT_IME)   // LALT + ` on double tap, KC_LALT in other case.
-#define CMD_EISU TD(TD_LGUI_EISU)  // KC_LNG2(英数) on double tap, KC_LGUI in other case.
-#define CMD_KANA TD(TD_RGUI_KANA)  // KC_LNG1(かな) on double tap, KC_LGUI in other case.
-#define CMD_TGEJ \
-  TD(TD_LGUI_EISU_KANA)  // Toogle send KC_LNG1(かな) and KC_LNG2(英数)
-                         // on double tap, KC_LGUI in other case.
+#define MO2_TG3 TD(TD_MO2_TG3)        // MO(2), on double tap: TG(3)
+#define CMD_EJ TD(TD_LCMD_EISU_KANA)  // for mac/HHKB, Left Cmd, on tap: 英数, on double tap かな
+#define OPT_APFF TD(TD_LOPT_APFF)     // for mac/HHKB, Left Option, on tap hold: Apple fn/globe + FK overrde
+#define WIN_LANG TD(TD_LWIN_LANG)     // for win/HHKB, Left Win, on double tap: Win + space
+#define ALT_EJ TD(TD_LALT_EISU_KANA)  // for win/HHKB, Left Alt, on tap: 英数, on double tap かな
 
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -14,16 +13,16 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_GRV,  KC_1,    KC_2,    KC_3,    KC_4,    KC_5,    KC_6,    KC_7,    KC_8,    KC_9,    KC_0,    KC_MINS, KC_EQL,  KC_BSLS, KC_ESC,
     KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_LBRC, KC_RBRC, KC_BSPC,
     KC_LCTL, KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_QUOT,          KC_ENT,
-    KC_LSFT, KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH, KC_RSFT,          MO(2),
-             KC_LALT, CMD_TGEJ,                           KC_SPC,                             KC_RGUI, APPLE_FF
+    KC_LSFT, KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH, KC_RSFT,          MO2_TG3,
+             OPT_APFF,CMD_EJ,                             KC_SPC,                             KC_RGUI, KC_RALT
   ),
   // standard base layer
   [1] = LAYOUT_60_hhkb(
     KC_GRV,  KC_1,    KC_2,    KC_3,    KC_4,    KC_5,    KC_6,    KC_7,    KC_8,    KC_9,    KC_0,    KC_MINS, KC_EQL,  KC_BSLS, KC_ESC,
     KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_LBRC, KC_RBRC, KC_BSPC,
     KC_LCTL, KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_QUOT,          KC_ENT,
-    KC_LSFT, KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH, KC_RSFT,          MO(2),
-             KC_LALT, KC_LGUI,                            KC_SPC,                             KC_RGUI, APPLE_FF
+    KC_LSFT, KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH, KC_RSFT,          MO2_TG3,
+             ALT_EJ,  WIN_LANG,                           KC_SPC,                             KC_RGUI, KC_RALT
   ),
   // HHKB-like fn layer
   [2] = LAYOUT_60_hhkb(

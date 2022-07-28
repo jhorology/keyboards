@@ -42,11 +42,12 @@
 
 #ifdef RGB_MATRIX_ENABLE
 typedef union {
-  uint16_t raw;
+  uint32_t raw;
   struct {
     uint8_t rgb_led_mode : 2;
   };
-} user_kb_config_t;
+} user_config_t;
+extern user_config_t g_user_config;
 
 void update_rgb_matrix_flags(uint8_t mode);
 #endif

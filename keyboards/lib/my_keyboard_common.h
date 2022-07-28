@@ -44,10 +44,12 @@ enum custom_user_keycodes {
 
 // tap dance actions
 enum tap_dance_action_index {
-  TD_LALT_IME = 0,    // LALT, on double tap: alt + ~
-  TD_LGUI_EISU,       // LGUI, on double tap: mac 英数
-  TD_RGUI_KANA,       // LGUI, on double tap: mac かな
-  TD_LGUI_EISU_KANA,  // LGUI, on double tap: mac toggle send 英数/かな
+  TD_MO2_TG3,         // MO(2), on double tap: TG(3)
+  TD_APFF_EISU_KANA,  // for mac,      Apple Fn/Globe + FK override, on tap: 英数, on double tap かな
+  TD_LCMD_EISU_KANA,  // for mac/HHKB, Left Cmd, on tap: 英数, on double tap かな
+  TD_LOPT_APFF,       // for mac/HHKB, Left Option, on tap hold: Apple fn/globe + FK overrde
+  TD_LWIN_LANG,       // for win/HHKB, Left Win, on double tap: Win + space
+  TD_LALT_EISU_KANA,  // for win/HHKB, Left Alt, on tap: 英数, on double tap かな
   TAP_DANCE_ACTIONS_DEFAULT_LENGTH
 };
 
@@ -75,18 +77,12 @@ enum vial_key_override_action_index {
 typedef union {
   uint32_t raw;
   struct {
-    union {
-      uint16_t common;  // common settings
-      struct {
-        bool mac : 1;  // mac mode.
-        bool usj : 1;  // ANSI layou on JIS.
-      };
-    };
-    uint16_t kb;  // keyboard-specific settings
+    bool mac : 1;  // mac mode.
+    bool usj : 1;  // ANSI layou on JIS.
   };
-} user_config_t;
+} common_kb_config_t;
 
 //   global variavles
 //------------------------------------------
 
-extern user_config_t g_user_config;
+extern common_kb_config_t g_common_kb_config;

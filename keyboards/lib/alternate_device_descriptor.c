@@ -38,7 +38,7 @@ const USB_Descriptor_Device_t PROGMEM AlternateDeviceDescriptor = {
     .NumberOfConfigurations = FIXED_NUM_CONFIGURATIONS};
 
 const USB_Descriptor_Device_t *get_usb_device_descriptor_ptr() {
-  return g_user_config.mac ? &AlternateDeviceDescriptor : &DeviceDescriptor;
+  return g_common_kb_config.mac ? &AlternateDeviceDescriptor : &DeviceDescriptor;
 };
 
 #endif

@@ -36,7 +36,7 @@ void pgm_memcpy(uint8_t *dest, uint8_t *src, size_t len);
 //   global variavles
 //------------------------------------------
 
-user_config_t g_user_config;
+common_kb_config_t g_common_kb_config;
 
 #ifdef VIAL_ENABLE
 
@@ -44,12 +44,24 @@ user_config_t g_user_config;
 /*
  * pre-defined vial tap dabce
  */
+
+// clang-format off
 const vial_tap_dance_entry_t PROGMEM vial_tap_dance_actions_default[] = {
-    // tap, hold,  double_tap, tap_hold, tapping_term
-    [TD_LALT_IME] = {KC_LALT, KC_LALT, LALT(KC_GRV), KC_LALT, TAPPING_TERM},
-    [TD_LGUI_EISU] = {KC_LGUI, KC_LGUI, KC_LNG2, KC_LGUI, TAPPING_TERM},
-    [TD_RGUI_KANA] = {KC_RGUI, KC_RGUI, KC_LNG1, KC_RGUI, TAPPING_TERM},
-    [TD_LGUI_EISU_KANA] = {KC_LGUI, KC_LGUI, EJ_TOGG, KC_LGUI, TAPPING_TERM}};
+  //                     tap,      hold,     double_tap,   tap_hold, tapping_term
+  // MO(2), on double tap: TG(3)
+  [TD_MO2_TG3]        = { MO(2),   MO(2),    TG(3),        MO(2),    TAPPING_TERM },
+  // for mac,  Apple Fn/Globe + FK override, on tap: 英数, on double tap かな
+  [TD_APFF_EISU_KANA] = { KC_LNG2, APPLE_FF, KC_LNG1,      APPLE_FF, TAPPING_TERM },
+  // for mac/HHKB,Left Command, on tap: 英数, on double tap かな
+  [TD_LCMD_EISU_KANA] = { KC_LNG2, KC_LGUI,  KC_LNG1,      KC_LGUI,  TAPPING_TERM },
+  // for mac/HHKB, Left Option, on tap hold: Apple fn/globe + FK overrde
+  [TD_LOPT_APFF]      = { KC_LALT, KC_LALT,  KC_LALT,      APPLE_FF, TAPPING_TERM },
+  // for win/HHKB, Left Win, on double tap: Win + space
+  [TD_LWIN_LANG]      = { KC_LGUI, KC_LGUI,  LGUI(KC_SPC), KC_LGUI,  TAPPING_TERM },
+  // for win/HHKB, Left Alt, on tap: 英数, on double tap かな
+  [TD_LALT_EISU_KANA] = { KC_LNG2, KC_LALT,  KC_LNG1,      KC_LALT, TAPPING_TERM }
+};
+// clang-format on
 #  endif
 #  ifdef VIAL_COMBO_ENABLE
 /*
@@ -69,10 +81,11 @@ const vial_combo_entry_t PROGMEM vial_key_override_actions_default[] = {};
  */
 qk_tap_dance_action_t tap_dance_actions[] = {
     // Tap once for standard key, twice to toggle layers
-    [TD_LALT_IME] = ACTION_TAP_DANCE_DOUBLE(KC_LALT, LALT(KC_GRV)),
-    [TD_LGUI_EISU] = ACTION_TAP_DANCE_DOUBLE(KC_LGUI, KC_LNG2),
-    [TD_RGUI_KANA] = ACTION_TAP_DANCE_DOUBLE(KC_RGUI, KC_LNG1),
-    [TD_LGUI_EISU_KANA] = ACTION_TAP_DANCE_DOUBLE(KC_LGUI, EJ_TOGG)};
+    [TD_MO2_TG3] = ACTION_TAP_DANCE_DOUBLE(MO(2), TG(3)),
+    [TD_LCMD_EISU_KANA] = ACTION_TAP_DANCE_DOUBLE(KC_LGUI, EJ_TOGG),
+    [TD_LOPT_APPLE_FF] = ACTION_TAP_DANCE_DOUBLE(KC_LALT, APPLE_FF),
+    [TD_LWIN_LANG] = ACTION_TAP_DANCE_DOUBLE(KC_LGUI, LGUI(KC_SPC)),
+    [TD_LALT_EISU_KANA] = ACTION_TAP_DANCE_DOUBLE(KC_LALT, EJ_TOGG)};
 #endif
 
 //   local variables
@@ -83,6 +96,7 @@ typedef union {
   struct {
 #ifdef APPLE_FN_ENABLE
     bool apple_ff : 1;
+    bool capslock_old : 1;
     uint16_t apple_ff_flags : 12;
 #endif
     bool eisu_kana : 1;
@@ -93,33 +107,39 @@ volatile_state_t volatile_state;
 //  qmk/vial custom hook functsions
 //------------------------------------------
 
+void via_init_kb(void) {
+  if (!via_eeprom_is_valid()) {
+    eeconfig_init_kb();
+  }
+}
+
 void eeconfig_init_kb(void) {
-  g_user_config.raw = 0;
-  g_user_config.mac = true;
-  eeconfig_update_user(g_user_config.raw);
+  g_common_kb_config.raw = 0;
+  g_common_kb_config.mac = true;
+  eeconfig_update_kb(g_common_kb_config.raw);
   eeconfig_init_user();
 }
 
 void keyboard_pre_init_kb(void) {
   // need none-volatile settings before initilize USB
-  g_user_config.raw = eeconfig_read_user();
+  g_common_kb_config.raw = eeconfig_read_kb();
   keyboard_pre_init_user();
 }
 
 void keyboard_post_init_kb(void) {
-  default_layer_set(g_user_config.mac ? 1 : 2);
+  default_layer_set(g_common_kb_config.mac ? 1 : 2);
   keyboard_post_init_user();
 }
 
 bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
   if (!process_record_user(keycode, record)) return false;
-  if (g_user_config.usj) {
+  if (g_common_kb_config.usj) {
     if (!process_ansi_layout_on_apple_jis(keycode, record)) return false;
   }
   bool result = true;
   switch (keycode) {
     case MAC_TOGG:
-      set_mac(!g_user_config.mac);
+      set_mac(!g_common_kb_config.mac);
       return false;
     case MAC_ON:
       set_mac(true);
@@ -165,7 +185,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
       }
       return false;
     case USJ_TOGG:
-      set_usj(!g_user_config.usj);
+      set_usj(!g_common_kb_config.usj);
       return false;
     case USJ_ON:
       set_usj(true);
@@ -178,6 +198,19 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
 }
 
 #ifdef RGB_MATRIX_ENABLE
+
+#  ifdef CAPS_LOCK_LED
+void rgb_matrix_indicators_kb(void) {
+  bool capslock = host_keyboard_led_state().caps_lock;
+  if (capslock || volatile_state.capslock_old) {
+    rgb_matrix_set_color(CAPS_LOCK_LED, capslock ? rgb_matrix_get_val() : 0, 0, 0);
+  }
+  volatile_state.capslock_old = capslock;
+
+  rgb_matrix_indicators_user();
+}
+#  endif
+
 void suspend_power_down_kb(void) {
   rgb_matrix_set_suspend_state(true);
   suspend_power_down_user();
@@ -239,18 +272,18 @@ bool process_apple_ff_fkey(uint16_t fkey_index, keyrecord_t *record) {
 #endif
 
 void set_mac(bool value) {
-  if (value != g_user_config.mac) {
-    g_user_config.mac = value;
-    eeconfig_update_user(g_user_config.raw);
+  if (value != g_common_kb_config.mac) {
+    g_common_kb_config.mac = value;
+    eeconfig_update_kb(g_common_kb_config.raw);
     // reboot for changing USB device descriptor
     soft_reset_keyboard();
   }
 }
 
 void set_usj(bool value) {
-  if (value != g_user_config.usj) {
-    g_user_config.usj = value;
-    eeconfig_update_user(g_user_config.raw);
+  if (value != g_common_kb_config.usj) {
+    g_common_kb_config.usj = value;
+    eeconfig_update_kb(g_common_kb_config.raw);
   }
 }
 
