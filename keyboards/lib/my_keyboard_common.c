@@ -44,12 +44,11 @@ common_kb_config_t g_common_kb_config;
 /*
  * pre-defined vial tap dabce
  */
-
 // clang-format off
 const vial_tap_dance_entry_t PROGMEM vial_tap_dance_actions_default[] = {
   //                     tap,      hold,     double_tap,   tap_hold, tapping_term
-  // MO(2), on double tap: TG(3)
-  [TD_MO2_TG3]        = { MO(2),   MO(2),    TG(3),        MO(2),    TAPPING_TERM },
+  // for HHKB, Right Alt, on  tap hold: MO(3)
+  [TD_RALT_MO3]        = { KC_RALT, KC_RALT,  KC_RALT,      MO(3),    TAPPING_TERM },
   // for mac,  Apple Fn/Globe + FK override, on tap: 英数, on double tap かな
   [TD_APFF_EISU_KANA] = { KC_LNG2, APPLE_FF, KC_LNG1,      APPLE_FF, TAPPING_TERM },
   // for mac/HHKB,Left Command, on tap: 英数, on double tap かな
@@ -76,14 +75,17 @@ const vial_combo_entry_t PROGMEM vial_combo_actions_default[] = {};
 const vial_combo_entry_t PROGMEM vial_key_override_actions_default[] = {};
 #  endif
 #else
+
 /*
  * pre-defined tap dabce
+ * TODO not same instruction as VIAL
  */
 qk_tap_dance_action_t tap_dance_actions[] = {
     // Tap once for standard key, twice to toggle layers
-    [TD_MO2_TG3] = ACTION_TAP_DANCE_DOUBLE(MO(2), TG(3)),
+    [TD_RALT_MO3] = ACTION_TAP_DANCE_DOUBLE(KC_RALT, MO(3)),
+    [TD_APFF_EISU_KANA] = ACTION_TAP_DANCE_DOUBLE(APPLE_FF, EJ_TOGG),
     [TD_LCMD_EISU_KANA] = ACTION_TAP_DANCE_DOUBLE(KC_LGUI, EJ_TOGG),
-    [TD_LOPT_APPLE_FF] = ACTION_TAP_DANCE_DOUBLE(KC_LALT, APPLE_FF),
+    [TD_LOPT_APFF] = ACTION_TAP_DANCE_DOUBLE(KC_LALT, APPLE_FF),
     [TD_LWIN_LANG] = ACTION_TAP_DANCE_DOUBLE(KC_LGUI, LGUI(KC_SPC)),
     [TD_LALT_EISU_KANA] = ACTION_TAP_DANCE_DOUBLE(KC_LALT, EJ_TOGG)};
 #endif
@@ -103,6 +105,22 @@ typedef union {
   };
 } volatile_state_t;
 volatile_state_t volatile_state;
+
+// apple-like F1-12 keys
+const uint16_t apple_like_fkeys[] = {
+    KC_BRID,  // F1 decrease brightness
+    KC_BRIU,  // F2 increase brightness
+    KC_F3,    // TODO F3 mission control
+    KC_F4,    // TODO F4 older mac: launchpad / newer mac: spotlight
+    KC_F5,    // TODO F5 olfer mac: F5        / newer mac: dictaion
+    KC_F6,    // TODO F6 older mac: F6        / newer mac: sleep
+    KC_MPRV,  // F7 meda prev
+    KC_MPLY,  // F8 media play/pause
+    KC_MNXT,  // F9 media next
+    KC_MUTE,  // F10 mute audio
+    KC_VOLD,  // F11 decrease audio volume
+    KC_VOLU   // F12 increase audio volume
+};
 
 //  qmk/vial custom hook functsions
 //------------------------------------------
@@ -260,11 +278,11 @@ bool process_apple_ff_fkey(uint16_t fkey_index, keyrecord_t *record) {
   uint16_t flag = 1 << fkey_index;
   if (record->event.pressed) {
     volatile_state.apple_ff_flags |= flag;
-    register_code(KC_F1 + fkey_index);
+    register_code(g_common_kb_config.mac ? KC_F1 + fkey_index : apple_like_fkeys[fkey_index]);
     return false;
   } else {
     volatile_state.apple_ff_flags &= ~flag;
-    unregister_code(KC_F1 + fkey_index);
+    unregister_code(g_common_kb_config.mac ? KC_F1 + fkey_index : apple_like_fkeys[fkey_index]);
     return false;
   }
   return true;
