@@ -1,10 +1,8 @@
 #include QMK_KEYBOARD_H
 
-#define ALT_MO3 TD(TD_RALT_MO3)       // for HHKB,     Right Alt, on tap hold: MO(3)
-#define CMD_EJ TD(TD_LCMD_EISU_KANA)  // for mac/HHKB, Left Cmd, on tap: 英数, on double tap かな
-#define OPT_APFF TD(TD_LOPT_APFF)     // for mac/HHKB, Left Option, on tap hold: Apple fn/globe + FK overrde
-#define WIN_LANG TD(TD_LWIN_LANG)     // for win/HHKB, Left Win, on double tap: Win + space
-#define ALT_EJ TD(TD_LALT_EISU_KANA)  // for win/HHKB, Left Alt, on tap: 英数, on double tap かな
+#define ALT_MO3 TD(TD_RALT_MO3)       // Right Alt, on tap hold: MO(3)
+#define CMD_EJ TD(TD_LCMD_EISU_KANA)  // Left Cmd, on double tap: toogle send 英数/かな
+#define OPT_APFF TD(TD_LOPT_APFF)     // Left Option, on tap hold: Apple fn/globe + FK overrde
 
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -22,7 +20,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_LBRC, KC_RBRC, KC_BSPC,
     KC_LCTL, KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_QUOT,          KC_ENT,
     KC_LSFT, KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH, KC_RSFT,          MO(2),
-             ALT_EJ,  WIN_LANG,                           KC_SPC,                             KC_RGUI, ALT_MO3
+             OPT_APFF,CMD_EJ,                             KC_SPC,                             KC_RGUI, ALT_MO3
   ),
   // HHKB-like fn layer
   [2] = LAYOUT_60_hhkb(
