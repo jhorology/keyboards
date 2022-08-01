@@ -115,15 +115,12 @@ if $UPDATE_QMK; then
 fi
 
 if [ $APPLE_FN_ENABLE = "yes" ]; then
-   if [ -z "$(rg APPLE_FN_ENABLE quantum/keymap_common.c)" ]; then
-     patch -p1 < "${PROJECT}/patches/applefn.patch"
-   fi
-   if [ -z "$(rg get_usb_device_descriptor_ptr tmk_core/protocol/usb_descriptor.h)" ]; then
-     patch -p1 < "${PROJECT}/patches/device_descriptor.patch"
-   fi
+   [ -z "$(rg APPLE_FN_ENABLE quantum/keymap_common.c)" ] && patch -p1 < "${PROJECT}/patches/applefn.patch"
+   [ -z "$(rg get_usb_device_descriptor_ptr tmk_core/protocol/usb_descriptor.h)" ] && patch -p1 < "${PROJECT}/patches/device_descriptor.patch"
 fi
-if [ $VIAL_ENABLE = "yes" ] && [ -z "$(rg vial_tap_dance_reset_user quantum/dynamic_keymap.h)" ]; then
-  patch -p1 < "${PROJECT}/patches/vial_eeprom_reset_user.patch"
+if [ $VIAL_ENABLE = "yes" ]; then
+  [ -z "$(rg vial_tap_dance_reset_user quantum/dynamic_keymap.h)" ] && patch -p1 < "${PROJECT}/patches/vial_eeprom_reset_user.patch"
+  [ -z "$(rg FIX_VIAL_TAP_HOLD_BEHAVIOR quantum/vial.c)" ] && patch -p1 < "${PROJECT}/patches/fix_vial_tap_hold_behavior.patch"
 fi
 
 [ ! -L keyboards/my_keyboards ] && ln -s "${PROJECT}/keyboards" keyboards/my_keyboards
