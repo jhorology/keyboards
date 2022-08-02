@@ -46,15 +46,19 @@ common_kb_config_t g_common_kb_config;
  */
 // clang-format off
 const vial_tap_dance_entry_t PROGMEM vial_tap_dance_actions_default[] = {
-  //                     tap,       hold,     double_tap,   tap_hold, tapping_term
+  //                          tap,      hold,   double_tap, tap_hold, tapping_term
   // for HHKB, Right Alt, on  tap hold: MO(3)
-  [TD_RALT_MO3]       = { KC_RALT,  KC_RALT,  KC_RALT,      MO(3),    TAPPING_TERM },
-  // for mac,  Apple Fn/Globe + FK override, on double tap: toggle send 英数/かな
-  [TD_APFF_EISU_KANA] = { APPLE_FF, APPLE_FF, EJ_TOGG,      APPLE_FF, TAPPING_TERM },
-  // for mac/HHKB,Left Command, on double tap: toggle send 英数/かな
-  [TD_LCMD_EISU_KANA] = { KC_LGUI,  KC_LGUI,  EJ_TOGG,      KC_LGUI,  TAPPING_TERM },
-  // for mac/HHKB, Left Option, on tap hold: Apple fn/globe + FK overrde
-  [TD_LOPT_APFF]      = { KC_LALT,  KC_LALT,  KC_LALT,      APPLE_FF, TAPPING_TERM }
+  [TD_RALT_MO3]            = { KC_RALT,  KC_RALT, KC_RALT, MO(3),    TAPPING_TERM },
+  // for mac,  Apple Fn/Globe + FK override, on tap: KC_LNG2(英数), on double tap: KC_LNG1(かな)
+  [TD_APFF_EISU_KANA]      = { KC_LNG2, APPLE_FF, KC_LNG1, APPLE_FF, TAPPING_TERM },
+  // Left GUI, on tap: KC_LNG2(英数), on double tap: KC_LNG1(かな)
+  [TD_LGUI_EISU_KANA]      = { KC_LNG2, KC_LGUI,  KC_LNG1, KC_LGUI,  TAPPING_TERM },
+  // Left Alt, on tap: KC_LNG2(英数), on double tap: KC_LNG1(かな)
+  [TD_LALT_EISU_KANA]      = { KC_LNG2, KC_LALT,  KC_LNG1, KC_LALT,  TAPPING_TERM },
+  // Left Alt, on tap hold: Apple fn/globe + FK overrde
+  [TD_LALT_APFF]           = { KC_LALT,  KC_LALT, KC_LALT, APPLE_FF, TAPPING_TERM },
+  // Left Alt, on tap hold: Apple fn/globe + FK overrde,  on tap: KC_LNG2(英数), on double tap: KC_LNG1(かな)
+  [TD_LALT_APFF_EISU_KANA] = { KC_LNG2,  KC_LALT, KC_LNG1, APPLE_FF, TAPPING_TERM }
 };
 // clang-format on
 #  endif

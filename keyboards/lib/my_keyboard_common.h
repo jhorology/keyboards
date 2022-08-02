@@ -44,10 +44,13 @@ enum custom_user_keycodes {
 
 // tap dance actions
 enum tap_dance_action_index {
-  TD_RALT_MO3,        // for HHKB,     Right Alt, on tap hold: MO(3)
-  TD_APFF_EISU_KANA,  // for mac,      Apple Fn/Globe + FK override, on double tap: toggle send 英数/かな
-  TD_LCMD_EISU_KANA,  // for mac/HHKB, Left Cmd, on double tap: toggle send 英数/かな
-  TD_LOPT_APFF,       // for mac/HHKB, Left Option, on tap hold: Apple fn/globe + FK overrde
+  TD_RALT_MO3,             // ight Alt, on tap hold: MO(3)
+  TD_APFF_EISU_KANA,       // Apple Fn/Globe + FK override, on double tap: toggle send 英数/かな
+  TD_LGUI_EISU_KANA,       // Left GUI, on tap: KC_LNG2(英数), on double tap: KC_LNG1(かな)
+  TD_LALT_EISU_KANA,       // Left Alt, on tap: KC_LNG2(英数), on double tap: KC_LNG1(かな)
+  TD_LALT_APFF,            // Left Alt, on tap hold: Apple fn/globe + FK overrde
+  TD_LALT_APFF_EISU_KANA,  // Left Alt, on tap hold: Apple fn/globe + FK overrde on tap: KC_LNG2(英数), on double tap:
+                           // KC_LNG1(かな)
   TAP_DANCE_ACTIONS_DEFAULT_LENGTH
 };
 
