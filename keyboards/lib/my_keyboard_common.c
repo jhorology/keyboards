@@ -18,6 +18,9 @@
 #include "my_keyboard_common.h"
 
 #include "layout_util.h"
+#ifdef RADIAL_CONTROLLER_ENABLE
+#  include "radial_controller.h"
+#endif
 
 //   local functions
 //------------------------------------------
@@ -30,7 +33,7 @@ bool process_apple_ff_fkey(uint16_t fkey_index, keyrecord_t *record);
 #endif
 
 #ifdef VIAL_ENABLE
-void pgm_memcpy(uint8_t *dest, uint8_t *src, size_t len);
+void pgm_memcpy(void *dest, const void *src, size_t len);
 #endif
 
 //   global variavles
@@ -208,6 +211,39 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
     case USJ_OFF:
       set_usj(false);
       return false;
+#ifdef RADIAL_CONTROLLER_ENABLE
+    case DIAL_BUT:
+      if (record->event.pressed) {
+        radial_controller_button_update(true);
+      } else {
+        radial_controller_button_update(false);
+      }
+      return false;
+    case DIAL_L:
+      if (record->event.pressed) {
+        radial_controller_dial_update(false, false);
+      }
+      return false;
+    case DIAL_R:
+      if (record->event.pressed) {
+        radial_controller_dial_update(true, false);
+      }
+      return false;
+    case DIAL_LC:
+      if (record->event.pressed) {
+        radial_controller_dial_update(false, true);
+      } else {
+        radial_controller_dial_finished();
+      }
+      return false;
+    case DIAL_RC:
+      if (record->event.pressed) {
+        radial_controller_dial_update(true, true);
+      } else {
+        radial_controller_dial_finished();
+      }
+      return false;
+#endif
   }
   return result;
 }
@@ -241,7 +277,7 @@ void suspend_wakeup_init_kb(void) {
 #  ifdef VIAL_TAP_DANCE_ENABLE
 void vial_tap_dance_reset_kb(uint8_t index, vial_tap_dance_entry_t *entry) {
   if (index < TAP_DANCE_ACTIONS_DEFAULT_LENGTH) {
-    pgm_memcpy((uint8_t *)entry, (uint8_t *)&vial_tap_dance_actions_default[index], sizeof(vial_tap_dance_entry_t));
+    pgm_memcpy(entry, &vial_tap_dance_actions_default[index], sizeof(vial_tap_dance_entry_t));
   }
   vial_tap_dance_reset_user(index, entry);
 }
@@ -250,7 +286,7 @@ void vial_tap_dance_reset_kb(uint8_t index, vial_tap_dance_entry_t *entry) {
 #  ifdef VIAL_COMBO_ENABLE
 void vial_combo_reset_kb(uint8_t index, vial_combo_entry_t *entry) {
   if (index < VIAL_COMBO_ACTIONS_DEFAULT_LENGTH) {
-    pgm_memcpy((uint8_t *)entry, (uint8_t *)&vial_combo_actions_default[index], sizeof(vial_combo_entry_t));
+    pgm_memcpy(entry, &vial_combo_actions_default[index], sizeof(vial_combo_entry_t));
   }
   vial_combo_reset_user(index, entry);
 }
@@ -259,8 +295,7 @@ void vial_combo_reset_kb(uint8_t index, vial_combo_entry_t *entry) {
 #  ifdef VIAL_KEY_OVERRIDE_ENABLE
 void vial_key_override_reset_kb(uint8_t index, vial_key_override_entry_t *entry) {
   if (index < VIAL_KEY_OVERRIDE_ACTIONS_DEFAULT_LENGTH) {
-    pgm_memcpy((uint8_t *)entry, (uint8_t *)&vial_key_override_actions_default[index],
-               sizeof(vial_key_override_entry_t));
+    pgm_memcpy(entry, &vial_key_override_actions_default[index], sizeof(vial_key_override_entry_t));
   }
   vial_key_override_reset_user(index, entry);
 }
@@ -286,6 +321,45 @@ bool process_apple_ff_fkey(uint16_t fkey_index, keyrecord_t *record) {
 }
 #endif
 
+#ifdef RADIAL_CONTROLLER_ENABLE
+bool process_radial_controller(const uint16_t keycode, const keyrecord_t *record) {
+  switch (keycode) {
+    case DIAL_BUT:
+      if (record->event.pressed) {
+        radial_controller_button_update(true);
+      } else {
+        radial_controller_button_update(false);
+      }
+      return false;
+    case DIAL_L:
+      if (record->event.pressed) {
+        radial_controller_dial_update(false, false);
+      }
+      return false;
+    case DIAL_R:
+      if (record->event.pressed) {
+        radial_controller_dial_update(true, false);
+      }
+      return false;
+    case DIAL_LC:
+      if (record->event.pressed) {
+        radial_controller_dial_update(false, true);
+      } else {
+        radial_controller_dial_finished();
+      }
+      return false;
+    case DIAL_RC:
+      if (record->event.pressed) {
+        radial_controller_dial_update(true, true);
+      } else {
+        radial_controller_dial_finished();
+      }
+      return false;
+  }
+  return true;
+}
+#endif
+
 void set_mac(bool value) {
   if (value != g_common_kb_config.mac) {
     g_common_kb_config.mac = value;
@@ -303,9 +377,9 @@ void set_usj(bool value) {
 }
 
 #ifdef VIAL_ENABLE
-void pgm_memcpy(uint8_t *dest, uint8_t *src, size_t len) {
+void pgm_memcpy(void *dest, const void *src, size_t len) {
   for (size_t i = 0; i < len; i++) {
-    *dest++ = pgm_read_byte(&(*src++));
+    *(uint8_t *)dest++ = pgm_read_byte((uint8_t *)src++);
   }
 }
 #endif

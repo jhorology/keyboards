@@ -1,0 +1,365 @@
+diff --git a/builddefs/common_features.mk b/builddefs/common_features.mk
+index a23b5e82b9..dc782843ec 100644
+--- a/builddefs/common_features.mk
++++ b/builddefs/common_features.mk
+@@ -908,3 +908,11 @@ ifeq ($(strip $(ENCODER_ENABLE)), yes)
+         OPT_DEFS += -DENCODER_MAP_ENABLE
+     endif
+ endif
++
++ifeq ($(strip $(RADIAL_CONTROLLER_ENABLE)), yes)
++    ifeq ($(strip $(EXTRAKEY_ENABLE)), no)
++        $(error RADIAL_CONTROLLER_ENABLE requires EXTRAKEY_ENABLE, either disable RADIAL_CONTROLLER explicitly or enable EXTRAKEY)
++    endif
++    SRC += $(QUANTUM_DIR)/radial_controller.c
++    OPT_DEFS += -DRADIAL_CONTROLLER_ENABLE
++endif
+diff --git a/quantum/keyboard.c b/quantum/keyboard.c
+index 1c62a43d9d..f3f7ed34e9 100644
+--- a/quantum/keyboard.c
++++ b/quantum/keyboard.c
+@@ -576,6 +576,10 @@ void quantum_task(void) {
+ #ifdef SECURE_ENABLE
+     secure_task();
+ #endif
++
++#ifdef RADIAL_CONTROLLER_ENABLE
++    radial_controller_task();
++#endif
+ }
+ 
+ /** \brief Main task that is repeatedly called as fast as possible. */
+diff --git a/quantum/quantum.h b/quantum/quantum.h
+index 8d74f2be38..4007593997 100644
+--- a/quantum/quantum.h
++++ b/quantum/quantum.h
+@@ -235,6 +235,10 @@ extern layer_state_t layer_state;
+ #    include "process_caps_word.h"
+ #endif
+ 
++#ifdef RADIAL_CONTROLLER_ENABLE
++#   include "radial_controller.h"
++#endif
++
+ // For tri-layer
+ void          update_tri_layer(uint8_t layer1, uint8_t layer2, uint8_t layer3);
+ layer_state_t update_tri_layer_state(layer_state_t state, uint8_t layer1, uint8_t layer2, uint8_t layer3);
+diff --git a/quantum/radial_controller.c b/quantum/radial_controller.c
+new file mode 100644
+index 0000000000..8ce692bbda
+--- /dev/null
++++ b/quantum/radial_controller.c
+@@ -0,0 +1,106 @@
++/* Copyright 2022 zhaqian
++ *
++ * This program is free software: you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation, either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include "radial_controller.h"
++#include "report.h"
++#include "host.h"
++
++// support encoder and switches
++#ifndef RADIAL_CONTROLLER_RESOLUTION
++#    define RADIAL_CONTROLLER_RESOLUTION 100
++#endif
++
++#ifndef RADIAL_CONTROLLER_ROTATION_STEP
++#    define RADIAL_CONTROLLER_ROTATION_STEP 10
++#endif
++
++#ifndef RADIAL_CONTROLLER_TIMER_DELAY
++#    define RADIAL_CONTROLLER_TIMER_DELAY 15
++#endif
++
++#ifndef RADIAL_CONTROLLER_ROTATION_CONTINUE_STEP
++#    define RADIAL_CONTROLLER_ROTATION_CONTINUE_STEP RADIAL_CONTROLLER_RESOLUTION
++#endif
++
++static report_radial_controller_t radial_controller_report;
++
++static int16_t  radial_controller_rotation           = 0;
++static bool     is_radial_controller_rotate_finished = true;
++static bool     is_clockwise                         = true;
++static uint16_t radial_controller_timer              = 0;
++
++void radial_controller_task(void) {
++    if (!is_radial_controller_rotate_finished) {
++        if (timer_elapsed(radial_controller_timer) > RADIAL_CONTROLLER_TIMER_DELAY) {
++            if (is_clockwise) {
++                radial_controller_rotation = radial_controller_rotation > (3600 - RADIAL_CONTROLLER_ROTATION_STEP) ? 3600 : radial_controller_rotation + RADIAL_CONTROLLER_ROTATION_STEP;
++            } else {
++                radial_controller_rotation = radial_controller_rotation < (-(3600 - RADIAL_CONTROLLER_ROTATION_STEP)) ? -3600 : radial_controller_rotation - RADIAL_CONTROLLER_ROTATION_STEP;
++            }
++            radial_controller_timer = timer_read();
++#ifdef RADIAL_CONTROLLER_ROTATION_CONTINUE_BUTTON_ENABLE
++            if (radial_controller_rotation >= RADIAL_CONTROLLER_ROTATION_CONTINUE_STEP || radial_controller_rotation <= -RADIAL_CONTROLLER_ROTATION_CONTINUE_STEP) {
++                radial_controller_dial_finished();
++                is_radial_controller_rotate_finished = false;
++            }
++#endif
++        }
++    }
++}
++
++void host_radial_controller_send(uint16_t report) {
++    if (!host_get_driver()) return;
++    (host_get_driver()->send_radial)(report);
++}
++
++void radial_controller_event_finished(void) {
++    radial_controller_report.raw = 0;
++    host_radial_controller_send(radial_controller_report.raw);
++}
++
++void radial_controller_button_update(bool pressed) {
++    if (pressed) {
++        radial_controller_report.button = 1;
++    } else {
++        radial_controller_report.raw = 0;
++    }
++    host_radial_controller_send(radial_controller_report.raw);
++}
++
++void radial_controller_dial_update(bool clockwise, bool continued) {
++    if (!continued) {
++        if (clockwise) {
++            radial_controller_report.dial = RADIAL_CONTROLLER_RESOLUTION;
++        } else {
++            radial_controller_report.dial = -RADIAL_CONTROLLER_RESOLUTION;
++        }
++        host_radial_controller_send(radial_controller_report.raw);
++        radial_controller_report.dial = 0;
++    } else {
++        is_clockwise                         = clockwise;
++        is_radial_controller_rotate_finished = false;
++        radial_controller_timer              = timer_read();
++    }
++}
++
++void radial_controller_dial_finished(void) {
++    is_radial_controller_rotate_finished = true;
++    radial_controller_report.dial        = radial_controller_rotation;
++    host_radial_controller_send(radial_controller_report.raw);
++    radial_controller_report.dial = 0;
++    radial_controller_rotation    = 0;
++    radial_controller_timer       = 0;
++}
+diff --git a/quantum/radial_controller.h b/quantum/radial_controller.h
+new file mode 100644
+index 0000000000..3686ae81b2
+--- /dev/null
++++ b/quantum/radial_controller.h
+@@ -0,0 +1,35 @@
++/* Copyright 2022 zhaqian
++ *
++ * This program is free software: you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation, either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#pragma once
++
++#include "quantum.h"
++
++typedef union {
++    uint16_t raw;
++    struct __attribute__ ((packed)) {
++        uint16_t button : 1;
++        int16_t dial : 15;
++    };
++} report_radial_controller_t;
++
++void radial_controller_task(void);
++void host_radial_controller_send(uint16_t report);
++void radial_controller_event_finished(void);
++void radial_controller_button_update(bool pressed);
++void radial_controller_dial_update(bool clockwise, bool continued);
++void radial_controller_dial_finished(void);
++bool process_radial_controller(const uint16_t keycode, const keyrecord_t *record);
+diff --git a/tmk_core/protocol/chibios/chibios.c b/tmk_core/protocol/chibios/chibios.c
+index c9a480c325..21741df9e4 100644
+--- a/tmk_core/protocol/chibios/chibios.c
++++ b/tmk_core/protocol/chibios/chibios.c
+@@ -59,12 +59,25 @@ uint8_t keyboard_leds(void);
+ void    send_keyboard(report_keyboard_t *report);
+ void    send_mouse(report_mouse_t *report);
+ void    send_system(uint16_t data);
++#ifdef RADIAL_CONTROLLER_ENABLE
++void    send_radial(uint16_t data);
++#endif
+ void    send_consumer(uint16_t data);
+ void    send_programmable_button(uint32_t data);
+ void    send_digitizer(report_digitizer_t *report);
+ 
+ /* host struct */
+-host_driver_t chibios_driver = {keyboard_leds, send_keyboard, send_mouse, send_system, send_consumer, send_programmable_button};
++host_driver_t chibios_driver = {
++    keyboard_leds,
++    send_keyboard,
++    send_mouse,
++    send_system,
++#ifdef RADIAL_CONTROLLER_ENABLE
++    send_radial,
++#endif
++    send_consumer,
++    send_programmable_button
++};
+ 
+ #ifdef VIRTSER_ENABLE
+ void virtser_task(void);
+diff --git a/tmk_core/protocol/chibios/usb_main.c b/tmk_core/protocol/chibios/usb_main.c
+index eb9ef82554..40fe10025a 100644
+--- a/tmk_core/protocol/chibios/usb_main.c
++++ b/tmk_core/protocol/chibios/usb_main.c
+@@ -979,6 +979,14 @@ void send_system(uint16_t data) {
+ #endif
+ }
+ 
++#ifdef RADIAL_CONTROLLER_ENABLE
++void send_radial(uint16_t data) {
++#ifdef EXTRAKEY_ENABLE
++    send_extra(REPORT_ID_RADIAL, data);
++#endif
++}
++#endif
++
+ void send_consumer(uint16_t data) {
+ #ifdef EXTRAKEY_ENABLE
+     send_extra(REPORT_ID_CONSUMER, data);
+diff --git a/tmk_core/protocol/host_driver.h b/tmk_core/protocol/host_driver.h
+index affd0dcb34..a0bb825e71 100644
+--- a/tmk_core/protocol/host_driver.h
++++ b/tmk_core/protocol/host_driver.h
+@@ -28,8 +28,11 @@ typedef struct {
+     void (*send_keyboard)(report_keyboard_t *);
+     void (*send_mouse)(report_mouse_t *);
+     void (*send_system)(uint16_t);
++#ifdef RADIAL_CONTROLLER_ENABLE
++    void (*send_radial)(uint16_t);
++#endif
+     void (*send_consumer)(uint16_t);
+     void (*send_programmable_button)(uint32_t);
+ } host_driver_t;
+ 
+-void send_digitizer(report_digitizer_t *report);
+\ No newline at end of file
++void send_digitizer(report_digitizer_t *report);
+diff --git a/tmk_core/protocol/lufa/lufa.c b/tmk_core/protocol/lufa/lufa.c
+index b4b03357a3..04705c069c 100644
+--- a/tmk_core/protocol/lufa/lufa.c
++++ b/tmk_core/protocol/lufa/lufa.c
+@@ -102,9 +102,22 @@ static uint8_t keyboard_leds(void);
+ static void    send_keyboard(report_keyboard_t *report);
+ static void    send_mouse(report_mouse_t *report);
+ static void    send_system(uint16_t data);
++#ifdef RADIAL_CONTROLLER_ENABLE
++static void    send_radial(uint16_t data);
++#endif
+ static void    send_consumer(uint16_t data);
+ static void    send_programmable_button(uint32_t data);
+-host_driver_t  lufa_driver = {keyboard_leds, send_keyboard, send_mouse, send_system, send_consumer, send_programmable_button};
++host_driver_t  lufa_driver = {
++    keyboard_leds,
++    send_keyboard,
++    send_mouse,
++    send_system,
++#ifdef RADIAL_CONTROLLER_ENABLE
++    send_radial,
++#endif
++    send_consumer,
++    send_programmable_button
++};
+ 
+ #ifdef VIRTSER_ENABLE
+ // clang-format off
+@@ -764,6 +777,14 @@ static void send_system(uint16_t data) {
+ #endif
+ }
+ 
++#ifdef RADIAL_CONTROLLER_ENABLE
++static void send_radial(uint16_t data) {
++#ifdef EXTRAKEY_ENABLE
++    send_extra(REPORT_ID_RADIAL, data);
++#endif
++}
++#endif
++
+ /** \brief Send Consumer
+  *
+  * FIXME: Needs doc
+diff --git a/tmk_core/protocol/report.h b/tmk_core/protocol/report.h
+index 735ccdb4a1..c7a2933557 100644
+--- a/tmk_core/protocol/report.h
++++ b/tmk_core/protocol/report.h
+@@ -28,6 +28,9 @@ enum hid_report_ids {
+     REPORT_ID_KEYBOARD = 1,
+     REPORT_ID_MOUSE,
+     REPORT_ID_SYSTEM,
++#ifdef RADIAL_CONTROLLER_ENABLE
++    REPORT_ID_RADIAL,
++#endif
+     REPORT_ID_CONSUMER,
+     REPORT_ID_PROGRAMMABLE_BUTTON,
+     REPORT_ID_NKRO,
+diff --git a/tmk_core/protocol/usb_descriptor.c b/tmk_core/protocol/usb_descriptor.c
+index 52e3276d35..b56ec6017e 100644
+--- a/tmk_core/protocol/usb_descriptor.c
++++ b/tmk_core/protocol/usb_descriptor.c
+@@ -236,6 +236,36 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
+         HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_ARRAY | HID_IOF_ABSOLUTE),
+     HID_RI_END_COLLECTION(0),
+ 
++#ifdef RADIAL_CONTROLLER_ENABLE
++    0x05, 0x01,                 // USAGE_PAGE (Generic Desktop)
++    0x09, 0x0e,                 // USAGE (System Multi-Axis Controller)
++    0xa1, 0x01,                 // COLLECTION (Application)
++    0x85, REPORT_ID_RADIAL,       //   REPORT_ID (Radial Controller)
++    0x05, 0x0d,                 //   USAGE_PAGE (Digitizers)
++    0x09, 0x21,                 //   USAGE (Puck)
++    0xa1, 0x00,                 //   COLLECTION (Physical)
++    0x05, 0x09,                 //     USAGE_PAGE (Buttons)
++    0x09, 0x01,                 //     USAGE (Button 1)
++    0x95, 0x01,                 //     REPORT_COUNT (1)
++    0x75, 0x01,                 //     REPORT_SIZE (1)
++    0x15, 0x00,                 //     LOGICAL_MINIMUM (0)
++    0x25, 0x01,                 //     LOGICAL_MAXIMUM (1)
++    0x81, 0x02,                 //     INPUT (Data,Var,Abs)
++    0x05, 0x01,                 //     USAGE_PAGE (Generic Desktop)
++    0x09, 0x37,                 //     USAGE (Dial)
++    0x95, 0x01,                 //     REPORT_COUNT (1)
++    0x75, 0x0f,                 //     REPORT_SIZE (15)
++    0x55, 0x0f,                 //     UNIT_EXPONENT (-1)
++    0x65, 0x14,                 //     UNIT (Degrees, English Rotation)
++    0x36, 0xf0, 0xf1,           //     PHYSICAL_MINIMUM (-3600)
++    0x46, 0x10, 0x0e,           //     PHYSICAL_MAXIMUM (3600)
++    0x16, 0xf0, 0xf1,           //     LOGICAL_MINIMUM (-3600)
++    0x26, 0x10, 0x0e,           //     LOGICAL_MAXIMUM (3600)
++    0x81, 0x06,                 //     INPUT (Data,Var,Rel)
++    0xc0,                       //   END_COLLECTION
++    0xc0,                       // END_COLLECTION
++#endif
++
+     HID_RI_USAGE_PAGE(8, 0x0C),           // Consumer
+     HID_RI_USAGE(8, 0x01),                // Consumer Control
+     HID_RI_COLLECTION(8, 0x01),           // Application

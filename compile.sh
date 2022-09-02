@@ -110,6 +110,7 @@ cd "$QMK_HOME"
 if $UPDATE_QMK; then
   # checkout to revert changes.
   git checkout --recurse-submodules .
+  git clean -dfx
   git pull
   make git-submodule
 fi
@@ -122,6 +123,8 @@ if [ $VIAL_ENABLE = "yes" ]; then
   [ -z "$(rg vial_tap_dance_reset_user quantum/dynamic_keymap.h)" ] && patch -p1 < "${PROJECT}/patches/vial_eeprom_reset_user.patch"
   [ -z "$(rg FIX_VIAL_TAP_DANCE_BEHAVIOR quantum/vial.c)" ] && patch -p1 < "${PROJECT}/patches/fix_vial_tap_dance_behavior.patch"
 fi
+
+[ -z "$(rg radial_controller_task quantum/keyboard.c)" ] && patch -p1 < "${PROJECT}/patches/radial_controller.patch"
 
 [ ! -L keyboards/my_keyboards ] && ln -s "${PROJECT}/keyboards" keyboards/my_keyboards
 

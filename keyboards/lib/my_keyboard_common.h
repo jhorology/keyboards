@@ -34,12 +34,27 @@ enum custom_user_keycodes {
   USJ_TOGG,           // T oggle enabling conversion for ANSI layout on JIS
   USJ_ON,             // Enable conversion for ANSI layout on JIS.
   USJ_OFF,            // Disable conversion for ANSI layout on JIS.
+#ifdef RADIAL_CONTROLLER_ENABLE
+  RADIAL_BUTTON,         // State of the button located on radial controller
+  RADIAL_LEFT,           // Relative counter clock wise rotation of the radial controller
+  RADIAL_RIGHT,          // Relative clock wise rotation of the radial controller
+  RADIAL_LEFT_CONTINUE,  // Continuous counter clock wise rotation of the radial controller
+  RADIAL_RIGHT_CONINUE,  // Continuous clock wise rotation of the radial controller
+#endif
   CUSTOM_KEYCODES_SAFE_RANGE
 };
 
 #ifndef APPLE_FN_ENABLE
 #  define APPLE_FN KC_RALT
 #  define APPLE_FF KC_RALT
+#endif
+
+#ifdef RADIAL_CONTROLLER_ENABLE
+#  define DIAL_BUT RADIAL_BUTTON
+#  define DIAL_L RADIAL_LEFT
+#  define DIAL_R RADIAL_RIGHT
+#  define DIAL_LC RADIAL_LEFT_CONTINUE
+#  define DIAL_RC RADIAL_RIGHT_CONINUE
 #endif
 
 // tap dance actions
