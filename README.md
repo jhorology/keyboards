@@ -66,6 +66,9 @@ This is a personal project for my own keyboards.
   - [git](https://github.com/qmk/qmk_firmware)
   - [docs](https://docs.qmk.fm/#/)
 - [QMK Apple Fn Key](https://gist.github.com/fauxpark/010dcf5d6377c3a71ac98ce37414c6c4)
+- Radial Controller
+  - [Radial controller protocol implementation](https://docs.microsoft.com/en-us/windows-hardware/design/component-guidelines/radial-controller-protocol-implementation)
+  - [zqlib](https://github.com/zhaqian12/qmk_firmware/blob/zhaqian/keyboards/zhaqian/readme.md)
 - VIAL
   - [vial-qmk](https://github.com/vial-kb/vial-qmk)
   - [docs](https://get.vial.today/)
