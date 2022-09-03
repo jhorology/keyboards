@@ -28,7 +28,7 @@ bool process_layout_conversion(layout_conversion_item_t *table, uint16_t table_l
 //   local variables
 //------------------------------------------
 
-static layout_conversion_item_t ansi_on_apple_jis_table[] = {
+static layout_conversion_item_t ansi_on_jis_table[] = {
     // src, dest, dest on shift
     {KC_GRV, JP_GRV, JP_TILD},    // "`", "~"
     {KC_2, 0, JP_AT},             // "@"
@@ -41,7 +41,7 @@ static layout_conversion_item_t ansi_on_apple_jis_table[] = {
     {KC_EQL, JP_EQL, JP_PLUS},    // "=", "+"
     {KC_LBRC, JP_LBRC, JP_LCBR},  // "[", "{"
     {KC_RBRC, JP_RBRC, JP_RCBR},  // "]", "}"
-
+#ifdef USJ_APPLE_JIS_BSLS
     {KC_BSLS, LALT(JP_YEN), JP_PIPE},  // "\", "|"
                                        // TODO
                                        // some applications (eg.emacs) interprets backslash as Alt + JP_YEN
@@ -55,8 +55,14 @@ static layout_conversion_item_t ansi_on_apple_jis_table[] = {
                                        // (interactive)
                                        // (isearch-printing-char ?\\ 1))
                                        // (define-key isearch-mode-map [?\M-¥] 'isearch-add-backslash)
-                                       //
-    // {KC_CAPS, JP_CAPS, JP_EISU},  // CAPSLOCK
+#else
+    {KC_BSLS, JP_BSLS, JP_PIPE},  // "\", "|"
+#endif
+#ifdef USJ_JIS_LIKE_CAPS
+    {KC_CAPS, JP_EISU, JP_CAPS},  // CAPSLOCK
+#else
+    {KC_CAPS, JP_CAPS, JP_EISU},  // CAPSLOCK
+#endif
     {KC_SCLN, 0, JP_COLN},       // :
     {KC_QUOT, JP_QUOT, JP_DQUO}  // '
 };
@@ -67,9 +73,9 @@ static uint16_t ansi_jis_override_shift_flags;
 // globl functions
 //------------------------------------------
 
-bool process_ansi_layout_on_apple_jis(uint16_t keycode, keyrecord_t *record) {
-  return process_layout_conversion(&ansi_on_apple_jis_table[0],
-                                   sizeof(ansi_on_apple_jis_table) / sizeof(layout_conversion_item_t), keycode, record);
+bool process_ansi_layout_on_jis(uint16_t keycode, keyrecord_t *record) {
+  return process_layout_conversion(&ansi_on_jis_table[0], sizeof(ansi_on_jis_table) / sizeof(layout_conversion_item_t),
+                                   keycode, record);
 }
 
 // local functions

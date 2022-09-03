@@ -152,7 +152,7 @@ void keyboard_post_init_kb(void) {
 bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
   if (!process_record_user(keycode, record)) return false;
   if (g_common_kb_config.usj) {
-    if (!process_ansi_layout_on_apple_jis(keycode, record)) return false;
+    if (!process_ansi_layout_on_jis(keycode, record)) return false;
   }
   bool result = true;
   switch (keycode) {
