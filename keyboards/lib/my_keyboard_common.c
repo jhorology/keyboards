@@ -151,9 +151,6 @@ void keyboard_post_init_kb(void) {
 
 bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
   if (!process_record_user(keycode, record)) return false;
-  if (g_common_kb_config.usj) {
-    if (!process_ansi_layout_on_jis(keycode, record)) return false;
-  }
   bool result = true;
   switch (keycode) {
     case MAC_TOGG:
@@ -245,6 +242,9 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
       return false;
 #endif
   }
+  if (g_common_kb_config.usj && result) {
+    result = process_ansi_layout_on_jis(keycode, record);
+  }
   return result;
 }
 
@@ -316,45 +316,6 @@ bool process_apple_ff_fkey(uint16_t fkey_index, keyrecord_t *record) {
     volatile_state.apple_ff_flags &= ~flag;
     unregister_code(g_common_kb_config.mac ? KC_F1 + fkey_index : apple_like_fkeys[fkey_index]);
     return false;
-  }
-  return true;
-}
-#endif
-
-#ifdef RADIAL_CONTROLLER_ENABLE
-bool process_radial_controller(const uint16_t keycode, const keyrecord_t *record) {
-  switch (keycode) {
-    case DIAL_BUT:
-      if (record->event.pressed) {
-        radial_controller_button_update(true);
-      } else {
-        radial_controller_button_update(false);
-      }
-      return false;
-    case DIAL_L:
-      if (record->event.pressed) {
-        radial_controller_dial_update(false, false);
-      }
-      return false;
-    case DIAL_R:
-      if (record->event.pressed) {
-        radial_controller_dial_update(true, false);
-      }
-      return false;
-    case DIAL_LC:
-      if (record->event.pressed) {
-        radial_controller_dial_update(false, true);
-      } else {
-        radial_controller_dial_finished();
-      }
-      return false;
-    case DIAL_RC:
-      if (record->event.pressed) {
-        radial_controller_dial_update(true, true);
-      } else {
-        radial_controller_dial_finished();
-      }
-      return false;
   }
   return true;
 }
