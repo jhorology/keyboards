@@ -120,11 +120,31 @@
   { B0 }
 
 #define ENCODERS 1
-
 #define ENCODER_RESOLUTION 1
+/*
+  encoder lookup table
+
+Index
+    bit0: Pad A new state
+    bit1: Pad B new  state
+    bit2: Pad A prev state
+    bit3: Pad B prev state
+  Value
+    clockwise: -1
+    counter clockwise: 1
+*/
+#define ENCODER_LOOKUP_TABLE \
+  { 0, 0, 0, 1, 1, 0, 0, -1, 0, 0, 0, 0, -1, 0, 0, 0 }
 
 #define LED_CAPS_LOCK_PIN F7
 #define LED_PIN_ON_STATE 0
+
+/*
+  Radial Controller
+  zoome65's encoder: 30 clicks per roataion
+  3600 / 30 = 120
+*/
+#define RADIAL_CONTROLLER_RESOLUTION 120
 
 /* Vial-specific definitions. */
 #ifdef VIAL_ENABLE

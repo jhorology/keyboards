@@ -1,0 +1,16 @@
+diff --git a/quantum/encoder.c b/quantum/encoder.c
+index 5f8a7ce0..66c151bf 100644
+--- a/quantum/encoder.c
++++ b/quantum/encoder.c
+@@ -51,7 +51,11 @@ static uint8_t encoder_resolutions[NUM_ENCODERS] = ENCODER_RESOLUTIONS;
+ #    define ENCODER_CLOCKWISE false
+ #    define ENCODER_COUNTER_CLOCKWISE true
+ #endif
++#ifdef ENCODER_LOOKUP_TABLE
++static int8_t encoder_LUT[] = ENCODER_LOOKUP_TABLE;
++#else
+ static int8_t encoder_LUT[] = {0, -1, 1, 0, 1, 0, 0, -1, -1, 0, 0, 1, 0, 1, -1, 0};
++#endif
+
+ static uint8_t encoder_state[NUM_ENCODERS]  = {0};
+ static int8_t  encoder_pulses[NUM_ENCODERS] = {0};
