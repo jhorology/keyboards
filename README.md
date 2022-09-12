@@ -72,6 +72,7 @@ This is a personal project for my own keyboards.
 | 0x0220 | Prime_E | Aluminum Keyboard (ANSI) |
 | 0x024F | QK65 | Aluminium Keyboard (ANSI)<br/>Keychron K seriese uses this ID |
 | "      | FK680Pro V2 | " |
+| "      | zoom65 | " |
 
 ## References
 - qmk_firmware
