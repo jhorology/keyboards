@@ -108,7 +108,6 @@
   { B3, B4, B5, B6, B7 }
 #define MATRIX_COL_PINS \
   { A4, A5, A6, A7, B0, B1, B10, B11, B12, B13, B14, B15, A8, A9, A10 }
-#define UNUSED_PINS
 
 #define DIODE_DIRECTION COL2ROW
 

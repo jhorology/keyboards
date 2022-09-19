@@ -112,7 +112,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   { C5, C4, B0, C7, B7 }
 #define MATRIX_COL_PINS \
   { C6, B6, B5, B4, B3, B2, B1, D6, D5, D4, D3, D2, D1, D0, C2 }
-#define UNUSED_PINS
 #define DIODE_DIRECTION COL2ROW
 
 /* Vial-specific definitions. */

@@ -165,18 +165,18 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
 #ifdef APPLE_FN_ENABLE
     case APPLE_FN:
       if (record->event.pressed) {
-        register_code(KC_APFN);
+        host_apple_send(1);
       } else {
-        unregister_code(KC_APFN);
+        host_apple_send(0);
       }
       return false;
     case APPLE_FF:
       if (record->event.pressed) {
         volatile_state.apple_ff = true;
-        register_code(KC_APFN);
+        host_apple_send(1);
       } else {
         volatile_state.apple_ff = false;
-        unregister_code(KC_APFN);
+        host_apple_send(0);
       }
       return false;
     case KC_1 ... KC_0:

@@ -1,5 +1,5 @@
 diff --git a/builddefs/common_features.mk b/builddefs/common_features.mk
-index a23b5e82..66cc4ce4 100644
+index a23b5e82b9..66cc4ce40f 100644
 --- a/builddefs/common_features.mk
 +++ b/builddefs/common_features.mk
 @@ -908,3 +908,8 @@ ifeq ($(strip $(ENCODER_ENABLE)), yes)
@@ -12,7 +12,7 @@ index a23b5e82..66cc4ce4 100644
 +    OPT_DEFS += -DRADIAL_CONTROLLER_ENABLE
 +endif
 diff --git a/quantum/keyboard.c b/quantum/keyboard.c
-index 1c62a43d..f3f7ed34 100644
+index 1c62a43d9d..f3f7ed34e9 100644
 --- a/quantum/keyboard.c
 +++ b/quantum/keyboard.c
 @@ -576,6 +576,10 @@ void quantum_task(void) {
@@ -24,16 +24,16 @@ index 1c62a43d..f3f7ed34 100644
 +    radial_controller_task();
 +#endif
  }
- 
+
  /** \brief Main task that is repeatedly called as fast as possible. */
 diff --git a/quantum/quantum.h b/quantum/quantum.h
-index 8d74f2be..40075939 100644
+index 8d74f2be38..4007593997 100644
 --- a/quantum/quantum.h
 +++ b/quantum/quantum.h
 @@ -235,6 +235,10 @@ extern layer_state_t layer_state;
  #    include "process_caps_word.h"
  #endif
- 
+
 +#ifdef RADIAL_CONTROLLER_ENABLE
 +#   include "radial_controller.h"
 +#endif
@@ -43,7 +43,7 @@ index 8d74f2be..40075939 100644
  layer_state_t update_tri_layer_state(layer_state_t state, uint8_t layer1, uint8_t layer2, uint8_t layer3);
 diff --git a/quantum/radial_controller.c b/quantum/radial_controller.c
 new file mode 100644
-index 00000000..b1732e4e
+index 0000000000..b1732e4ea2
 --- /dev/null
 +++ b/quantum/radial_controller.c
 @@ -0,0 +1,104 @@
@@ -153,7 +153,7 @@ index 00000000..b1732e4e
 +}
 diff --git a/quantum/radial_controller.h b/quantum/radial_controller.h
 new file mode 100644
-index 00000000..8f097411
+index 0000000000..8f097411be
 --- /dev/null
 +++ b/quantum/radial_controller.h
 @@ -0,0 +1,27 @@
@@ -185,7 +185,7 @@ index 00000000..8f097411
 +void radial_controller_dial_update(bool clockwise, bool continued);
 +void radial_controller_dial_finished(void);
 diff --git a/tmk_core/protocol/chibios/usb_main.c b/tmk_core/protocol/chibios/usb_main.c
-index eb9ef825..7e7d6e92 100644
+index eb9ef82554..7e7d6e926b 100644
 --- a/tmk_core/protocol/chibios/usb_main.c
 +++ b/tmk_core/protocol/chibios/usb_main.c
 @@ -322,6 +322,9 @@ typedef struct {
@@ -201,7 +201,7 @@ index eb9ef825..7e7d6e92 100644
 @@ -374,6 +377,14 @@ static usb_driver_configs_t drivers = {
      .joystick_driver = QMK_USB_DRIVER_CONFIG(JOYSTICK, 0, false),
  #endif
- 
+
 +#ifdef RADIAL_CONTROLLER_ENABLE
 +#    define RADIAL_CONTROLLER_IN_CAPACITY 4
 +#    define RADIAL_CONTROLLER_OUT_CAPACITY 4
@@ -216,7 +216,7 @@ index eb9ef825..7e7d6e92 100644
 @@ -1031,6 +1042,12 @@ void send_digitizer(report_digitizer_t *report) {
  #endif
  }
- 
+
 +void send_radial_controller(report_radial_controller_t *report) {
 +#ifdef RADIAL_CONTROLLER_ENABLE
 +    chnWrite(&drivers.radial_controller_driver.driver, (uint8_t *)report, sizeof(report_radial_controller_t));
@@ -227,7 +227,7 @@ index eb9ef825..7e7d6e92 100644
   *                   Console functions
   * ---------------------------------------------------------
 diff --git a/tmk_core/protocol/host.c b/tmk_core/protocol/host.c
-index 3d8604d5..85794f9b 100644
+index 3d8604d541..85794f9b1e 100644
 --- a/tmk_core/protocol/host.c
 +++ b/tmk_core/protocol/host.c
 @@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -235,13 +235,13 @@ index 3d8604d5..85794f9b 100644
  #include "debug.h"
  #include "digitizer.h"
 +#include "radial_controller.h"
- 
+
  #ifdef NKRO_ENABLE
  #    include "keycode_config.h"
 @@ -144,6 +145,13 @@ void host_programmable_button_send(uint32_t report) {
      (*driver->send_programmable_button)(report);
  }
- 
+
 +void host_radial_controller_send(report_radial_controller_t *report) {
 +    if (!driver) return;
 +    send_radial_controller(report);
@@ -253,25 +253,19 @@ index 3d8604d5..85794f9b 100644
      return last_system_report;
  }
 diff --git a/tmk_core/protocol/host_driver.h b/tmk_core/protocol/host_driver.h
-index affd0dcb..20c7dd4d 100644
+index affd0dcb34..5d6d170161 100644
 --- a/tmk_core/protocol/host_driver.h
 +++ b/tmk_core/protocol/host_driver.h
-@@ -32,4 +32,5 @@ typedef struct {
-     void (*send_programmable_button)(uint32_t);
- } host_driver_t;
- 
--void send_digitizer(report_digitizer_t *report);
-\ No newline at end of file
+@@ -36,0 +36,1 @@ void send_digitizer(report_digitizer_t *report);
 +void send_radial_controller(report_radial_controller_t *report);
-+void send_digitizer(report_digitizer_t *report);
 diff --git a/tmk_core/protocol/lufa/lufa.c b/tmk_core/protocol/lufa/lufa.c
-index b4b03357..14c00796 100644
+index b4b03357a3..14c0079667 100644
 --- a/tmk_core/protocol/lufa/lufa.c
 +++ b/tmk_core/protocol/lufa/lufa.c
 @@ -497,6 +497,11 @@ void EVENT_USB_Device_ConfigurationChanged(void) {
      ConfigSuccess &= Endpoint_ConfigureEndpoint((JOYSTICK_IN_EPNUM | ENDPOINT_DIR_IN), EP_TYPE_INTERRUPT, JOYSTICK_EPSIZE, 1);
  #endif
- 
+
 +#ifdef RADIAL_CONTROLLER_ENABLE
 +    /* Setup joystick endpoint */
 +    ConfigSuccess &= Endpoint_ConfigureEndpoint((RADIAL_CONTROLLER_IN_EPNUM | ENDPOINT_DIR_IN), EP_TYPE_INTERRUPT, RADIAL_CONTROLLER_EPSIZE, 1);
@@ -283,7 +277,7 @@ index b4b03357..14c00796 100644
 @@ -980,6 +985,24 @@ void send_digitizer(report_digitizer_t *report) {
  #endif
  }
- 
+
 +void send_radial_controller(report_radial_controller_t *report) {
 +#ifdef RADIAL_CONTROLLER_ENABLE
 +    uint8_t timeout = 255;
@@ -306,13 +300,13 @@ index b4b03357..14c00796 100644
   * main
   ******************************************************************************/
 diff --git a/tmk_core/protocol/report.h b/tmk_core/protocol/report.h
-index 735ccdb4..894ebe0c 100644
+index 735ccdb4a1..894ebe0c63 100644
 --- a/tmk_core/protocol/report.h
 +++ b/tmk_core/protocol/report.h
 @@ -247,6 +247,14 @@ typedef struct {
  #endif
  } __attribute__((packed)) joystick_report_t;
- 
+
 +typedef union {
 +    uint16_t raw;
 +    struct __attribute__ ((packed)) {
@@ -325,13 +319,13 @@ index 735ccdb4..894ebe0c 100644
  static inline uint16_t KEYCODE2SYSTEM(uint8_t key) {
      switch (key) {
 diff --git a/tmk_core/protocol/usb_descriptor.c b/tmk_core/protocol/usb_descriptor.c
-index 52e3276d..e99df53d 100644
+index 21795cef60..03ef123922 100644
 --- a/tmk_core/protocol/usb_descriptor.c
 +++ b/tmk_core/protocol/usb_descriptor.c
-@@ -418,6 +418,38 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM JoystickReport[] = {
+@@ -421,6 +421,38 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM JoystickReport[] = {
  };
  #endif
- 
+
 +#ifdef RADIAL_CONTROLLER_ENABLE
 +const USB_Descriptor_HIDReport_Datatype_t PROGMEM RadialControllerReport[] = {
 +    HID_RI_USAGE_PAGE(8, 0x01),             // Generic Desktop
@@ -367,10 +361,10 @@ index 52e3276d..e99df53d 100644
  /*
   * Device descriptor
   */
-@@ -997,6 +1029,46 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor = {
+@@ -1000,6 +1032,46 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor = {
      }
  #endif
- 
+
 +    /*
 +     * Radial Controller
 +     */
@@ -414,7 +408,7 @@ index 52e3276d..e99df53d 100644
  #if defined(DIGITIZER_ENABLE) && !defined(DIGITIZER_SHARED_EP)
      /*
       * Digitizer
-@@ -1174,6 +1246,12 @@ uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const
+@@ -1177,6 +1249,12 @@ uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const
                      Size    = sizeof(USB_HID_Descriptor_HID_t);
                      break;
  #endif
@@ -427,7 +421,7 @@ index 52e3276d..e99df53d 100644
  #if defined(DIGITIZER_ENABLE) && !defined(DIGITIZER_SHARED_EP)
                  case DIGITIZER_INTERFACE:
                      Address = &ConfigurationDescriptor.Digitizer_HID;
-@@ -1231,6 +1309,12 @@ uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const
+@@ -1234,6 +1312,12 @@ uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const
                      Size    = sizeof(JoystickReport);
                      break;
  #endif
@@ -441,13 +435,13 @@ index 52e3276d..e99df53d 100644
                  case DIGITIZER_INTERFACE:
                      Address = &DigitizerReport;
 diff --git a/tmk_core/protocol/usb_descriptor.h b/tmk_core/protocol/usb_descriptor.h
-index f8b7a863..ad24a000 100644
+index f8b7a863aa..ad24a000f7 100644
 --- a/tmk_core/protocol/usb_descriptor.h
 +++ b/tmk_core/protocol/usb_descriptor.h
 @@ -139,6 +139,13 @@ typedef struct {
      USB_Descriptor_Endpoint_t  Joystick_INEndpoint;
  #endif
- 
+
 +#ifdef RADIAL_CONTROLLER_ENABLE
 +    // Joystick HID Interface
 +    USB_Descriptor_Interface_t RadialController_Interface;
@@ -461,7 +455,7 @@ index f8b7a863..ad24a000 100644
 @@ -191,6 +198,10 @@ enum usb_interfaces {
      JOYSTICK_INTERFACE,
  #endif
- 
+
 +#ifdef RADIAL_CONTROLLER_ENABLE
 +    RADIAL_CONTROLLER_INTERFACE,
 +#endif
@@ -472,7 +466,7 @@ index f8b7a863..ad24a000 100644
 @@ -274,6 +285,15 @@ enum usb_endpoints {
  #    endif
  #endif
- 
+
 +#ifdef RADIAL_CONTROLLER_ENABLE
 +    RADIAL_CONTROLLER_IN_EPNUM = NEXT_EPNUM,
 +#    ifdef USB_ENDPOINTS_ARE_REORDERABLE
@@ -491,5 +485,5 @@ index f8b7a863..ad24a000 100644
  #define JOYSTICK_EPSIZE 8
 +#define RADIAL_CONTROLLER_EPSIZE 8
  #define DIGITIZER_EPSIZE 8
- 
+
  uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const void** const DescriptorAddress);

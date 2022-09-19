@@ -144,7 +144,7 @@ Index
   zoome65's encoder: 30 clicks per roataion
   3600 / 30 = 120
 */
-#define RADIAL_CONTROLLER_RESOLUTION 120
+#define RADIAL_CONTROLLER_RESOLUTION 100
 
 /* Vial-specific definitions. */
 #ifdef VIAL_ENABLE

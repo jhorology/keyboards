@@ -1,243 +1,184 @@
 diff --git a/builddefs/common_features.mk b/builddefs/common_features.mk
-index a23b5e82b9..c0134b5912 100644
+index a23b5e82b9..1e3de2ee29 100644
 --- a/builddefs/common_features.mk
 +++ b/builddefs/common_features.mk
-@@ -852,6 +852,10 @@ ifeq ($(strip $(JOYSTICK_ENABLE)), yes)
+@@ -852,6 +852,13 @@ ifeq ($(strip $(JOYSTICK_ENABLE)), yes)
      endif
  endif
  
 +ifeq ($(strip $(APPLE_FN_ENABLE)), yes)
++    ifeq ($(strip $(EXTRAKEY_ENABLE)), no)
++        $(error APPLE_FN_ENABLE requires EXTRAKEY_ENABLE)
++    endif
 +    OPT_DEFS += -DAPPLE_FN_ENABLE
 +endif
 +
  USBPD_ENABLE ?= no
  VALID_USBPD_DRIVER_TYPES = custom vendor
  USBPD_DRIVER ?= vendor
-diff --git a/quantum/action.c b/quantum/action.c
-index 6b2e9104e0..c904ba2e00 100644
---- a/quantum/action.c
-+++ b/quantum/action.c
-@@ -506,6 +506,16 @@ void process_action(keyrecord_t *record, action_t action) {
-             }
-             break;
+diff --git a/tmk_core/protocol/chibios/usb_main.c b/tmk_core/protocol/chibios/usb_main.c
+index eb9ef82554..e60eda8625 100644
+--- a/tmk_core/protocol/chibios/usb_main.c
++++ b/tmk_core/protocol/chibios/usb_main.c
+@@ -985,6 +985,11 @@ void send_consumer(uint16_t data) {
  #endif
-+#ifdef APPLE_FN_ENABLE
-+        /* Apple Fn */
-+        case ACT_APPLE_FN:
-+            if (event.pressed) {
-+                register_code(KC_APPLE_FN);
-+            } else {
-+                unregister_code(KC_APPLE_FN);
-+            }
-+            break;
-+#endif
- #ifdef MOUSEKEY_ENABLE
-         /* Mouse key */
-         case ACT_MOUSEKEY:
-@@ -913,6 +923,12 @@ __attribute__((weak)) void register_code(uint8_t code) {
-         host_consumer_send(KEYCODE2CONSUMER(code));
-     }
- #endif
-+#ifdef APPLE_FN_ENABLE
-+    else if IS_APPLE_FN (code) {
-+        add_key(code);
-+        send_keyboard_report();
-+    }
-+#endif
- #ifdef MOUSEKEY_ENABLE
-     else if IS_MOUSEKEY (code) {
-         mousekey_on(code);
-@@ -973,6 +989,12 @@ __attribute__((weak)) void unregister_code(uint8_t code) {
-     } else if IS_CONSUMER (code) {
-         host_consumer_send(0);
-     }
-+#ifdef APPLE_FN_ENABLE
-+    else if IS_APPLE_FN (code) {
-+        del_key(code);
-+        send_keyboard_report();
-+    }
-+#endif
- #ifdef MOUSEKEY_ENABLE
-     else if IS_MOUSEKEY (code) {
-         mousekey_off(code);
-@@ -1174,6 +1196,9 @@ void debug_action(action_t action) {
-         case ACT_USAGE:
-             dprint("ACT_USAGE");
-             break;
-+        case ACT_APPLE_FN:
-+            dprint("ACT_APPLE_FN");
-+            break;
-         case ACT_MOUSEKEY:
-             dprint("ACT_MOUSEKEY");
-             break;
-diff --git a/quantum/action_code.h b/quantum/action_code.h
-index e107f0a740..60df098bc7 100644
---- a/quantum/action_code.h
-+++ b/quantum/action_code.h
-@@ -51,7 +51,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  * ACT_SWAP_HANDS(0110):
-  * 0110|xxxx| keycode     Swap hands (keycode on tap, or options)
-  *
-- * 0111|xxxx xxxx xxxx    (reserved)
-+ * ACT_APPLE_FN(0111):
-+ * 0111|0000|0000|0000    Apple Fn
-  *
-  * Layer Actions(10xx)
-  * -------------------
-@@ -93,6 +94,8 @@ enum action_kind_id {
-     ACT_MOUSEKEY = 0b0101,
-     /* One-hand Support */
-     ACT_SWAP_HANDS = 0b0110,
-+    /* Apple Fn */
-+    ACT_APPLE_FN = 0b0111,
-     /* Layer Actions */
-     ACT_LAYER         = 0b1000,
-     ACT_LAYER_MODS    = 0b1001,
-@@ -195,6 +198,7 @@ enum mods_codes {
- enum usage_pages { PAGE_SYSTEM, PAGE_CONSUMER };
- #define ACTION_USAGE_SYSTEM(id) ACTION(ACT_USAGE, PAGE_SYSTEM << 10 | (id))
- #define ACTION_USAGE_CONSUMER(id) ACTION(ACT_USAGE, PAGE_CONSUMER << 10 | (id))
-+#define ACTION_APPLE_FN() ACTION(ACT_APPLE_FN, 0)
- #define ACTION_MOUSEKEY(key) ACTION(ACT_MOUSEKEY, key)
+ }
  
- /** \brief Layer Actions
-diff --git a/quantum/keycode.h b/quantum/keycode.h
-index 3c80a386d1..c0e0ab6aa6 100644
---- a/quantum/keycode.h
-+++ b/quantum/keycode.h
-@@ -34,6 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
- #define IS_SPECIAL(code) ((0xA5 <= (code) && (code) <= 0xDF) || (0xE8 <= (code) && (code) <= 0xFF))
- #define IS_SYSTEM(code) (KC_PWR <= (code) && (code) <= KC_WAKE)
- #define IS_CONSUMER(code) (KC_MUTE <= (code) && (code) <= KC_BRID)
-+#define IS_APPLE_FN(code) (KC_APFN == (code))
++void send_apple(uint8_t data) {
++#if defined(EXTRAKEY_ENABLE) && defined(APPLE_FN_ENABLE)
++    send_extra(REPORT_ID_APPLE, (uint16_t)data);
++#endif
++}
+ void send_programmable_button(uint32_t data) {
+ #ifdef PROGRAMMABLE_BUTTON_ENABLE
+     osalSysLock();
+diff --git a/tmk_core/protocol/host.c b/tmk_core/protocol/host.c
+index 3d8604d541..6aa8f36d41 100644
+--- a/tmk_core/protocol/host.c
++++ b/tmk_core/protocol/host.c
+@@ -32,6 +32,7 @@ extern keymap_config_t keymap_config;
+ static host_driver_t *driver;
+ static uint16_t       last_system_report              = 0;
+ static uint16_t       last_consumer_report            = 0;
++static uint8_t        last_apple_report               = 0;
+ static uint32_t       last_programmable_button_report = 0;
  
- #define IS_MOUSEKEY(code) (KC_MS_UP <= (code) && (code) <= KC_MS_ACCEL2)
- #define IS_MOUSEKEY_MOVE(code) (KC_MS_UP <= (code) && (code) <= KC_MS_RIGHT)
-@@ -206,6 +207,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
- #define KC_BRIU KC_BRIGHTNESS_UP
- #define KC_BRID KC_BRIGHTNESS_DOWN
+ void host_set_driver(host_driver_t *d) {
+@@ -118,6 +119,15 @@ void host_consumer_send(uint16_t report) {
+     (*driver->send_consumer)(report);
+ }
  
-+/* Apple Fn */
-+#define KC_APFN KC_APPLE_FN
++void host_apple_send(uint8_t report) {
++    if (report == last_apple_report) return;
++    last_apple_report = report;
 +
- /* System Specific */
- #define KC_BRMU KC_PAUSE
- #define KC_BRMD KC_SCROLL_LOCK
-@@ -502,7 +506,10 @@ enum internal_special_keycodes {
-     KC_MEDIA_FAST_FORWARD,
-     KC_MEDIA_REWIND,
-     KC_BRIGHTNESS_UP,
--    KC_BRIGHTNESS_DOWN
-+    KC_BRIGHTNESS_DOWN,
++    if (!driver) return;
++    send_apple(report);
++}
++__attribute__((weak))void send_apple(uint8_t report) {}
 +
-+    /* Apple Fn */
-+    KC_APPLE_FN,
- };
+ void host_digitizer_send(digitizer_t *digitizer) {
+     if (!driver) return;
  
- enum mouse_keys {
-diff --git a/quantum/keymap_common.c b/quantum/keymap_common.c
-index 8d7a8bda9a..80dfb584aa 100644
---- a/quantum/keymap_common.c
-+++ b/quantum/keymap_common.c
-@@ -65,6 +65,11 @@ action_t action_for_keycode(uint16_t keycode) {
-             action.code = ACTION_USAGE_CONSUMER(KEYCODE2CONSUMER(keycode));
-             break;
+diff --git a/tmk_core/protocol/host.h b/tmk_core/protocol/host.h
+index 6b15f0d0c1..37737b57e8 100644
+--- a/tmk_core/protocol/host.h
++++ b/tmk_core/protocol/host.h
+@@ -47,6 +47,7 @@ void    host_keyboard_send(report_keyboard_t *report);
+ void    host_mouse_send(report_mouse_t *report);
+ void    host_system_send(uint16_t data);
+ void    host_consumer_send(uint16_t data);
++void    host_apple_send(uint8_t data);
+ void    host_programmable_button_send(uint32_t data);
+ 
+ uint16_t host_last_system_report(void);
+diff --git a/tmk_core/protocol/host_driver.h b/tmk_core/protocol/host_driver.h
+index affd0dcb34..6494aa6ef1 100644
+--- a/tmk_core/protocol/host_driver.h
++++ b/tmk_core/protocol/host_driver.h
+@@ -32,4 +32,5 @@ typedef struct {
+     void (*send_programmable_button)(uint32_t);
+ } host_driver_t;
+ 
+-void send_digitizer(report_digitizer_t *report);
+\ No newline at end of file
++void send_apple(uint8_t);
++void send_digitizer(report_digitizer_t *report);
+diff --git a/tmk_core/protocol/lufa/lufa.c b/tmk_core/protocol/lufa/lufa.c
+index b4b03357a3..810b058438 100644
+--- a/tmk_core/protocol/lufa/lufa.c
++++ b/tmk_core/protocol/lufa/lufa.c
+@@ -785,6 +785,12 @@ static void send_consumer(uint16_t data) {
  #endif
-+#ifdef APPLE_FN_ENABLE
-+        case KC_APPLE_FN:
-+            action.code = ACTION_APPLE_FN();
-+            break;
+ }
+ 
++void send_apple(uint8_t data) {
++#if defined(EXTRAKEY_ENABLE) && defined(APPLE_FN_ENABLE)
++    send_extra(REPORT_ID_APPLE, (uint16_t)data);
 +#endif
- #ifdef MOUSEKEY_ENABLE
-         case KC_MS_UP ... KC_MS_ACCEL2:
-             action.code = ACTION_MOUSEKEY(keycode);
-diff --git a/quantum/radial_controller.c b/quantum/radial_controller.c
-new file mode 100644
-index 0000000000..e69de29bb2
-diff --git a/quantum/radial_controller.h b/quantum/radial_controller.h
-new file mode 100644
-index 0000000000..e69de29bb2
-diff --git a/tmk_core/protocol/report.c b/tmk_core/protocol/report.c
-index 5755098c60..6498f46750 100644
---- a/tmk_core/protocol/report.c
-+++ b/tmk_core/protocol/report.c
-@@ -241,6 +241,12 @@ void del_key_bit(report_keyboard_t* keyboard_report, uint8_t code) {
-  * FIXME: Needs doc
-  */
- void add_key_to_report(report_keyboard_t* keyboard_report, uint8_t key) {
-+#ifdef APPLE_FN_ENABLE
-+    if IS_APPLE_FN(key) {
-+        keyboard_report->reserved = 1;
-+        return;
-+    }
-+#endif
- #ifdef NKRO_ENABLE
-     if (keyboard_protocol && keymap_config.nkro) {
-         add_key_bit(keyboard_report, key);
-@@ -255,6 +261,12 @@ void add_key_to_report(report_keyboard_t* keyboard_report, uint8_t key) {
-  * FIXME: Needs doc
-  */
- void del_key_from_report(report_keyboard_t* keyboard_report, uint8_t key) {
-+#ifdef APPLE_FN_ENABLE
-+    if IS_APPLE_FN(key) {
-+        keyboard_report->reserved = 0;
-+        return;
-+    }
-+#endif
- #ifdef NKRO_ENABLE
-     if (keyboard_protocol && keymap_config.nkro) {
-         del_key_bit(keyboard_report, key);
++}
++
+ static void send_programmable_button(uint32_t data) {
+ #ifdef PROGRAMMABLE_BUTTON_ENABLE
+     static report_programmable_button_t r;
+diff --git a/tmk_core/protocol/report.h b/tmk_core/protocol/report.h
+index 735ccdb4a1..414883b8a3 100644
+--- a/tmk_core/protocol/report.h
++++ b/tmk_core/protocol/report.h
+@@ -29,6 +29,7 @@ enum hid_report_ids {
+     REPORT_ID_MOUSE,
+     REPORT_ID_SYSTEM,
+     REPORT_ID_CONSUMER,
++    REPORT_ID_APPLE,
+     REPORT_ID_PROGRAMMABLE_BUTTON,
+     REPORT_ID_NKRO,
+     REPORT_ID_JOYSTICK,
 diff --git a/tmk_core/protocol/usb_descriptor.c b/tmk_core/protocol/usb_descriptor.c
-index 52e3276d35..50931df595 100644
+index 21795cef60..effe9edbde 100644
 --- a/tmk_core/protocol/usb_descriptor.c
 +++ b/tmk_core/protocol/usb_descriptor.c
-@@ -71,10 +71,22 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM KeyboardReport[] = {
-         HID_RI_REPORT_COUNT(8, 0x08),
-         HID_RI_REPORT_SIZE(8, 0x01),
-         HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_VARIABLE | HID_IOF_ABSOLUTE),
+@@ -251,6 +251,23 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
+         HID_RI_REPORT_SIZE(8, 16),
+         HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_ARRAY | HID_IOF_ABSOLUTE),
+     HID_RI_END_COLLECTION(0),
 +
-+#ifdef APPLE_FN_ENABLE
++#    ifdef APPLE_FN_ENABLE
++    HID_RI_USAGE_PAGE(8, 0x01),        // Generic Desktop
++    HID_RI_USAGE(8, 0x06),             // Keyboard
++    HID_RI_COLLECTION(8, 0x01),        // Application
++        HID_RI_REPORT_ID(8, REPORT_ID_APPLE),
 +        HID_RI_USAGE_PAGE(8, 0xFF),    // AppleVendor Top Case
 +        HID_RI_USAGE(8, 0x03),         // KeyboardFn
-+        HID_RI_LOGICAL_MINIMUM(8, 0x00),
-+        HID_RI_LOGICAL_MAXIMUM(8, 0x01),
 +        HID_RI_REPORT_COUNT(8, 0x01),
 +        HID_RI_REPORT_SIZE(8, 0x08),
 +        HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_VARIABLE | HID_IOF_ABSOLUTE),
-+#else
-         // Reserved (1 byte)
-         HID_RI_REPORT_COUNT(8, 0x01),
-         HID_RI_REPORT_SIZE(8, 0x08),
-         HID_RI_INPUT(8, HID_IOF_CONSTANT),
-+#endif
-+
-         // Keycodes (6 bytes)
-         HID_RI_USAGE_PAGE(8, 0x07),    // Keyboard/Keypad
-         HID_RI_USAGE_MINIMUM(8, 0x00),
++        // Reserved (1 byte)
++        HID_RI_REPORT_COUNT(8, 0x01),
++        HID_RI_REPORT_SIZE(8, 0x08),
++        HID_RI_INPUT(8, HID_IOF_CONSTANT),
++    HID_RI_END_COLLECTION(0),
++#    endif
+ #endif
+ 
+ #ifdef PROGRAMMABLE_BUTTON_ENABLE
 diff --git a/tmk_core/protocol/vusb/vusb.c b/tmk_core/protocol/vusb/vusb.c
-index d07cc0d27e..cc8c866712 100644
+index d07cc0d27e..bf97d42f69 100644
 --- a/tmk_core/protocol/vusb/vusb.c
 +++ b/tmk_core/protocol/vusb/vusb.c
-@@ -429,10 +429,22 @@ const PROGMEM uchar keyboard_hid_report[] = {
-     0x95, 0x08, //   Report Count (8)
-     0x75, 0x01, //   Report Size (1)
-     0x81, 0x02, //   Input (Data, Variable, Absolute)
-+
-+#ifdef APPLE_FN_ENABLE
-+    0x05, 0xFF,  //   Usage Page (AppleVendor Top Case)
-+    0x09, 0x03,  //   Usage (KeyboardFn)
-+    0x15, 0x00,  //   Logical Minimum (0)
-+    0x25, 0x01,  //   Logical Maximum (1)
-+    0x95, 0x01,  //   Report Count (1)
-+    0x75, 0x08,  //   Report Size (8)
-+    0x81, 0x02,  //   Input (Data, Variable, Absolute)
-+#else
-     // Reserved (1 byte)
-     0x95, 0x01, //   Report Count (1)
-     0x75, 0x08, //   Report Size (8)
-     0x81, 0x03, //   Input (Constant)
+@@ -297,6 +297,12 @@ static void send_consumer(uint16_t data) {
+ #endif
+ }
+ 
++void send_apple(uint8_t data) {
++#if defined(EXTRAKEY_ENABLE) && defined(APPLE_FN_ENABLE)
++    send_extra(REPORT_ID_APPLE, (uint16_t)data);
 +#endif
++}
 +
-     // Keycodes (6 bytes)
-     0x05, 0x07,       //   Usage Page (Keyboard/Keypad)
-     0x19, 0x00,       //   Usage Minimum (0)
+ void send_digitizer(report_digitizer_t *report) {
+ #ifdef DIGITIZER_ENABLE
+     if (usbInterruptIsReadyShared()) {
+@@ -552,6 +558,23 @@ const PROGMEM uchar shared_hid_report[] = {
+     0x75, 0x10,               //   Report Size (16)
+     0x81, 0x00,               //   Input (Data, Array, Absolute)
+     0xC0,                     // End Collection
++
++#    ifdef APPLE_FN_ENABLE
++    HID_RI_USAGE_PAGE(8, 0x01),        // Generic Desktop
++    HID_RI_USAGE(8, 0x06),             // Keyboard
++    HID_RI_COLLECTION(8, 0x01),        // Application
++        HID_RI_REPORT_ID(8, REPORT_ID_APPLE),
++        HID_RI_USAGE_PAGE(8, 0xFF),    // AppleVendor Top Case
++        HID_RI_USAGE(8, 0x03),         // KeyboardFn
++        HID_RI_REPORT_COUNT(8, 0x01),
++        HID_RI_REPORT_SIZE(8, 0x08),
++        HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_VARIABLE | HID_IOF_ABSOLUTE),
++        // Reserved (1 byte)
++        HID_RI_REPORT_COUNT(8, 0x01),
++        HID_RI_REPORT_SIZE(8, 0x08),
++        HID_RI_INPUT(8, HID_IOF_CONSTANT),
++    HID_RI_END_COLLECTION(0),
++#    endif
+ #endif
+ 
+ #ifdef DIGITIZER_ENABLE

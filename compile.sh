@@ -83,6 +83,7 @@ if (( $#clean )); then
   make clean
   # checkout to revert changes.
   git checkout --recurse-submodules .
+  git reset HEAD
   git clean -dfx
 
   cd "$VIAL_QMK_HOME"
@@ -90,6 +91,7 @@ if (( $#clean )); then
   make clean
   # checkout to revert changes.
   git checkout --recurse-submodules .
+  git reset HEAD
   git clean -dfx
   return
 fi
@@ -116,14 +118,13 @@ if $UPDATE_QMK; then
 fi
 
 if [ $APPLE_FN_ENABLE = "yes" ]; then
-   [ -z "$(rg APPLE_FN_ENABLE quantum/keymap_common.c)" ] && patch -p1 < "${PROJECT}/patches/applefn.patch"
-   [ -z "$(rg get_usb_device_descriptor_ptr tmk_core/protocol/usb_descriptor.h)" ] && patch -p1 < "${PROJECT}/patches/device_descriptor.patch"
+  [ -z "$(rg APPLE_FN_ENABLE builddefs/common_features.mk)" ] && patch -p1 < "${PROJECT}/patches/applefn.patch"
+  [ -z "$(rg get_usb_device_descriptor_ptr tmk_core/protocol/usb_descriptor.h)" ] && patch -p1 < "${PROJECT}/patches/device_descriptor.patch"
 fi
 if [ $VIAL_ENABLE = "yes" ]; then
   [ -z "$(rg vial_tap_dance_reset_user quantum/dynamic_keymap.h)" ] && patch -p1 < "${PROJECT}/patches/vial_eeprom_reset_user.patch"
   [ -z "$(rg FIX_VIAL_TAP_DANCE_BEHAVIOR quantum/vial.c)" ] && patch -p1 < "${PROJECT}/patches/fix_vial_tap_dance_behavior.patch"
 fi
-
 [ -z "$(rg radial_controller_task quantum/keyboard.c)" ] && patch -p1 < "${PROJECT}/patches/radial_controller.patch"
 [ -z "$(rg ENCODER_LOOKUP_TABLE quantum/encoder.c)" ] && patch -p1 < "${PROJECT}/patches/encoder_lookup_table.patch"
 
