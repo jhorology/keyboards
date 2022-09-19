@@ -142,7 +142,7 @@ index 21795cef60..effe9edbde 100644
  
  #ifdef PROGRAMMABLE_BUTTON_ENABLE
 diff --git a/tmk_core/protocol/vusb/vusb.c b/tmk_core/protocol/vusb/vusb.c
-index d07cc0d27e..bf97d42f69 100644
+index d07cc0d27e..7fd101debd 100644
 --- a/tmk_core/protocol/vusb/vusb.c
 +++ b/tmk_core/protocol/vusb/vusb.c
 @@ -297,6 +297,12 @@ static void send_consumer(uint16_t data) {
@@ -164,20 +164,20 @@ index d07cc0d27e..bf97d42f69 100644
      0xC0,                     // End Collection
 +
 +#    ifdef APPLE_FN_ENABLE
-+    HID_RI_USAGE_PAGE(8, 0x01),        // Generic Desktop
-+    HID_RI_USAGE(8, 0x06),             // Keyboard
-+    HID_RI_COLLECTION(8, 0x01),        // Application
-+        HID_RI_REPORT_ID(8, REPORT_ID_APPLE),
-+        HID_RI_USAGE_PAGE(8, 0xFF),    // AppleVendor Top Case
-+        HID_RI_USAGE(8, 0x03),         // KeyboardFn
-+        HID_RI_REPORT_COUNT(8, 0x01),
-+        HID_RI_REPORT_SIZE(8, 0x08),
-+        HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_VARIABLE | HID_IOF_ABSOLUTE),
-+        // Reserved (1 byte)
-+        HID_RI_REPORT_COUNT(8, 0x01),
-+        HID_RI_REPORT_SIZE(8, 0x08),
-+        HID_RI_INPUT(8, HID_IOF_CONSTANT),
-+    HID_RI_END_COLLECTION(0),
++    0x05, 0x01,            // Usage Page (Generic Desktop)
++    0x09, 0x06,            // Usage (Keyboard)
++    0xA1, 0x01,            // Collection (Application)
++    0x85, REPORT_ID_APPLE, //   Report ID
++    0x05, 0xFF,            //   Usage Page (AppleVendor Top Case)
++    0x09, 0x03,            //   Usage (KeyboardFn)
++    0x95, 0x01,            //   Report Count (1)
++    0x75, 0x08,            //   Report Size (8)
++    0x81, 0x02,            //   Input (Data, Variable, Absolute)
++    // Reserved (1 byte)
++    0x95, 0x01,            //   Report Count (1)
++    0x75, 0x08,            //   Report Size (8)
++    0x81, 0x03,            //   Input (Constant)
++    0xC0,                  // End Collection
 +#    endif
  #endif
  
