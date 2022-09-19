@@ -4,13 +4,13 @@ This is a personal project for my own keyboards.
 ## Custom Keycodes
 | Code | Descrption| Notes|
 |------|-----------|--------
-| MAC_TOGG | Toggle enabling true apple mode with switching base layer 0(apple mode) or 1. |Non-volatile setting|
+| MAC_TOGG | Toggle enabling or disabling true apple mode with switching base layer 0(apple mode) or 1. |Non-volatile setting|
 | MAC_ON | Enablle true apple mode with switching base layer 0(apple mode) |"|
 | MAC_OFF | Disable true apple mode with switching base layer 1 |"|
 | APPLE_FN | Apple fn/🌐 key ||
 | APPLE_FF | Apple fn/🌐 key with remapping top row to F1-12 ||
-| EJ_TOGG | Toggle send KC_LANG2(英数) and KC_LNG2(かな) ||
-| USJ_TOGG | Toggle enabling 社畜PC mode (using ANSI layout on JIS driver) |Non-volatile setting|
+| EJ_TOGG | Toggle send KC_LANG2(英数) or KC_LNG1(かな) ||
+| USJ_TOGG | Toggle enabling or disabling 社畜PC mode that is available to use ANSI layout on JIS driver. |Non-volatile setting|
 | USJ_ON | Enable 社畜PC mode |"|
 | USJ_OFF | Disable 社畜PC mode |"|
 | DIAL_BUT | State of the button located on radial controller ||
