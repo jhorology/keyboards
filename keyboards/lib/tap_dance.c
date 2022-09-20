@@ -16,7 +16,7 @@
 
 #include "tap_dance.h"
 
-#define IS_COSUTOM_KEYCODE(kc) (kc >= SAFE_RANGE || (kc >= USER00 && kc <= USER15))
+#define IS_CUSTOM_KEYCODE(kc) (kc >= SAFE_RANGE || (kc >= USER00 && kc <= USER15))
 static void on_tap_dance_finished(qk_tap_dance_state_t *state, tap_dance_data_t *data);
 static void on_tap_dance_reset(qk_tap_dance_state_t *state, tap_dance_data_t *data);
 
@@ -57,7 +57,7 @@ static void on_tap_dance_finished(qk_tap_dance_state_t *state, tap_dance_data_t 
   data->state = cur_dance(state);
   uint16_t keycode = get_via_tap_dance_keycode(data->index, data->state);
   if (keycode) {
-    if (IS_COSUTOM_KEYCODE(keycode)) {
+    if (IS_CUSTOM_KEYCODE(keycode)) {
       data->record.event.pressed = true;
       process_record_kb(keycode, &data->record);
     } else {
@@ -69,7 +69,7 @@ static void on_tap_dance_finished(qk_tap_dance_state_t *state, tap_dance_data_t 
 static void on_tap_dance_reset(qk_tap_dance_state_t *state, tap_dance_data_t *data) {
   uint16_t keycode = get_via_tap_dance_keycode(data->index, data->state);
   if (keycode) {
-    if (IS_COSUTOM_KEYCODE(keycode)) {
+    if (IS_CUSTOM_KEYCODE(keycode)) {
       data->record.event.pressed = false;
       process_record_kb(keycode, &data->record);
     } else {
