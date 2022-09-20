@@ -21,19 +21,20 @@
 #ifdef RADIAL_CONTROLLER_ENABLE
 #  include "radial_controller.h"
 #endif
+#if !defined(VIAL_TAP_DANCE_ENABLE) && defined(TAP_DANCE_ENABLE)
+#  include "tap_dance.h"
+#endif
 
 //   local functions
 //------------------------------------------
 
-void set_mac(bool value);
-void set_usj(bool value);
+static void set_mac(bool value);
+static void set_usj(bool value);
 
-#ifdef APPLE_FN_ENABLE
-bool process_apple_ff_fkey(uint16_t fkey_index, keyrecord_t *record);
-#endif
+static bool process_apple_ff_fkey(uint16_t fkey_index, keyrecord_t *record);
 
 #ifdef VIAL_ENABLE
-void pgm_memcpy(void *dest, const void *src, size_t len);
+static void pgm_memcpy(void *dest, const void *src, size_t len);
 #endif
 
 //   global variavles
@@ -41,14 +42,16 @@ void pgm_memcpy(void *dest, const void *src, size_t len);
 
 common_kb_config_t g_common_kb_config;
 
-#ifdef VIAL_ENABLE
-
-#  ifdef VIAL_TAP_DANCE_ENABLE
+#if defined(VIAL_TAP_DANCE_ENABLE) || defined(TAP_DANCE_ENABLE)
 /*
  * pre-defined vial tap dabce
  */
-// clang-format off
+#  ifdef VIAL_TAP_DANCE_ENABLE
 const vial_tap_dance_entry_t PROGMEM vial_tap_dance_actions_default[] = {
+#  else
+const tap_dance_entry_t PROGMEM via_tap_dance_entries_default[] = {
+#  endif
+    // clang-format off
   //                          tap,      hold,   double_tap, tap_hold, tapping_term
   // for HHKB, Right Alt, on  tap hold: MO(3)
   [TD_RALT_MO3]            = { KC_RALT,  KC_RALT, KC_RALT, MO(3),    TAPPING_TERM },
@@ -62,32 +65,21 @@ const vial_tap_dance_entry_t PROGMEM vial_tap_dance_actions_default[] = {
   [TD_LALT_APFF]           = { KC_LALT,  KC_LALT, KC_LALT, APPLE_FF, TAPPING_TERM },
   // Left Alt, on tap hold: Apple fn/globe + FK overrde,  on tap: KC_LNG2(英数), on double tap: KC_LNG1(かな)
   [TD_LALT_APFF_EISU_KANA] = { KC_LNG2,  KC_LALT, KC_LNG1, APPLE_FF, TAPPING_TERM }
+    // clang-format on
 };
-// clang-format on
-#  endif
-#  ifdef VIAL_COMBO_ENABLE
+#endif
+
+#ifdef VIAL_COMBO_ENABLE
 /*
  * pre-defined vial combo
  */
 const vial_combo_entry_t PROGMEM vial_combo_actions_default[] = {};
-#  endif
-#  ifdef VIAL_KEY_OVERRIDE_ENABLE
+#endif
+#ifdef VIAL_KEY_OVERRIDE_ENABLE
 /*
  * pre-defined key overrride
  */
 const vial_combo_entry_t PROGMEM vial_key_override_actions_default[] = {};
-#  endif
-#else
-
-/*
- * pre-defined tap dabce
- */
-qk_tap_dance_action_t tap_dance_actions[] = {
-    // Tap once for standard key, twice to toggle layers
-    [TD_RALT_MO3] = ACTION_TAP_DANCE_DOUBLE(KC_RALT, MO(3)),
-    [TD_APFF_EISU_KANA] = ACTION_TAP_DANCE_DOUBLE(APPLE_FF, EJ_TOGG),
-    [TD_LCMD_EISU_KANA] = ACTION_TAP_DANCE_DOUBLE(KC_LGUI, EJ_TOGG),
-    [TD_LOPT_APFF] = ACTION_TAP_DANCE_DOUBLE(KC_LALT, APPLE_FF)
 #endif
 
 //   local variables
@@ -96,11 +88,9 @@ qk_tap_dance_action_t tap_dance_actions[] = {
 typedef union {
   uint16_t raw;
   struct {
-#ifdef APPLE_FN_ENABLE
     bool apple_ff : 1;
     bool capslock_old : 1;
     uint16_t apple_ff_flags : 12;
-#endif
     bool eisu_kana : 1;
   };
 } volatile_state_t;
@@ -146,6 +136,12 @@ void keyboard_pre_init_kb(void) {
 
 void keyboard_post_init_kb(void) {
   default_layer_set(g_common_kb_config.mac ? 1 : 2);
+
+  // TODO support VIA v3 UI
+#if !defined(VIAL_TAP_DANCE_ENABLE) && defined(TAP_DANCE_ENABLE)
+  via_tap_dance_action_init(TAP_DANCE_ACTIONS_DEFAULT_LENGTH);
+#endif
+
   keyboard_post_init_user();
 }
 
@@ -153,16 +149,24 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
   if (!process_record_user(keycode, record)) return false;
   bool result = true;
   switch (keycode) {
+    case QK_TAP_DANCE ... QK_TAP_DANCE_MAX:
+      tap_dance_store_keyrecord(TD_INDEX(keycode), record);
+      return true;
     case MAC_TOGG:
-      set_mac(!g_common_kb_config.mac);
+      if (record->event.pressed) {
+        set_mac(!g_common_kb_config.mac);
+      }
       return false;
     case MAC_ON:
-      set_mac(true);
+      if (record->event.pressed) {
+        set_mac(true);
+      }
       return false;
     case MAC_OFF:
-      set_mac(false);
+      if (record->event.pressed) {
+        set_mac(false);
+      }
       return false;
-#ifdef APPLE_FN_ENABLE
     case APPLE_FN:
       if (record->event.pressed) {
         host_apple_send(1);
@@ -188,7 +192,6 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
     case KC_EQL:
       if (volatile_state.apple_ff) result = process_apple_ff_fkey(11, record);
       break;
-#endif
     case EJ_TOGG:
       if (record->event.pressed) {
         volatile_state.eisu_kana = !volatile_state.eisu_kana;
@@ -200,13 +203,19 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
       }
       return false;
     case USJ_TOGG:
-      set_usj(!g_common_kb_config.usj);
+      if (record->event.pressed) {
+        set_usj(!g_common_kb_config.usj);
+      }
       return false;
     case USJ_ON:
-      set_usj(true);
+      if (record->event.pressed) {
+        set_usj(true);
+      }
       return false;
     case USJ_OFF:
-      set_usj(false);
+      if (record->event.pressed) {
+        set_usj(false);
+      }
       return false;
 #ifdef RADIAL_CONTROLLER_ENABLE
     case DIAL_BUT:
@@ -273,40 +282,69 @@ void suspend_wakeup_init_kb(void) {
 }
 #endif
 
-#ifdef VIAL_ENABLE
-#  ifdef VIAL_TAP_DANCE_ENABLE
+#if !defined(VIAL_TAP_DANCE_ENABLE) && defined(TAP_DANCE_ENABLE)
+// quantum hook function
+// requires TAPPING_TERM_PER_KEY
+// TODO VIA v3 UI
+uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) {
+  uint16_t tap_dance_index = keycode - QK_TAP_DANCE;
+  if (tap_dance_index >= 0 && tap_dance_index < TAP_DANCE_ACTIONS_DEFAULT_LENGTH) {
+    return pgm_read_word(&via_tap_dance_entries_default[tap_dance_index].tapping_term);
+  }
+  return TAPPING_TERM;
+}
+
+// TODO VIA v3 UI
+uint16_t get_via_tap_dance_keycode(uint16_t index, tap_dance_state_t state) {
+  if (index >= 0 && index < TAP_DANCE_ACTIONS_DEFAULT_LENGTH) {
+    switch (state) {
+      case TD_SINGLE_TAP:
+        return pgm_read_word(&via_tap_dance_entries_default[index].on_single_tap);
+      case TD_SINGLE_HOLD:
+        return pgm_read_word(&via_tap_dance_entries_default[index].on_single_hold);
+      case TD_DOUBLE_TAP:
+        return pgm_read_word(&via_tap_dance_entries_default[index].on_double_tap);
+      case TD_DOUBLE_HOLD:
+        return pgm_read_word(&via_tap_dance_entries_default[index].on_double_hold);
+      default:
+        return KC_NO;
+    }
+  }
+  return KC_NO;
+}
+#endif
+
+#ifdef VIAL_TAP_DANCE_ENABLE
 void vial_tap_dance_reset_kb(uint8_t index, vial_tap_dance_entry_t *entry) {
   if (index < TAP_DANCE_ACTIONS_DEFAULT_LENGTH) {
     pgm_memcpy(entry, &vial_tap_dance_actions_default[index], sizeof(vial_tap_dance_entry_t));
   }
   vial_tap_dance_reset_user(index, entry);
 }
-#  endif
+#endif
 
-#  ifdef VIAL_COMBO_ENABLE
+#ifdef VIAL_COMBO_ENABLE
 void vial_combo_reset_kb(uint8_t index, vial_combo_entry_t *entry) {
   if (index < VIAL_COMBO_ACTIONS_DEFAULT_LENGTH) {
     pgm_memcpy(entry, &vial_combo_actions_default[index], sizeof(vial_combo_entry_t));
   }
   vial_combo_reset_user(index, entry);
 }
-#  endif
+#endif
 
-#  ifdef VIAL_KEY_OVERRIDE_ENABLE
+#ifdef VIAL_KEY_OVERRIDE_ENABLE
 void vial_key_override_reset_kb(uint8_t index, vial_key_override_entry_t *entry) {
   if (index < VIAL_KEY_OVERRIDE_ACTIONS_DEFAULT_LENGTH) {
     pgm_memcpy(entry, &vial_key_override_actions_default[index], sizeof(vial_key_override_entry_t));
   }
   vial_key_override_reset_user(index, entry);
 }
-#  endif
 #endif
 
 //   local functions
 //------------------------------------------
 
-#ifdef APPLE_FN_ENABLE
-bool process_apple_ff_fkey(uint16_t fkey_index, keyrecord_t *record) {
+static bool process_apple_ff_fkey(uint16_t fkey_index, keyrecord_t *record) {
   uint16_t flag = 1 << fkey_index;
   if (record->event.pressed) {
     volatile_state.apple_ff_flags |= flag;
@@ -319,9 +357,8 @@ bool process_apple_ff_fkey(uint16_t fkey_index, keyrecord_t *record) {
   }
   return true;
 }
-#endif
 
-void set_mac(bool value) {
+static void set_mac(bool value) {
   if (value != g_common_kb_config.mac) {
     g_common_kb_config.mac = value;
     eeconfig_update_kb(g_common_kb_config.raw);
@@ -330,7 +367,7 @@ void set_mac(bool value) {
   }
 }
 
-void set_usj(bool value) {
+static void set_usj(bool value) {
   if (value != g_common_kb_config.usj) {
     g_common_kb_config.usj = value;
     eeconfig_update_kb(g_common_kb_config.raw);
@@ -338,7 +375,7 @@ void set_usj(bool value) {
 }
 
 #ifdef VIAL_ENABLE
-void pgm_memcpy(void *dest, const void *src, size_t len) {
+static void pgm_memcpy(void *dest, const void *src, size_t len) {
   for (size_t i = 0; i < len; i++) {
     *(uint8_t *)dest++ = pgm_read_byte((uint8_t *)src++);
   }

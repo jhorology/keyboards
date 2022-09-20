@@ -10,9 +10,7 @@ zparseopts -D -E -F -- \
            -qmk-home:=qmk_home \
            -vial-qmk-home:=vial_qmk_home \
            -without-update-qmk=without_update_qmk \
-           -without-vial=without_vial \
-           -without-apple_fn=without_apple_fn \
-           -apple-fake-layout:=apple_fake_layout \
+           -with-vial=with_vial \
   || return
 
 
@@ -26,9 +24,7 @@ if (( $#help )); then
         "  --qmk-home <QMK_HOME>            location for local qmk_firmware repository" \
         "  --vial-qmk-home <VIAL_QMK_HOME>  location for local vial-qmk repository" \
         "  --without-update-qmk             don't sync remote repository" \
-        "  --without-vial                   build without VIAL, use QMK_HOME with enabling VIA." \
-        "  --without-apple-fn               don't apply apple_fn.patch" \
-        "  --apple-fake-layout <layout>     choice fake apple product id 0:ANSI 1:ISO 2:JIS, default 0:ANSI"
+        "  --with-vial                      build with VIAL"
   return
 fi
 
@@ -49,9 +45,7 @@ local -A KEYBOARDS=(
 TARGETS=(bakeneko60 ciel60 qk65 prime_e d60 fk680 zoom65)
 VIAL_QMK_HOME="$HOME/Documents/Sources/vial-qmk"
 QMK_HOME="$HOME/Documents/Sources/qmk_firmware"
-VIAL_ENABLE=yes
-APPLE_FN_ENABLE=yes
-APPLE_FAKE_LAYOUT=0 # fake apple product 0:ANSI 1:ISO 2:JIS
+VIAL_ENABLE=no
 UPDATE_QMK=true
 
 # .config
@@ -64,9 +58,7 @@ UPDATE_QMK=true
 (( $#qmk_home )) && QMK_HOME=${qmk_home[-1]##=}
 (( $#vial_qmk_home )) && VIAL_QMK_HOME=${vial_qmk_home[-1]##=}
 (( $#without_update_qmk )) && UPDATE_QMK=false
-(( $#without_vial )) && VIAL_ENABLE=no
-(( $#without_apple_fn )) && APPLE_FN_ENABLE=no
-(( $#apple_fake_layout )) && APPLE_FAKE_LAYOUT=${apple_fake_layout[-1]##=}
+(( $#with_vial )) && VIAL_ENABLE=yes
 (( $#@ )) && TARGETS=("$@")
 
 
@@ -117,16 +109,14 @@ if $UPDATE_QMK; then
   make git-submodule
 fi
 
-if [ $APPLE_FN_ENABLE = "yes" ]; then
-  [ -z "$(rg APPLE_FN_ENABLE builddefs/common_features.mk)" ] && patch -p1 < "${PROJECT}/patches/applefn.patch"
-  [ -z "$(rg get_usb_device_descriptor_ptr tmk_core/protocol/usb_descriptor.h)" ] && patch -p1 < "${PROJECT}/patches/device_descriptor.patch"
-fi
+[ -z "$(rg APPLE_FN_ENABLE builddefs/common_features.mk)" ] && patch -p1 < "${PROJECT}/patches/applefn.patch"
+[ -z "$(rg get_usb_device_descriptor_ptr tmk_core/protocol/usb_descriptor.h)" ] && patch -p1 < "${PROJECT}/patches/device_descriptor.patch"
+[ -z "$(rg radial_controller_task quantum/keyboard.c)" ] && patch -p1 < "${PROJECT}/patches/radial_controller.patch"
+[ -z "$(rg ENCODER_LOOKUP_TABLE quantum/encoder.c)" ] && patch -p1 < "${PROJECT}/patches/encoder_lookup_table.patch"
 if [ $VIAL_ENABLE = "yes" ]; then
   [ -z "$(rg vial_tap_dance_reset_user quantum/dynamic_keymap.h)" ] && patch -p1 < "${PROJECT}/patches/vial_eeprom_reset_user.patch"
   [ -z "$(rg FIX_VIAL_TAP_DANCE_BEHAVIOR quantum/vial.c)" ] && patch -p1 < "${PROJECT}/patches/fix_vial_tap_dance_behavior.patch"
 fi
-[ -z "$(rg radial_controller_task quantum/keyboard.c)" ] && patch -p1 < "${PROJECT}/patches/radial_controller.patch"
-[ -z "$(rg ENCODER_LOOKUP_TABLE quantum/encoder.c)" ] && patch -p1 < "${PROJECT}/patches/encoder_lookup_table.patch"
 
 [ ! -L keyboards/my_keyboards ] && ln -s "${PROJECT}/keyboards" keyboards/my_keyboards
 
@@ -135,7 +125,7 @@ if [ $VIAL_ENABLE = "yes" ]; then
   QMK_HOME=$QMK_HOME "$PROJECT/util/generate_vial_json.js" $MAKE_TARGETS[*]
 fi
 
-make -j 10 $MAKE_TARGETS[*] VIAL_ENABLE=$VIAL_ENABLE APPLE_FN_ENABLE=$APPLE_FN_ENABLE APPLE_FAKE_LAYOUT=$APPLE_FAKE_LAYOUT
+make -j 10 $MAKE_TARGETS[*] VIAL_ENABLE=$VIAL_ENABLE
 
 VERSION="$(date +"%Y%m%d")_$(git rev-parse --short HEAD)"
 if [ $VIAL_ENABLE = "yes" ]; then
@@ -143,7 +133,6 @@ if [ $VIAL_ENABLE = "yes" ]; then
 else
   VERSION="via_$VERSION"
 fi
-[ $APPLE_FN_ENABLE = "yes" ] && VERSION="applefn_$VERSION"
 
 # dist
 # -----------------------------------

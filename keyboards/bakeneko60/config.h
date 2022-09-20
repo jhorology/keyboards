@@ -91,14 +91,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define VENDOR_ID 0x3A0E
 #define PRODUCT_ID 0xCBDC
 #ifdef APPLE_FN_ENABLE
-#  define ALTERNATE_VENDOR_ID 0x05Ac  // Apple
-#  if APPLE_FAKE_LAYOUT == 0
-#    define ALTERNATE_PRODUCT_ID 0x021d  // ANSI
-#  elif APPLE_FAKE_LAYOUT == 1
-#    define ALTERNATE_PRODUCT_ID 0x021e  // ISO
-#  elif APPLE_FAKE_LAYOUT == 2
-#    define ALTERNATE_PRODUCT_ID 0x021f  // JIS
-#  endif
+#  define ALTERNATE_VENDOR_ID 0x05Ac   // Apple
+#  define ALTERNATE_PRODUCT_ID 0x021d  // ANSI
 #endif
 #define DEVICE_VER 0x0001
 #define MANUFACTURER kkatano

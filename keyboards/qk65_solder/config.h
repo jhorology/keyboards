@@ -90,14 +90,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define VENDOR_ID 0x4F53   // 0x4F53 for qwertykeys
 #define PRODUCT_ID 0x5153  // 0x5153 QS for QK65 Solder
 #ifdef APPLE_FN_ENABLE
-#  define ALTERNATE_VENDOR_ID 0x05Ac     // Apple
-#  if APPLE_FAKE_LAYOUT == 0             // ANSI
-#    define ALTERNATE_PRODUCT_ID 0x024f  // ANSI
-#  elif APPLE_FAKE_LAYOUT == 1           // ISO
-#    define ALTERNATE_PRODUCT_ID 0x0250  // ISO
-#  elif APPLE_FAKE_LAYOUT == 2           // JIS
-#    define ALTERNATE_PRODUCT_ID 0x0251  // JIS
-#  endif
+#  define ALTERNATE_VENDOR_ID 0x05Ac   // Apple
+#  define ALTERNATE_PRODUCT_ID 0x024f  // ANSI
 #endif
 #define DEVICE_VER 0x0001
 #define MANUFACTURER qwetykeys

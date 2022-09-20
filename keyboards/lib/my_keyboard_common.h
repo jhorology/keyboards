@@ -44,11 +44,6 @@ enum custom_user_keycodes {
   CUSTOM_KEYCODES_SAFE_RANGE
 };
 
-#ifndef APPLE_FN_ENABLE
-#  define APPLE_FN KC_RALT
-#  define APPLE_FF KC_RALT
-#endif
-
 #ifdef RADIAL_CONTROLLER_ENABLE
 #  define DIAL_BUT RADIAL_BUTTON
 #  define DIAL_L RADIAL_LEFT
