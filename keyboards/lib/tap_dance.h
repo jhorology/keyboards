@@ -23,8 +23,8 @@
 typedef struct {
   uint16_t on_single_tap;
   uint16_t on_single_hold;
-  uint16_t on_double_tap;
-  uint16_t on_double_hold;
+  uint16_t on_multi_tap;
+  uint16_t on_tap_hold;
   uint16_t tapping_term;
 } tap_dance_entry_t;
 
@@ -32,8 +32,8 @@ typedef enum {
   TD_NONE,
   TD_SINGLE_TAP,
   TD_SINGLE_HOLD,
-  TD_DOUBLE_TAP,
-  TD_DOUBLE_HOLD,
+  TD_MULTI_TAP,
+  TD_TAP_HOLD,
   TD_UNKNOWN,
 } tap_dance_state_t;
 

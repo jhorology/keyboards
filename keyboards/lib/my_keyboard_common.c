@@ -302,10 +302,10 @@ uint16_t get_via_tap_dance_keycode(uint16_t index, tap_dance_state_t state) {
         return pgm_read_word(&via_tap_dance_entries_default[index].on_single_tap);
       case TD_SINGLE_HOLD:
         return pgm_read_word(&via_tap_dance_entries_default[index].on_single_hold);
-      case TD_DOUBLE_TAP:
-        return pgm_read_word(&via_tap_dance_entries_default[index].on_double_tap);
-      case TD_DOUBLE_HOLD:
-        return pgm_read_word(&via_tap_dance_entries_default[index].on_double_hold);
+      case TD_MULTI_TAP:
+        return pgm_read_word(&via_tap_dance_entries_default[index].on_multi_tap);
+      case TD_TAP_HOLD:
+        return pgm_read_word(&via_tap_dance_entries_default[index].on_tap_hold);
       default:
         return KC_NO;
     }

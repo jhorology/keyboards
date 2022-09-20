@@ -47,7 +47,7 @@ static tap_dance_state_t cur_dance(qk_tap_dance_state_t *state) {
   if (state->count == 1) {
     return state->pressed ? TD_SINGLE_HOLD : TD_SINGLE_TAP;
   } else if (state->count >= 2) {
-    return state->pressed ? TD_DOUBLE_HOLD : TD_DOUBLE_TAP;
+    return state->pressed ? TD_TAP_HOLD : TD_MULTI_TAP;
   } else {
     return TD_UNKNOWN;
   }
