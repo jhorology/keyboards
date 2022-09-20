@@ -13,15 +13,5 @@
     "name": "RC\nRight",
     "title": "Clockwise rotation of the radial controller",
     "shortName": "RC\nRight"
-  },
-  {
-    "name": "RC\nC.Left",
-    "title": "Continuous counter clockwise rotation of the radial controller",
-    "shortName": "RC\nC.Left"
-  },
-  {
-    "name": "RC\nC.Right",
-    "title": "Continuous clockwise rotation of the radial controller",
-    "shortName": "RC\nC.Right"
   }
 ]

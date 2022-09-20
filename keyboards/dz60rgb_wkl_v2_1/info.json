@@ -1,0 +1,9 @@
+{
+  "keyboard_name": "D60 HHKB",
+  "manufacturer": "KBDfans",
+  "usb": {
+    "vid": "0x445A",
+    "pid": "0x1321",
+    "device_version": "0.0.3"
+  }
+}

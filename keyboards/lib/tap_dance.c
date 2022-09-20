@@ -57,11 +57,12 @@ static void on_tap_dance_finished(qk_tap_dance_state_t *state, tap_dance_data_t 
   data->state = cur_dance(state);
   uint16_t keycode = get_via_tap_dance_keycode(data->index, data->state);
   if (keycode) {
+    register_code16(keycode);
     if (IS_CUSTOM_KEYCODE(keycode)) {
       data->record.event.pressed = true;
       process_record_kb(keycode, &data->record);
     } else {
-      register_code(keycode);
+      register_code16(keycode);
     }
   }
 }
@@ -73,7 +74,7 @@ static void on_tap_dance_reset(qk_tap_dance_state_t *state, tap_dance_data_t *da
       data->record.event.pressed = false;
       process_record_kb(keycode, &data->record);
     } else {
-      unregister_code(keycode);
+      unregister_code16(keycode);
     }
   }
   data->state = TD_NONE;

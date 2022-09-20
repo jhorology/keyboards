@@ -14,12 +14,8 @@ APPLE_FN_ENABLE = yes
 
 ifeq ($(strip $(VIAL_ENABLE)), no)
   TAP_DANCE_ENABLE = yes
-endif
-
-ifeq ($(strip $(TAP_DANCE_ENABLE)), yes)
   SRC += lib/tap_dance.c
 endif
-
 SRC += lib/my_keyboard_common.c
 SRC += lib/layout_util.c
 SRC += lib/alternate_device_descriptor.c

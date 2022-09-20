@@ -4,7 +4,9 @@
 #define LOCKING_SUPPORT_ENABLE
 #define LOCKING_RESYNC_ENABLE
 
-#define TAPPING_TERM_PER_KEY
+#if !defined(TAPPING_TERM_PER_KEY) && defined(TAP_DANCE_ENABLE)
+#  define TAPPING_TERM_PER_KEY
+#endif
 
 /*
    polling rate

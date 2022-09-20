@@ -21,7 +21,7 @@
 #ifdef RADIAL_CONTROLLER_ENABLE
 #  include "radial_controller.h"
 #endif
-#if !defined(VIAL_TAP_DANCE_ENABLE) && defined(TAP_DANCE_ENABLE)
+#if !defined(VIAL_ENABLE) && defined(TAP_DANCE_ENABLE)
 #  include "tap_dance.h"
 #endif
 
@@ -42,15 +42,14 @@ static void pgm_memcpy(void *dest, const void *src, size_t len);
 
 common_kb_config_t g_common_kb_config;
 
-#if defined(VIAL_TAP_DANCE_ENABLE) || defined(TAP_DANCE_ENABLE)
 /*
  * pre-defined vial tap dabce
  */
-#  ifdef VIAL_TAP_DANCE_ENABLE
-const vial_tap_dance_entry_t PROGMEM vial_tap_dance_actions_default[] = {
-#  else
+#if !defined(VIAL_ENABLE) && defined(TAP_DANCE_ENABLE)
 const tap_dance_entry_t PROGMEM via_tap_dance_entries_default[] = {
-#  endif
+#else
+const vial_tap_dance_entry_t PROGMEM vial_tap_dance_actions_default[] = {
+#endif
     // clang-format off
   //                          tap,      hold,   double_tap, tap_hold, tapping_term
   // for HHKB, Right Alt, on  tap hold: MO(3)
@@ -67,7 +66,6 @@ const tap_dance_entry_t PROGMEM via_tap_dance_entries_default[] = {
   [TD_LALT_APFF_EISU_KANA] = { KC_LNG2,  KC_LALT, KC_LNG1, APPLE_FF, TAPPING_TERM }
     // clang-format on
 };
-#endif
 
 #ifdef VIAL_COMBO_ENABLE
 /*
@@ -138,7 +136,7 @@ void keyboard_post_init_kb(void) {
   default_layer_set(g_common_kb_config.mac ? 1 : 2);
 
   // TODO support VIA v3 UI
-#if !defined(VIAL_TAP_DANCE_ENABLE) && defined(TAP_DANCE_ENABLE)
+#if !defined(VIAL_ENABLE) && defined(TAP_DANCE_ENABLE)
   via_tap_dance_action_init(TAP_DANCE_ACTIONS_DEFAULT_LENGTH);
 #endif
 
@@ -149,9 +147,11 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
   if (!process_record_user(keycode, record)) return false;
   bool result = true;
   switch (keycode) {
+#if !defined(VIAL_ENABLE) && defined(TAP_DANCE_ENABLE)
     case QK_TAP_DANCE ... QK_TAP_DANCE_MAX:
       tap_dance_store_keyrecord(TD_INDEX(keycode), record);
       return true;
+#endif
     case MAC_TOGG:
       if (record->event.pressed) {
         set_mac(!g_common_kb_config.mac);
@@ -282,7 +282,7 @@ void suspend_wakeup_init_kb(void) {
 }
 #endif
 
-#if !defined(VIAL_TAP_DANCE_ENABLE) && defined(TAP_DANCE_ENABLE)
+#if !defined(VIAL_ENABLE) && defined(TAP_DANCE_ENABLE)
 // quantum hook function
 // requires TAPPING_TERM_PER_KEY
 // TODO VIA v3 UI
