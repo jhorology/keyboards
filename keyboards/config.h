@@ -8,6 +8,10 @@
 #  define TAPPING_TERM_PER_KEY
 #endif
 
+#if !defined(COMBO_COUNT) && !defined(VIAL_ENABLE) && defined(TAP_DANCE_ENABLE)
+#  define COMBO_COUNT 0
+#endif
+
 /*
    polling rate
    see https://github.com/qmk/qmk_firmware/blob/master/docs/config_options.md

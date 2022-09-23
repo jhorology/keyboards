@@ -46,6 +46,13 @@ common_kb_config_t g_common_kb_config;
  * pre-defined vial tap dabce
  */
 #if !defined(VIAL_ENABLE) && defined(TAP_DANCE_ENABLE)
+typedef struct {
+  uint16_t on_single_tap;
+  uint16_t on_single_hold;
+  uint16_t on_multi_tap;
+  uint16_t on_tap_hold;
+  uint16_t tapping_term;
+} tap_dance_entry_t;
 const tap_dance_entry_t PROGMEM via_tap_dance_entries_default[] = {
 #else
 const vial_tap_dance_entry_t PROGMEM vial_tap_dance_actions_default[] = {
@@ -73,6 +80,11 @@ const vial_tap_dance_entry_t PROGMEM vial_tap_dance_actions_default[] = {
  */
 const vial_combo_entry_t PROGMEM vial_combo_actions_default[] = {};
 #endif
+
+#if !defined(VIAL_ENABLE) && defined(TAP_DANCE_ENABLE)
+combo_t key_combos[COMBO_COUNT] = {};
+#endif
+
 #ifdef VIAL_KEY_OVERRIDE_ENABLE
 /*
  * pre-defined key overrride
@@ -137,7 +149,7 @@ void keyboard_post_init_kb(void) {
 
   // TODO support VIA v3 UI
 #if !defined(VIAL_ENABLE) && defined(TAP_DANCE_ENABLE)
-  via_tap_dance_action_init(TAP_DANCE_ACTIONS_DEFAULT_LENGTH);
+  tap_dance_actions_init();
 #endif
 
   keyboard_post_init_user();
@@ -149,7 +161,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
 #if !defined(VIAL_ENABLE) && defined(TAP_DANCE_ENABLE)
     case QK_TAP_DANCE ... QK_TAP_DANCE_MAX:
-      tap_dance_store_keyrecord(TD_INDEX(keycode), record);
+      tap_dance_store_keyevent(TD_INDEX(keycode), &record->event);
       return true;
 #endif
     case MAC_TOGG:
@@ -283,19 +295,9 @@ void suspend_wakeup_init_kb(void) {
 #endif
 
 #if !defined(VIAL_ENABLE) && defined(TAP_DANCE_ENABLE)
-// quantum hook function
-// requires TAPPING_TERM_PER_KEY
-// TODO VIA v3 UI
-uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) {
-  uint16_t tap_dance_index = keycode - QK_TAP_DANCE;
-  if (tap_dance_index >= 0 && tap_dance_index < TAP_DANCE_ACTIONS_DEFAULT_LENGTH) {
-    return pgm_read_word(&via_tap_dance_entries_default[tap_dance_index].tapping_term);
-  }
-  return TAPPING_TERM;
-}
 
 // TODO VIA v3 UI
-uint16_t get_via_tap_dance_keycode(uint16_t index, tap_dance_state_t state) {
+uint16_t dynamic_tap_dance_keycode(uint16_t index, tap_dance_state_t state) {
   if (index >= 0 && index < TAP_DANCE_ACTIONS_DEFAULT_LENGTH) {
     switch (state) {
       case TD_SINGLE_TAP:
@@ -312,6 +314,15 @@ uint16_t get_via_tap_dance_keycode(uint16_t index, tap_dance_state_t state) {
   }
   return KC_NO;
 }
+
+// TODO VIA v3 UI
+uint16_t dynamic_tap_dance_tapping_term(uint16_t index) {
+  if (index >= 0 && index < TAP_DANCE_ACTIONS_DEFAULT_LENGTH) {
+    return pgm_read_word(&via_tap_dance_entries_default[index].tapping_term);
+  }
+  return TAPPING_TERM;
+}
+
 #endif
 
 #ifdef VIAL_TAP_DANCE_ENABLE

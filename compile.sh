@@ -109,10 +109,14 @@ if $UPDATE_QMK; then
   make git-submodule
 fi
 
+# patches
 [ -z "$(rg APPLE_FN_ENABLE builddefs/common_features.mk)" ] && patch -p1 < "${PROJECT}/patches/applefn.patch"
 [ -z "$(rg get_usb_device_descriptor_ptr tmk_core/protocol/usb_descriptor.h)" ] && patch -p1 < "${PROJECT}/patches/device_descriptor.patch"
 [ -z "$(rg radial_controller_task quantum/keyboard.c)" ] && patch -p1 < "${PROJECT}/patches/radial_controller.patch"
 [ -z "$(rg ENCODER_LOOKUP_TABLE quantum/encoder.c)" ] && patch -p1 < "${PROJECT}/patches/encoder_lookup_table.patch"
+if [ $VIAL_ENABLE = "no" ]; then
+  [ -z "$(rg TAP_DANCE_IGNORE_COMBO quantum/process_keycode/process_tap_dance.c)" ] && patch -p1 < "${PROJECT}/patches/tap_dance_ignore_combo.patch"
+fi
 if [ $VIAL_ENABLE = "yes" ]; then
   [ -z "$(rg vial_tap_dance_reset_user quantum/dynamic_keymap.h)" ] && patch -p1 < "${PROJECT}/patches/vial_eeprom_reset_user.patch"
   [ -z "$(rg FIX_VIAL_TAP_DANCE_BEHAVIOR quantum/vial.c)" ] && patch -p1 < "${PROJECT}/patches/fix_vial_tap_dance_behavior.patch"

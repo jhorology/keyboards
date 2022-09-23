@@ -12,7 +12,14 @@ Promise.all(
       'vial',
       libDir,
       path.join(qmk_home, 'keyboards', target),
-      path.join(qmk_home, 'keyboards', target, 'keymaps', 'default', 'vial.json')
+      path.join(
+        qmk_home,
+        'keyboards',
+        target,
+        'keymaps',
+        'default',
+        'vial.json'
+      )
     )
   )
 ).catch((err) => {

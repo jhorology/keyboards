@@ -14,6 +14,7 @@ APPLE_FN_ENABLE = yes
 
 ifeq ($(strip $(VIAL_ENABLE)), no)
   TAP_DANCE_ENABLE = yes
+  COMBO_ENABLE = yes
   SRC += lib/tap_dance.c
 endif
 SRC += lib/my_keyboard_common.c

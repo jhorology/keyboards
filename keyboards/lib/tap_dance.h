@@ -16,17 +16,9 @@
 #pragma once
 
 #include "quantum.h"
-#ifndef VIA_TAP_DANCE_ENTRIES
-#  define VIA_TAP_DANCE_ENTRIES 8
+#ifndef TAP_DANCE_ENTRIES
+#  define TAP_DANCE_ENTRIES 8
 #endif
-
-typedef struct {
-  uint16_t on_single_tap;
-  uint16_t on_single_hold;
-  uint16_t on_multi_tap;
-  uint16_t on_tap_hold;
-  uint16_t tapping_term;
-} tap_dance_entry_t;
 
 typedef enum {
   TD_NONE,
@@ -43,6 +35,7 @@ typedef struct {
   keyrecord_t record;
 } tap_dance_data_t;
 
-void via_tap_dance_action_init(uint16_t size);
-void tap_dance_store_keyrecord(uint16_t index, keyrecord_t *record);
-uint16_t get_via_tap_dance_keycode(uint16_t index, tap_dance_state_t state);
+void tap_dance_actions_init(void);
+void tap_dance_store_keyevent(uint16_t index, keyevent_t *event);
+uint16_t dynamic_tap_dance_keycode(uint16_t index, tap_dance_state_t state);
+uint16_t dynamic_tap_dance_tapping_term(uint16_t index);
