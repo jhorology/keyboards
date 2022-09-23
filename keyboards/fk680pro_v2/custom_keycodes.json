@@ -1,7 +1,7 @@
 [
   {
     "name": "RGB\non/off",
-    "title": "Cycle through RGB on/off modes",
+    "title": "Toggle keylight on/off, Toggle underglow on/off when shift is held",
     "shortName": "RGB\non/off"
   }
 ]

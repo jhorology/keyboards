@@ -18,6 +18,8 @@
 
 #define xx NO_LED
 
+static void process_rgb_enable_changed(void);
+
 user_config_t g_user_config;
 
 // clang-format off
@@ -110,7 +112,8 @@ void eeconfig_init_user(void) {
   //   *_kb scope -> my keyboards common scope
   //   *_user scope ->keyboard-specific scope
   g_user_config.raw = 0;
-  g_user_config.rgb_led_mode = 3;
+  g_user_config.keylight_enable = true;
+  g_user_config.underglow_enable = true;
   eeconfig_update_user(g_user_config.raw);
 }
 
@@ -119,14 +122,18 @@ void keyboard_post_init_user(void) {
   //   *_kb scope -> my keyboards common scope
   //   *_user scope ->keyboard-specific scope
   g_user_config.raw = eeconfig_read_user();
-  update_rgb_matrix_flags(g_user_config.rgb_led_mode);
+  process_rgb_enable_changed();
 }
 
-bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+bool process_record_user(uint16_t keycode, keyrecord_t* record) {
   switch (keycode) {
-    case RGB_CYMD:
+    case RGB_TOGX:
       if (record->event.pressed) {
-        update_rgb_matrix_flags((g_user_config.rgb_led_mode + 1) & 0x03);
+        if (get_mods() & MOD_MASK_SHIFT) {
+          set_underglow_enable(!g_user_config.underglow_enable);
+        } else {
+          set_keylight_enable(!g_user_config.keylight_enable);
+        }
         return false;
       }
   }
@@ -136,16 +143,35 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 //  global functions
 //------------------------------------------
 
-void update_rgb_matrix_flags(uint8_t mode) {
-  led_flags_t flags = LED_FLAG_NONE;
-  flags |= (mode & 1) ? LED_FLAG_KEYLIGHT : 0;
-  flags |= (mode & 2) ? LED_FLAG_UNDERGLOW : 0;
-  rgb_matrix_set_flags(flags);
-  if (mode != 3) {
+void set_keylight_enable(bool enable) {
+  if (g_user_config.keylight_enable != enable) {
+    g_user_config.keylight_enable = enable;
+    process_rgb_enable_changed();
+    eeconfig_update_user(g_user_config.raw);
+  }
+}
+
+void set_underglow_enable(bool enable) {
+  if (g_user_config.underglow_enable != enable) {
+    g_user_config.underglow_enable = enable;
+    process_rgb_enable_changed();
+    eeconfig_update_user(g_user_config.raw);
+  }
+}
+
+//  local functions
+//------------------------------------------
+
+static void process_rgb_enable_changed() {
+  rgb_matrix_set_flags((g_user_config.keylight_enable ? LED_FLAG_KEYLIGHT : 0) |
+                       (g_user_config.underglow_enable ? LED_FLAG_UNDERGLOW : 0));
+  if (!g_user_config.keylight_enable || !g_user_config.keylight_enable) {
     rgb_matrix_set_color_all(0, 0, 0);
   }
-  if (mode != g_user_config.rgb_led_mode) {
-    g_user_config.rgb_led_mode = mode;
-    eeconfig_update_user(g_user_config.raw);
+  if (g_user_config.keylight_enable || g_user_config.underglow_enable) {
+    rgb_matrix_enable_noeeprom();
+  }
+  if (!g_user_config.keylight_enable && !g_user_config.underglow_enable) {
+    rgb_matrix_disable_noeeprom();
   }
 }

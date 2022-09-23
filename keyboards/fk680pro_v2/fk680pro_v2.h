@@ -36,18 +36,19 @@
 
 // custom keycodes
 
-// cycle through on/off mode
-// all off -> keylight on -> underglow on -> both on
-#define RGB_CYMD CUSTOM_KEYCODES_SAFE_RANGE
+// Toggle keylight on/off, toggle underglow on/off when shift is held.
+#define RGB_TOGX CUSTOM_KEYCODES_SAFE_RANGE
 
 #ifdef RGB_MATRIX_ENABLE
 typedef union {
   uint32_t raw;
   struct {
-    uint8_t rgb_led_mode : 2;
+    bool keylight_enable : 1;
+    bool underglow_enable : 1;
   };
 } user_config_t;
 extern user_config_t g_user_config;
 
-void update_rgb_matrix_flags(uint8_t mode);
+void set_keylight_enable(bool enable);
+void set_underglow_enable(bool enable);
 #endif
