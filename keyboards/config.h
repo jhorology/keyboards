@@ -1,4 +1,3 @@
-
 #define DEBOUNCE 5
 
 #define LOCKING_SUPPORT_ENABLE
@@ -17,3 +16,6 @@
    see https://github.com/qmk/qmk_firmware/blob/master/docs/config_options.md
  */
 #define USB_POLLING_INTERVAL_MS 1
+
+#define ALTERNATE_VENDOR_ID 0x05Ac   // Apple
+#define ALTERNATE_PRODUCT_ID 0x024f  // ANSI

@@ -4,21 +4,21 @@ This is a personal project for my own keyboards.
 ## Custom Keycodes
 | Code | Descrption| Notes|
 |------|-----------|--------
-| MAC_TOGG | Toggle enabling or disabling true apple mode with switching base layer 0(apple mode) or 1. |Non-volatile setting|
+| MAC_TOGG | Toggle enabling or disabling true apple mode with switching base layer 0(apple mode) or 1. When using VIA, it should be off.|Non-volatile setting|
 | MAC_ON | Enablle true apple mode with switching base layer 0(apple mode) |"|
 | MAC_OFF | Disable true apple mode with switching base layer 1 |"|
-| APPLE_FN | Apple fn/🌐 key ||
-| APPLE_FF | Apple fn/🌐 key with remapping top row to F1-12 ||
+| APPLE_FN | Apple fn/🌐 key. When NKRO is disabled, the key combinations of fn + F1-12 dosen't work as expected.||
+| APPLE_FF | Apple fn/🌐 key for the keyboard that dosen't have F1-12 keys. F1-12 keys can be mapped on top row. When mac mode is off, It simulates mac fn functions. ||
 | EJ_TOGG | Toggle send KC_LANG2(英数) or KC_LNG1(かな) ||
 | USJ_TOGG | Toggle enabling or disabling 社畜PC mode that is available to use ANSI layout on JIS driver. |Non-volatile setting|
 | USJ_ON | Enable 社畜PC mode |"|
 | USJ_OFF | Disable 社畜PC mode |"|
-| DIAL_BUT | State of the button located on radial controller ||
+| DIAL_BUT | Button located on radial controller ||
 | DIAL_L| Counter clockwise rotation of the radial controller ||
 | DIAL_R| Clockwise rotation of the radial controller ||
 | DIAL_LC| Continous counter clockwise rotation of the radial controller ||
 | DIAL_RC| Continous clockwise rotation of the radial controller ||
-| RGB_CYMD | Cycle through RGB on/off modes | FK680ProV2 only |
+| RGB_TOGX | Toggle keylight on/off. While pressing shift key, toggle underglow on/off  | FK680ProV2 only |
 
 ## Apple Fn/Globe Shortcuts
 |Shortcut|Descrption|

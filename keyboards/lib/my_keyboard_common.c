@@ -98,9 +98,9 @@ const vial_combo_entry_t PROGMEM vial_key_override_actions_default[] = {};
 typedef union {
   uint16_t raw;
   struct {
+    uint16_t apple_ff_flags : 12;
     bool apple_ff : 1;
     bool capslock_old : 1;
-    uint16_t apple_ff_flags : 12;
     bool eisu_kana : 1;
   };
 } volatile_state_t;
@@ -157,7 +157,6 @@ void keyboard_post_init_kb(void) {
 
 bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
   if (!process_record_user(keycode, record)) return false;
-  bool result = true;
   switch (keycode) {
 #if !defined(VIAL_ENABLE) && defined(TAP_DANCE_ENABLE)
     case QK_TAP_DANCE ... QK_TAP_DANCE_MAX:
@@ -180,29 +179,20 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
       }
       return false;
     case APPLE_FN:
-      if (record->event.pressed) {
-        host_apple_send(1);
-      } else {
-        host_apple_send(0);
-      }
+      host_apple_send(record->event.pressed ? 1 : 0);
       return false;
     case APPLE_FF:
-      if (record->event.pressed) {
-        volatile_state.apple_ff = true;
-        host_apple_send(1);
-      } else {
-        volatile_state.apple_ff = false;
-        host_apple_send(0);
-      }
+      volatile_state.apple_ff = record->event.pressed;
+      host_apple_send(record->event.pressed ? 1 : 0);
       return false;
     case KC_1 ... KC_0:
-      if (volatile_state.apple_ff) result = process_apple_ff_fkey(keycode - KC_1, record);
+      if (!process_apple_ff_fkey(keycode - KC_1, record)) return false;
       break;
     case KC_MINS:
-      if (volatile_state.apple_ff) result = process_apple_ff_fkey(10, record);
+      if (!process_apple_ff_fkey(10, record)) return false;
       break;
     case KC_EQL:
-      if (volatile_state.apple_ff) result = process_apple_ff_fkey(11, record);
+      if (!process_apple_ff_fkey(11, record)) return false;
       break;
     case EJ_TOGG:
       if (record->event.pressed) {
@@ -263,25 +253,25 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
       return false;
 #endif
   }
-  if (g_common_kb_config.usj && result) {
-    result = process_ansi_layout_on_jis(keycode, record);
+  if (g_common_kb_config.usj) {
+    return process_ansi_layout_on_jis(keycode, record);
   }
-  return result;
+  return true;
 }
 
 #ifdef RGB_MATRIX_ENABLE
 
-#  ifdef CAPS_LOCK_LED
 void rgb_matrix_indicators_kb(void) {
+#  ifdef RGB_MATRIX_CAPS_LOCK_LED
   bool capslock = host_keyboard_led_state().caps_lock;
   if (capslock || volatile_state.capslock_old) {
-    rgb_matrix_set_color(CAPS_LOCK_LED, capslock ? rgb_matrix_get_val() : 0, 0, 0);
+    rgb_matrix_set_color(RGB_MATRIX_CAPS_LOCK_LED, capslock ? rgb_matrix_get_val() : 0, 0, 0);
   }
   volatile_state.capslock_old = capslock;
+#  endif
 
   rgb_matrix_indicators_user();
 }
-#  endif
 
 void suspend_power_down_kb(void) {
   rgb_matrix_set_suspend_state(true);
@@ -358,13 +348,17 @@ void vial_key_override_reset_kb(uint8_t index, vial_key_override_entry_t *entry)
 static bool process_apple_ff_fkey(uint16_t fkey_index, keyrecord_t *record) {
   uint16_t flag = 1 << fkey_index;
   if (record->event.pressed) {
-    volatile_state.apple_ff_flags |= flag;
-    register_code(g_common_kb_config.mac ? KC_F1 + fkey_index : apple_like_fkeys[fkey_index]);
-    return false;
+    if (volatile_state.apple_ff) {
+      volatile_state.apple_ff_flags |= flag;
+      register_code16(g_common_kb_config.mac ? KC_F1 + fkey_index : apple_like_fkeys[fkey_index]);
+      return false;
+    }
   } else {
-    volatile_state.apple_ff_flags &= ~flag;
-    unregister_code(g_common_kb_config.mac ? KC_F1 + fkey_index : apple_like_fkeys[fkey_index]);
-    return false;
+    if (volatile_state.apple_ff_flags & flag) {
+      volatile_state.apple_ff_flags &= ~flag;
+      unregister_code16(g_common_kb_config.mac ? KC_F1 + fkey_index : apple_like_fkeys[fkey_index]);
+      return false;
+    }
   }
   return true;
 }

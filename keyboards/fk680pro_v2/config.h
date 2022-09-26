@@ -18,9 +18,6 @@
 
 #include "config_common.h"
 
-#define ALTERNATE_VENDOR_ID 0x05Ac   // Apple
-#define ALTERNATE_PRODUCT_ID 0x024f  // ANSI
-
 #define MATRIX_ROWS 5
 #define MATRIX_COLS 15
 
@@ -130,4 +127,4 @@
 #endif
 
 /* definitions for my_keyboard_commoon lib */
-#define CAPS_LOCK_LED 3  // left side of spacebar
+#define RGB_MATRIX_CAPS_LOCK_LED 3  // left side of spacebar

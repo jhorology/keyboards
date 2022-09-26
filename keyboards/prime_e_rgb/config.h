@@ -20,9 +20,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "config_common.h"
 
-#define ALTERNATE_VENDOR_ID 0x05AC   // Apple
-#define ALTERNATE_PRODUCT_ID 0x0222  // ANSI
-
 /* key matrix size */
 #define MATRIX_ROWS 4
 #define MATRIX_COLS 13

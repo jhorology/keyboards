@@ -18,9 +18,6 @@
 
 #include "config_common.h"
 
-#define ALTERNATE_VENDOR_ID 0x05Ac   // Apple
-#define ALTERNATE_PRODUCT_ID 0x024f  // ANSI
-
 /* key matrix size */
 #define MATRIX_ROWS 5
 #define MATRIX_COLS 15

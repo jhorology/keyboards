@@ -16,9 +16,6 @@
 
 #pragma once
 
-#define ALTERNATE_VENDOR_ID 0x05Ac   // Apple
-#define ALTERNATE_PRODUCT_ID 0x021d  // ANSI
-
 /* key matrix size */
 #define MATRIX_ROWS 5
 #define MATRIX_COLS 14
@@ -132,4 +129,4 @@
 #endif
 
 /* definitions for my_keyboard_commoon lib */
-#define CAPS_LOCK_LED 41
+#define RGB_MATRIX_CAPS_LOCK_LED 41
