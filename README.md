@@ -63,17 +63,6 @@ This is a personal project for my own keyboards.
 | shift + F15 (Pause) | Swap focused window clockwise |
 | F16 | Force windows to be reevaluated |
 
-## Apple Mode Product Ids
-| Id | Keyboad | Descrption|
-|------|--------|-----------|
-| 0x021d | Bakeneko 60 | Aluminum Mini Keyboard (ANSI) |
-| "      | Ciel 60 | " |
-| "      | D60 | " |
-| 0x0220 | Prime_E | Aluminum Keyboard (ANSI) |
-| 0x024F | QK65 | Aluminium Keyboard (ANSI)<br/>Keychron K seriese uses this ID |
-| "      | FK680Pro V2 | " |
-| "      | zoom65 | " |
-
 ## References
 - qmk_firmware
   - [git](https://github.com/qmk/qmk_firmware)
