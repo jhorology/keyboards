@@ -31,8 +31,9 @@ typedef union {
 typedef union {
   uint32_t raw;
   struct {
-    uint16_t deg_per_click : 9;  // degree per key press or encoder click.
-    uint16_t deg_per_sec : 9;    // degree per second, when shift is held
+    rc_dial_mode_t dial_mode : 1;  // mode 0:ENCODER, 1:KEYSWITCH
+    uint16_t deg_per_click : 9;    // encoder mode: degree per key press or encoder click.
+    uint16_t deg_per_sec : 9;      // keyswitch mode: degree per second
   };
 } rc_config_t;
 
@@ -44,6 +45,7 @@ void custom_config_reset() {
   kb_config.mac = true;
   eeconfig_update_kb(kb_config.raw);
   rc_config.raw = 0;
+  rc_config.dial_mode = RADIAL_CONTROLLER_DIAL_MODE_DEFAULT;
   rc_config.deg_per_click = RADIAL_CONTROLLER_DEGREE_PER_CLICK_DEFAULT;
   rc_config.deg_per_sec = RADIAL_CONTROLLER_DEGREE_PER_SEC_DEFAULT;
   eeprom_update_dword((uint32_t *)RADIAL_CONTROLLER_EEPROM_ADDR, rc_config.raw);
@@ -75,6 +77,15 @@ void custom_config_set_usj(bool usj) {
   if (usj != kb_config.usj) {
     kb_config.usj = usj;
     eeconfig_update_kb(kb_config.raw);
+  }
+}
+
+rc_dial_mode_t custom_config_get_rc_dial_mode() { return rc_config.dial_mode; }
+
+void custom_config_set_rc_dial_mode(rc_dial_mode_t dial_mode) {
+  if (rc_config.dial_mode != dial_mode) {
+    rc_config.dial_mode = dial_mode;
+    eeprom_update_dword((uint32_t *)RADIAL_CONTROLLER_EEPROM_ADDR, rc_config.raw);
   }
 }
 

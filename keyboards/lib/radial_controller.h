@@ -19,8 +19,11 @@
 
 #include "quantum.h"
 
+#ifndef RADIAL_CONTROLLER_DIAL_MODE_DEFAULT
+#  define RADIAL_CONTROLLER_DIAL_MODE_DEFAULT ENCODER
+#endif
 #ifndef RADIAL_CONTROLLER_DEGREE_PER_CLICK_DEFAULT
-#  define RADIAL_CONTROLLER_DEGREE_PER_CLICK_DEFAULT 100
+#  define RADIAL_CONTROLLER_DEGREE_PER_CLICK_DEFAULT 10
 #endif
 #ifndef RADIAL_CONTROLLER_DEGREE_PER_SEC_DEFAULT
 #  define RADIAL_CONTROLLER_DEGREE_PER_SEC_DEFAULT 90
@@ -28,5 +31,8 @@
 #ifndef RADIAL_CONTROLLER_REPORT_INTERVAL_MILLIS
 #  define RADIAL_CONTROLLER_REPORT_INTERVAL_MILLIS 100
 #endif
+
+// radial controller dial mode
+typedef enum { ENCODER, KEYSWITCH } rc_dial_mode_t;
 
 bool process_radial_controller(uint16_t keycode, keyrecord_t *record);

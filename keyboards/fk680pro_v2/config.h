@@ -128,3 +128,4 @@
 
 /* definitions for my_keyboard_commoon lib */
 #define RGB_MATRIX_CAPS_LOCK_LED 3  // left side of spacebar
+#define RADIAL_CONTROLLER_DIAL_MODE_DEFAULT KEYSWITCH

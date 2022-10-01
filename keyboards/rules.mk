@@ -12,6 +12,7 @@ VIA_ENABLE = yes
 NKRO_ENABLE = yes
 APPLE_FN_ENABLE = yes
 RADIAL_CONTROLLER_ENABLE = yes
+DEFERRED_EXEC_ENABLE = yes
 
 ifeq ($(strip $(MCU)), atmega32u2)
   # for lack of available usb endpoints

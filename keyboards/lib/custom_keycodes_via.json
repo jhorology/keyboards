@@ -1,17 +1,17 @@
 [
   {
     "name": "Toggle\nMac",
-    "title": "Toggle fake apple mode with switching base layer 0(mac) or 1",
+    "title": "Toggle true apple mode with switching base layer 0(mac) or 1",
     "shortName": "Toggle\nMac"
   },
   {
     "name": "Mac\nON",
-    "title": "Enable fake apple mode with switching base layer 0",
+    "title": "Enable true apple mode with switching base layer 0",
     "shortName": "Mac\nON"
   },
   {
     "name": "Mac\nOFF",
-    "title": "Enable fake apple mode with switching base layer 1",
+    "title": "Enable true apple mode with switching base layer 1",
     "shortName": "Mac\nOFF"
   },
   {
@@ -21,7 +21,7 @@
   },
   {
     "name": "Apple\nfn+FK",
-    "title": "Apple Fn/Globe Key with overriding \"1\"-\"=\" with F1-12",
+    "title": "Apple Fn/Globe key for the keyboard that dosen't have F1-12 keys. F1-12 keys can be mapped on top row. When mac mode is off, It simulates mac fn functions.",
     "shortName": "Apple\nfn+FK"
   },
   {
@@ -51,12 +51,12 @@
   },
   {
     "name": "RC\nLeft",
-    "title": "Counter clockwise rotation of the radial controller",
+    "title": "Counter clockwise rotation of the radial controller. While pressing shift key, the rotation speed becomes slow 1/4 fine mode",
     "shortName": "RC\nLeft"
   },
   {
     "name": "RC\nRight",
-    "title": "Clockwise rotation of the radial controller",
+    "title": "Clockwise rotation of the radial controller, While pressing shift key, the rotation speed becomes slow 1/4 fine mode",
     "shortName": "RC\nRight"
   }
 ]

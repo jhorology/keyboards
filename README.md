@@ -14,10 +14,8 @@ This is a personal project for my own keyboards.
 | USJ_ON | Enable 社畜PC mode |"|
 | USJ_OFF | Disable 社畜PC mode |"|
 | DIAL_BUT | Button located on radial controller ||
-| DIAL_L| Counter clockwise rotation of the radial controller ||
-| DIAL_R| Clockwise rotation of the radial controller ||
-| DIAL_LC| Continous counter clockwise rotation of the radial controller ||
-| DIAL_RC| Continous clockwise rotation of the radial controller ||
+| DIAL_L| Counter clockwise rotation of the radial controller. While pressing shift key, the rotation speed becomes slow 1/4 fine mode ||
+| DIAL_R| Clockwise rotation of the radial controller. While pressing shift key, the rotation speed becomes slow 1/4 fine mode ||
 | RGB_TOGX | Toggle keylight on/off. While pressing shift key, toggle underglow on/off  | FK680ProV2 only |
 
 ## Apple Fn/Globe Shortcuts

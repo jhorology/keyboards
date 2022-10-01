@@ -55,3 +55,6 @@
 #define LAYOUT_OPTION_ISO_ENTER 0x4
 #define LAYOUT_OPTION_SPLIT_LEFT_SHIFT 0x2
 #define LAYOUT_OPTION_SPLIT_SPACEU 0x1
+
+/* definitions for my_keyboard_commoon lib */
+#define RADIAL_CONTROLLER_DIAL_MODE_DEFAULT ENCODER
