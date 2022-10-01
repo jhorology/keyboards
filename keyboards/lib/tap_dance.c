@@ -13,8 +13,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include QMK_KEYBOARD_H
 
 #include "tap_dance.h"
+
+#include "custom_config.h"
 
 static void on_tap_dance_finished(qk_tap_dance_state_t *state, tap_dance_data_t *data);
 static void on_tap_dance_reset(qk_tap_dance_state_t *state, tap_dance_data_t *data);
@@ -22,14 +25,12 @@ static void on_tap_dance_reset(qk_tap_dance_state_t *state, tap_dance_data_t *da
 tap_dance_data_t tap_dance_datas[TAP_DANCE_ENTRIES];
 qk_tap_dance_action_t tap_dance_actions[TAP_DANCE_ENTRIES];
 
-// quantum hook function
-// requires TAPPING_TERM_PER_KEY
-uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) {
+uint16_t tap_dance_get_tapping_term(uint16_t keycode, keyrecord_t *record) {
   uint16_t index = TD_INDEX(keycode);
   if (index >= 0 && index < TAP_DANCE_ENTRIES) {
     return dynamic_tap_dance_tapping_term(index);
   }
-  return TAPPING_TERM;
+  return 0;
 }
 
 void tap_dance_actions_init() {
@@ -45,11 +46,14 @@ void tap_dance_actions_init() {
   }
 }
 
-void tap_dance_store_keyevent(uint16_t index, keyevent_t *event) {
+bool process_tap_dance_store_event(uint16_t keycode, keyrecord_t *record) {
+  uint16_t index = TD_INDEX(keycode);
   if (index >= 0 && index < TAP_DANCE_ENTRIES) {
-    tap_dance_datas[index].record.event = *event;
+    tap_dance_datas[index].record.event = record->event;
   }
+  return true;
 }
+
 static void on_tap_dance_finished(qk_tap_dance_state_t *state, tap_dance_data_t *data) {
   if (state->count == 1) {
     data->state = state->pressed ? TD_SINGLE_HOLD : TD_SINGLE_TAP;

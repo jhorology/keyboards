@@ -1,5 +1,5 @@
 diff --git a/quantum/vial.c b/quantum/vial.c
-index 84fed1ee18..5b2740ef42 100644
+index 93bb15e4e9..7b4d74e017 100644
 --- a/quantum/vial.c
 +++ b/quantum/vial.c
 @@ -340,13 +340,11 @@ static uint8_t dance_state[VIAL_TAP_DANCE_ENTRIES];

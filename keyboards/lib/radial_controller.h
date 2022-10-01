@@ -1,4 +1,5 @@
-/* Copyright 2022 Msafumi
+/* Copyright 2022 zhaqian
+ * Modified 2022 masafumi
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,14 +14,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #pragma once
 
 #include "quantum.h"
 
-typedef struct {
-  uint8_t src;             // src keycode
-  uint16_t dest;           // destination keycode if not shifted
-  uint16_t dest_on_shift;  // destination keycode if shfited
-} layout_conversion_item_t;
+#ifndef RADIAL_CONTROLLER_DEGREE_PER_CLICK_DEFAULT
+#  define RADIAL_CONTROLLER_DEGREE_PER_CLICK_DEFAULT 100
+#endif
+#ifndef RADIAL_CONTROLLER_DEGREE_PER_SEC_DEFAULT
+#  define RADIAL_CONTROLLER_DEGREE_PER_SEC_DEFAULT 90
+#endif
+#ifndef RADIAL_CONTROLLER_REPORT_INTERVAL_MILLIS
+#  define RADIAL_CONTROLLER_REPORT_INTERVAL_MILLIS 100
+#endif
 
-bool process_ansi_layout_on_jis(uint16_t keycode, keyrecord_t *record);
+bool process_radial_controller(uint16_t keycode, keyrecord_t *record);

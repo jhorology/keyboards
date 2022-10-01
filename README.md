@@ -4,7 +4,7 @@ This is a personal project for my own keyboards.
 ## Custom Keycodes
 | Code | Descrption| Notes|
 |------|-----------|--------
-| MAC_TOGG | Toggle enabling or disabling true apple mode with switching base layer 0(apple mode) or 1. When using VIA, it should be off.|Non-volatile setting|
+| MAC_TOGG | Toggle enabling or disabling true apple mode with switching base layer 0(apple mode) or 1. | - Non-volatile setting<br/> - When using VIA, it should be off.|
 | MAC_ON | Enablle true apple mode with switching base layer 0(apple mode) |"|
 | MAC_OFF | Disable true apple mode with switching base layer 1 |"|
 | APPLE_FN | Apple fn/🌐 key. |When NKRO is disabled, the key combinations of fn + F1-12 dosen't work as expected.|

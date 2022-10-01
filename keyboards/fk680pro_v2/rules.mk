@@ -18,7 +18,7 @@ SRC += uf2_boot.c
 
 # reducing RAM usage
 ifeq ($(strip $(VIAL_ENABLE)), yes)
-  QMK_SETTINGS = no
+  # QMK_SETTINGS = no
   # -10 bytes
   # MOUSEKEY_ENABLE = no
 
@@ -26,14 +26,14 @@ ifeq ($(strip $(VIAL_ENABLE)), yes)
   # TAP_DANCE_ENABLE = no
 
   #  -864 bytes
-  COMBO_ENABLE = no
+  # COMBO_ENABLE = no
 
   #  -944 bytes
-  KEY_OVERRIDE_ENABLE = no
+  # KEY_OVERRIDE_ENABLE = no
 
   # RGB_MATRIX_ENABLE = no
 
   # default 0x0800, 0x0400
-  USE_PROCESS_STACKSIZE = 0x0400
-  USE_EXCEPTIONS_STACKSIZE = 0x0200
+  # USE_PROCESS_STACKSIZE = 0x0400
+  # USE_EXCEPTIONS_STACKSIZE = 0x0200
 endif

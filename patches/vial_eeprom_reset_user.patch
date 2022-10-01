@@ -1,11 +1,11 @@
 diff --git a/quantum/dynamic_keymap.c b/quantum/dynamic_keymap.c
-index 953225843e..c3d0f9c2a2 100644
+index f7f9e073a7..87dfedcf9f 100644
 --- a/quantum/dynamic_keymap.c
 +++ b/quantum/dynamic_keymap.c
 @@ -130,6 +130,25 @@ _Static_assert(DYNAMIC_KEYMAP_EEPROM_MAX_ADDR >= DYNAMIC_KEYMAP_MACRO_EEPROM_ADD
- #    define DYNAMIC_KEYMAP_MACRO_EEPROM_SIZE (DYNAMIC_KEYMAP_EEPROM_MAX_ADDR - DYNAMIC_KEYMAP_MACRO_EEPROM_ADDR + 1)
+ #    define DYNAMIC_KEYMAP_MACRO_DELAY TAP_CODE_DELAY
  #endif
-
+ 
 +#ifdef VIAL_TAP_DANCE_ENABLE
 +__attribute__((weak)) void vial_tap_dance_reset_kb(uint8_t index, vial_tap_dance_entry_t *entry) {
 +    vial_tap_dance_reset_user(index, entry);
@@ -28,9 +28,9 @@ index 953225843e..c3d0f9c2a2 100644
  uint8_t dynamic_keymap_get_layer_count(void) {
      return DYNAMIC_KEYMAP_LAYER_COUNT;
  }
-@@ -292,24 +302,36 @@ void dynamic_keymap_reset(void) {
+@@ -299,24 +318,36 @@ void dynamic_keymap_reset(void) {
  #endif
-
+ 
  #ifdef VIAL_TAP_DANCE_ENABLE
 -    vial_tap_dance_entry_t td = { KC_NO, KC_NO, KC_NO, KC_NO, TAPPING_TERM };
 +    vial_tap_dance_entry_t td;
@@ -44,7 +44,7 @@ index 953225843e..c3d0f9c2a2 100644
          dynamic_keymap_set_tap_dance(i, &td);
      }
  #endif
-
+ 
  #ifdef VIAL_COMBO_ENABLE
 -    vial_combo_entry_t combo = { 0 };
 -    for (size_t i = 0; i < VIAL_COMBO_ENTRIES; ++i)
@@ -55,7 +55,7 @@ index 953225843e..c3d0f9c2a2 100644
          dynamic_keymap_set_combo(i, &combo);
 +    }
  #endif
-
+ 
  #ifdef VIAL_KEY_OVERRIDE_ENABLE
 -    vial_key_override_entry_t ko = { 0 };
 -    ko.layers = ~0;
@@ -70,13 +70,13 @@ index 953225843e..c3d0f9c2a2 100644
          dynamic_keymap_set_key_override(i, &ko);
 +    }
  #endif
-
+ 
  #ifdef VIAL_ENABLE
 diff --git a/quantum/dynamic_keymap.h b/quantum/dynamic_keymap.h
-index 94532052dd..c55abf7317 100644
+index 98aecd2842..fb55c49656 100644
 --- a/quantum/dynamic_keymap.h
 +++ b/quantum/dynamic_keymap.h
-@@ -41,14 +41,20 @@ void dynamic_keymap_set_qmk_settings(uint16_t offset, uint8_t value);
+@@ -45,14 +45,20 @@ void dynamic_keymap_set_qmk_settings(uint16_t offset, uint8_t value);
  #ifdef VIAL_TAP_DANCE_ENABLE
  int dynamic_keymap_get_tap_dance(uint8_t index, vial_tap_dance_entry_t *entry);
  int dynamic_keymap_set_tap_dance(uint8_t index, const vial_tap_dance_entry_t *entry);

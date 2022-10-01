@@ -1,7 +1,7 @@
 #include QMK_KEYBOARD_H
 
-#include "my_keyboard_common.h"
-#include "usb_descriptor.h"
+#include "custom_config.h"
+// #include "usb_descriptor.h"
 #include "usb_descriptor_common.h"
 
 #ifdef ALTERNATE_PRODUCT_ID
@@ -38,7 +38,7 @@ const USB_Descriptor_Device_t PROGMEM AlternateDeviceDescriptor = {
     .NumberOfConfigurations = FIXED_NUM_CONFIGURATIONS};
 
 const USB_Descriptor_Device_t *get_usb_device_descriptor_ptr() {
-  return g_common_kb_config.mac ? &AlternateDeviceDescriptor : &DeviceDescriptor;
+  return custom_config_is_mac() ? &AlternateDeviceDescriptor : &DeviceDescriptor;
 };
 
 #endif

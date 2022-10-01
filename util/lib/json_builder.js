@@ -1,8 +1,4 @@
-const { promisify } = require('util'),
-  fs = require('fs'),
-  exists = promisify(fs.exists),
-  readFile = promisify(fs.readFile),
-  writeFile = promisify(fs.writeFile),
+const  fs = require('fs/promises'),
   path = require('path')
 
 module.exports = async function build(
@@ -38,7 +34,7 @@ module.exports = async function build(
     via.customKeycodes,
     await getCustomKeycodes(appKind, targetDir)
   )
-  await writeFile(outputFilePath, JSON.stringify(via, undefined, 2))
+  await fs.writeFile(outputFilePath, JSON.stringify(via, undefined, 2))
 }
 
 async function getInfo(appKind, dir) {
@@ -50,7 +46,7 @@ async function getLayouts(appKind, dir) {
 }
 
 async function getMatrix(appKind, dir) {
-  const src = await readFile(path.join(dir, 'config.h'), 'utf-8')
+  const src = await fs.readFile(path.join(dir, 'config.h'), 'utf-8')
   return {
     rows: parseInt(src.match(/#\s*define\s+MATRIX_ROWS\s+(\d+)/)[1]),
     cols: parseInt(src.match(/#\s*define\s+MATRIX_COLS\s+(\d+)/)[1])
@@ -64,12 +60,21 @@ async function getCustomKeycodes(appKind, dir) {
 
 async function readJson(appKind, dir, filename) {
   let filePath = path.join(dir, `${filename}_${appKind}.json`)
-  if (await exists(filePath)) {
-    return JSON.parse(await readFile(filePath), 'utf-8')
+  if (await readable(filePath)) {
+    return JSON.parse(await fs.readFile(filePath), 'utf-8')
   }
   filePath = path.join(dir, filename + '.json')
-  if (await exists(filePath)) {
-    return JSON.parse(await readFile(filePath), 'utf-8')
+  if (await readable(filePath)) {
+    return JSON.parse(await fs.readFile(filePath), 'utf-8')
   }
   return null
+}
+
+async function readable(filePath) {
+  try {
+    await fs.access(filePath, fs.constants.R_OK)
+    return true
+  } catch  {
+    return false
+  }
 }

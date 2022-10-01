@@ -17,35 +17,4 @@
 
 #include "quantum.h"
 
-#ifndef TAP_DANCE_ENTRIES
-#  define TAP_DANCE_ENTRIES 8
-#endif
-
-typedef struct {
-  uint16_t on_single_tap;
-  uint16_t on_single_hold;
-  uint16_t on_multi_tap;
-  uint16_t on_tap_hold;
-  uint16_t tapping_term;
-} tap_dance_entry_t;
-
-typedef enum {
-  TD_NONE,
-  TD_SINGLE_TAP,
-  TD_SINGLE_HOLD,
-  TD_MULTI_TAP,
-  TD_TAP_HOLD,
-  TD_UNKNOWN,
-} tap_dance_state_t;
-
-typedef struct {
-  uint16_t index;
-  tap_dance_state_t state;
-  keyrecord_t record;
-} tap_dance_data_t;
-
-uint16_t tap_dance_get_tapping_term(uint16_t keycode, keyrecord_t *record);
-void tap_dance_actions_init(void);
-bool process_tap_dance_store_event(uint16_t keycode, keyrecord_t *record);
-
-extern const tap_dance_entry_t via_tap_dance_entries_default[];
+bool process_ansi_layout_on_jis(uint16_t keycode, keyrecord_t *record);
