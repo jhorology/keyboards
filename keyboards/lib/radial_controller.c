@@ -24,6 +24,7 @@
 static void process_dial(int16_t direction, bool pressed);
 static void process_dial_encoder(int16_t direction);
 static void process_dial_keyswitch(int16_t direction, bool pressed);
+static void report_dial_keyswitch(void);
 static uint32_t dial_rotation_service(uint32_t trigger_time, void* cb_arg);
 static report_radial_controller_t radial_controller_report;
 static int16_t rotating_direction;
@@ -71,20 +72,16 @@ static void process_dial_encoder(int16_t direction) {
 }
 
 static void process_dial_keyswitch(int16_t direction, bool pressed) {
-  static bool cw;
-  static bool ccw;
-  if (direction > 0) {
-    cw = pressed;
-  } else if (direction < 0) {
-    ccw = pressed;
-  }
-  if (!cw && !ccw) {
-    rotating_direction = 0;
-    if (dial_service_token) {
-      cancel_deferred_exec(dial_service_token);
-      dial_service_token = 0;
-    }
-    return;
+  static uint8_t cw;
+  static uint8_t ccw;
+  if (direction > 0 && pressed) {
+    cw++;
+  } else if (direction > 0 && !pressed && cw) {
+    cw--;
+  } else if (direction < 0 && pressed) {
+    ccw++;
+  } else if (direction < 0 && !pressed && ccw) {
+    ccw--;
   }
   if (pressed && direction) {
     rotating_direction = direction;
@@ -92,8 +89,16 @@ static void process_dial_keyswitch(int16_t direction, bool pressed) {
     rotating_direction = 1;
   } else if (!cw && ccw) {
     rotating_direction = -1;
+  } else {
+    rotating_direction = 0;
+    if (dial_service_token) {
+      cancel_deferred_exec(dial_service_token);
+      dial_service_token = 0;
+    }
+    return;
   }
   if (!dial_service_token) {
+    report_dial_keyswitch();
     dial_service_token = defer_exec(RADIAL_CONTROLLER_REPORT_INTERVAL_MILLIS, &dial_rotation_service, NULL);
   }
 }
@@ -107,19 +112,23 @@ static void process_dial_keyswitch(int16_t direction, bool pressed) {
  */
 static uint32_t dial_rotation_service(uint32_t trigger_time, void* cb_arg) {
   if (rotating_direction) {
-    int16_t speed = custom_config_get_rc_deg_per_sec() * RADIAL_CONTROLLER_REPORT_INTERVAL_MILLIS / 100;
-    if (speed > 3600) {
-      speed = 3600;
-    }
-    // 1/4 fine speed
-    if (get_mods() & MOD_MASK_SHIFT) {
-      speed >>= 2;
-    }
-    radial_controller_report.dial = rotating_direction * speed;
-    host_radial_controller_send(&radial_controller_report);
-    radial_controller_report.dial = 0;
+    report_dial_keyswitch();
     return RADIAL_CONTROLLER_REPORT_INTERVAL_MILLIS;
   }
   dial_service_token = 0;
   return 0;
+}
+
+static void report_dial_keyswitch() {
+  int16_t speed = custom_config_get_rc_deg_per_sec() * RADIAL_CONTROLLER_REPORT_INTERVAL_MILLIS / 100;
+  if (speed > 3600) {
+    speed = 3600;
+  }
+  // 1/4 fine speed
+  if (get_mods() & MOD_MASK_SHIFT) {
+    speed >>= 2;
+  }
+  radial_controller_report.dial = rotating_direction * speed;
+  host_radial_controller_send(&radial_controller_report);
+  radial_controller_report.dial = 0;
 }

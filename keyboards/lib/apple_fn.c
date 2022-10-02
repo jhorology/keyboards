@@ -65,14 +65,12 @@ bool process_apple_fn(uint16_t keycode, keyrecord_t *record) {
       host_apple_send(record->event.pressed ? 1 : 0);
       return false;
     case KC_1 ... KC_0:
-      if (!process_apple_ff_fkey(keycode - KC_1, record)) return false;
-      break;
+      return process_apple_ff_fkey(keycode - KC_1, record);
     case KC_MINS:
-      if (!process_apple_ff_fkey(10, record)) return false;
+      return process_apple_ff_fkey(10, record);
       break;
     case KC_EQL:
-      if (!process_apple_ff_fkey(11, record)) return false;
-      break;
+      return process_apple_ff_fkey(11, record);
   }
   return true;
 }
