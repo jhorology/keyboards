@@ -1,4 +1,4 @@
-const  fs = require('fs/promises'),
+const fs = require('fs/promises'),
   path = require('path')
 
 module.exports = async function build(
@@ -19,8 +19,8 @@ module.exports = async function build(
             productId: info.usb.pid
           }
 
-  // TODO lighting
-  via.lighting = 'none'
+  // lighting
+  via.lighting = await getLighting(appKind, targetDir)
 
   // matrix
   via.matrix = await getMatrix(appKind, targetDir)
@@ -48,9 +48,18 @@ async function getLayouts(appKind, dir) {
 async function getMatrix(appKind, dir) {
   const src = await fs.readFile(path.join(dir, 'config.h'), 'utf-8')
   return {
-    rows: parseInt(src.match(/#\s*define\s+MATRIX_ROWS\s+(\d+)/)[1]),
-    cols: parseInt(src.match(/#\s*define\s+MATRIX_COLS\s+(\d+)/)[1])
+    rows: parseInt(src.match(/^#\s*define\s+MATRIX_ROWS\s+(\d+)/m)[1]),
+    cols: parseInt(src.match(/^#\s*define\s+MATRIX_COLS\s+(\d+)/m)[1])
   }
+}
+
+async function getLighting(appKind, dir) {
+  const src = await fs.readFile(path.join(dir, 'rules.mk'), 'utf-8')
+  // TODO support VIA UI
+  if (src.match(/^\s*(RGBLIGHT_ENABLE|RGB_MATRIX_ENABLE)\s*=\s*yes/m)) {
+    return { extends: 'none', keycodes: 'qmk' }
+  }
+  return 'none'
 }
 
 async function getCustomKeycodes(appKind, dir) {
@@ -74,7 +83,7 @@ async function readable(filePath) {
   try {
     await fs.access(filePath, fs.constants.R_OK)
     return true
-  } catch  {
+  } catch {
     return false
   }
 }
