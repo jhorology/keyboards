@@ -31,9 +31,8 @@ typedef union {
 typedef union {
   uint32_t raw;
   struct {
-    rc_dial_mode_t dial_mode : 1;  // mode 0:ENCODER, 1:KEYSWITCH
-    uint16_t deg_per_click : 9;    // encoder mode: degree per key press or encoder click.
-    uint16_t deg_per_sec : 9;      // keyswitch mode: degree per second
+    uint16_t deg_per_click : 9;  // encoder mode: degree per key press or encoder click.
+    uint16_t deg_per_sec : 9;    // keyswitch mode: degree per second
   };
 } rc_config_t;
 
@@ -45,9 +44,8 @@ void custom_config_reset() {
   kb_config.mac = true;
   eeconfig_update_kb(kb_config.raw);
   rc_config.raw = 0;
-  rc_config.dial_mode = RADIAL_CONTROLLER_DIAL_MODE_DEFAULT;
-  rc_config.deg_per_click = RADIAL_CONTROLLER_DEGREE_PER_CLICK_DEFAULT;
-  rc_config.deg_per_sec = RADIAL_CONTROLLER_DEGREE_PER_SEC_DEFAULT;
+  rc_config.deg_per_click = RADIAL_CONTROLLER_ENCODER_DEGREE_PER_CLICK_DEFAULT;
+  rc_config.deg_per_sec = RADIAL_CONTROLLER_MOMENTARY_DEGREE_PER_SEC_DEFAULT;
   eeprom_update_dword((uint32_t *)RADIAL_CONTROLLER_EEPROM_ADDR, rc_config.raw);
 }
 
@@ -80,26 +78,17 @@ void custom_config_set_usj(bool usj) {
   }
 }
 
-rc_dial_mode_t custom_config_get_rc_dial_mode() { return rc_config.dial_mode; }
-
-void custom_config_set_rc_dial_mode(rc_dial_mode_t dial_mode) {
-  if (rc_config.dial_mode != dial_mode) {
-    rc_config.dial_mode = dial_mode;
-    eeprom_update_dword((uint32_t *)RADIAL_CONTROLLER_EEPROM_ADDR, rc_config.raw);
-  }
-}
-
 uint16_t custom_config_get_rc_deg_per_click(void) {
   if (rc_config.deg_per_click > 0 && rc_config.deg_per_click <= 360) {
     return rc_config.deg_per_click;
   }
-  return RADIAL_CONTROLLER_DEGREE_PER_CLICK_DEFAULT;
+  return RADIAL_CONTROLLER_ENCODER_DEGREE_PER_CLICK_DEFAULT;
 }
 
 void custom_config_set_rc_deg_per_click(uint16_t deg_per_click) {
   if (rc_config.deg_per_click != deg_per_click) {
     rc_config.deg_per_click =
-        deg_per_click > 0 && deg_per_click <= 360 ? deg_per_click : RADIAL_CONTROLLER_DEGREE_PER_CLICK_DEFAULT;
+        deg_per_click > 0 && deg_per_click <= 360 ? deg_per_click : RADIAL_CONTROLLER_ENCODER_DEGREE_PER_CLICK_DEFAULT;
     eeprom_update_dword((uint32_t *)RADIAL_CONTROLLER_EEPROM_ADDR, rc_config.raw);
   }
 }
@@ -108,13 +97,13 @@ uint16_t custom_config_get_rc_deg_per_sec(void) {
   if (rc_config.deg_per_sec > 0 && rc_config.deg_per_sec <= 360) {
     return rc_config.deg_per_sec;
   }
-  return RADIAL_CONTROLLER_DEGREE_PER_CLICK_DEFAULT;
+  return RADIAL_CONTROLLER_MOMENTARY_DEGREE_PER_SEC_DEFAULT;
 }
 
 void custom_config_set_rc_deg_per_sec(uint16_t deg_per_sec) {
   if (rc_config.deg_per_sec != deg_per_sec) {
     rc_config.deg_per_sec =
-        deg_per_sec > 0 && deg_per_sec <= 360 ? deg_per_sec : RADIAL_CONTROLLER_DEGREE_PER_SEC_DEFAULT;
+        deg_per_sec > 0 && deg_per_sec <= 360 ? deg_per_sec : RADIAL_CONTROLLER_MOMENTARY_DEGREE_PER_SEC_DEFAULT;
     eeprom_update_dword((uint32_t *)RADIAL_CONTROLLER_EEPROM_ADDR, rc_config.raw);
   }
 }

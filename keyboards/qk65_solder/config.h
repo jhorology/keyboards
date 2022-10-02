@@ -30,6 +30,3 @@
 #define LAYOUT_OPTION_SPLIT_LEFT_SHIFT 0x2
 #define LAYOUT_OPTION_BOTTOM_ROW_6dot25U 0x0
 #define LAYOUT_OPTION_BOTTOM_ROW_7U 0x1
-
-/* definitions for my_keyboard_commoon lib */
-#define RADIAL_CONTROLLER_DIAL_MODE_DEFAULT KEYSWITCH

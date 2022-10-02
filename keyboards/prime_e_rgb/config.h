@@ -29,6 +29,3 @@
 #endif
 
 #define DYNAMIC_KEYMAP_LAYER_COUNT 5
-
-/* definitions for my_keyboard_commoon lib */
-#define RADIAL_CONTROLLER_DIAL_MODE_DEFAULT KEYSWITCH

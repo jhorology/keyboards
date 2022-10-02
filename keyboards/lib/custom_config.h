@@ -38,9 +38,6 @@ bool custom_config_is_usj(void);
 void custom_config_toggle_usj(void);
 void custom_config_set_usj(bool);
 
-rc_dial_mode_t custom_config_get_rc_dial_mode(void);
-void custom_config_set_rc_dial_mode(rc_dial_mode_t);
-
 uint16_t custom_config_get_rc_deg_per_click(void);
 void custom_config_set_rc_deg_per_click(uint16_t);
 

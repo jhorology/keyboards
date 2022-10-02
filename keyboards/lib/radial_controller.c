@@ -21,7 +21,7 @@
 #include "custom_config.h"
 #include "custom_keycodes.h"
 
-static void process_dial(int16_t direction, bool pressed);
+static void process_dial(int16_t direction, keyrecord_t* record);
 static void process_dial_encoder(int16_t direction);
 static void process_dial_keyswitch(int16_t direction, bool pressed);
 static void report_dial_keyswitch(void);
@@ -38,25 +38,22 @@ bool process_radial_controller(uint16_t keycode, keyrecord_t* record) {
       host_radial_controller_send(&radial_controller_report);
       return false;
     case DIAL_L:
-      process_dial(-1, record->event.pressed);
+      process_dial(-1, record);
       return false;
     case DIAL_R:
-      process_dial(1, record->event.pressed);
+      process_dial(1, record);
       return false;
   }
   return true;
 }
 
-static void process_dial(int16_t direction, bool pressed) {
-  switch (custom_config_get_rc_dial_mode()) {
-    case ENCODER:
-      if (pressed) {
-        process_dial_encoder(direction);
-      }
-      return;
-    case KEYSWITCH:
-      process_dial_keyswitch(direction, pressed);
-      return;
+static void process_dial(int16_t direction, keyrecord_t* record) {
+  if (IS_ENCODEREVENT(record->event)) {
+    if (record->event.pressed) {
+      process_dial_encoder(direction);
+    }
+  } else {
+    process_dial_keyswitch(direction, record->event.pressed);
   }
 }
 
@@ -105,7 +102,8 @@ static void process_dial_keyswitch(int16_t direction, bool pressed) {
 
 /**
  * @typedef Callback to execute.
- * @param trigger_time[in] the intended trigger time to execute the callback -- equivalent time-space as timer_read32()
+ * @param trigger_time[in] the intended trigger time to execute the callback -- equivalent time-space as
+ * timer_read32()
  * @param cb_arg[in] the callback argument specified when enqueueing the deferred executor
  * @return non-zero re-queues the callback to execute after the returned number of milliseconds. Zero cancels repeated
  * execution.
