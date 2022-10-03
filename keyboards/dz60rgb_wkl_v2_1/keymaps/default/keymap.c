@@ -1,9 +1,7 @@
 #include QMK_KEYBOARD_H
 
-#define ALT_MO3 TD(TD_RALT_MO3)  // Right Alt, on tap hold: MO(3)
-#define ALT_APFF_EJ \
-  TD(TD_LALT_APFF_EISU_KANA)  // Left Alt, on tap hold: Apple fn/globe + F1-12 overrde,  on tap: KC_LNG2(英数), on
-                              // double tap: KC_LNG1(かな)
+#define ALT_MO3 TD(TD_RALT_MO3)
+#define ALT_APFF_EJ TD(TD_LALT_APFF_EISU_KANA)
 
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {

@@ -14,11 +14,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include QMK_KEYBOARD_H
-
 #include "custom_config.h"
 
 #include "eeprom.h"
-#include "radial_controller.h"
+
+#ifdef RADIAL_CONTROLLER_ENABLE
+#  include "radial_controller.h"
+#endif
 
 typedef union {
   uint32_t raw;
@@ -27,7 +29,9 @@ typedef union {
     bool usj : 1;  // ANSI layou on JIS.
   };
 } kb_config_t;
+static kb_config_t kb_config;
 
+#ifdef RADIAL_CONTROLLER_ENABLE
 typedef union {
   uint32_t raw;
   struct {
@@ -35,23 +39,26 @@ typedef union {
     uint16_t deg_per_sec : 9;    // keyswitch mode: degree per second
   };
 } rc_config_t;
-
-static kb_config_t kb_config;
 static rc_config_t rc_config;
+#endif
 
 void custom_config_reset() {
   kb_config.raw = 0;
   kb_config.mac = true;
   eeconfig_update_kb(kb_config.raw);
+#ifdef RADIAL_CONTROLLER_ENABLE
   rc_config.raw = 0;
   rc_config.deg_per_click = RADIAL_CONTROLLER_ENCODER_DEGREE_PER_CLICK_DEFAULT;
   rc_config.deg_per_sec = RADIAL_CONTROLLER_MOMENTARY_DEGREE_PER_SEC_DEFAULT;
   eeprom_update_dword((uint32_t *)RADIAL_CONTROLLER_EEPROM_ADDR, rc_config.raw);
+#endif
 }
 
 void custom_config_init() {
   kb_config.raw = eeconfig_read_kb();
+#ifdef RADIAL_CONTROLLER_ENABLE
   rc_config.raw = eeprom_read_dword((uint32_t *)RADIAL_CONTROLLER_EEPROM_ADDR);
+#endif
 }
 
 bool custom_config_is_mac() { return kb_config.mac; }
@@ -78,6 +85,9 @@ void custom_config_set_usj(bool usj) {
   }
 }
 
+// radial controller
+
+#ifdef RADIAL_CONTROLLER_ENABLE
 uint16_t custom_config_get_rc_deg_per_click(void) {
   if (rc_config.deg_per_click > 0 && rc_config.deg_per_click <= 360) {
     return rc_config.deg_per_click;
@@ -107,6 +117,9 @@ void custom_config_set_rc_deg_per_sec(uint16_t deg_per_sec) {
     eeprom_update_dword((uint32_t *)RADIAL_CONTROLLER_EEPROM_ADDR, rc_config.raw);
   }
 }
+#endif
+
+// dynamic tap dance
 
 #ifndef VIAL_ENABLE
 void dynamic_tap_dance_reset(const tap_dance_entry_t *entry, uint8_t len) {

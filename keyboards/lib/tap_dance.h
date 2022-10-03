@@ -17,10 +17,6 @@
 
 #include "quantum.h"
 
-#ifndef TAP_DANCE_ENTRIES
-#  define TAP_DANCE_ENTRIES 8
-#endif
-
 typedef struct {
   uint16_t on_single_tap;
   uint16_t on_single_hold;

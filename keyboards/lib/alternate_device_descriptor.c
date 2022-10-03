@@ -1,7 +1,7 @@
 #include QMK_KEYBOARD_H
 
 #include "custom_config.h"
-// #include "usb_descriptor.h"
+#include "usb_descriptor.h"
 #include "usb_descriptor_common.h"
 
 #ifdef ALTERNATE_PRODUCT_ID

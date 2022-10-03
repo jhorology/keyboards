@@ -16,7 +16,7 @@
  */
 #include QMK_KEYBOARD_H
 
-#define APFF_EJ TD(TD_APFF_EISU_KANA)  // Apple Fn/Globe, on tap: KC_LNG2(英数), on double tap: KC_LNG1(かな)
+#define APFF_EJ TD(TD_APFF_EISU_KANA)
 
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {

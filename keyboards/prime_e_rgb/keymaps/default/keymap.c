@@ -17,8 +17,7 @@
 
 #define MO1_SPC LT(1, KC_SPC)
 #define SFT_SPC RSFT_T(KC_SPC)
-#define APFF_EJ \
-  TD(TD_APFF_EISU_KANA)  // Apple Fn/Globe + FK override, on tap: KC_LNG2(英数), on double tap: KC_LNG1(かな)
+#define APFF_EJ TD(TD_APFF_EISU_KANA)
 
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {

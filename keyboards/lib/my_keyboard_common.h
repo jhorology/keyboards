@@ -20,13 +20,15 @@
 
 // tap dance actions
 enum tap_dance_action_index {
-  TD_RALT_MO3,             // ight Alt, on tap hold: MO(3)
-  TD_APFF_EISU_KANA,       // Apple Fn/Globe + FK override, on double tap: toggle send 英数/かな
-  TD_LGUI_EISU_KANA,       // Left GUI, on tap: KC_LNG2(英数), on double tap: KC_LNG1(かな)
-  TD_LALT_EISU_KANA,       // Left Alt, on tap: KC_LNG2(英数), on double tap: KC_LNG1(かな)
-  TD_LALT_APFF,            // Left Alt, on tap hold: Apple fn/globe + FK overrde
-  TD_LALT_APFF_EISU_KANA,  // Left Alt, on tap hold: Apple fn/globe + FK overrde on tap: KC_LNG2(英数), on double tap:
-                           // KC_LNG1(かな)
+  // for HHKB Right Alt, Alt + layer switch
+  TD_RALT_MO3,
+
+  // for HHKB Left Alt, Alt + Apple fn + IME switch
+  TD_LALT_APFF_EISU_KANA,
+
+  // Apple Fn key + IME switch
+  TD_APFF_EISU_KANA,  // Apple Fn/Globe + FK override, on double tap: toggle send 英数/かな
+
   TAP_DANCE_PRE_DEFINED_LENGTH
 };
 
@@ -34,16 +36,10 @@ enum tap_dance_action_index {
 
 #  ifdef VIAL_COMBO_ENABLE
 // combo actions
-enum vial_combo_action_index {
-  // CB_TEST = 0,  // TEST dummy data,
-  COMBO_PRE_DEFINED_LENGTH = 0
-};
+enum vial_combo_action_index { COMBO_PRE_DEFINED_LENGTH = 0 };
 #  endif
 
 #  ifdef VIAL_KEY_OVERRIDE_ENABLE
-enum vial_key_override_action_index {
-  // KO_TEST = 0,  // TEST dummy data,
-  KEY_OVERRIDE_PRE_DEFINED_LENGTH = 0
-};
+enum vial_key_override_action_index { KEY_OVERRIDE_PRE_DEFINED_LENGTH = 0 };
 #  endif
 #endif

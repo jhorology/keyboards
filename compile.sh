@@ -9,6 +9,7 @@ zparseopts -D -E -F -- \
            {c,-clean}=clean \
            -qmk-home:=qmk_home \
            -vial-qmk-home:=vial_qmk_home \
+           -via-app-home:=via_app_home \
            -without-update-qmk=without_update_qmk \
            -with-vial=with_vial \
   || return
@@ -23,6 +24,7 @@ if (( $#help )); then
         "options:" \
         "  --qmk-home <QMK_HOME>            location for local qmk_firmware repository" \
         "  --vial-qmk-home <VIAL_QMK_HOME>  location for local vial-qmk repository" \
+        "  --via-app-home <VIA_APP_HOME>    location for local via/app repository" \
         "  --without-update-qmk             don't sync remote repository" \
         "  --with-vial                      build with VIAL"
   return
@@ -42,11 +44,15 @@ local -A KEYBOARDS=(
 # -----------------------------------
 
 # defaults
+
 TARGETS=(bakeneko60 ciel60 qk65 prime_e d60 fk680 zoom65)
 VIAL_QMK_HOME="$HOME/Documents/Sources/vial-qmk"
 QMK_HOME="$HOME/Documents/Sources/qmk_firmware"
+VIA_APP_HOME="$HOME/Documents/Sources/via/app"
 VIAL_ENABLE=no
 UPDATE_QMK=true
+MAKE_JOBS=8
+[ $(uname) = "Darwin" ] && MAKE_JOBS=$(sysctl -n hw.ncpu)
 
 # .config
 #  override configuration
@@ -57,10 +63,10 @@ UPDATE_QMK=true
 # -----------------------------------
 (( $#qmk_home )) && QMK_HOME=${qmk_home[-1]##=}
 (( $#vial_qmk_home )) && VIAL_QMK_HOME=${vial_qmk_home[-1]##=}
+(( $#via_app_home )) && VIA_APP_HOME=${via_app_home[-1]##=}
 (( $#without_update_qmk )) && UPDATE_QMK=false
 (( $#with_vial )) && VIAL_ENABLE=yes
 (( $#@ )) && TARGETS=("$@")
-
 
 
 if (( $#clean )); then
@@ -111,28 +117,28 @@ fi
 
 # patches
 [ -z "$(rg APPLE_FN_ENABLE builddefs/common_features.mk)" ] && \
-  echo "applying applefn.patch..." && patch --verbose -p1 < "${PROJECT}/patches/applefn.patch"
+  patch --verbose -p1 < "${PROJECT}/patches/applefn.patch"
 
 [ -z "$(rg get_usb_device_descriptor_ptr tmk_core/protocol/usb_descriptor.h)" ] && \
-  echo "applying device_descriptor.patch..." && patch --verbose -p1 < "${PROJECT}/patches/device_descriptor.patch"
+  patch --verbose -p1 < "${PROJECT}/patches/device_descriptor.patch"
 
 [ -z "$(rg RADIAL_CONTROLLER_ENABLE builddefs/common_features.mk)" ] && \
-  echo "applying radial_controller.patch..." && patch --verbose -p1 < "${PROJECT}/patches/radial_controller.patch"
+  patch --verbose -p1 < "${PROJECT}/patches/radial_controller.patch"
 
 [ -z "$(rg ENCODER_LOOKUP_TABLE quantum/encoder.c)" ] && \
-  echo "applying encoder_lookup_table.patch..." && patch --verbose -p1 < "${PROJECT}/patches/encoder_lookup_table.patch"
+  patch --verbose -p1 < "${PROJECT}/patches/encoder_lookup_table.patch"
 
 if [ $VIAL_ENABLE = "no" ]; then
   [ -z "$(rg TAP_DANCE_IGNORE_COMBO quantum/process_keycode/process_tap_dance.c)" ] && \
-    echo "applying tap_dance_ignore_combo.patch..." && patch --verbose -p1 < "${PROJECT}/patches/tap_dance_ignore_combo.patch"
+    patch --verbose -p1 < "${PROJECT}/patches/tap_dance_ignore_combo.patch"
 fi
 
 if [ $VIAL_ENABLE = "yes" ]; then
   [ -z "$(rg vial_tap_dance_reset_user quantum/dynamic_keymap.h)" ] && \
-    echo "applying vial_eeprom_reset_user.patch..." && patch --verbose -p1 < "${PROJECT}/patches/vial_eeprom_reset_user.patch"
+    patch --verbose -p1 < "${PROJECT}/patches/vial_eeprom_reset_user.patch"
 
   [ -z "$(rg FIX_VIAL_TAP_DANCE_BEHAVIOR quantum/vial.c)" ] && \
-    echo "applying fix_vial_tap_dance_behavior.patch..." && patch --verbose -p1 < "${PROJECT}/patches/fix_vial_tap_dance_behavior.patch"
+    patch --verbose -p1 < "${PROJECT}/patches/fix_vial_tap_dance_behavior.patch"
 fi
 
 [ ! -L keyboards/my_keyboards ] && \
@@ -143,7 +149,7 @@ if [ $VIAL_ENABLE = "yes" ]; then
   QMK_HOME=$QMK_HOME "$PROJECT/util/generate_vial_json.js" $MAKE_TARGETS[*]
 fi
 
-make -j 10 $MAKE_TARGETS[*] VIAL_ENABLE=$VIAL_ENABLE
+make -j $MAKE_JOBS $MAKE_TARGETS[*] VIAL_ENABLE=$VIAL_ENABLE
 
 VERSION="$(date +"%Y%m%d")_$(git rev-parse --short HEAD)"
 if [ $VIAL_ENABLE = "yes" ]; then
@@ -152,14 +158,15 @@ else
   VERSION="via_$VERSION"
 fi
 
+# generate via json file
+if [ $VIAL_ENABLE = "no" ]; then
+  QMK_HOME="$QMK_HOME" VIA_APP_HOME="$VIA_APP_HOME" "$PROJECT/util/generate_via_json.js" $MAKE_TARGETS[*]
+fi
+
 # dist
 # -----------------------------------
 cd "$PROJECT/dist"
 
-# generate via json file
-if [ $VIAL_ENABLE = "no" ]; then
-  QMK_HOME=$QMK_HOME $PROJECT/util/generate_via_json.js $MAKE_TARGETS[*]
-fi
 
 for target in $TARGETS; do
   # split ":" [1]=make target [2]=extension

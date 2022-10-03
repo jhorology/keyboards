@@ -20,12 +20,6 @@
 #ifndef VIAL_ENABLE
 #  include "tap_dance.h"
 #endif
-#include "radial_controller.h"
-
-#define RADIAL_CONTROLLER_EEPROM_ADDR VIA_EEPROM_CUSTOM_CONFIG_ADDR
-#ifndef VIAL_ENABLE
-#  define DYNAMIC_TAP_DANCE_EEPROM_ADDR (RADIAL_CONTROLLER_EEPROM_ADDR + 4)
-#endif
 
 void custom_config_reset(void);
 void custom_config_init(void);
@@ -38,11 +32,13 @@ bool custom_config_is_usj(void);
 void custom_config_toggle_usj(void);
 void custom_config_set_usj(bool);
 
+#ifdef RADIAL_CONTROLLER_ENABLE
 uint16_t custom_config_get_rc_deg_per_click(void);
 void custom_config_set_rc_deg_per_click(uint16_t);
 
 uint16_t custom_config_get_rc_deg_per_sec(void);
 void custom_config_set_rc_deg_per_sec(uint16_t);
+#endif
 
 #ifndef VIAL_ENABLE
 void dynamic_tap_dance_reset(const tap_dance_entry_t *entry, uint8_t len);

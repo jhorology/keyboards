@@ -19,7 +19,9 @@
 
 #include "apple_fn.h"
 #include "jis_util.h"
-#include "radial_controller.h"
+#ifdef RADIAL_CONTROLLER_ENABLE
+#  include "radial_controller.h"
+#endif
 #ifndef VIAL_ENABLE
 #  include "tap_dance.h"
 #endif
@@ -27,6 +29,12 @@
 
 /*
  * pre-defined tap dance
+ *
+ * [0] single tap
+ * [1] single hold
+ * [2] multi tap
+ * [3] tap hold
+ * [4] tapping term
  */
 #ifndef VIAL_ENABLE
 const tap_dance_entry_t PROGMEM via_tap_dance_entries_default[] = {
@@ -35,22 +43,14 @@ const tap_dance_entry_t PROGMEM via_tap_dance_entries_default[] = {
     const vial_tap_dance_entry_t PROGMEM vial_tap_dance_actions_default[] = {
 #endif
 #if defined(VIAL_TAP_DANCE_ENABLE) || !defined(VIAL_ENABLE)
-        // clang-format off
-  //                          tap,      hold,     double_tap, tap_hold, tapping_term
-  // for HHKB, Right Alt, on  tap hold: MO(3)
-  [TD_RALT_MO3]            = { KC_RALT, KC_RALT,  KC_RALT, MO(3),    TAPPING_TERM },
-  // for mac,  Apple Fn/Globe + FK override, on tap: KC_LNG2(英数), on double tap: KC_LNG1(かな)
-  [TD_APFF_EISU_KANA]      = { KC_LNG2, APPLE_FF, KC_LNG1, APPLE_FF, TAPPING_TERM },
-  // Left GUI, on tap: KC_LNG2(英数), on double tap: KC_LNG1(かな)
-  [TD_LGUI_EISU_KANA]      = { KC_LNG2, KC_LGUI,  KC_LNG1, KC_LGUI,  TAPPING_TERM },
-  // Left Alt, on tap: KC_LNG2(英数), on double tap: KC_LNG1(かな)
-  [TD_LALT_EISU_KANA]      = { KC_LNG2, KC_LALT,  KC_LNG1, KC_LALT,  TAPPING_TERM },
-  // Left Alt, on tap hold: Apple fn/globe + FK overrde
-  [TD_LALT_APFF]           = { KC_LALT, KC_LALT,  KC_LALT, APPLE_FF, TAPPING_TERM },
-  // Left Alt, on tap hold: Apple fn/globe + FK overrde,  on tap: KC_LNG2(英数), on double tap: KC_LNG1(かな)
-  [TD_LALT_APFF_EISU_KANA] = { KC_LNG2, KC_LALT,  KC_LNG1, APPLE_FF, TAPPING_TERM }
-        // clang-format on
-    };
+        // for HHKB Right Alt, Alt + layer switch
+        [TD_RALT_MO3] = {KC_RALT, KC_RALT, KC_RALT, MO(3), TAPPING_TERM},
+
+        // for HHKB Left Alt, Alt + Apple fn + IME switch
+        [TD_LALT_APFF_EISU_KANA] = {KC_LNG2, KC_LALT, KC_LNG1, APPLE_FF, TAPPING_TERM},
+
+        // Apple Fn key + IME switch
+        [TD_APFF_EISU_KANA] = {KC_LNG2, APPLE_FF, KC_LNG1, APPLE_FF, TAPPING_TERM}};
 #endif
 
 /*
@@ -119,7 +119,10 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
 #ifndef VIAL_ENABLE
          process_tap_dance_store_event(keycode, record) &&
 #endif
-         process_apple_fn(keycode, record) && process_radial_controller(keycode, record) &&
+         process_apple_fn(keycode, record) &&
+#ifdef RADIAL_CONTROLLER_ENABLE
+         process_radial_controller(keycode, record) &&
+#endif
          process_ansi_layout_on_jis(keycode, record);
 }
 

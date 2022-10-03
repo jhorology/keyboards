@@ -14,6 +14,12 @@ RGB_MATRIX_ENABLE = yes        # Use RGB matrix
 RGB_MATRIX_DRIVER = WS2812
 WS2812_DRIVER = pwm
 
+# radial controller
+RADIAL_CONTROLLER_ENABLE = yes
+# radial controller requires DEFERRED_EXEC_ENABLE
+DEFERRED_EXEC_ENABLE = yes
+SRC += lib/radial_controller.c
+
 SRC += uf2_boot.c
 
 # reducing RAM usage
