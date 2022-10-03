@@ -7,7 +7,11 @@ module.exports = async function build(
   targetDir,
   outputFilePath
 ) {
-  const info = await getInfo(appKind, targetDir),
+  const options = Object.assign(
+      await getMakeOptions(appKind, path.join(libDir, '..')),
+      await getMakeOptions(appKind, targetDir)
+    ),
+    info = await getInfo(appKind, targetDir),
     via =
       appKind === 'vial'
         ? {
@@ -20,7 +24,10 @@ module.exports = async function build(
           }
 
   // lighting
-  via.lighting = await getLighting(appKind, targetDir)
+  via.lighting =
+    options.RGBLIGHT_ENABLE === 'yes' || options.RGB_MATRIX_ENABLE === 'yes'
+      ? { extends: 'none', keycodes: 'qmk' }
+      : 'none'
 
   // matrix
   via.matrix = await getMatrix(appKind, targetDir)
@@ -29,11 +36,15 @@ module.exports = async function build(
   via.layouts = await getLayouts(appKind, targetDir)
 
   // customKeycodes
-  via.customKeycodes = await getCustomKeycodes(appKind, libDir)
-  Array.prototype.push.apply(
-    via.customKeycodes,
-    await getCustomKeycodes(appKind, targetDir)
-  )
+  via.customKeycodes = [
+    ...(await getCustomKeycodes(appKind, libDir)),
+    ...(await getCustomKeycodes(appKind, targetDir))
+  ].filter((e) => {
+    const opt = e.option
+    e.option = undefined
+    return !opt || options[opt] === 'yes'
+  })
+
   await fs.writeFile(outputFilePath, JSON.stringify(via, undefined, 2))
 }
 
@@ -53,13 +64,15 @@ async function getMatrix(appKind, dir) {
   }
 }
 
-async function getLighting(appKind, dir) {
+async function getMakeOptions(appKind, dir) {
   const src = await fs.readFile(path.join(dir, 'rules.mk'), 'utf-8')
-  // TODO support VIA UI
-  if (src.match(/^\s*(RGBLIGHT_ENABLE|RGB_MATRIX_ENABLE)\s*=\s*yes/m)) {
-    return { extends: 'none', keycodes: 'qmk' }
-  }
-  return 'none'
+  return [...src.matchAll(/^\s*(\w+)\s*=\s*(yes|no)/gm)].reduce(
+    (opts, match) => {
+      opts[match[1]] = match[2]
+      return opts
+    },
+    {}
+  )
 }
 
 async function getCustomKeycodes(appKind, dir) {
