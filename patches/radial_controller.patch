@@ -11,31 +11,22 @@ index cb2ab3d778..faf424eb19 100644
 +    OPT_DEFS += -DRADIAL_CONTROLLER_ENABLE
 +endif
 diff --git a/tmk_core/protocol.mk b/tmk_core/protocol.mk
-index 19fd7d2425..5b9828a4e9 100644
+index 19fd7d2425..62dd1c415e 100644
 --- a/tmk_core/protocol.mk
 +++ b/tmk_core/protocol.mk
-@@ -81,6 +81,19 @@ ifeq ($(strip $(DIGITIZER_ENABLE)), yes)
+@@ -81,6 +81,10 @@ ifeq ($(strip $(DIGITIZER_ENABLE)), yes)
      endif
  endif
 
-+ifeq ($(strip $(RADIAL_CONTROLLER_SHARED_EP)), yes)
-+    TMK_COMMON_DEFS += -DRADIAL_CONTROLLER_SHARED_EP
-+    SHARED_EP_ENABLE = yes
-+endif
-+
 +ifeq ($(strip $(RADIAL_CONTROLLER_ENABLE)), yes)
 +    TMK_COMMON_DEFS += -DRADIAL_CONTROLLER_ENABLE
-+    ifeq ($(strip $(SHARED_EP_ENABLE)), yes)
-+        TMK_COMMON_DEFS += -DRADIAL_CONTROLLER_SHARED_EP
-+        SHARED_EP_ENABLE = yes
-+    endif
 +endif
 +
  ifeq ($(strip $(SHARED_EP_ENABLE)), yes)
      TMK_COMMON_DEFS += -DSHARED_EP_ENABLE
  endif
 diff --git a/tmk_core/protocol/chibios/usb_main.c b/tmk_core/protocol/chibios/usb_main.c
-index eb9ef82554..482f20c8ac 100644
+index eb9ef82554..4536394fe8 100644
 --- a/tmk_core/protocol/chibios/usb_main.c
 +++ b/tmk_core/protocol/chibios/usb_main.c
 @@ -324,6 +324,9 @@ typedef struct {
@@ -43,7 +34,7 @@ index eb9ef82554..482f20c8ac 100644
  #if defined(DIGITIZER_ENABLE) && !defined(DIGITIZER_SHARED_EP)
              usb_driver_config_t digitizer_driver;
 +#endif
-+#if defined(RADIAL_CONTROLLER_ENABLE) && !defined(RADIAL_CONTROLLER_SHARED_EP)
++#ifdef RADIAL_CONTROLLER_ENABLE
 +            usb_driver_config_t radial_controller_driver;
  #endif
          };
@@ -53,7 +44,7 @@ index eb9ef82554..482f20c8ac 100644
      .digitizer_driver = QMK_USB_DRIVER_CONFIG(DIGITIZER, 0, false),
  #endif
 +
-+#if defined(RADIAL_CONTROLLER_ENABLE) && !defined(RADIAL_CONTROLLER_SHARED_EP)
++#ifdef RADIAL_CONTROLLER_ENABLE
 +#    define RADIAL_CONTROLLER_IN_CAPACITY 4
 +#    define RADIAL_CONTROLLER_OUT_CAPACITY 4
 +#    define RADIAL_CONTROLLER_IN_MODE USB_EP_MODE_TYPE_BULK
@@ -63,24 +54,13 @@ index eb9ef82554..482f20c8ac 100644
  };
 
  #define NUM_USB_DRIVERS (sizeof(drivers) / sizeof(usb_driver_config_t))
-@@ -1031,6 +1042,23 @@ void send_digitizer(report_digitizer_t *report) {
+@@ -1031,6 +1042,12 @@ void send_digitizer(report_digitizer_t *report) {
  #endif
  }
 
 +void send_radial_controller(report_radial_controller_t *report) {
 +#ifdef RADIAL_CONTROLLER_ENABLE
-+#    ifdef RADIAL_CONTROLLER_SHARED_EP
-+    osalSysLock();
-+    if (usbGetDriverStateI(&USB_DRIVER) != USB_ACTIVE) {
-+        osalSysUnlock();
-+        return;
-+    }
-+
-+    usbStartTransmitI(&USB_DRIVER, RADIAL_CONTROLLER_IN_EPNUM, (uint8_t *)report, sizeof(report_radial_controller_t));
-+    osalSysUnlock();
-+#    else
 +    chnWrite(&drivers.radial_controller_driver.driver, (uint8_t *)report, sizeof(report_radial_controller_t));
-+#    endif
 +#endif
 +}
 +
@@ -88,18 +68,15 @@ index eb9ef82554..482f20c8ac 100644
   *                   Console functions
   * ---------------------------------------------------------
 diff --git a/tmk_core/protocol/host.c b/tmk_core/protocol/host.c
-index 3d8604d541..7fe14e0131 100644
+index 3d8604d541..69c75752b5 100644
 --- a/tmk_core/protocol/host.c
 +++ b/tmk_core/protocol/host.c
-@@ -144,6 +144,16 @@ void host_programmable_button_send(uint32_t report) {
+@@ -144,6 +144,13 @@ void host_programmable_button_send(uint32_t report) {
      (*driver->send_programmable_button)(report);
  }
 
 +void host_radial_controller_send(report_radial_controller_t *report) {
 +    if (!driver) return;
-+#ifdef RADIAL_CONTROLLER_SHARED_EP
-+    report->report_id = REPORT_ID_RADIAL_CONTROLLER,
-+#endif
 +    send_radial_controller(report);
 +}
 +
@@ -127,14 +104,14 @@ index affd0dcb34..5d6d170161 100644
 @@ -36,0 +36,1 @@ void send_digitizer(report_digitizer_t *report);
 +void send_radial_controller(report_radial_controller_t *report);
 diff --git a/tmk_core/protocol/lufa/lufa.c b/tmk_core/protocol/lufa/lufa.c
-index b4b03357a3..d4e6d07192 100644
+index b4b03357a3..ebdf99d9e6 100644
 --- a/tmk_core/protocol/lufa/lufa.c
 +++ b/tmk_core/protocol/lufa/lufa.c
 @@ -502,6 +502,11 @@ void EVENT_USB_Device_ConfigurationChanged(void) {
      ConfigSuccess &= Endpoint_ConfigureEndpoint((DIGITIZER_IN_EPNUM | ENDPOINT_DIR_IN), EP_TYPE_INTERRUPT, DIGITIZER_EPSIZE, 1);
  #endif
 
-+#if defined(RADIAL_CONTROLLER_ENABLE) && !defined(RADIAL_CONTROLLER_SHARED_EP)
++#ifdef RADIAL_CONTROLLER_ENABLE
 +    /* Setup Radial Controller endpoint */
 +    ConfigSuccess &= Endpoint_ConfigureEndpoint((RADIAL_CONTROLLER_IN_EPNUM | ENDPOINT_DIR_IN), EP_TYPE_INTERRUPT, RADIAL_CONTROLLER_EPSIZE, 1);
 +#endif
@@ -168,55 +145,39 @@ index b4b03357a3..d4e6d07192 100644
   * main
   ******************************************************************************/
 diff --git a/tmk_core/protocol/report.h b/tmk_core/protocol/report.h
-index 735ccdb4a1..1e363b1c66 100644
+index 735ccdb4a1..c291ab20ad 100644
 --- a/tmk_core/protocol/report.h
 +++ b/tmk_core/protocol/report.h
-@@ -32,7 +32,8 @@ enum hid_report_ids {
-     REPORT_ID_PROGRAMMABLE_BUTTON,
-     REPORT_ID_NKRO,
-     REPORT_ID_JOYSTICK,
--    REPORT_ID_DIGITIZER
-+    REPORT_ID_DIGITIZER,
-+    REPORT_ID_RADIAL_CONTROLLER
- };
-
- /* Mouse buttons */
-@@ -233,6 +234,14 @@ typedef struct {
+@@ -233,6 +233,11 @@ typedef struct {
      uint16_t y;
  } __attribute__((packed)) report_digitizer_t;
 
 +typedef struct  {
-+#ifdef RADIAL_CONTROLLER_SHARED_EP
-+        uint8_t report_id;
-+#endif
-+        uint16_t button : 1;
-+        int16_t dial : 15;
++    uint16_t button : 1;
++    int16_t dial : 15;
 +} __attribute__ ((packed)) report_radial_controller_t;
 +
  typedef struct {
  #if JOYSTICK_AXES_COUNT > 0
  #    if JOYSTICK_AXES_RESOLUTION > 8
 diff --git a/tmk_core/protocol/usb_descriptor.c b/tmk_core/protocol/usb_descriptor.c
-index 21795cef60..82d6098666 100644
+index 21795cef60..115a1f8755 100644
 --- a/tmk_core/protocol/usb_descriptor.c
 +++ b/tmk_core/protocol/usb_descriptor.c
-@@ -221,6 +221,48 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
- #    endif
+@@ -310,7 +310,39 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
+     HID_RI_END_COLLECTION(0),
  #endif
 
+-#ifdef SHARED_EP_ENABLE
++#if defined(SHARED_EP_ENABLE)
++};
++#endif
++
 +#ifdef RADIAL_CONTROLLER_ENABLE
-+#    ifndef RADIAL_CONTROLLER_SHARED_EP
 +const USB_Descriptor_HIDReport_Datatype_t PROGMEM RadialControllerReport[] = {
-+#    elif !defined(SHARED_REPORT_STARTED)
-+const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
-+#        define SHARED_REPORT_STARTED
-+#    endif
 +    HID_RI_USAGE_PAGE(8, 0x01),             // Generic Desktop
 +    HID_RI_USAGE(8, 0x0E),                  // System Multi-Axis Controller
 +    HID_RI_COLLECTION(8, 0x01),             // Application
-+#    ifdef RADIAL_CONTROLLER_SHARED_EP
-+        HID_RI_REPORT_ID(8, REPORT_ID_RADIAL_CONTROLLER),
-+#    endif
 +        HID_RI_USAGE_PAGE(8, 0x0D),
 +        HID_RI_USAGE(8, 0x21),              // Puck
 +        HID_RI_COLLECTION(8, 0x00),         // Physical
@@ -241,15 +202,10 @@ index 21795cef60..82d6098666 100644
 +            HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_VARIABLE | HID_IOF_RELATIVE),
 +        HID_RI_END_COLLECTION(0),
 +    HID_RI_END_COLLECTION(0),
-+#    ifndef RADIAL_CONTROLLER_SHARED_EP
-+};
-+#    endif
-+#endif
-+
- #if defined(SHARED_EP_ENABLE) && !defined(SHARED_REPORT_STARTED)
- const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
+ };
  #endif
-@@ -1039,6 +1081,46 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor = {
+
+@@ -1039,6 +1071,46 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor = {
          .PollingIntervalMS      = USB_POLLING_INTERVAL_MS
      },
  #endif
@@ -257,7 +213,7 @@ index 21795cef60..82d6098666 100644
 +    /*
 +     * Radial Controller
 +     */
-+#if defined(RADIAL_CONTROLLER_ENABLE) && !defined(RADIAL_CONTROLLER_SHARED_EP)
++#ifdef RADIAL_CONTROLLER_ENABLE
 +    .RadialController_Interface = {
 +        .Header = {
 +            .Size               = sizeof(USB_Descriptor_Interface_t),
@@ -296,11 +252,11 @@ index 21795cef60..82d6098666 100644
  };
 
  /*
-@@ -1184,6 +1266,12 @@ uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const
+@@ -1184,6 +1256,12 @@ uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const
 
                      break;
  #endif
-+#if defined(RADIAL_CONTROLLER_ENABLE) && !defined(RADIAL_CONTROLLER_SHARED_EP)
++#ifdef RADIAL_CONTROLLER_ENABLE
 +                case RADIAL_CONTROLLER_INTERFACE:
 +                    Address = &ConfigurationDescriptor.RadialController_HID;
 +                    Size    = sizeof(USB_HID_Descriptor_HID_t);
@@ -309,12 +265,12 @@ index 21795cef60..82d6098666 100644
              }
 
              break;
-@@ -1239,6 +1327,12 @@ uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const
+@@ -1239,6 +1317,12 @@ uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const
                      Address = &DigitizerReport;
                      Size    = sizeof(DigitizerReport);
                      break;
 +#endif
-+#if defined(RADIAL_CONTROLLER_ENABLE) && !defined(RADIAL_CONTROLLER_SHARED_EP)
++#ifdef RADIAL_CONTROLLER_ENABLE
 +                case RADIAL_CONTROLLER_INTERFACE:
 +                    Address = &RadialControllerReport;
 +                    Size    = sizeof(RadialControllerReport);
@@ -323,7 +279,7 @@ index 21795cef60..82d6098666 100644
              }
 
 diff --git a/tmk_core/protocol/usb_descriptor.h b/tmk_core/protocol/usb_descriptor.h
-index f8b7a863aa..1f423c8502 100644
+index f8b7a863aa..bd991341fa 100644
 --- a/tmk_core/protocol/usb_descriptor.h
 +++ b/tmk_core/protocol/usb_descriptor.h
 @@ -145,6 +145,13 @@ typedef struct {
@@ -331,7 +287,7 @@ index f8b7a863aa..1f423c8502 100644
      USB_Descriptor_Endpoint_t  Digitizer_INEndpoint;
  #endif
 +
-+#if defined(RADIAL_CONTROLLER_ENABLE) && !defined(RADIAL_CONTROLLER_SHARED_EP)
++#ifdef RADIAL_CONTROLLER_ENABLE
 +    // Radial COntroller HID Interface
 +    USB_Descriptor_Interface_t RadialController_Interface;
 +    USB_HID_Descriptor_HID_t   RadialController_HID;
@@ -345,92 +301,32 @@ index f8b7a863aa..1f423c8502 100644
      DIGITIZER_INTERFACE,
  #endif
 +
-+#if defined(RADIAL_CONTROLLER_ENABLE) && !defined(RADIAL_CONTROLLER_SHARED_EP)
++#ifdef RADIAL_CONTROLLER_ENABLE
 +    RADIAL_CONTROLLER_INTERFACE,
 +#endif
      TOTAL_INTERFACES
  };
 
-@@ -286,6 +297,19 @@ enum usb_endpoints {
+@@ -286,6 +297,15 @@ enum usb_endpoints {
  #        define DIGITIZER_IN_EPNUM SHARED_IN_EPNUM
  #    endif
  #endif
 +
 +#ifdef RADIAL_CONTROLLER_ENABLE
-+#    if !defined(RADIAL_CONTROLLER_SHARED_EP)
 +    RADIAL_CONTROLLER_IN_EPNUM = NEXT_EPNUM,
-+#        ifdef USB_ENDPOINTS_ARE_REORDERABLE
++#    ifdef USB_ENDPOINTS_ARE_REORDERABLE
 +    RADIAL_CONTROLLER_OUT_EPNUM = RADIAL_CONTROLLER_IN_EPNUM,
-+#        else
-+    RADIAL_CONTROLLER_OUT_EPNUM = NEXT_EPNUM,
-+#        endif
 +#    else
-+#        define RADIAL_CONTROLLER_IN_EPNUM SHARED_IN_EPNUM
++    RADIAL_CONTROLLER_OUT_EPNUM = NEXT_EPNUM,
 +#    endif
 +#endif
  };
 
  #ifdef PROTOCOL_LUFA
-@@ -312,5 +336,6 @@ enum usb_endpoints {
+@@ -312,5 +332,6 @@ enum usb_endpoints {
  #define CDC_EPSIZE 16
  #define JOYSTICK_EPSIZE 8
  #define DIGITIZER_EPSIZE 8
 +#define RADIAL_CONTROLLER_EPSIZE 8
 
  uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const void** const DescriptorAddress);
-diff --git a/tmk_core/protocol/vusb/vusb.c b/tmk_core/protocol/vusb/vusb.c
-index d07cc0d27e..ad9c73dbda 100644
---- a/tmk_core/protocol/vusb/vusb.c
-+++ b/tmk_core/protocol/vusb/vusb.c
-@@ -305,6 +305,14 @@ void send_digitizer(report_digitizer_t *report) {
- #endif
- }
-
-+void send_radial_controller(report_radial_controler_t *report) {
-+#ifdef RADIAL_CONTROLLER_ENABLE
-+    if (usbInterruptIsReadyShared()) {
-+        usbSetInterruptShared((void *)report, sizeof(report_radial_controler_t));
-+    }
-+#endif
-+}
-+
- static void send_programmable_button(uint32_t data) {
- #ifdef PROGRAMMABLE_BUTTON_ENABLE
-     static report_programmable_button_t report = {
-@@ -591,6 +599,36 @@ const PROGMEM uchar shared_hid_report[] = {
-     0xC0,             // End Collection
- #endif
-
-+#ifdef RADIAL_CONTROLLER_ENABLE
-+    0x05, 0x01,        // Usage Page (Generic Desktop Ctrls)
-+    0x09, 0x0E,        // Usage (0x0E)
-+    0xA1, 0x01,        // Collection (Application)
-+    0x85, REPORT_ID_RADIAL_CONTROLLER, //   Report ID
-+    0x05, 0x0D,        //   Usage Page (Digitizer)
-+    0x09, 0x21,        //   Usage (Puck)
-+    0xA1, 0x00,        //   Collection (Physical)
-+    0x05, 0x09,        //     Usage Page (Button)
-+    0x09, 0x01,        //     Usage (0x01)
-+    0x15, 0x00,        //     Logical Minimum (0)
-+    0x25, 0x01,        //     Logical Maximum (1)
-+    0x95, 0x01,        //     Report Count (1)
-+    0x75, 0x01,        //     Report Size (1)
-+    0x81, 0x02,        //     Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
-+    0x05, 0x01,        //     Usage Page (Generic Desktop Ctrls)
-+    0x09, 0x37,        //     Usage (Dial)
-+    0x55, 0x0F,        //     Unit Exponent (-1)
-+    0x65, 0x14,        //     Unit (System: English Rotation, Length: Centimeter)
-+    0x36, 0xF0, 0xF1,  //     Physical Minimum (-3600)
-+    0x46, 0x10, 0x0E,  //     Physical Maximum (3600)
-+    0x16, 0xF0, 0xF1,  //     Logical Minimum (-3600)
-+    0x26, 0x10, 0x0E,  //     Logical Maximum (3600)
-+    0x95, 0x01,        //     Report Count (1)
-+    0x75, 0x0F,        //     Report Size (15)
-+    0x81, 0x06,        //     Input (Data,Var,Rel,No Wrap,Linear,Preferred State,No Null Position)
-+    0xC0,              //   End Collection
-+    0xC0,              // End Collection
-+#endif
-+
- #ifdef PROGRAMMABLE_BUTTON_ENABLE
-     // Programmable buttons report descriptor
-     0x05, 0x0C,                          // Usage Page (Consumer)
