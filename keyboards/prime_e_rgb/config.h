@@ -18,6 +18,10 @@
 #define RGB_DI_PIN B7
 #define RGBLED_NUM 8
 
+#define LED_CAPS_LOCK_PIN B1
+#define CUSTOM_CONFIG_MAC_MODE_PIN B2
+#define CUSTOM_CONFIG_USJ_MODE_PIN B3
+
 /* Vial-specific definitions. */
 #ifdef VIAL_ENABLE
 #  define VIAL_KEYBOARD_UID \

@@ -59,6 +59,14 @@ void custom_config_init() {
 #ifdef RADIAL_CONTROLLER_ENABLE
   rc_config.raw = eeprom_read_dword((uint32_t *)RADIAL_CONTROLLER_EEPROM_ADDR);
 #endif
+#ifdef CUSTOM_CONFIG_MAC_MODE_PIN
+  setPinOutput(CUSTOM_CONFIG_MAC_MODE_PIN);
+  writePin(CUSTOM_CONFIG_MAC_MODE_PIN, custom_config_is_mac());
+#endif
+#ifdef CUSTOM_CONFIG_USJ_MODE_PIN
+  setPinOutput(CUSTOM_CONFIG_USJ_MODE_PIN);
+  writePin(CUSTOM_CONFIG_USJ_MODE_PIN, custom_config_is_usj());
+#endif
 }
 
 bool custom_config_is_mac() { return kb_config.mac; }
@@ -82,6 +90,9 @@ void custom_config_set_usj(bool usj) {
   if (usj != kb_config.usj) {
     kb_config.usj = usj;
     eeconfig_update_kb(kb_config.raw);
+#ifdef CUSTOM_CONFIG_USJ_MODE_PIN
+    writePin(CUSTOM_CONFIG_USJ_MODE_PIN, usj);
+#endif
   }
 }
 
