@@ -126,6 +126,13 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
          process_ansi_layout_on_jis(keycode, record);
 }
 
+#ifndef VIAL_ENABLE
+void raw_hid_receive(uint8_t *data, uint8_t length) {
+  // TODO access control
+  via_raw_hid_receive(data, length);
+}
+#endif
+
 #ifdef RGB_MATRIX_ENABLE
 
 void rgb_matrix_indicators_kb(void) {

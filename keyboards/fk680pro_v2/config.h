@@ -116,16 +116,25 @@
 #  endif
 #endif
 
-/* Vial-specific definitions. */
-#ifdef VIAL_ENABLE
-#  define VIAL_KEYBOARD_UID \
-    { 0x76, 0xDA, 0x74, 0x74, 0x74, 0x9B, 0xDD, 0x0C }
-#  define VIAL_UNLOCK_COMBO_ROWS \
-    { 0, 2 }
-#  define VIAL_UNLOCK_COMBO_COLS \
-    { 0, 13 }
-#endif
-
 /* definitions for my_keyboard_commoon lib */
 #define RGB_MATRIX_CAPS_LOCK_LED 3  // left side of spacebar
 #define RADIAL_CONTROLLER_DIAL_MODE_DEFAULT KEYSWITCH
+
+#if __has_include("secure_config.h")
+#  include "secure_config.h"
+#else
+#  ifdef VIAL_ENABLE
+#    define VIAL_KEYBOARD_UID \
+      { 0x76, 0xDA, 0x74, 0x74, 0x74, 0x9B, 0xDD, 0x0C }
+#    define VIAL_UNLOCK_COMBO_ROWS \
+      { 0, 2 }
+#    define VIAL_UNLOCK_COMBO_COLS \
+      { 0, 13 }
+#  else
+#    define VIA_FIRMWARE_VERSION 0
+#    define SECURE_UNLOCK_SEQUENCE \
+      {                            \
+        {0, 0}, { 2, 13 }          \
+      }
+#  endif
+#endif

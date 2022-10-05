@@ -13,6 +13,7 @@ NKRO_ENABLE = yes
 APPLE_FN_ENABLE = yes
 
 ifeq ($(strip $(VIAL_ENABLE)), no)
+  SECURE_ENABLE = yes
   TAP_DANCE_ENABLE = yes
   COMBO_ENABLE = yes
 endif

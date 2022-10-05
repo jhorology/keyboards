@@ -39,19 +39,28 @@
 #define LED_CAPS_LOCK_PIN F7
 #define LED_PIN_ON_STATE 0
 
-/* Vial-specific definitions. */
-#ifdef VIAL_ENABLE
-
-#  define VIAL_KEYBOARD_UID \
-    { 0xF4, 0x35, 0xCD, 0xBB, 0xFC, 0x63, 0xB8, 0xC7 }
-#  define VIAL_UNLOCK_COMBO_ROWS \
-    { 0, 2 }
-#  define VIAL_UNLOCK_COMBO_COLS \
-    { 0, 12 }
-#endif
-
 /* ViA layout options */
 #define LAYOUT_OPTION_SPLIT_BS 0x8
 #define LAYOUT_OPTION_ISO_ENTER 0x4
 #define LAYOUT_OPTION_SPLIT_LEFT_SHIFT 0x2
 #define LAYOUT_OPTION_SPLIT_SPACEU 0x1
+
+#if __has_include("secure_config.h")
+#  include "secure_config.h"
+#else
+#  ifdef VIAL_ENABLE
+
+#    define VIAL_KEYBOARD_UID \
+      { 0xF4, 0x35, 0xCD, 0xBB, 0xFC, 0x63, 0xB8, 0xC7 }
+#    define VIAL_UNLOCK_COMBO_ROWS \
+      { 0, 2 }
+#    define VIAL_UNLOCK_COMBO_COLS \
+      { 0, 12 }
+#  else
+#    define VIA_FIRMWARE_VERSION 0
+#    define SECURE_UNLOCK_SEQUENCE \
+      {                            \
+        {0, 0}, { 2, 12 }          \
+      }
+#  endif
+#endif
