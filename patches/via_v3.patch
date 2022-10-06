@@ -98,7 +98,7 @@ index 459b48d07a..806342efa3 100644
  uint8_t  dynamic_keymap_macro_get_count(void);
  uint16_t dynamic_keymap_macro_get_buffer_size(void);
 diff --git a/quantum/via.c b/quantum/via.c
-index 37e2046a10..985464f5fd 100644
+index 37e2046a10..2abf0c8d5e 100644
 --- a/quantum/via.c
 +++ b/quantum/via.c
 @@ -22,26 +22,6 @@
@@ -217,8 +217,16 @@ index 37e2046a10..985464f5fd 100644
 -    *command_id         = id_unhandled;
 +    // Return the unhandled state
 +    *command_id = id_unhandled;
-+}
-+
+ }
+ 
+-// VIA handles received HID messages first, and will route to
+-// raw_hid_receive_kb() for command IDs that are not handled here.
+-// This gives the keyboard code level the ability to handle the command
+-// specifically.
+-//
+-// raw_hid_send() is called at the end, with the same buffer, which was
+-// possibly modified with returned values.
+-void raw_hid_receive(uint8_t *data, uint8_t length) {
 +// This is the default handler for custom value commands.
 +// It routes channel VIA_QMK_BACKLIGHT_CHANNEL to via_qmk_backlight_command() and
 +// channel VIA_QMK_RGBLIGHT_CHANNEL to via_qmk_rgblight_command().
@@ -267,16 +275,9 @@ index 37e2046a10..985464f5fd 100644
 +// via_custom_value_command_kb() instead.
 +__attribute__((weak)) bool via_command_kb(uint8_t *data, uint8_t length) {
 +    return false;
- }
- 
--// VIA handles received HID messages first, and will route to
--// raw_hid_receive_kb() for command IDs that are not handled here.
--// This gives the keyboard code level the ability to handle the command
--// specifically.
--//
--// raw_hid_send() is called at the end, with the same buffer, which was
--// possibly modified with returned values.
- void raw_hid_receive(uint8_t *data, uint8_t length) {
++}
++
++void via_raw_hid_receive(uint8_t *data, uint8_t length) {
      uint8_t *command_id   = &(data[0]);
      uint8_t *command_data = &(data[1]);
 +
@@ -734,7 +735,7 @@ index 37e2046a10..985464f5fd 100644
 +
 +#endif  // #if defined(VIA_QMK_AUDIO_ENABLE)
 diff --git a/quantum/via.h b/quantum/via.h
-index 558ae95de4..f4f995e661 100644
+index 558ae95de4..600302e82f 100644
 --- a/quantum/via.h
 +++ b/quantum/via.h
 @@ -58,7 +58,35 @@
@@ -842,7 +843,7 @@ index 558ae95de4..f4f995e661 100644
  };
  
  // Can't use SAFE_RANGE here, it might change if someone adds
-@@ -165,5 +215,39 @@ uint32_t via_get_layout_options(void);
+@@ -165,5 +215,40 @@ uint32_t via_get_layout_options(void);
  void     via_set_layout_options(uint32_t value);
  void     via_set_layout_options_kb(uint32_t value);
  
@@ -853,6 +854,7 @@ index 558ae95de4..f4f995e661 100644
 +
  // Called by QMK core to process VIA-specific keycodes.
  bool process_record_via(uint16_t keycode, keyrecord_t *record);
++void via_raw_hid_receive(uint8_t *data, uint8_t length);
 +
 +// These are made external so that keyboard level custom value handlers can use them.
 +#if defined(VIA_QMK_BACKLIGHT_ENABLE)
@@ -882,4 +884,3 @@ index 558ae95de4..f4f995e661 100644
 +void via_qmk_audio_get_value(uint8_t *data);
 +void via_qmk_audio_save(void);
 +#endif
-\ No newline at end of file

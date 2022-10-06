@@ -17,9 +17,6 @@
 
 #include "quantum.h"
 #include "via.h"
-#ifdef VIAL_ENABLE
-#  include "vial.h"
-#endif
 
 //  constants
 //------------------------------------------

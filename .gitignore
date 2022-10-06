@@ -4,6 +4,7 @@ dist/
 *.uf2
 .config
 vial.json
+secure_config.h
 
 node_modules/
 

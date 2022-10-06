@@ -132,7 +132,6 @@ void custom_config_set_rc_deg_per_sec(uint16_t deg_per_sec) {
 
 // dynamic tap dance
 
-#ifndef VIAL_ENABLE
 void dynamic_tap_dance_reset(const tap_dance_entry_t *entry, uint8_t len) {
   tap_dance_entry_t empty = {0};
   tap_dance_entry_t data;
@@ -167,7 +166,6 @@ uint16_t dynamic_tap_dance_tapping_term(uint16_t index) {
   }
   return TAPPING_TERM;
 }
-#endif
 
 void pgm_memcpy(void *dest, const void *src, size_t len) {
   for (size_t i = 0; i < len; i++) {

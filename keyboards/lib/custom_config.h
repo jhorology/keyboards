@@ -17,9 +17,7 @@
 #pragma once
 
 #include "quantum.h"
-#ifndef VIAL_ENABLE
-#  include "tap_dance.h"
-#endif
+#include "tap_dance.h"
 
 void custom_config_reset(void);
 void custom_config_init(void);
@@ -40,10 +38,8 @@ uint16_t custom_config_get_rc_deg_per_sec(void);
 void custom_config_set_rc_deg_per_sec(uint16_t);
 #endif
 
-#ifndef VIAL_ENABLE
 void dynamic_tap_dance_reset(const tap_dance_entry_t *entry, uint8_t len);
 uint16_t dynamic_tap_dance_keycode(uint16_t index, tap_dance_state_t state);
 uint16_t dynamic_tap_dance_tapping_term(uint16_t index);
-#endif
 
 void pgm_memcpy(void *dest, const void *src, size_t len);

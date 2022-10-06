@@ -11,19 +11,13 @@ LTO_ENABLE = yes            # Link time optimization
 VIA_ENABLE = yes
 NKRO_ENABLE = yes
 APPLE_FN_ENABLE = yes
-
-ifeq ($(strip $(VIAL_ENABLE)), no)
-  SECURE_ENABLE = yes
-  TAP_DANCE_ENABLE = yes
-  COMBO_ENABLE = yes
-endif
+SECURE_ENABLE = yes
+TAP_DANCE_ENABLE = yes
+COMBO_ENABLE = yes
 
 SRC += lib/my_keyboard_common.c
 SRC += lib/custom_config.c
 SRC += lib/apple_fn.c
 SRC += lib/jis_util.c
 SRC += lib/alternate_device_descriptor.c
-
-ifeq ($(strip $(VIAL_ENABLE)), no)
-  SRC += lib/tap_dance.c
-endif
+SRC += lib/tap_dance.c

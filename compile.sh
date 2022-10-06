@@ -8,35 +8,34 @@ zparseopts -D -E -F -- \
            {h,-help}=help  \
            {c,-clean}=clean \
            -qmk-home:=qmk_home \
-           -vial-qmk-home:=vial_qmk_home \
            -via-app-home:=via_app_home \
+           --via-version:=via_version \
            -without-update-qmk=without_update_qmk \
-           -with-vial=with_vial \
   || return
 
 
 if (( $#help )); then
   print -rC1 --      \
         "$0:t [-h|--help]" \
-        "$0:t [-c|--clean] [--qmk-home <QMK_HOME>] [--vial-qmk-home <VIAL_QMK_HOME>]" \
+        "$0:t [-c|--clean] [--qmk-home <QMK_HOME>]" \
         "$0:t [options...] [<TARGET...>]" \
         "" \
         "options:" \
         "  --qmk-home <QMK_HOME>            location for local qmk_firmware repository" \
-        "  --vial-qmk-home <VIAL_QMK_HOME>  location for local vial-qmk repository" \
         "  --via-app-home <VIA_APP_HOME>    location for local via/app repository" \
-        "  --without-update-qmk             don't sync remote repository" \
-        "  --with-vial                      build with VIAL"
+        "  --via-version <2|3>              VIA version 2 or 3 default: 3" \
+        "  --without-update-qmk             don't sync remote repository"
   return
 fi
 
 local -A KEYBOARDS=(
   bakeneko60 bakeneko60:hex
   ciel60     ciel60:hex
-  qk65       qk65_solder:hex
-  prime_e    prime_e_rgb:hex
   d60        dz60rgb_wkl_v2_1:bin
   fk680      fk680pro_v2:uf2
+  ikki68     ikki68_aurora:hex
+  prime_e    prime_e_rgb:hex
+  qk65       qk65_solder:hex
   zoom65     zoom65:hex
 )
 
@@ -45,11 +44,10 @@ local -A KEYBOARDS=(
 
 # defaults
 
-TARGETS=(bakeneko60 ciel60 qk65 prime_e d60 fk680 zoom65)
-VIAL_QMK_HOME="$HOME/Documents/Sources/vial-qmk"
+TARGETS=(bakeneko60 ciel60 d60 fk680 ikki68 prime_e qk65 zoom65)
 QMK_HOME="$HOME/Documents/Sources/qmk_firmware"
 VIA_APP_HOME="$HOME/Documents/Sources/via/app"
-VIAL_ENABLE=no
+VIA_VERSION=3
 UPDATE_QMK=true
 MAKE_JOBS=8
 [ $(uname) = "Darwin" ] && MAKE_JOBS=$(sysctl -n hw.ncpu)
@@ -62,10 +60,9 @@ MAKE_JOBS=8
 # option parameters
 # -----------------------------------
 (( $#qmk_home )) && QMK_HOME=${qmk_home[-1]##=}
-(( $#vial_qmk_home )) && VIAL_QMK_HOME=${vial_qmk_home[-1]##=}
 (( $#via_app_home )) && VIA_APP_HOME=${via_app_home[-1]##=}
+(( $#via_version )) && VIA_VERSION=${via_version[-1]##=}
 (( $#without_update_qmk )) && UPDATE_QMK=false
-(( $#with_vial )) && VIAL_ENABLE=yes
 (( $#@ )) && TARGETS=("$@")
 
 
@@ -84,13 +81,6 @@ if (( $#clean )); then
   git reset HEAD
   git clean -dfx
 
-  cd "$VIAL_QMK_HOME"
-  rm -rf keyboards/my_keyboards
-  make clean
-  # checkout to revert changes.
-  git checkout --recurse-submodules .
-  git reset HEAD
-  git clean -dfx
   return
 fi
 
@@ -104,7 +94,7 @@ mkdir -p dist
 
 # QMK_HOME
 # -----------------------------------
-[ $VIAL_ENABLE = "yes" ] && QMK_HOME="$VIAL_QMK_HOME"
+
 cd "$QMK_HOME"
 
 if $UPDATE_QMK; then
@@ -128,40 +118,27 @@ fi
 [ -z "$(rg ENCODER_LOOKUP_TABLE quantum/encoder.c)" ] && \
   patch --verbose -p1 < "${PROJECT}/patches/encoder_lookup_table.patch"
 
-if [ $VIAL_ENABLE = "no" ]; then
-  [ -z "$(rg TAP_DANCE_IGNORE_COMBO quantum/process_keycode/process_tap_dance.c)" ] && \
-    patch --verbose -p1 < "${PROJECT}/patches/tap_dance_ignore_combo.patch"
+if [ $VIA_VERSION = "3" ]; then
+  [ -z "$(rg via_raw_hid_receive quantum/via.h)" ] && \
+    patch --verbose -p1 < "${PROJECT}/patches/via_v3.patch"
+else
+  [ -z "$(rg via_raw_hid_receive quantum/via.h)" ] && \
+    patch --verbose -p1 < "${PROJECT}/patches/via_raw_hid_receive.patch"
 fi
+[ -z "$(rg TAP_DANCE_IGNORE_COMBO quantum/process_keycode/process_tap_dance.c)" ] && \
+  patch --verbose -p1 < "${PROJECT}/patches/tap_dance_ignore_combo.patch"
 
-if [ $VIAL_ENABLE = "yes" ]; then
-  [ -z "$(rg vial_tap_dance_reset_user quantum/dynamic_keymap.h)" ] && \
-    patch --verbose -p1 < "${PROJECT}/patches/vial_eeprom_reset_user.patch"
-
-  [ -z "$(rg FIX_VIAL_TAP_DANCE_BEHAVIOR quantum/vial.c)" ] && \
-    patch --verbose -p1 < "${PROJECT}/patches/fix_vial_tap_dance_behavior.patch"
-fi
 
 [ ! -L keyboards/my_keyboards ] && \
   ln -s "${PROJECT}/keyboards" keyboards/my_keyboards
 
-# generate vial json file
-if [ $VIAL_ENABLE = "yes" ]; then
-  QMK_HOME=$QMK_HOME "$PROJECT/util/generate_vial_json.js" $MAKE_TARGETS[*]
-fi
+make -j $MAKE_JOBS $MAKE_TARGETS[*] VERBOSE=true
 
-make -j $MAKE_JOBS $MAKE_TARGETS[*] VIAL_ENABLE=$VIAL_ENABLE
-
-VERSION="$(date +"%Y%m%d")_$(git rev-parse --short HEAD)"
-if [ $VIAL_ENABLE = "yes" ]; then
-  VERSION="vial_$VERSION"
-else
-  VERSION="via_$VERSION"
-fi
+VERSION="$(date +"%Y%m%d")_qmk_$(git describe --abbrev=0 --tags)_$(git rev-parse --short HEAD)_via_v$VIA_VERSION"
 
 # generate via json file
-if [ $VIAL_ENABLE = "no" ]; then
-  QMK_HOME="$QMK_HOME" VIA_APP_HOME="$VIA_APP_HOME" "$PROJECT/util/generate_via_json.js" $MAKE_TARGETS[*]
-fi
+QMK_HOME="$QMK_HOME" VIA_APP_HOME="$VIA_APP_HOME" VIA_VERSION=$VIA_VERSION \
+        "$PROJECT/util/generate_via_json.js" $MAKE_TARGETS[*]
 
 # dist
 # -----------------------------------

@@ -10,13 +10,3 @@ BOOTLOADER_SIZE = 6144
 #
 RGB_MATRIX_ENABLE = yes        # Use RGB matrix
 RGB_MATRIX_DRIVER = IS31FL3733
-
-# reducing firmware size
-ifeq ($(strip $(VIAL_ENABLE)), yes)
-  MOUSEKEY_ENABLE = no
-  QMK_SETTINGS = no
-  # TAP_DANCE_ENABLE = no
-  COMBO_ENABLE = no
-  KEY_OVERRIDE_ENABLE = no
-  # RGB_MATRIX_ENABLE = no
-endif

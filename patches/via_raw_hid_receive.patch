@@ -1,0 +1,22 @@
+diff --git a/quantum/via.c b/quantum/via.c
+index 37e2046a10..6cad90885d 100644
+--- a/quantum/via.c
++++ b/quantum/via.c
+@@ -210,7 +210,7 @@ __attribute__((weak)) void raw_hid_receive_kb(uint8_t *data, uint8_t length) {
+ //
+ // raw_hid_send() is called at the end, with the same buffer, which was
+ // possibly modified with returned values.
+-void raw_hid_receive(uint8_t *data, uint8_t length) {
++void via_raw_hid_receive(uint8_t *data, uint8_t length) {
+     uint8_t *command_id   = &(data[0]);
+     uint8_t *command_data = &(data[1]);
+     switch (*command_id) {
+diff --git a/quantum/via.h b/quantum/via.h
+index 558ae95de4..fe161695b3 100644
+--- a/quantum/via.h
++++ b/quantum/via.h
+@@ -167,3 +167,4 @@ void     via_set_layout_options_kb(uint32_t value);
+ 
+ // Called by QMK core to process VIA-specific keycodes.
+ bool process_record_via(uint16_t keycode, keyrecord_t *record);
++void via_raw_hid_receive(uint8_t *data, uint8_t length);

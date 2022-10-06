@@ -31,15 +31,3 @@ enum tap_dance_action_index {
 
   TAP_DANCE_PRE_DEFINED_LENGTH
 };
-
-#ifdef VIAL_ENABLE
-
-#  ifdef VIAL_COMBO_ENABLE
-// combo actions
-enum vial_combo_action_index { COMBO_PRE_DEFINED_LENGTH = 0 };
-#  endif
-
-#  ifdef VIAL_KEY_OVERRIDE_ENABLE
-enum vial_key_override_action_index { KEY_OVERRIDE_PRE_DEFINED_LENGTH = 0 };
-#  endif
-#endif

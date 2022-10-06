@@ -67,31 +67,24 @@
 #define ENABLE_RGB_MATRIX_CYCLE_OUT_IN            // Full gradient scrolling out to in
 #define ENABLE_RGB_MATRIX_CYCLE_OUT_IN_DUAL       // Full dual gradients scrolling out to in
 #define ENABLE_RGB_MATRIX_RAINBOW_MOVING_CHEVRON  // Full gradent Chevron shapped scrolling left to right
-                                                  // reducing RAM usage for VIAL
 #define ENABLE_RGB_MATRIX_CYCLE_PINWHEEL          // Full gradient spinning pinwheel around center of keyboard
 #define ENABLE_RGB_MATRIX_CYCLE_SPIRAL            // Full gradient spinning spiral around center of keyboard
 #define ENABLE_RGB_MATRIX_DUAL_BEACON             // Full gradient spinning around center of keyboard
 #define ENABLE_RGB_MATRIX_RAINBOW_BEACON          // Full tighter gradient spinning around center of keyboard
 #define ENABLE_RGB_MATRIX_RAINBOW_PINWHEELS       // Full dual gradients spinning two halfs of keyboard
-                                                  // reducing RAM usage for VIAL
-#ifndef VIAL_ENABLE
-#  define ENABLE_RGB_MATRIX_RAINDROPS            // Randomly changes a single key's hue
-#  define ENABLE_RGB_MATRIX_JELLYBEAN_RAINDROPS  // Randomly changes a single key's hue and saturation
-#  define ENABLE_RGB_MATRIX_HUE_BREATHING        // Hue shifts up a slight ammount at the same time, then shifts back
-#  define ENABLE_RGB_MATRIX_HUE_PENDULUM   // Hue shifts up a slight ammount in a wave to the right, then back to the
-                                           // left
-#  define ENABLE_RGB_MATRIX_HUE_WAVE       // Hue shifts up a slight ammount and then back down in a wave to the right
-#  define ENABLE_RGB_MATRIX_PIXEL_FRACTAL  // Single hue fractal filled keys pulsing horizontally out to edges
-#  define ENABLE_RGB_MATRIX_PIXEL_FLOW     // Pulsing RGB flow along LED wiring with random hues
-#  define ENABLE_RGB_MATRIX_PIXEL_RAIN     // Randomly light keys with random hues#define ENABLE_RGB_MATRIX_ALPHAS_MODS
-#endif
+#define ENABLE_RGB_MATRIX_RAINDROPS               // Randomly changes a single key's hue
+#define ENABLE_RGB_MATRIX_JELLYBEAN_RAINDROPS     // Randomly changes a single key's hue and saturation
+#define ENABLE_RGB_MATRIX_HUE_BREATHING           // Hue shifts up a slight ammount at the same time, then shifts back
+#define ENABLE_RGB_MATRIX_HUE_PENDULUM   // Hue shifts up a slight ammount in a wave to the right, then back to the
+                                         // left
+#define ENABLE_RGB_MATRIX_HUE_WAVE       // Hue shifts up a slight ammount and then back down in a wave to the right
+#define ENABLE_RGB_MATRIX_PIXEL_FRACTAL  // Single hue fractal filled keys pulsing horizontally out to edges
+#define ENABLE_RGB_MATRIX_PIXEL_FLOW     // Pulsing RGB flow along LED wiring with random hues
+#define ENABLE_RGB_MATRIX_PIXEL_RAIN     // Randomly light keys with random hues#define ENABLE_RGB_MATRIX_ALPHAS_MODS
 
 #ifdef RGB_MATRIX_FRAMEBUFFER_EFFECTS
 #  define ENABLE_RGB_MATRIX_TYPING_HEATMAP  // How hot is your WPM!
-// reducing RAM usage for VIAL
-#  ifndef VIAL_ENABLE
-#    define ENABLE_RGB_MATRIX_DIGITAL_RAIN  // That famous computer simulation
-#  endif
+#  define ENABLE_RGB_MATRIX_DIGITAL_RAIN    // That famous computer simulation
 #  if defined(RGB_MATRIX_KEYPRESSES) || defined(RGB_MATRIX_KEYRELEASES)
 #    define ENABLE_RGB_MATRIX_SOLID_REACTIVE_SIMPLE  // Pulses keys hit to hue & value then fades value out
 #    define ENABLE_RGB_MATRIX_SOLID_REACTIVE         // Static single hue, pulses keys hit to shifted hue then fades to
@@ -123,18 +116,9 @@
 #if __has_include("secure_config.h")
 #  include "secure_config.h"
 #else
-#  ifdef VIAL_ENABLE
-#    define VIAL_KEYBOARD_UID \
-      { 0x76, 0xDA, 0x74, 0x74, 0x74, 0x9B, 0xDD, 0x0C }
-#    define VIAL_UNLOCK_COMBO_ROWS \
-      { 0, 2 }
-#    define VIAL_UNLOCK_COMBO_COLS \
-      { 0, 13 }
-#  else
-#    define VIA_FIRMWARE_VERSION 0
-#    define SECURE_UNLOCK_SEQUENCE \
-      {                            \
-        {0, 0}, { 2, 13 }          \
-      }
-#  endif
+#  define VIA_FIRMWARE_VERSION 0
+#  define SECURE_UNLOCK_SEQUENCE \
+    {                            \
+      {0, 0}, { 2, 13 }          \
+    }
 #endif

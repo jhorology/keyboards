@@ -20,18 +20,9 @@
 #if __has_include("secure_config.h")
 #  include "secure_config.h"
 #else
-#  ifdef VIAL_ENABLE
-#    define VIAL_KEYBOARD_UID \
-      { 0xB5, 0xA1, 0xF9, 0x13, 0x8C, 0x37, 0xFB, 0x6A }
-#    define VIAL_UNLOCK_COMBO_ROWS \
-      { 0, 2 }
-#    define VIAL_UNLOCK_COMBO_COLS \
-      { 0, 13 }
-#  else
-#    define VIA_FIRMWARE_VERSION 0
-#    define SECURE_UNLOCK_SEQUENCE \
-      {                            \
-        {0, 0}, { 2, 13 }          \
-      }
-#  endif
+#  define VIA_FIRMWARE_VERSION 0
+#  define SECURE_UNLOCK_SEQUENCE \
+    {                            \
+      {0, 0}, { 2, 13 }          \
+    }
 #endif
