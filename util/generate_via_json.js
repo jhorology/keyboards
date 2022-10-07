@@ -2,6 +2,14 @@
 
 const path = require('path'),
   fs = require('fs/promises'),
+  {
+    keyboardDefinitionV2ToVIADefinitionV2,
+    isVIADefinitionV2,
+    isKeyboardDefinitionV2,
+    keyboardDefinitionV3ToVIADefinitionV3,
+    isVIADefinitionV3,
+    isKeyboardDefinitionV3
+  } = require('via-reader'),
   QMK_HOME = process.env['QMK_HOME'],
   VIA_APP_HOME = process.env['VIA_APP_HOME'],
   VIA_VERSION = parseInt(process.env['VIA_VERSION']),
@@ -56,7 +64,7 @@ async function build(targetDir, outputFilePath) {
         rows: info.matrix_pins.rows.length,
         cols: info.matrix_pins.cols.length
       }
-    : { rows: defines.MATRIX_COLS, cols: defines.MATRIX_ROWS }
+    : { rows: defines.MATRIX_ROWS, cols: defines.MATRIX_COLS }
 
   // layouts
   via.layouts = await getLayouts(targetDir)
@@ -68,7 +76,11 @@ async function build(targetDir, outputFilePath) {
     return !opt || options[opt] === 'yes'
   })
 
-  await fs.writeFile(outputFilePath, JSON.stringify(via, undefined, 2))
+  // validate
+  validate(via)
+
+  // output JSON
+  await fs.writeFile(outputFilePath, JSON.stringify(via, null, 2))
 }
 
 async function getInfo(targetDir) {
@@ -80,7 +92,8 @@ async function getLayouts(targetDir) {
 }
 
 async function getDefineValues(targetDir) {
-  const regexp = /^\s*#\s*define\s+(\w+)\s+(\d+)/gm
+  const regexp = /^\s*#\s*define\s+(\w+)\s+(\d+)/gm,
+    hasSecureConfig = readable(path.join(targetDir, 'secure_config.h'))
   return [
     ...(
       await fs.readFile(path.join(KEYBOARDS_DIR, 'config.h'), 'utf-8')
@@ -88,9 +101,11 @@ async function getDefineValues(targetDir) {
     ...(await fs.readFile(path.join(targetDir, 'config.h'), 'utf-8')).matchAll(
       regexp
     ),
-    ...(
-      await fs.readFile(path.join(targetDir, 'secure_config.h'), 'utf-8')
-    ).matchAll(regexp)
+    ...(hasSecureConfig
+      ? (
+          await fs.readFile(path.join(targetDir, 'secure_config.h'), 'utf-8')
+        ).matchAll(regexp)
+      : [])
   ].reduce((obj, match) => {
     obj[match[1]] = parseInt(match[2])
     return obj
@@ -132,6 +147,31 @@ async function readable(filePath) {
     return true
   } catch {
     return false
+  }
+}
+
+function validate(via) {
+  const validator = [
+    undefined,
+    undefined,
+    isKeyboardDefinitionV2,
+    isKeyboardDefinitionV3
+  ][VIA_VERSION]
+  if (!validator) {
+    throw new Error(
+      `via_json_generator: keyboard: ${via.name} - unsuppoted VIA version: ${VIA_VERSION}`
+    )
+  }
+  if (!validator(via)) {
+    throw new Error(
+      `via_json_generator: keyboard: ${
+        via.name
+      } - VIA v${VIA_VERSION} validation fails with errors:\n ${JSON.stringify(
+        validator.errors,
+        null,
+        2
+      )}`
+    )
   }
 }
 

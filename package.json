@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "via-reader": "https://github.com/the-via/reader.git",
     "eslint": "^8.24.0",
     "eslint-config": "^0.3.0",
     "eslint-config-node": "^4.1.0",

@@ -29,7 +29,7 @@ if (( $#help )); then
 fi
 
 local -A KEYBOARDS=(
-  bakeneko60 bakeneko60:hex
+  neko60     bakeneko60:hex
   ciel60     ciel60:hex
   d60        dz60rgb_wkl_v2_1:bin
   fk680      fk680pro_v2:uf2
@@ -44,7 +44,7 @@ local -A KEYBOARDS=(
 
 # defaults
 
-TARGETS=(bakeneko60 ciel60 d60 fk680 ikki68 prime_e qk65 zoom65)
+TARGETS=(neko60 ciel60 d60 fk680 ikki68 prime_e qk65 zoom65)
 QMK_HOME="$HOME/Documents/Sources/qmk_firmware"
 VIA_APP_HOME="$HOME/Documents/Sources/via/app"
 VIA_VERSION=3
@@ -74,7 +74,7 @@ if (( $#clean )); then
   find . -name 'vial.json' -exec rm -f {} \;
 
   cd "$QMK_HOME"
-  rm -rf keyboards/my_keyboards
+  rm -f keyboards/my_keyboards
   make clean
   # checkout to revert changes.
   git checkout --recurse-submodules .
@@ -129,8 +129,8 @@ fi
   patch --verbose -p1 < "${PROJECT}/patches/tap_dance_ignore_combo.patch"
 
 
-[ ! -L keyboards/my_keyboards ] && \
-  ln -s "${PROJECT}/keyboards" keyboards/my_keyboards
+rm -f keyboards/my_keyboards
+ln -s "${PROJECT}/qmk_keyboards" keyboards/my_keyboards
 
 make -j $MAKE_JOBS $MAKE_TARGETS[*] VERBOSE=true
 
