@@ -10,15 +10,16 @@ const path = require('path'),
     isVIADefinitionV3,
     isKeyboardDefinitionV3
   } = require('via-reader'),
-  QMK_HOME = process.env['QMK_HOME'],
-  VIA_APP_HOME = process.env['VIA_APP_HOME'],
   VIA_VERSION = parseInt(process.env['VIA_VERSION']),
   MAKE_TARGETS = process.argv.slice(2),
-  KEYBOARDS_DIR = path.join(QMK_HOME, 'keyboards', 'my_keyboards'),
+  PROJECT_DIR = path.join(__dirname, '..'),
+  OUTPUT_DIR = process.env['OUTPUT_DIR'] || path.join(PROJECT_DIR, 'dist'),
+  KEYBOARDS_DIR = path.join(PROJECT_DIR, 'qmk_keyboards'),
   LIB_DIR = path.join(KEYBOARDS_DIR, 'lib')
 
-async function build(targetDir, outputFilePath) {
-  const options = await getMakeOptions(targetDir),
+async function build(target) {
+  const targetDir = path.join(KEYBOARDS_DIR, target),
+    options = await getMakeOptions(targetDir),
     defines = await getDefineValues(targetDir),
     info = await getInfo(targetDir),
     via = {
@@ -77,10 +78,25 @@ async function build(targetDir, outputFilePath) {
   })
 
   // validate
-  validate(via)
+  validate(target, via)
 
   // output JSON
-  await fs.writeFile(outputFilePath, JSON.stringify(via, null, 2))
+
+  await fs.writeFile(
+    path.join(OUTPUT_DIR, `${target}_via_v${VIA_VERSION}.json`),
+    JSON.stringify(via, null, 2)
+  )
+  // alternate device ID
+  if (defines.ALTERNATE_VENDOR_ID && defines.ALTERNATE_PRODUCT_ID) {
+    via.vendorId =
+      '0x' + defines.ALTERNATE_VENDOR_ID.toString(16).padStart(4, '0')
+    via.productId =
+      '0x' + defines.ALTERNATE_PRODUCT_ID.toString(16).padStart(4, '0')
+    await fs.writeFile(
+      path.join(OUTPUT_DIR, `${target}_via_v${VIA_VERSION}_alt.json`),
+      JSON.stringify(via, null, 2)
+    )
+  }
 }
 
 async function getInfo(targetDir) {
@@ -92,7 +108,7 @@ async function getLayouts(targetDir) {
 }
 
 async function getDefineValues(targetDir) {
-  const regexp = /^\s*#\s*define\s+(\w+)\s+(\d+)/gm,
+  const regexp = /^\s*#\s*define\s+(\w+)\s+(0x[0-9a-fA-F]+|[0-9]+)\b/gm,
     hasSecureConfig = readable(path.join(targetDir, 'secure_config.h'))
   return [
     ...(
@@ -150,7 +166,7 @@ async function readable(filePath) {
   }
 }
 
-function validate(via) {
+function validate(target, via) {
   const validator = [
     undefined,
     undefined,
@@ -159,14 +175,12 @@ function validate(via) {
   ][VIA_VERSION]
   if (!validator) {
     throw new Error(
-      `via_json_generator: keyboard: ${via.name} - unsuppoted VIA version: ${VIA_VERSION}`
+      `via_json_generator: keyboard: ${target} - unsuppoted VIA version: ${VIA_VERSION}`
     )
   }
   if (!validator(via)) {
     throw new Error(
-      `via_json_generator: keyboard: ${
-        via.name
-      } - VIA v${VIA_VERSION} validation fails with errors:\n ${JSON.stringify(
+      `via_json_generator: keyboard: ${target} - VIA v${VIA_VERSION} validation fails with errors:\n ${JSON.stringify(
         validator.errors,
         null,
         2
@@ -177,16 +191,7 @@ function validate(via) {
 
 Promise.all(
   MAKE_TARGETS.map((target) =>
-    build(
-      path.join(QMK_HOME, 'keyboards', target),
-      path.join(
-        __dirname,
-        '..',
-        'dist',
-        target.replace('my_keyboards/', '').replaceAll('/', '_') +
-          `_via_v${VIA_VERSION}.json`
-      )
-    )
+    build(target.replace(/^my_keyboards\//, '').replaceAll('/', '_'))
   )
 ).catch((err) => {
   console.error(err)

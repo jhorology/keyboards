@@ -8,8 +8,7 @@ zparseopts -D -E -F -- \
            {h,-help}=help  \
            {c,-clean}=clean \
            -qmk-home:=qmk_home \
-           -via-app-home:=via_app_home \
-           --via-version:=via_version \
+           -via-version:=via_version \
            -without-update-qmk=without_update_qmk \
   || return
 
@@ -22,7 +21,6 @@ if (( $#help )); then
         "" \
         "options:" \
         "  --qmk-home <QMK_HOME>            location for local qmk_firmware repository" \
-        "  --via-app-home <VIA_APP_HOME>    location for local via/app repository" \
         "  --via-version <2|3>              VIA version 2 or 3 default: 3" \
         "  --without-update-qmk             don't sync remote repository"
   return
@@ -46,7 +44,6 @@ local -A KEYBOARDS=(
 
 TARGETS=(neko60 ciel60 d60 fk680 ikki68 prime_e qk65 zoom65)
 QMK_HOME="$HOME/Documents/Sources/qmk_firmware"
-VIA_APP_HOME="$HOME/Documents/Sources/via/app"
 VIA_VERSION=3
 UPDATE_QMK=true
 MAKE_JOBS=8
@@ -60,7 +57,6 @@ MAKE_JOBS=8
 # option parameters
 # -----------------------------------
 (( $#qmk_home )) && QMK_HOME=${qmk_home[-1]##=}
-(( $#via_app_home )) && VIA_APP_HOME=${via_app_home[-1]##=}
 (( $#via_version )) && VIA_VERSION=${via_version[-1]##=}
 (( $#without_update_qmk )) && UPDATE_QMK=false
 (( $#@ )) && TARGETS=("$@")
@@ -132,13 +128,12 @@ fi
 rm -f keyboards/my_keyboards
 ln -s "${PROJECT}/qmk_keyboards" keyboards/my_keyboards
 
-make -j $MAKE_JOBS $MAKE_TARGETS[*] VERBOSE=true
+make -j $MAKE_JOBS $MAKE_TARGETS[*]
 
 VERSION="$(date +"%Y%m%d")_qmk_$(git describe --abbrev=0 --tags)_$(git rev-parse --short HEAD)_via_v$VIA_VERSION"
 
 # generate via json file
-QMK_HOME="$QMK_HOME" VIA_APP_HOME="$VIA_APP_HOME" VIA_VERSION=$VIA_VERSION \
-        "$PROJECT/util/generate_via_json.js" $MAKE_TARGETS[*]
+VIA_VERSION=$VIA_VERSION "$PROJECT/util/generate_via_json.js" $MAKE_TARGETS[*]
 
 # dist
 # -----------------------------------
