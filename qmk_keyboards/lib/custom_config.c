@@ -69,6 +69,15 @@ void custom_config_init() {
   setPinOutput(CUSTOM_CONFIG_USJ_MODE_PIN);
   writePin(CUSTOM_CONFIG_USJ_MODE_PIN, custom_config_is_usj());
 #endif
+#ifdef CUSTOM_CONFIG_FORCE_RHID
+  kb_config.raw_hid = CUSTOM_CONFIG_FORCE_RHID;
+#endif
+#ifdef CUSTOM_CONFIG_FORCE_MAC
+  kb_config.mac = CUSTOM_CONFIG_FORCE_MAC;
+#endif
+#ifdef CUSTOM_CONFIG_FORCE_USJ
+  kb_config.usj = CUSTOM_CONFIG_FORCE_USJ;
+#endif
 }
 
 bool process_record_custom_config(uint16_t keycode, keyrecord_t *record) {
@@ -113,7 +122,9 @@ void custom_config_raw_hid_toggle_enable() { custom_config_raw_hid_set_enable(!k
 void custom_config_raw_hid_set_enable(bool enable) {
   if (enable != kb_config.raw_hid) {
     kb_config.raw_hid = enable;
+#ifndef CUSTOM_CONFIG_FORCE_RHID
     eeconfig_update_kb(kb_config.raw);
+#endif
   }
 }
 
@@ -124,7 +135,9 @@ void custom_config_toggle_mac() { custom_config_set_mac(!kb_config.mac); }
 void custom_config_set_mac(bool mac) {
   if (mac != kb_config.mac) {
     kb_config.mac = mac;
+#ifndef CUSTOM_CONFIG_FORCE_MAC
     eeconfig_update_kb(kb_config.raw);
+#endif
     // reboot for changing USB device descriptor
     soft_reset_keyboard();
   }
@@ -137,7 +150,9 @@ void custom_config_toggle_usj() { custom_config_set_usj(!kb_config.usj); }
 void custom_config_set_usj(bool usj) {
   if (usj != kb_config.usj) {
     kb_config.usj = usj;
+#ifndef CUSTOM_CONFIG_FORCE_USJ
     eeconfig_update_kb(kb_config.raw);
+#endif
 #ifdef CUSTOM_CONFIG_USJ_MODE_PIN
     writePin(CUSTOM_CONFIG_USJ_MODE_PIN, usj);
 #endif
