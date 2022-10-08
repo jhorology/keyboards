@@ -67,6 +67,7 @@ void custom_config_init() {
 #endif
 #ifdef CUSTOM_CONFIG_MAC_MODE_PIN
   setPinOutput(CUSTOM_CONFIG_MAC_MODE_PIN);
+  writePin(CUSTOM_CONFIG_MAC_MODE_PIN, kb_config.mac);
 #endif
 #ifdef CUSTOM_CONFIG_USJ_MODE_PIN
   setPinOutput(CUSTOM_CONFIG_USJ_MODE_PIN);
@@ -133,10 +134,7 @@ bool custom_config_is_mac() { return kb_config.mac; }
 
 void custom_config_toggle_mac() { custom_config_set_mac(!kb_config.mac); }
 
-static void _custom_config_set_mac(bool mac) {
-  kb_config.mac = mac;
-  default_layer_set(mac ? 0 : 1);
-}
+static void _custom_config_set_mac(bool mac) { kb_config.mac = mac; }
 
 void custom_config_set_mac(bool mac) {
   if (mac != kb_config.mac) {
