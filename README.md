@@ -4,6 +4,9 @@ This is a personal project for my own keyboards.
 ## Custom Keycodes
 | Code | Descrption| Notes|
 |------|-----------|--------
+| RHID_TOGG | Toggle allow or deny the access of RAW HID. | - Non-volatile setting<br/> - When using VIA, it should be on.|
+| RHID_ON | Allow the access of RAW HID. |"|
+| RHID_OFF | Deny the access of RAW HID. |"|
 | MAC_TOGG | Toggle enabling or disabling true apple mode with switching base layer 0(apple mode) or 1. | - Non-volatile setting<br/> - When using VIA, it should be off.|
 | MAC_ON | Enablle true apple mode with switching base layer 0(apple mode) |"|
 | MAC_OFF | Disable true apple mode with switching base layer 1 |"|
@@ -13,9 +16,9 @@ This is a personal project for my own keyboards.
 | USJ_TOGG | Toggle enabling or disabling 社畜PC mode that is available to use ANSI layout on JIS driver. |Non-volatile setting|
 | USJ_ON | Enable 社畜PC mode |"|
 | USJ_OFF | Disable 社畜PC mode |"|
-| DIAL_BUT | Button located on radial controller ||
-| DIAL_L| Counter clockwise rotation of the radial controller. While pressing shift key, the rotation speed becomes slow 1/4 fine mode ||
-| DIAL_R| Clockwise rotation of the radial controller. While pressing shift key, the rotation speed becomes slow 1/4 fine mode ||
+| RC_BTN | Button located on radial controller ||
+| RC_CCW| Counter clockwise rotation of the radial controller. While pressing shift key, the rotation speed becomes slow as 1/4 fine mode ||
+| RC_CW| Clockwise rotation of the radial controller. While pressing shift key, the rotation speed becomes slow as 1/4 fine mode ||
 | RGB_TOGX | Toggle keylight on/off. While pressing shift key, toggle underglow on/off  | FK680ProV2 only |
 
 ## Apple Fn/Globe Shortcuts
@@ -69,9 +72,6 @@ This is a personal project for my own keyboards.
 - Radial Controller
   - [Radial controller protocol implementation](https://docs.microsoft.com/en-us/windows-hardware/design/component-guidelines/radial-controller-protocol-implementation)
   - [zqlib](https://github.com/zhaqian12/qmk_firmware/blob/zhaqian/keyboards/zhaqian/readme.md)
-- VIAL
-  - [vial-qmk](https://github.com/vial-kb/vial-qmk)
-  - [docs](https://get.vial.today/)
 - [VIA](https://www.caniusevia.com/)
 - [STM32F103xB UF2 bootloader](https://github.com/mmoskal/uf2-stm32f103)
   - [qmk-zq](https://github.com/zhaqian12/qmk_firmware)
