@@ -10,6 +10,8 @@ const path = require('path'),
     isVIADefinitionV3,
     isKeyboardDefinitionV3
   } = require('via-reader'),
+  RGB_MATRIX_EFFECTS_MENU = require('./common-menus.json').rgb_matrix_effects,
+  QMK_HOME = process.env['QMK_HOME'],
   VIA_VERSION = parseInt(process.env['VIA_VERSION']),
   MAKE_TARGETS = process.argv.slice(2),
   PROJECT_DIR = path.join(__dirname, '..'),
@@ -51,7 +53,7 @@ async function build(target) {
         : options.RGBLIGHT_ENABLE === 'yes'
         ? 'qmk_rgblight'
         : options.RGB_MATRIX_ENABLE === 'yes'
-        ? 'qmk_rgb_matrix'
+        ? await getRgbMatrixEffects(targetDir)
         : undefined
     if (lighting) {
       // TODO custom configuration
@@ -81,7 +83,6 @@ async function build(target) {
   validate(target, via)
 
   // output JSON
-
   await fs.writeFile(
     path.join(OUTPUT_DIR, `${target}_via_v${VIA_VERSION}.json`),
     JSON.stringify(via, null, 2)
@@ -148,6 +149,92 @@ async function getCustomKeycodes(targetDir) {
     ...(await readJson(path.join(LIB_DIR, 'custom_keycodes.json'), [])),
     ...(await readJson(path.join(targetDir, 'custom_keycodes.json'), []))
   ]
+}
+
+async function getRgbMatrixEffects(targetDir) {
+  const enabledEffects = [
+      ...(
+        await fs.readFile(path.join(targetDir, 'config.h'), 'utf-8')
+      ).matchAll(/^\s*#\s*define\s+ENABLE_RGB_MATRIX_(\w+)\b/gm)
+    ].map((match) => match[1]),
+    effectHeaders = [
+      ...(
+        await fs.readFile(
+          path.join(
+            QMK_HOME,
+            'quantum/rgb_matrix/animations/rgb_matrix_effects.inc'
+          ),
+          'utf-8'
+        )
+      ).matchAll(/^#include\s*"(\w+\.h)"/gm)
+    ].map((match) => match[1])
+  const qmkEffects = ['ALL_OFF']
+  for (let i = 0; i < effectHeaders.length; i++) {
+    Array.prototype.push.apply(
+      qmkEffects,
+      [
+        ...(
+          await fs.readFile(
+            path.join(
+              QMK_HOME,
+              'quantum/rgb_matrix/animations',
+              effectHeaders[i]
+            ),
+            'utf-8'
+          )
+        ).matchAll(/^\s*RGB_MATRIX_EFFECT\(\s*(\w+)\s*\)/gm)
+      ].map((match) => match[1])
+    )
+  }
+  const effectOptions = qmkEffects
+    .filter(
+      (effect) =>
+        effect === 'ALL_OFF' ||
+        effect === 'SOLID_COLOR' ||
+        enabledEffects.includes(effect)
+    )
+    .map((effect, index) => [
+      effect
+        .split('_')
+        .map((w) => w[0] + w.substr(1).toLowerCase())
+        .join(' '),
+      index
+    ])
+  return {
+    label: 'Lighting',
+    content: [
+      {
+        label: 'Backlight',
+        content: [
+          {
+            label: 'Brightness',
+            type: 'range',
+            options: [0, 255],
+            content: ['id_qmk_rgb_matrix_brightness', 3, 1]
+          },
+          {
+            label: 'Effect',
+            type: 'dropdown',
+            content: ['id_qmk_rgb_matrix_effect', 3, 2],
+            options: effectOptions
+          },
+          {
+            showIf: '{id_qmk_rgb_matrix_effect} != 0',
+            label: 'Effect Speed',
+            type: 'range',
+            options: [0, 255],
+            content: ['id_qmk_rgb_matrix_effect_speed', 3, 3]
+          },
+          {
+            showIf: '{id_qmk_rgb_matrix_effect} != 0',
+            label: 'Color',
+            type: 'color',
+            content: ['id_qmk_rgb_matrix_color', 3, 4]
+          }
+        ]
+      }
+    ]
+  }
 }
 
 async function readJson(filePath, emptyValue) {

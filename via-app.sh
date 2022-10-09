@@ -20,6 +20,7 @@ if (( $#help )); then
         "$0:t [options...] TARGET" \
         "" \
         "options:" \
+        "  --qmk-home <QMK_HOME>            location for local qmk_firmware repository" \
         "  --via-app-home <VIA_APP_HOME>    location for local via/app repository" \
         "  --via-version <2|3>              VIA version 2 or 3 default: 3" \
         "  -w,--without-generate            Use JSON file in dist folder without running builder"
@@ -31,6 +32,7 @@ if [ $# = 0 ]; then
   exit 1
 fi
 if [ $# != 1 ]; then
+  # becuase all my keyboards are assigned same Product/Vendor ID in mac mode.
   print -r "Error: Only one target is allowed." >&2
   exit 1
 fi
@@ -72,7 +74,7 @@ MAKE_TARGET=$KEYBOARDS[$TARGET]
 if $BUILD_JSON; then
   mkdir -p dist
   # generate via json file
-  VIA_VERSION=$VIA_VERSION \
+  VIA_VERSION=$VIA_VERSION QMK_HOME="$QMK_HOME" \
     "$PROJECT/util/generate_via_json.js" $MAKE_TARGET
 fi
 
@@ -86,14 +88,15 @@ mkdir node_modules/via-keyboards/v3
 # copy JSON files in via-keyboards
 #______________________________________
 OUTPUT_DIR=node_modules/via-keyboards/v3
-[ $VIA_VERSION = 2 ] &&
+[ $VIA_VERSION = 2 ] && \
   OUTPUT_DIR=node_modules/via-keyboards/src
 cp "dist/${MAKE_TARGET//\//_}_via_v${VIA_VERSION}"*.json "$OUTPUT_DIR"
-
 
 # convert JSON to via/app definition
 #______________________________________
 rm -rf "${VIA_APP_HOME}/public/definitions"
+
+# TODO via-keybopards command rimraf dist folder
 npx via-keyboards "${VIA_APP_HOME}/public/definitions"
 
 # start VIA

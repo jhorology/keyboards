@@ -133,7 +133,8 @@ make -j $MAKE_JOBS $MAKE_TARGETS[*]
 VERSION="$(date +"%Y%m%d")_qmk_$(git describe --abbrev=0 --tags)_$(git rev-parse --short HEAD)_via_v$VIA_VERSION"
 
 # generate via json file
-VIA_VERSION=$VIA_VERSION "$PROJECT/util/generate_via_json.js" $MAKE_TARGETS[*]
+QMK_HOME="$QMK_HOME" VIA_VERSION=$VIA_VERSION \
+  "$PROJECT/util/generate_via_json.js" $MAKE_TARGETS[*]
 
 # dist
 # -----------------------------------
