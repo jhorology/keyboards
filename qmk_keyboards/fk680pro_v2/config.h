@@ -75,39 +75,34 @@
 #define ENABLE_RGB_MATRIX_RAINDROPS               // Randomly changes a single key's hue
 #define ENABLE_RGB_MATRIX_JELLYBEAN_RAINDROPS     // Randomly changes a single key's hue and saturation
 #define ENABLE_RGB_MATRIX_HUE_BREATHING           // Hue shifts up a slight ammount at the same time, then shifts back
-#define ENABLE_RGB_MATRIX_HUE_PENDULUM   // Hue shifts up a slight ammount in a wave to the right, then back to the
-                                         // left
-#define ENABLE_RGB_MATRIX_HUE_WAVE       // Hue shifts up a slight ammount and then back down in a wave to the right
-#define ENABLE_RGB_MATRIX_PIXEL_FRACTAL  // Single hue fractal filled keys pulsing horizontally out to edges
-#define ENABLE_RGB_MATRIX_PIXEL_FLOW     // Pulsing RGB flow along LED wiring with random hues
-#define ENABLE_RGB_MATRIX_PIXEL_RAIN     // Randomly light keys with random hues#define ENABLE_RGB_MATRIX_ALPHAS_MODS
-
-#ifdef RGB_MATRIX_FRAMEBUFFER_EFFECTS
-#  define ENABLE_RGB_MATRIX_TYPING_HEATMAP  // How hot is your WPM!
-#  define ENABLE_RGB_MATRIX_DIGITAL_RAIN    // That famous computer simulation
-#  if defined(RGB_MATRIX_KEYPRESSES) || defined(RGB_MATRIX_KEYRELEASES)
-#    define ENABLE_RGB_MATRIX_SOLID_REACTIVE_SIMPLE  // Pulses keys hit to hue & value then fades value out
-#    define ENABLE_RGB_MATRIX_SOLID_REACTIVE         // Static single hue, pulses keys hit to shifted hue then fades to
+#define ENABLE_RGB_MATRIX_HUE_PENDULUM    // Hue shifts up a slight ammount in a wave to the right, then back to the
+                                          // left
+#define ENABLE_RGB_MATRIX_HUE_WAVE        // Hue shifts up a slight ammount and then back down in a wave to the right
+#define ENABLE_RGB_MATRIX_PIXEL_FRACTAL   // Single hue fractal filled keys pulsing horizontally out to edges
+#define ENABLE_RGB_MATRIX_PIXEL_FLOW      // Pulsing RGB flow along LED wiring with random hues
+#define ENABLE_RGB_MATRIX_PIXEL_RAIN      // Randomly light keys with random hues#define ENABLE_RGB_MATRIX_ALPHAS_MODS
+#define ENABLE_RGB_MATRIX_TYPING_HEATMAP  // How hot is your WPM!
+#define ENABLE_RGB_MATRIX_DIGITAL_RAIN    // That famous computer simulation
+#define ENABLE_RGB_MATRIX_SOLID_REACTIVE_SIMPLE      // Pulses keys hit to hue & value then fades value out
+#define ENABLE_RGB_MATRIX_SOLID_REACTIVE             // Static single hue, pulses keys hit to shifted hue then fades to
                                                      // current hue
-#    define ENABLE_RGB_MATRIX_SOLID_REACTIVE_WIDE    // Hue & value pulse near a single key hit then fades value out
-#    define ENABLE_RGB_MATRIX_SOLID_REACTIVE_MULTIWIDE  // Hue & value pulse near multiple key hits then fades value
-                                                        // out
-#    define ENABLE_RGB_MATRIX_SOLID_REACTIVE_CROSS      // Hue & value pulse the same column and row of a single key hit
-                                                        // then fades value out
-#    define ENABLE_RGB_MATRIX_SOLID_REACTIVE_MULTICROSS  // Hue & value pulse the same column and row of multiple key
-                                                         // hits then fades value out
-#    define ENABLE_RGB_MATRIX_SOLID_REACTIVE_NEXUS  // Hue & value pulse away on the same column and row of a single
-                                                    // key hit then fades value out
-#    define ENABLE_RGB_MATRIX_SOLID_REACTIVE_MULTINEXUS  // Hue & value pulse away on the same column and row of
-                                                         // multiple key hits then fades value out
-#    define ENABLE_RGB_MATRIX_SPLASH  // Full gradient & value pulse away from a single key hit then fades value out
-#    define ENABLE_RGB_MATRIX_MULTISPLASH        // Full gradient & value pulse away from multiple key hits then fades
-                                                 // value out
-#    define ENABLE_RGB_MATRIX_SOLID_SPLASH       // Hue & value pulse away from a single key hit then fades value out
-#    define ENABLE_RGB_MATRIX_SOLID_MULTISPLASH  // Hue & value pulse away from multiple key hits then fades value
-                                                 // out
-#  endif
-#endif
+#define ENABLE_RGB_MATRIX_SOLID_REACTIVE_WIDE        // Hue & value pulse near a single key hit then fades value out
+#define ENABLE_RGB_MATRIX_SOLID_REACTIVE_MULTIWIDE   // Hue & value pulse near multiple key hits then fades value
+                                                     // out
+#define ENABLE_RGB_MATRIX_SOLID_REACTIVE_CROSS       // Hue & value pulse the same column and row of a single key hit
+                                                     // then fades value out
+#define ENABLE_RGB_MATRIX_SOLID_REACTIVE_MULTICROSS  // Hue & value pulse the same column and row of multiple key
+                                                     // hits then fades value out
+#define ENABLE_RGB_MATRIX_SOLID_REACTIVE_NEXUS       // Hue & value pulse away on the same column and row of a single
+                                                     // key hit then fades value out
+#define ENABLE_RGB_MATRIX_SOLID_REACTIVE_MULTINEXUS  // Hue & value pulse away on the same column and row of
+                                                     // multiple key hits then fades value out
+#define ENABLE_RGB_MATRIX_SPLASH        // Full gradient & value pulse away from a single key hit then fades value out
+#define ENABLE_RGB_MATRIX_MULTISPLASH   // Full gradient & value pulse away from multiple key hits then fades
+                                        // value out
+#define ENABLE_RGB_MATRIX_SOLID_SPLASH  // Hue & value pulse away from a single key hit then fades value out
+#define ENABLE_RGB_MATRIX_SOLID_MULTISPLASH  // Hue & value pulse away from multiple key hits then fades value
+                                             // out
 
 /* definitions for my_keyboard_commoon lib */
 #define RGB_MATRIX_CAPS_LOCK_LED 3  // left side of spacebar

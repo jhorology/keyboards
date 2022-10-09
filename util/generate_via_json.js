@@ -10,7 +10,6 @@ const path = require('path'),
     isVIADefinitionV3,
     isKeyboardDefinitionV3
   } = require('via-reader'),
-  RGB_MATRIX_EFFECTS_MENU = require('./common-menus.json').rgb_matrix_effects,
   QMK_HOME = process.env['QMK_HOME'],
   VIA_VERSION = parseInt(process.env['VIA_VERSION']),
   MAKE_TARGETS = process.argv.slice(2),
@@ -109,39 +108,30 @@ async function getLayouts(targetDir) {
 }
 
 async function getDefineValues(targetDir) {
-  const regexp = /^\s*#\s*define\s+(\w+)\s+(0x[0-9a-fA-F]+|[0-9]+)\b/gm,
-    hasSecureConfig = readable(path.join(targetDir, 'secure_config.h'))
-  return [
-    ...(
-      await fs.readFile(path.join(KEYBOARDS_DIR, 'config.h'), 'utf-8')
-    ).matchAll(regexp),
-    ...(await fs.readFile(path.join(targetDir, 'config.h'), 'utf-8')).matchAll(
-      regexp
-    ),
-    ...(hasSecureConfig
-      ? (
-          await fs.readFile(path.join(targetDir, 'secure_config.h'), 'utf-8')
-        ).matchAll(regexp)
-      : [])
-  ].reduce((obj, match) => {
-    obj[match[1]] = parseInt(match[2])
-    return obj
-  }, {})
+  const files = [
+      path.join(KEYBOARDS_DIR, 'config.h'),
+      path.join(targetDir, 'config.h')
+    ],
+    secureConfig = path.join(targetDir, 'secure_config.h')
+  if (readable(secureConfig)) {
+    files.push(secureConfig)
+  }
+  return await find_all_with_reduce(
+    files,
+    /^\s*#\s*define\s+(\w+)\s+(0x[0-9a-fA-F]+|[0-9]+)\b/gm,
+    (obj, match) => {
+      obj[match[1]] = parseInt(match[2])
+      return obj
+    },
+    {}
+  )
 }
 
 async function getMakeOptions(targetDir) {
-  const regexp = /^\s*(\w+)\s*=\s*(yes|no)/gm
-  return [
-    ...(
-      await fs.readFile(path.join(KEYBOARDS_DIR, 'rules.mk'), 'utf-8')
-    ).matchAll(regexp),
-    ...(await fs.readFile(path.join(targetDir, 'rules.mk'), 'utf-8')).matchAll(
-      regexp
-    )
-  ].reduce((opts, match) => {
-    opts[match[1]] = match[2]
-    return opts
-  }, {})
+  return await find_all_with_reduce(
+    [path.join(KEYBOARDS_DIR, 'rules.mk'), path.join(targetDir, 'rules.mk')],
+    /^\s*(\w+)\s*=\s*(yes|no)/gm
+  )
 }
 
 async function getCustomKeycodes(targetDir) {
@@ -152,54 +142,34 @@ async function getCustomKeycodes(targetDir) {
 }
 
 async function getRgbMatrixEffects(targetDir) {
-  const enabledEffects = [
-      ...(
-        await fs.readFile(path.join(targetDir, 'config.h'), 'utf-8')
-      ).matchAll(/^\s*#\s*define\s+ENABLE_RGB_MATRIX_(\w+)\b/gm)
-    ].map((match) => match[1]),
-    effectHeaders = [
-      ...(
-        await fs.readFile(
-          path.join(
-            QMK_HOME,
-            'quantum/rgb_matrix/animations/rgb_matrix_effects.inc'
-          ),
-          'utf-8'
-        )
-      ).matchAll(/^#include\s*"(\w+\.h)"/gm)
-    ].map((match) => match[1])
-  const qmkEffects = ['ALL_OFF']
-  for (let i = 0; i < effectHeaders.length; i++) {
-    Array.prototype.push.apply(
-      qmkEffects,
-      [
-        ...(
-          await fs.readFile(
-            path.join(
-              QMK_HOME,
-              'quantum/rgb_matrix/animations',
-              effectHeaders[i]
-            ),
-            'utf-8'
-          )
-        ).matchAll(/^\s*RGB_MATRIX_EFFECT\(\s*(\w+)\s*\)/gm)
-      ].map((match) => match[1])
-    )
-  }
-  const effectOptions = qmkEffects
-    .filter(
-      (effect) =>
-        effect === 'ALL_OFF' ||
-        effect === 'SOLID_COLOR' ||
-        enabledEffects.includes(effect)
-    )
-    .map((effect, index) => [
-      effect
-        .split('_')
-        .map((w) => w[0] + w.substr(1).toLowerCase())
-        .join(' '),
-      index
-    ])
+  const enabledEffects = await find_all(
+      path.join(targetDir, 'config.h'),
+      /^\s*#\s*define\s+ENABLE_RGB_MATRIX_(\w+)\b/gm
+    ),
+    effectFiles = (
+      await find_all(
+        path.join(
+          QMK_HOME,
+          'quantum/rgb_matrix/animations/rgb_matrix_effects.inc'
+        ),
+        /^#include\s*"(\w+\.h)"/gm
+      )
+    ).map((f) => path.join(QMK_HOME, 'quantum/rgb_matrix/animations', f)),
+    effectOptions = [
+      'ALL_OFF',
+      ...(await find_all(effectFiles, /^\s*RGB_MATRIX_EFFECT\(\s*(\w+)\s*\)/gm))
+    ]
+      .filter(
+        (e) =>
+          e === 'ALL_OFF' || e === 'SOLID_COLOR' || enabledEffects.includes(e)
+      )
+      .map((e, index) => [
+        e
+          .split('_')
+          .map((w) => w[0] + w.substr(1).toLowerCase())
+          .join(' '),
+        index
+      ])
   return {
     label: 'Lighting',
     content: [
@@ -274,6 +244,49 @@ function validate(target, via) {
       )}`
     )
   }
+}
+
+async function find_all(fileOrFiles, regexp, mapper = (match) => match[1]) {
+  if (Array.isArray(fileOrFiles)) {
+    const result = []
+    for (let i = 0; i < fileOrFiles.length; i++) {
+      Array.prototype.push.apply(
+        result,
+        await find_all(fileOrFiles[i], regexp, mapper)
+      )
+    }
+    return result
+  }
+  return [...(await fs.readFile(fileOrFiles, 'utf-8')).matchAll(regexp)].map(
+    mapper
+  )
+}
+
+async function find_all_with_reduce(
+  fileOrFiles,
+  regexp,
+  reducer = (obj, match) => {
+    obj[match[1]] = match[2]
+    return obj
+  },
+  initialValue = {}
+) {
+  if (Array.isArray(fileOrFiles)) {
+    let result = initialValue
+    for (let i = 0; i < fileOrFiles.length; i++) {
+      result = await find_all_with_reduce(
+        fileOrFiles[i],
+        regexp,
+        reducer,
+        result
+      )
+    }
+    return result
+  }
+  return [...(await fs.readFile(fileOrFiles, 'utf-8')).matchAll(regexp)].reduce(
+    reducer,
+    initialValue
+  )
 }
 
 Promise.all(
