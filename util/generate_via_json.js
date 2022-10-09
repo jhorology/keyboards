@@ -146,15 +146,14 @@ async function getRgbMatrixEffects(targetDir) {
       path.join(targetDir, 'config.h'),
       /^\s*#\s*define\s+ENABLE_RGB_MATRIX_(\w+)\b/gm
     ),
-    effectFiles = (
-      await find_all(
-        path.join(
-          QMK_HOME,
-          'quantum/rgb_matrix/animations/rgb_matrix_effects.inc'
-        ),
-        /^#include\s*"(\w+\.h)"/gm
-      )
-    ).map((f) => path.join(QMK_HOME, 'quantum/rgb_matrix/animations', f)),
+    effectFiles = await find_all(
+      path.join(
+        QMK_HOME,
+        'quantum/rgb_matrix/animations/rgb_matrix_effects.inc'
+      ),
+      /^#include\s*"(\w+\.h)"/gm,
+      (match) => path.join(QMK_HOME, 'quantum/rgb_matrix/animations', match[1])
+    ),
     effectOptions = [
       'ALL_OFF',
       ...(await find_all(effectFiles, /^\s*RGB_MATRIX_EFFECT\(\s*(\w+)\s*\)/gm))
