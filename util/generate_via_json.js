@@ -258,7 +258,7 @@ async function readJsOrJson(filePath, options, defines, emptyValue) {
     }
     return result ? result : emptyValue
   }
-  return readJson(filePath + '.json', options, defines, emptyValue)
+  return await readJson(filePath + '.json', options, defines, emptyValue)
 }
 
 async function readJson(filePath, options, defines, emptyValue) {
