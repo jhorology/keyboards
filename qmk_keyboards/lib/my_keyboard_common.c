@@ -42,7 +42,10 @@ const tap_dance_entry_t PROGMEM via_tap_dance_entries_default[] = {
     [TD_LALT_APFF_EISU_KANA] = {KC_LNG2, KC_LALT, KC_LNG1, APPLE_FF, TAPPING_TERM},
 
     // Apple Fn key + IME switch
-    [TD_APFF_EISU_KANA] = {KC_LNG2, APPLE_FF, KC_LNG1, APPLE_FF, TAPPING_TERM}};
+    [TD_APFF_EISU_KANA] = {KC_LNG2, APPLE_FF, KC_LNG1, APPLE_FF, TAPPING_TERM},
+
+    // for debug
+    [TD_TEST] = {USER00, USER01, KC_A, KC_B, 1000}};
 
 combo_t key_combos[COMBO_COUNT] = {};
 
@@ -76,7 +79,7 @@ void keyboard_pre_init_kb(void) {
 }
 
 void keyboard_post_init_kb(void) {
-  default_layer_set(custom_config_is_mac() ? 1 : 2);
+  default_layer_set(custom_config_mac_is_enable() ? 1 : 2);
   tap_dance_actions_init();
   keyboard_post_init_user();
 }

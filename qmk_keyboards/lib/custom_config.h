@@ -16,8 +16,32 @@
 
 #pragma once
 
+#include "lib/tap_dance.h"
 #include "quantum.h"
-#include "tap_dance.h"
+#include "via.h"
+
+enum via_custom_channel_id {
+  id_custom_td_channel = 5,  // Tap Dance
+  id_custom_rc_channel = 6   // Radial Controller
+};
+
+enum via_custom_rc_value_id {
+  id_custom_rc_encoder_clicks = 1,
+  id_custom_rc_key_angular_speed = 2,
+  id_custom_rc_fine_tune_ratio = 3,
+  id_custom_rc_fine_tune_mod_ctrl = 4,
+  id_custom_rc_fine_tune_mod_shift = 5,
+  id_custom_rc_fine_tune_mod_alt = 6,
+  id_custom_rc_fine_tune_mod_gui = 7,
+};
+
+enum via_custom_td_value_id {
+  id_custom_td_single_tap = 1,
+  id_custom_td_single_hold = 2,
+  id_custom_td_multi_tap = 3,
+  id_custom_td_tap_hold = 4,
+  id_custom_td_tapping_term = 5,
+};
 
 bool process_record_custom_config(uint16_t keycode, keyrecord_t *record);
 
@@ -28,24 +52,35 @@ bool custom_config_raw_hid_is_enable(void);
 void custom_config_raw_hid_toggle_enable(void);
 void custom_config_raw_hid_set_enable(bool);
 
-bool custom_config_is_mac(void);
-void custom_config_toggle_mac(void);
-void custom_config_set_mac(bool);
+bool custom_config_mac_is_enable(void);
+void custom_config_mac_toggle_enable(void);
+void custom_config_mac_set_enable(bool);
 
-bool custom_config_is_usj(void);
-void custom_config_toggle_usj(void);
-void custom_config_set_usj(bool);
+bool custom_config_usj_is_enable(void);
+void custom_config_usj_toggle_enable(void);
+void custom_config_usj_set_enable(bool);
 
 #ifdef RADIAL_CONTROLLER_ENABLE
-uint16_t custom_config_get_rc_deg_per_click(void);
-void custom_config_set_rc_deg_per_click(uint16_t);
-
-uint16_t custom_config_get_rc_deg_per_sec(void);
-void custom_config_set_rc_deg_per_sec(uint16_t);
+uint8_t custom_config_rc_get_encoder_clicks(void);
+uint16_t custom_config_rc_get_key_angular_speed(void);
+uint8_t custom_config_rc_get_fine_tune_ratio(void);
+bool custom_config_rc_is_fine_tune_mod(void);
+#  if VIA_VERSION == 3
+void via_custom_rc_command(uint8_t *data, uint8_t length);
+void via_custom_rc_get_value(uint8_t *data);
+void via_custom_rc_set_value(uint8_t *data);
+void via_custom_rc_save(void);
+#  endif  // VIA_VERSION == 3
 #endif
 
 void dynamic_tap_dance_reset(const tap_dance_entry_t *entry, uint8_t len);
 uint16_t dynamic_tap_dance_keycode(uint16_t index, tap_dance_state_t state);
 uint16_t dynamic_tap_dance_tapping_term(uint16_t index);
+#if VIA_VERSION == 3
+void via_custom_td_command(uint8_t *data, uint8_t length);
+void via_custom_td_get_value(uint8_t *data);
+void via_custom_td_set_value(uint8_t *data);
+void via_custom_td_save(void);
+#endif  // VIA_VERSION == 3
 
 void pgm_memcpy(void *dest, const void *src, size_t len);

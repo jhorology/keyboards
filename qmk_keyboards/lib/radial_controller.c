@@ -58,10 +58,9 @@ static void process_dial(int16_t direction, keyrecord_t* record) {
 }
 
 static void process_dial_encoder(int16_t direction) {
-  uint16_t amount = custom_config_get_rc_deg_per_click() * 10;
-  // 1/4 fine speed
-  if (get_mods() & MOD_MASK_SHIFT) {
-    amount >>= 2;
+  uint16_t amount = 3600 / custom_config_rc_get_encoder_clicks();
+  if (custom_config_rc_is_fine_tune_mod()) {
+    amount >>= custom_config_rc_get_fine_tune_ratio();
   }
   radial_controller_report.dial = direction * amount;
   host_radial_controller_send(&radial_controller_report);
@@ -118,13 +117,13 @@ static uint32_t dial_rotation_service(uint32_t trigger_time, void* cb_arg) {
 }
 
 static void report_dial_keyswitch() {
-  int16_t speed = custom_config_get_rc_deg_per_sec() * RADIAL_CONTROLLER_REPORT_INTERVAL_MILLIS / 100;
+  int16_t speed = custom_config_rc_get_key_angular_speed() * RADIAL_CONTROLLER_REPORT_INTERVAL_MILLIS / 100;
   if (speed > 3600) {
     speed = 3600;
   }
   // 1/4 fine speed
-  if (get_mods() & MOD_MASK_SHIFT) {
-    speed >>= 2;
+  if (custom_config_rc_is_fine_tune_mod()) {
+    speed >>= custom_config_rc_get_fine_tune_ratio();
   }
   radial_controller_report.dial = rotating_direction * speed;
   host_radial_controller_send(&radial_controller_report);

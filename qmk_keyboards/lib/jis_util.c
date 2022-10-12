@@ -86,7 +86,7 @@ bool process_ansi_layout_on_jis(uint16_t keycode, keyrecord_t *record) {
       }
       return false;
     default:
-      if (custom_config_is_usj()) {
+      if (custom_config_usj_is_enable()) {
         return process_layout_conversion(&ansi_on_jis_table[0],
                                          sizeof(ansi_on_jis_table) / sizeof(layout_conversion_item_t), keycode, record);
       }

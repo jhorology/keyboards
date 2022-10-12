@@ -128,7 +128,7 @@ fi
 rm -f keyboards/my_keyboards
 ln -s "${PROJECT}/qmk_keyboards" keyboards/my_keyboards
 
-make -j $MAKE_JOBS $MAKE_TARGETS[*]
+make -j $MAKE_JOBS $MAKE_TARGETS[*] VIA_VERSION=$VIA_VERSION
 
 VERSION="$(date +"%Y%m%d")_qmk_$(git describe --abbrev=0 --tags)_$(git rev-parse --short HEAD)_via_v$VIA_VERSION"
 

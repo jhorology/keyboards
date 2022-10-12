@@ -66,13 +66,13 @@ static bool process_apple_ff_fkey(uint16_t fkey_index, keyrecord_t *record) {
   if (record->event.pressed) {
     if (apple_ff) {
       apple_ff_flags |= flag;
-      register_code16(custom_config_is_mac() ? KC_F1 + fkey_index : apple_like_fkeys[fkey_index]);
+      register_code16(custom_config_mac_is_enable() ? KC_F1 + fkey_index : apple_like_fkeys[fkey_index]);
       return false;
     }
   } else {
     if (apple_ff_flags & flag) {
       apple_ff_flags &= ~flag;
-      unregister_code16(custom_config_is_mac() ? KC_F1 + fkey_index : apple_like_fkeys[fkey_index]);
+      unregister_code16(custom_config_mac_is_enable() ? KC_F1 + fkey_index : apple_like_fkeys[fkey_index]);
       return false;
     }
   }

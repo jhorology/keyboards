@@ -29,5 +29,8 @@ enum tap_dance_action_index {
   // Apple Fn key + IME switch
   TD_APFF_EISU_KANA,  // Apple Fn/Globe + FK override, on double tap: toggle send 英数/かな
 
+  // for debugging
+  TD_TEST,
+
   TAP_DANCE_PRE_DEFINED_LENGTH
 };

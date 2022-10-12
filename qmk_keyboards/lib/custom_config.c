@@ -16,11 +16,34 @@
 #include QMK_KEYBOARD_H
 #include "custom_config.h"
 
+#include <print.h>
+
 #include "custom_keycodes.h"
 #include "eeprom.h"
 
 #ifdef RADIAL_CONTROLLER_ENABLE
-#  include "radial_controller.h"
+#  ifndef RADIAL_CONTROLLER_ENCODER_CLICKS_DEFAULT
+#    define RADIAL_CONTROLLER_ENCODER_CLICKS_DEFAULT 36
+#  endif
+#  ifndef RADIAL_CONTROLLER_KEY_ANGULAR_SPEED_DEFAULT
+#    define RADIAL_CONTROLLER_KEY_ANGULAR_SPEED_DEFAULT 90
+#  endif
+#  ifndef RADIAL_CONTROLLER_FINE_TUNE_RATIO_DEFAULT
+#    define RADIAL_CONTROLLER_FINE_TUNE_RATIO_DEFAULT 2
+#  endif
+#  ifndef RADIAL_CONTROLLER_FINE_TUNE_MOD_CTRL_DEFAULT
+#    define RADIAL_CONTROLLER_FINE_TUNE_MOD_CTRL_DEFAULT false
+#  endif
+#  ifndef RADIAL_CONTROLLER_FINE_TUNE_MOD_SHIFT_DEFAULT
+#    define RADIAL_CONTROLLER_FINE_TUNE_MOD_SHIFT_DEFAULT true
+#  endif
+#  ifndef RADIAL_CONTROLLER_FINE_TUNE_MOD_ALT_DEFAULT
+#    define RADIAL_CONTROLLER_FINE_TUNE_MOD_ALT_DEFAULT false
+#  endif
+#  ifndef RADIAL_CONTROLLER_FINE_TUNE_MOD_GUI_DEFAULT
+#    define RADIAL_CONTROLLER_FINE_TUNE_MOD_GUI_DEFAULT false
+#  endif
+#  define RADIAL_CONTROLLER_KEY_ANGULAR_SPEED_OFFSET 15
 #endif
 
 typedef union {
@@ -37,16 +60,21 @@ static kb_config_t kb_config;
 typedef union {
   uint32_t raw;
   struct {
-    uint16_t deg_per_click : 9;  // encoder mode: degree per key press or encoder click.
-    uint16_t deg_per_sec : 9;    // keyswitch mode: degree per second
+    uint8_t encoder_clicks;       // encoder clicks per rotation
+    uint8_t key_angular_speed;    // degree per second, 15 - 270 (offset 15)
+    uint8_t fine_tune_ratio : 2;  // power-of-2 divider 0: none, 1: 1/2, 2:1/4, 3:1/8
+    bool fine_tune_mod_ctrl : 1;
+    bool fine_tune_mod_shift : 1;
+    bool fine_tune_mod_alt : 1;
+    bool fine_tune_mod_gui : 1;
   };
 } rc_config_t;
 static rc_config_t rc_config;
 #endif
 
 static void _custom_config_raw_hid_set_enable(bool enable);
-static void _custom_config_set_mac(bool enable);
-static void _custom_config_set_usj(bool enable);
+static void _custom_config_mac_set_enable(bool enable);
+static void _custom_config_usj_set_enable(bool enable);
 
 void custom_config_reset() {
   kb_config.raw = 0;
@@ -54,8 +82,14 @@ void custom_config_reset() {
   eeconfig_update_kb(kb_config.raw);
 #ifdef RADIAL_CONTROLLER_ENABLE
   rc_config.raw = 0;
-  rc_config.deg_per_click = RADIAL_CONTROLLER_ENCODER_DEGREE_PER_CLICK_DEFAULT;
-  rc_config.deg_per_sec = RADIAL_CONTROLLER_MOMENTARY_DEGREE_PER_SEC_DEFAULT;
+  rc_config.encoder_clicks = RADIAL_CONTROLLER_ENCODER_CLICKS_DEFAULT;
+  rc_config.key_angular_speed =
+      RADIAL_CONTROLLER_KEY_ANGULAR_SPEED_DEFAULT - RADIAL_CONTROLLER_KEY_ANGULAR_SPEED_OFFSET;
+  rc_config.fine_tune_ratio = RADIAL_CONTROLLER_FINE_TUNE_RATIO_DEFAULT;
+  rc_config.fine_tune_mod_ctrl = RADIAL_CONTROLLER_FINE_TUNE_MOD_CTRL_DEFAULT;
+  rc_config.fine_tune_mod_shift = RADIAL_CONTROLLER_FINE_TUNE_MOD_SHIFT_DEFAULT;
+  rc_config.fine_tune_mod_alt = RADIAL_CONTROLLER_FINE_TUNE_MOD_ALT_DEFAULT;
+  rc_config.fine_tune_mod_gui = RADIAL_CONTROLLER_FINE_TUNE_MOD_GUI_DEFAULT;
   eeprom_update_dword((uint32_t *)RADIAL_CONTROLLER_EEPROM_ADDR, rc_config.raw);
 #endif
 }
@@ -76,7 +110,7 @@ void custom_config_init() {
   _custom_config_raw_hid_set_enable(CUSTOM_CONFIG_FORCE_RHID);
 #endif
 #ifdef CUSTOM_CONFIG_FORCE_USJ
-  _custom_config_set_usj(CUSTOM_CONFIG_FORCE_USJ);
+  _custom_config_usj_set_enable(CUSTOM_CONFIG_FORCE_USJ);
 #endif
 }
 
@@ -93,27 +127,58 @@ bool process_record_custom_config(uint16_t keycode, keyrecord_t *record) {
         custom_config_raw_hid_set_enable(false);
         return false;
       case MAC_TOGG:
-        custom_config_toggle_mac();
+        custom_config_mac_toggle_enable();
         return false;
       case MAC_ON:
-        custom_config_set_mac(true);
+        custom_config_mac_set_enable(true);
         return false;
       case MAC_OFF:
-        custom_config_set_mac(false);
+        custom_config_mac_set_enable(false);
         return false;
       case USJ_TOGG:
-        custom_config_toggle_usj();
+        custom_config_usj_toggle_enable();
         return false;
       case USJ_ON:
-        custom_config_set_usj(true);
+        custom_config_usj_set_enable(true);
         return false;
       case USJ_OFF:
-        custom_config_set_usj(false);
+        custom_config_usj_set_enable(false);
         return false;
     }
   }
   return true;
 }
+
+#if VIA_VERSION == 3
+void via_custom_value_command_kb(uint8_t *data, uint8_t length) {
+  // data = [ command_id, channel_id, value_id, value_data ]
+  uint8_t *command_id = &(data[0]);
+  uint8_t *channel_id = &(data[1]);
+
+#  ifdef CONSOLE_ENABLE
+  uprintf("via_custom command_id:%d channel_id:%d value_id:%d length:%d data[0]:%d data[1]:%d\n", *command_id,
+          *channel_id, data[2], length, data[3], data[4]);
+#  endif
+
+  // Tap Dance
+  // TODO dosen't work
+  if (*channel_id == id_custom_td_channel) {
+    via_custom_td_command(data, length);
+    return;
+  }
+
+  // Radial Controller
+#  ifdef RADIAL_CONTROLLER_ENABLE
+  if (*channel_id == id_custom_rc_channel) {
+    via_custom_rc_command(data, length);
+    return;
+  }
+#  endif  // VIA_QMK_RGBLIGHT_ENABL
+
+  // Return the unhandled state
+  *command_id = id_unhandled;
+}
+#endif  // VIA_VERSION == 3
 
 bool custom_config_raw_hid_is_enable() { return kb_config.raw_hid; }
 
@@ -130,35 +195,35 @@ void custom_config_raw_hid_set_enable(bool enable) {
   }
 }
 
-bool custom_config_is_mac() { return kb_config.mac; }
+bool custom_config_mac_is_enable() { return kb_config.mac; }
 
-void custom_config_toggle_mac() { custom_config_set_mac(!kb_config.mac); }
+void custom_config_mac_toggle_enable() { custom_config_mac_set_enable(!kb_config.mac); }
 
-static void _custom_config_set_mac(bool mac) { kb_config.mac = mac; }
+static void _custom_config_mac_set_enable(bool mac) { kb_config.mac = mac; }
 
-void custom_config_set_mac(bool mac) {
+void custom_config_mac_set_enable(bool mac) {
   if (mac != kb_config.mac) {
-    _custom_config_set_mac(mac);
+    _custom_config_mac_set_enable(mac);
     eeconfig_update_kb(kb_config.raw);
     // reboot for changing USB device descriptor
     soft_reset_keyboard();
   }
 }
 
-bool custom_config_is_usj() { return kb_config.usj; }
+bool custom_config_usj_is_enable() { return kb_config.usj; }
 
-void custom_config_toggle_usj() { custom_config_set_usj(!kb_config.usj); }
+void custom_config_usj_toggle_enable() { custom_config_usj_set_enable(!kb_config.usj); }
 
-static void _custom_config_set_usj(bool usj) {
+static void _custom_config_usj_set_enable(bool usj) {
   kb_config.usj = usj;
 #ifdef CUSTOM_CONFIG_USJ_MODE_PIN
   writePin(CUSTOM_CONFIG_USJ_MODE_PIN, usj);
 #endif
 }
 
-void custom_config_set_usj(bool usj) {
+void custom_config_usj_set_enable(bool usj) {
   if (usj != kb_config.usj) {
-    _custom_config_set_usj(usj);
+    _custom_config_usj_set_enable(usj);
 #ifndef CUSTOM_CONFIG_FORCE_USJ
     eeconfig_update_kb(kb_config.raw);
 #endif
@@ -168,36 +233,128 @@ void custom_config_set_usj(bool usj) {
 // radial controller
 
 #ifdef RADIAL_CONTROLLER_ENABLE
-uint16_t custom_config_get_rc_deg_per_click(void) {
-  if (rc_config.deg_per_click > 0 && rc_config.deg_per_click <= 360) {
-    return rc_config.deg_per_click;
-  }
-  return RADIAL_CONTROLLER_ENCODER_DEGREE_PER_CLICK_DEFAULT;
+uint8_t custom_config_rc_get_encoder_clicks() { return rc_config.encoder_clicks; }
+
+uint16_t custom_config_rc_get_key_angular_speed() {
+  return (uint16_t)rc_config.key_angular_speed + RADIAL_CONTROLLER_KEY_ANGULAR_SPEED_OFFSET;
 }
 
-void custom_config_set_rc_deg_per_click(uint16_t deg_per_click) {
-  if (rc_config.deg_per_click != deg_per_click) {
-    rc_config.deg_per_click =
-        deg_per_click > 0 && deg_per_click <= 360 ? deg_per_click : RADIAL_CONTROLLER_ENCODER_DEGREE_PER_CLICK_DEFAULT;
-    eeprom_update_dword((uint32_t *)RADIAL_CONTROLLER_EEPROM_ADDR, rc_config.raw);
+// retuirns divider power-of-2
+uint8_t custom_config_rc_get_fine_tune_ratio() { return (uint16_t)rc_config.fine_tune_ratio; }
+
+bool custom_config_rc_is_fine_tune_mod() {
+  uint16_t mods = get_mods();
+  return rc_config.fine_tune_ratio &&
+         (rc_config.fine_tune_mod_ctrl || rc_config.fine_tune_mod_shift || rc_config.fine_tune_mod_alt ||
+          rc_config.fine_tune_mod_gui) &&
+         (!rc_config.fine_tune_mod_ctrl || mods & MOD_MASK_CTRL) &&
+         (!rc_config.fine_tune_mod_shift || mods & MOD_MASK_SHIFT) &&
+         (!rc_config.fine_tune_mod_alt || mods & MOD_MASK_ALT) && (!rc_config.fine_tune_mod_gui || mods & MOD_MASK_GUI);
+}
+
+#  if VIA_VERSION == 3
+void via_custom_rc_command(uint8_t *data, uint8_t length) {
+  // data = [ command_id, channel_id, value_id, value_data ]
+  uint8_t *command_id = &(data[0]);
+  uint8_t *value_id_and_data = &(data[2]);
+
+  switch (*command_id) {
+    case id_custom_set_value: {
+      via_custom_rc_set_value(value_id_and_data);
+      break;
+    }
+    case id_custom_get_value: {
+      via_custom_rc_get_value(value_id_and_data);
+      break;
+    }
+    case id_custom_save: {
+      via_custom_rc_save();
+      break;
+    }
+    default: {
+      *command_id = id_unhandled;
+      break;
+    }
   }
 }
 
-uint16_t custom_config_get_rc_deg_per_sec(void) {
-  if (rc_config.deg_per_sec > 0 && rc_config.deg_per_sec <= 360) {
-    return rc_config.deg_per_sec;
+void via_custom_rc_get_value(uint8_t *data) {
+  // data = [ value_id, value_data ]
+  uint8_t *value_id = &(data[0]);
+  uint8_t *value_data = &(data[1]);
+
+  switch (*value_id) {
+    case id_custom_rc_encoder_clicks: {
+      value_data[0] = rc_config.encoder_clicks;
+      break;
+    }
+    case id_custom_rc_key_angular_speed: {
+      value_data[0] = rc_config.key_angular_speed;
+      break;
+    }
+    case id_custom_rc_fine_tune_ratio: {
+      value_data[0] = rc_config.fine_tune_ratio;
+      break;
+    }
+    case id_custom_rc_fine_tune_mod_ctrl: {
+      value_data[0] = rc_config.fine_tune_mod_ctrl ? 1 : 0;
+      break;
+    }
+    case id_custom_rc_fine_tune_mod_shift: {
+      value_data[0] = rc_config.fine_tune_mod_shift ? 1 : 0;
+      break;
+    }
+    case id_custom_rc_fine_tune_mod_alt: {
+      value_data[0] = rc_config.fine_tune_mod_alt ? 1 : 0;
+      break;
+    }
+    case id_custom_rc_fine_tune_mod_gui: {
+      value_data[0] = rc_config.fine_tune_mod_gui ? 1 : 0;
+      break;
+    }
   }
-  return RADIAL_CONTROLLER_MOMENTARY_DEGREE_PER_SEC_DEFAULT;
 }
 
-void custom_config_set_rc_deg_per_sec(uint16_t deg_per_sec) {
-  if (rc_config.deg_per_sec != deg_per_sec) {
-    rc_config.deg_per_sec =
-        deg_per_sec > 0 && deg_per_sec <= 360 ? deg_per_sec : RADIAL_CONTROLLER_MOMENTARY_DEGREE_PER_SEC_DEFAULT;
-    eeprom_update_dword((uint32_t *)RADIAL_CONTROLLER_EEPROM_ADDR, rc_config.raw);
+void via_custom_rc_set_value(uint8_t *data) {
+  // data = [ value_id, value_data ]
+  uint8_t *value_id = &(data[0]);
+  uint8_t *value_data = &(data[1]);
+  switch (*value_id) {
+    case id_custom_rc_encoder_clicks: {
+      rc_config.encoder_clicks = value_data[0];
+      break;
+    }
+    case id_custom_rc_key_angular_speed: {
+      rc_config.key_angular_speed = value_data[0];
+      break;
+    }
+    case id_custom_rc_fine_tune_ratio: {
+      rc_config.fine_tune_ratio = value_data[0];
+      break;
+    }
+    case id_custom_rc_fine_tune_mod_ctrl: {
+      rc_config.fine_tune_mod_ctrl = value_data[0];
+      break;
+    }
+    case id_custom_rc_fine_tune_mod_shift: {
+      rc_config.fine_tune_mod_shift = value_data[0];
+      break;
+    }
+    case id_custom_rc_fine_tune_mod_alt: {
+      rc_config.fine_tune_mod_alt = value_data[0];
+      break;
+    }
+    case id_custom_rc_fine_tune_mod_gui: {
+      rc_config.fine_tune_mod_gui = value_data[0];
+      break;
+    }
   }
 }
-#endif
+
+void via_custom_rc_save() { eeprom_update_dword((uint32_t *)RADIAL_CONTROLLER_EEPROM_ADDR, rc_config.raw); }
+
+#  endif  // VIA_VERSION == 3
+#endif    // RADIAL_CONTROLLER_ENABLE
 
 // dynamic tap dance
 
@@ -235,6 +392,96 @@ uint16_t dynamic_tap_dance_tapping_term(uint16_t index) {
   }
   return TAPPING_TERM;
 }
+
+#if VIA_VERSION == 3
+void via_custom_td_command(uint8_t *data, uint8_t length) {
+  // data = [ command_id, channel_id, value_id, value_data ]
+  uint8_t *command_id = &(data[0]);
+  uint8_t *value_id_and_data = &(data[2]);
+
+  switch (*command_id) {
+    case id_custom_set_value: {
+      via_custom_td_set_value(value_id_and_data);
+      break;
+    }
+    case id_custom_get_value: {
+      via_custom_td_get_value(value_id_and_data);
+      break;
+    }
+    case id_custom_save: {
+      via_custom_td_save();
+      break;
+    }
+    default: {
+      *command_id = id_unhandled;
+      break;
+    }
+  }
+}
+
+void via_custom_td_get_value(uint8_t *data) {
+  // data = [ value_id, value_data ]
+  uint8_t *value_id = &(data[0]);
+  uint8_t *value_data = &(data[1]);
+  uint8_t td_index = (*value_id - 1) / 5;
+  uint8_t td_value_id = (*value_id - 1) % 5 + 1;
+  uint16_t value;
+  if (td_index >= TAP_DANCE_ENTRIES) {
+    value_data[0] = 0;
+    value_data[1] = 0;
+    return;
+  }
+  switch (td_value_id) {
+    case id_custom_td_single_tap:
+    case id_custom_td_single_hold:
+    case id_custom_td_multi_tap:
+    case id_custom_td_tap_hold: {
+      value = dynamic_tap_dance_keycode(td_index, td_value_id);
+      value_data[0] = value & 0xff;
+      value_data[1] = value >> 8;
+      break;
+    }
+    case id_custom_td_tapping_term: {
+      value = dynamic_tap_dance_tapping_term(td_index);
+      value_data[0] = value & 0xff;
+      value_data[1] = value >> 8;
+      break;
+    }
+  }
+}
+
+void via_custom_td_set_value(uint8_t *data) {
+  // data = [ value_id, value_data ]
+  uint8_t *value_id = &(data[0]);
+  uint8_t *value_data = &(data[1]);
+  uint8_t td_index = (*value_id - 1) / 5;
+  uint8_t td_value_id = (*value_id - 1) % 5 + 1;
+  uint16_t *adrs = (uint16_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + 10 * td_index);
+  uint16_t value = ((uint16_t)value_data[1] << 8) + value_data[0];
+  if (td_index < TAP_DANCE_ENTRIES) {
+    switch (td_value_id) {
+      case id_custom_td_single_tap:
+        eeprom_update_word(adrs, value);
+        break;
+      case id_custom_td_single_hold:
+        eeprom_update_word(adrs + 1, value);
+        break;
+      case id_custom_td_multi_tap:
+        eeprom_update_word(adrs + 2, value);
+        break;
+      case id_custom_td_tap_hold:
+        eeprom_update_word(adrs + 3, value);
+        break;
+      case id_custom_td_tapping_term: {
+        eeprom_update_word(adrs + 4, value);
+      }
+    }
+  }
+}
+
+void via_custom_td_save() {}
+
+#endif  // VIA_VERSION == 3
 
 void pgm_memcpy(void *dest, const void *src, size_t len) {
   for (size_t i = 0; i < len; i++) {

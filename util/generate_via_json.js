@@ -2,6 +2,7 @@
 
 const path = require('path'),
   fs = require('fs/promises'),
+  _ = require('underscore'),
   {
     keyboardDefinitionV2ToVIADefinitionV2,
     isVIADefinitionV2,
@@ -22,7 +23,7 @@ async function build(target) {
   const targetDir = path.join(KEYBOARDS_DIR, target),
     options = await getMakeOptions(targetDir),
     defines = await getDefineValues(targetDir),
-    info = await getInfo(targetDir),
+    info = await getInfo(targetDir, options, defines),
     via = {
       name: info.keyboard_name,
       vendorId: info.usb.vid,
@@ -45,19 +46,22 @@ async function build(target) {
     // https://www.caniusevia.com/docs/v3_changes
     via.firmwareVersion = parseInt(defines.VIA_FIRMWARE_VERSION)
     const lighting =
-      options.BACKLIGHT_ENABLE === 'yes' && options.RGBLIGHT_ENABLE === 'yes'
-        ? 'qmk_backlight_rgblight'
-        : options.BACKLIGHT_ENABLE === 'yes'
-        ? 'qmk_backlight'
-        : options.RGBLIGHT_ENABLE === 'yes'
-        ? 'qmk_rgblight'
-        : options.RGB_MATRIX_ENABLE === 'yes'
-        ? await getRgbMatrixEffects(targetDir)
-        : undefined
+        options.BACKLIGHT_ENABLE === 'yes' && options.RGBLIGHT_ENABLE === 'yes'
+          ? 'qmk_backlight_rgblight'
+          : options.BACKLIGHT_ENABLE === 'yes'
+          ? 'qmk_backlight'
+          : options.RGBLIGHT_ENABLE === 'yes'
+          ? 'qmk_rgblight'
+          : options.RGB_MATRIX_ENABLE === 'yes'
+          ? await getRgbMatrixEffects(targetDir)
+          : undefined,
+      customMenus = await getCustomMenus(targetDir, options, defines)
+
     if (lighting) {
-      // TODO custom configuration
-      via.menus = [lighting]
       via.keycodes = ['qmk_lighting']
+    }
+    if (lighting || customMenus.length) {
+      via.menus = [...(lighting ? [lighting] : []), ...customMenus]
     }
   }
   // matrix
@@ -69,14 +73,10 @@ async function build(target) {
     : { rows: defines.MATRIX_ROWS, cols: defines.MATRIX_COLS }
 
   // layouts
-  via.layouts = await getLayouts(targetDir)
+  via.layouts = await getLayouts(targetDir, options, defines)
 
   // customKeycodes
-  via.customKeycodes = (await getCustomKeycodes(targetDir)).filter((e) => {
-    const opt = e.option
-    e.option = undefined
-    return !opt || options[opt] === 'yes'
-  })
+  via.customKeycodes = await getCustomKeycodes(targetDir, options, defines)
 
   // validate
   validate(target, via)
@@ -99,12 +99,22 @@ async function build(target) {
   }
 }
 
-async function getInfo(targetDir) {
-  return await readJson(path.join(targetDir, 'info.json'), undefined)
+async function getInfo(targetDir, options, defines) {
+  return await readJson(
+    path.join(targetDir, 'info.json'),
+    options,
+    defines,
+    undefined
+  )
 }
 
-async function getLayouts(targetDir) {
-  return await readJson(path.join(targetDir, 'layouts.json'), undefined)
+async function getLayouts(targetDir, options, defines) {
+  return await readJson(
+    path.join(targetDir, 'layouts.json'),
+    options,
+    defines,
+    undefined
+  )
 }
 
 async function getDefineValues(targetDir) {
@@ -134,10 +144,37 @@ async function getMakeOptions(targetDir) {
   )
 }
 
-async function getCustomKeycodes(targetDir) {
+async function getCustomKeycodes(targetDir, options, defines) {
   return [
-    ...(await readJson(path.join(LIB_DIR, 'custom_keycodes.json'), [])),
-    ...(await readJson(path.join(targetDir, 'custom_keycodes.json'), []))
+    ...(await readJsOrJson(
+      path.join(LIB_DIR, 'custom_keycodes'),
+      options,
+      defines,
+      []
+    )),
+    ...(await readJsOrJson(
+      path.join(targetDir, 'custom_keycodes'),
+      options,
+      defines,
+      []
+    ))
+  ]
+}
+
+async function getCustomMenus(targetDir, options, defines) {
+  return [
+    ...(await readJsOrJson(
+      path.join(LIB_DIR, 'custom_menus'),
+      options,
+      defines,
+      []
+    )),
+    ...(await readJsOrJson(
+      path.join(targetDir, 'custom_menus'),
+      options,
+      defines,
+      []
+    ))
   ]
 }
 
@@ -206,9 +243,36 @@ async function getRgbMatrixEffects(targetDir) {
   }
 }
 
-async function readJson(filePath, emptyValue) {
+async function readJsOrJson(filePath, options, defines, emptyValue) {
+  if (await readable(filePath + '.js')) {
+    const dataOrFunction = require(filePath + '.js')
+    let result
+    if (typeof dataOrFunction === 'function') {
+      if (dataOrFunction.constructor.name === 'AsyncFunction') {
+        result = await dataOrFunction(options, defines)
+      } else {
+        result = dataOrFunction(options, defines)
+      }
+    } else {
+      result = dataOrFunction
+    }
+    return result ? result : emptyValue
+  }
+  return readJson(filePath + '.json', options, defines, emptyValue)
+}
+
+async function readJson(filePath, options, defines, emptyValue) {
+  // if tempalte file exits
+  if (await readable(filePath + '.tpl')) {
+    return JSON.parse(
+      _.template(await fs.readFile(filePath + '.tpl', 'utf-8'))({
+        options,
+        defines
+      })
+    )
+  }
   if (await readable(filePath)) {
-    return JSON.parse(await fs.readFile(filePath), 'utf-8')
+    return JSON.parse(await fs.readFile(filePath, 'utf-8'))
   }
   return emptyValue
 }

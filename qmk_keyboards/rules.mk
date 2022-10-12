@@ -21,3 +21,5 @@ SRC += lib/apple_fn.c
 SRC += lib/jis_util.c
 SRC += lib/alternate_device_descriptor.c
 SRC += lib/tap_dance.c
+
+OPT_DEFS += -DVIA_VERSION=$(strip $(VIA_VERSION))
