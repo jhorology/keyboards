@@ -97,7 +97,7 @@ async function build(target) {
     via.productId =
       '0x' + defines.ALTERNATE_PRODUCT_ID.toString(16).padStart(4, '0')
     await fs.writeFile(
-      path.join(OUTPUT_DIR, `${target}_via_v${VIA_VERSION}_alt.json`),
+      path.join(OUTPUT_DIR, `${target}_via_v${VIA_VERSION}_mac.json`),
       JSON.stringify(via, null, 2)
     )
   }

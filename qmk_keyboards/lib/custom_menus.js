@@ -90,16 +90,6 @@ const QMK_MAGIC_MENU = {
           label: 'Enable N-key rollover',
           type: 'toggle',
           content: ['id_custom_magic_host_nkro', ID_CUSTOM_MAGIC_CHANNEL, 10]
-        },
-        {
-          label:
-            'Set the master half of a split keyboard as the left hand (for EE_HANDS)',
-          type: 'toggle',
-          content: [
-            'id_custom_magic_ee_hands_left',
-            ID_CUSTOM_MAGIC_CHANNEL,
-            11
-          ]
         }
       ]
     }
@@ -143,25 +133,25 @@ const RADIAL_CONTROLLER_MENU = {
         },
         {
           showIf: '{id_custom_rc_fine_tune_ratio} != 0',
-          label: 'Fine-tune Modifier: Ctrl',
+          label: 'Fine-tune Modifier: CTRL',
           type: 'toggle',
           content: ['id_custom_rc_fine_tune_mod_ctrl', ID_CUSTOM_RC_CHANNEL, 4]
         },
         {
           showIf: '{id_custom_rc_fine_tune_ratio} != 0',
-          label: 'Fine-tune Modifier: Shift',
+          label: 'Fine-tune Modifier: SHIFT',
           type: 'toggle',
           content: ['id_custom_rc_fine_tune_mod_shift', ID_CUSTOM_RC_CHANNEL, 5]
         },
         {
           showIf: '{id_custom_rc_fine_tune_ratio} != 0',
-          label: 'Fine-tune Modifier: Alt',
+          label: 'Fine-tune Modifier: ALT',
           type: 'toggle',
           content: ['id_custom_rc_fine_tune_mod_alt', ID_CUSTOM_RC_CHANNEL, 6]
         },
         {
           showIf: '{id_custom_rc_fine_tune_ratio} != 0',
-          label: 'Fine-tune Modifier: Gui',
+          label: 'Fine-tune Modifier: GUI',
           type: 'toggle',
           content: ['id_custom_rc_fine_tune_mod_gui', ID_CUSTOM_RC_CHANNEL, 7]
         }

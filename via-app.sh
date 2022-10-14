@@ -102,7 +102,6 @@ if $BUILD_JSON; then
     "$PROJECT/util/generate_via_json.js" $MAKE_TARGET
 fi
 
-
 # clean JSON files in via-keyboards
 #______________________________________
 rm -rf node_modules/via-keyboards/src
@@ -110,7 +109,7 @@ rm -rf node_modules/via-keyboards/v3
 mkdir node_modules/via-keyboards/src
 mkdir node_modules/via-keyboards/v3
 
-# copy JSON files in via-keyboards
+# copy JSON files into via-keyboards
 #______________________________________
 OUTPUT_DIR=node_modules/via-keyboards/v3
 [ $VIA_VERSION = 2 ] && \

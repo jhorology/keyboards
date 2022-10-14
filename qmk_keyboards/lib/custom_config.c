@@ -31,17 +31,9 @@
 #  ifndef RADIAL_CONTROLLER_FINE_TUNE_RATIO_DEFAULT
 #    define RADIAL_CONTROLLER_FINE_TUNE_RATIO_DEFAULT 2
 #  endif
-#  ifndef RADIAL_CONTROLLER_FINE_TUNE_MOD_CTRL_DEFAULT
-#    define RADIAL_CONTROLLER_FINE_TUNE_MOD_CTRL_DEFAULT false
-#  endif
-#  ifndef RADIAL_CONTROLLER_FINE_TUNE_MOD_SHIFT_DEFAULT
-#    define RADIAL_CONTROLLER_FINE_TUNE_MOD_SHIFT_DEFAULT true
-#  endif
-#  ifndef RADIAL_CONTROLLER_FINE_TUNE_MOD_ALT_DEFAULT
-#    define RADIAL_CONTROLLER_FINE_TUNE_MOD_ALT_DEFAULT false
-#  endif
-#  ifndef RADIAL_CONTROLLER_FINE_TUNE_MOD_GUI_DEFAULT
-#    define RADIAL_CONTROLLER_FINE_TUNE_MOD_GUI_DEFAULT false
+// bit0: ctrl, bit1: shift, bit2: alt, bit3: gui
+#  ifndef RADIAL_CONTROLLER_FINE_TUNE_MODS_DEFAULT
+#    define RADIAL_CONTROLLER_FINE_TUNE_MODS_DEFAULT 0x02
 #  endif
 #  define RADIAL_CONTROLLER_KEY_ANGULAR_SPEED_OFFSET 15
 #endif
@@ -62,11 +54,8 @@ typedef union {
   struct {
     uint8_t encoder_clicks;       // encoder clicks per rotation
     uint8_t key_angular_speed;    // degree per second, 15 - 270 (offset 15)
+    uint8_t fine_tune_mods : 4;   // bit0: ctrl, bit1: shift, bit2: alt, bit3: gui
     uint8_t fine_tune_ratio : 2;  // power-of-2 divider 0: none, 1: 1/2, 2:1/4, 3:1/8
-    bool fine_tune_mod_ctrl : 1;
-    bool fine_tune_mod_shift : 1;
-    bool fine_tune_mod_alt : 1;
-    bool fine_tune_mod_gui : 1;
   };
 } rc_config_t;
 static rc_config_t rc_config;
@@ -86,10 +75,7 @@ void custom_config_reset() {
   rc_config.key_angular_speed =
       RADIAL_CONTROLLER_KEY_ANGULAR_SPEED_DEFAULT - RADIAL_CONTROLLER_KEY_ANGULAR_SPEED_OFFSET;
   rc_config.fine_tune_ratio = RADIAL_CONTROLLER_FINE_TUNE_RATIO_DEFAULT;
-  rc_config.fine_tune_mod_ctrl = RADIAL_CONTROLLER_FINE_TUNE_MOD_CTRL_DEFAULT;
-  rc_config.fine_tune_mod_shift = RADIAL_CONTROLLER_FINE_TUNE_MOD_SHIFT_DEFAULT;
-  rc_config.fine_tune_mod_alt = RADIAL_CONTROLLER_FINE_TUNE_MOD_ALT_DEFAULT;
-  rc_config.fine_tune_mod_gui = RADIAL_CONTROLLER_FINE_TUNE_MOD_GUI_DEFAULT;
+  rc_config.fine_tune_mods = RADIAL_CONTROLLER_FINE_TUNE_MODS_DEFAULT;
   eeprom_update_dword((uint32_t *)RADIAL_CONTROLLER_EEPROM_ADDR, rc_config.raw);
 #endif
 }
@@ -196,84 +182,76 @@ void via_custom_value_command_kb(uint8_t *data, uint8_t length) {
 }
 
 void via_custom_magic_get_value(uint8_t value_id, uint8_t *value_data) {
-  if (value_id == id_custom_magic_ee_hands_left) {
-    value_data[0] = eeconfig_read_handedness();
-  } else {
-    keymap_config.raw = eeconfig_read_keymap();
-    switch (value_id) {
-      case id_custom_magic_swap_control_capslock:
-        value_data[0] = keymap_config.swap_control_capslock;
-        break;
-      case id_custom_magic_swap_escape_capslock:
-        value_data[0] = keymap_config.swap_escape_capslock;
-        break;
-      case id_custom_magic_capslock_to_control:
-        value_data[0] = keymap_config.capslock_to_control;
-        break;
-      case id_custom_magic_swap_lctl_lgui:
-        value_data[0] = keymap_config.swap_lctl_lgui;
-        break;
-      case id_custom_magic_swap_rctl_rgui:
-        value_data[0] = keymap_config.swap_rctl_rgui;
-        break;
-      case id_custom_magic_swap_lalt_lgui:
-        value_data[0] = keymap_config.swap_lalt_lgui;
-        break;
-      case id_custom_magic_swap_ralt_rgui:
-        value_data[0] = keymap_config.swap_ralt_rgui;
-        break;
-      case id_custom_magic_no_gui:
-        value_data[0] = keymap_config.no_gui;
-        break;
-      case id_custom_magic_swap_grave_esc:
-        value_data[0] = keymap_config.swap_grave_esc;
-        break;
-      case id_custom_magic_host_nkro:
-        value_data[0] = keymap_config.nkro;
-        break;
-    }
+  keymap_config.raw = eeconfig_read_keymap();
+  switch (value_id) {
+    case id_custom_magic_swap_control_capslock:
+      value_data[0] = keymap_config.swap_control_capslock;
+      break;
+    case id_custom_magic_swap_escape_capslock:
+      value_data[0] = keymap_config.swap_escape_capslock;
+      break;
+    case id_custom_magic_capslock_to_control:
+      value_data[0] = keymap_config.capslock_to_control;
+      break;
+    case id_custom_magic_swap_lctl_lgui:
+      value_data[0] = keymap_config.swap_lctl_lgui;
+      break;
+    case id_custom_magic_swap_rctl_rgui:
+      value_data[0] = keymap_config.swap_rctl_rgui;
+      break;
+    case id_custom_magic_swap_lalt_lgui:
+      value_data[0] = keymap_config.swap_lalt_lgui;
+      break;
+    case id_custom_magic_swap_ralt_rgui:
+      value_data[0] = keymap_config.swap_ralt_rgui;
+      break;
+    case id_custom_magic_no_gui:
+      value_data[0] = keymap_config.no_gui;
+      break;
+    case id_custom_magic_swap_grave_esc:
+      value_data[0] = keymap_config.swap_grave_esc;
+      break;
+    case id_custom_magic_host_nkro:
+      value_data[0] = keymap_config.nkro;
+      break;
   }
 }
 
 void via_custom_magic_set_value(uint8_t value_id, uint8_t *value_data) {
-  if (value_id == id_custom_magic_ee_hands_left) {
-    eeconfig_update_handedness(value_data[0]);
-  } else {
-    keymap_config.raw = eeconfig_read_keymap();
-    switch (value_id) {
-      case id_custom_magic_swap_control_capslock:
-        keymap_config.swap_control_capslock = value_data[0];
-        break;
-      case id_custom_magic_swap_escape_capslock:
-        keymap_config.swap_escape_capslock = value_data[0];
-        break;
-      case id_custom_magic_capslock_to_control:
-        keymap_config.capslock_to_control = value_data[0];
-        break;
-      case id_custom_magic_swap_lctl_lgui:
-        keymap_config.swap_lctl_lgui = value_data[0];
-        break;
-      case id_custom_magic_swap_rctl_rgui:
-        keymap_config.swap_rctl_rgui = value_data[0];
-        break;
-      case id_custom_magic_swap_lalt_lgui:
-        keymap_config.swap_lalt_lgui = value_data[0];
-        break;
-      case id_custom_magic_swap_ralt_rgui:
-        keymap_config.swap_ralt_rgui = value_data[0];
-        break;
-      case id_custom_magic_no_gui:
-        keymap_config.no_gui = value_data[0];
-        break;
-      case id_custom_magic_swap_grave_esc:
-        keymap_config.swap_grave_esc = value_data[0];
-        break;
-      case id_custom_magic_host_nkro:
-        keymap_config.nkro = value_data[0];
-        break;
-    }
-    eeconfig_update_keymap(keymap_config.raw);
+  keymap_config.raw = eeconfig_read_keymap();
+  switch (value_id) {
+    case id_custom_magic_swap_control_capslock:
+      keymap_config.swap_control_capslock = value_data[0];
+      break;
+    case id_custom_magic_swap_escape_capslock:
+      keymap_config.swap_escape_capslock = value_data[0];
+      break;
+    case id_custom_magic_capslock_to_control:
+      keymap_config.capslock_to_control = value_data[0];
+      break;
+    case id_custom_magic_swap_lctl_lgui:
+      keymap_config.swap_lctl_lgui = value_data[0];
+      break;
+    case id_custom_magic_swap_rctl_rgui:
+      keymap_config.swap_rctl_rgui = value_data[0];
+      break;
+    case id_custom_magic_swap_lalt_lgui:
+      keymap_config.swap_lalt_lgui = value_data[0];
+      break;
+    case id_custom_magic_swap_ralt_rgui:
+      keymap_config.swap_ralt_rgui = value_data[0];
+      break;
+    case id_custom_magic_no_gui:
+      keymap_config.no_gui = value_data[0];
+      break;
+    case id_custom_magic_swap_grave_esc:
+      keymap_config.swap_grave_esc = value_data[0];
+      break;
+    case id_custom_magic_host_nkro:
+      keymap_config.nkro = value_data[0];
+      break;
   }
+  eeconfig_update_keymap(keymap_config.raw);
   clear_keyboard();  // clear to prevent stuck keys
 }
 
@@ -344,16 +322,12 @@ uint8_t custom_config_rc_get_fine_tune_ratio() { return (uint16_t)rc_config.fine
 bool custom_config_rc_is_fine_tune_mod() {
   uint16_t mods = get_mods();
   // fine-tune off
-  if (!rc_config.fine_tune_ratio) return false;
-  // need modifier at least one.
-  if (!(rc_config.fine_tune_mod_ctrl || rc_config.fine_tune_mod_ctrl || rc_config.fine_tune_mod_ctrl ||
-        rc_config.fine_tune_mod_ctrl))
-    return false;
-  if (rc_config.fine_tune_mod_ctrl && !(mods & MOD_MASK_CTRL)) return false;
-  if (rc_config.fine_tune_mod_shift && !(mods & MOD_MASK_SHIFT)) return false;
-  if (rc_config.fine_tune_mod_alt && !(mods & MOD_MASK_ALT)) return false;
-  if (rc_config.fine_tune_mod_gui && !(mods & MOD_MASK_GUI)) return false;
-  return true;
+  if (rc_config.fine_tune_ratio && rc_config.fine_tune_mods) {
+    uint8_t cur_mods = (mods & MOD_MASK_CTRL ? 1 : 0) + (mods & MOD_MASK_SHIFT ? 2 : 0) +
+                       (mods & MOD_MASK_ALT ? 4 : 0) + (mods & MOD_MASK_GUI ? 8 : 0);
+    return (cur_mods & rc_config.fine_tune_mods) == rc_config.fine_tune_mods;
+  }
+  return false;
 }
 
 #  if VIA_VERSION == 3
@@ -368,17 +342,8 @@ void via_custom_rc_get_value(uint8_t value_id, uint8_t *value_data) {
     case id_custom_rc_fine_tune_ratio:
       value_data[0] = rc_config.fine_tune_ratio;
       break;
-    case id_custom_rc_fine_tune_mod_ctrl:
-      value_data[0] = rc_config.fine_tune_mod_ctrl ? 1 : 0;
-      break;
-    case id_custom_rc_fine_tune_mod_shift:
-      value_data[0] = rc_config.fine_tune_mod_shift ? 1 : 0;
-      break;
-    case id_custom_rc_fine_tune_mod_alt:
-      value_data[0] = rc_config.fine_tune_mod_alt ? 1 : 0;
-      break;
-    case id_custom_rc_fine_tune_mod_gui:
-      value_data[0] = rc_config.fine_tune_mod_gui ? 1 : 0;
+    case id_custom_rc_fine_tune_mod_ctrl ... id_custom_rc_fine_tune_mod_gui:
+      value_data[0] = (rc_config.fine_tune_mods & (1 << (value_id - id_custom_rc_fine_tune_mod_ctrl))) ? 1 : 0;
       break;
   }
 #    ifdef CONSOLE_ENABLE
@@ -387,6 +352,7 @@ void via_custom_rc_get_value(uint8_t value_id, uint8_t *value_data) {
 }
 
 void via_custom_rc_set_value(uint8_t value_id, uint8_t *value_data) {
+  uint8_t mod_mask;
 #    ifdef CONSOLE_ENABLE
   uprintf("via_custom_rc_set_value:value_id:%d value:%02X %02X\n", value_id, value_data[0], value_data[1]);
 #    endif
@@ -400,17 +366,13 @@ void via_custom_rc_set_value(uint8_t value_id, uint8_t *value_data) {
     case id_custom_rc_fine_tune_ratio:
       rc_config.fine_tune_ratio = value_data[0];
       break;
-    case id_custom_rc_fine_tune_mod_ctrl:
-      rc_config.fine_tune_mod_ctrl = value_data[0];
-      break;
-    case id_custom_rc_fine_tune_mod_shift:
-      rc_config.fine_tune_mod_shift = value_data[0];
-      break;
-    case id_custom_rc_fine_tune_mod_alt:
-      rc_config.fine_tune_mod_alt = value_data[0];
-      break;
-    case id_custom_rc_fine_tune_mod_gui:
-      rc_config.fine_tune_mod_gui = value_data[0];
+    case id_custom_rc_fine_tune_mod_ctrl ... id_custom_rc_fine_tune_mod_gui:
+      mod_mask = 1 << (value_id - id_custom_rc_fine_tune_mod_ctrl);
+      if (value_data[0]) {
+        rc_config.fine_tune_mods |= mod_mask;
+      } else {
+        rc_config.fine_tune_mods &= ~mod_mask;
+      }
       break;
   }
 }
@@ -464,8 +426,6 @@ uint16_t dynamic_tap_dance_tapping_term(uint16_t index) {
 
 #if VIA_VERSION == 3
 
-// TODO keycode control dosen't recognize 16bit keycode, maybe bug.
-// TODO slider control dosen't support value greater than 255
 void via_custom_td_get_value(uint8_t td_index, uint8_t value_id, uint8_t *value_data) {
   uint16_t value;
   switch (value_id) {
@@ -488,8 +448,6 @@ void via_custom_td_get_value(uint8_t td_index, uint8_t value_id, uint8_t *value_
 #  endif
 }
 
-// TODO keycode control dosen't support 16bit keycode, maybe bug.
-// TODO slider control dosen't support value greater than 255
 void via_custom_td_set_value(uint8_t td_index, uint8_t value_id, uint8_t *value_data) {
   uint16_t *adrs = (uint16_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + 10 * td_index);
 #  ifdef CONSOLE_ENABLE

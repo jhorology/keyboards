@@ -42,10 +42,7 @@ const tap_dance_entry_t PROGMEM via_tap_dance_entries_default[] = {
     [TD_LALT_APFF_EISU_KANA] = {KC_LNG2, KC_LALT, KC_LNG1, APPLE_FF, TAPPING_TERM},
 
     // Apple Fn key + IME switch
-    [TD_APFF_EISU_KANA] = {KC_LNG2, APPLE_FF, KC_LNG1, APPLE_FF, TAPPING_TERM},
-
-    // for debug
-    [TD_TEST] = {USER00, USER01, KC_A, KC_B, 1000}};
+    [TD_APFF_EISU_KANA] = {KC_LNG2, APPLE_FF, KC_LNG1, APPLE_FF, TAPPING_TERM}};
 
 combo_t key_combos[COMBO_COUNT] = {};
 

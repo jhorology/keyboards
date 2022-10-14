@@ -27,6 +27,4 @@
 #define VIA_EEPROM_CUSTOM_CONFIG_SIZE (RADIAL_CONTROLLER_EEPROM_SIZE + DYNAMIC_TAP_DANCE_EEPROM_SIZE)
 
 #define CUSTOM_CONFIG_FORCE_RHID false
-// can't enfore mac mode because it need to reset the keyboard
-// #define CUSTOM_CONFIG_FORCE_MAC true
 #define CUSTOM_CONFIG_FORCE_USJ false

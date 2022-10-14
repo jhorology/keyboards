@@ -38,8 +38,7 @@ enum via_custom_magic_value_id {
   id_custom_magic_swap_ralt_rgui,
   id_custom_magic_no_gui,
   id_custom_magic_swap_grave_esc,
-  id_custom_magic_host_nkro,
-  id_custom_magic_ee_hands_left
+  id_custom_magic_host_nkro
 };
 
 enum via_custom_rc_value_id {
