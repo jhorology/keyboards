@@ -71,14 +71,12 @@ module.exports = function (options, defines) {
       },
       {
         name: 'RC\nCCW',
-        title:
-          'Counter clockwise rotation of the radial controller. While pressing shift key, the rotation speed becomes slow 1/4 fine mode',
+        title: 'Counter clockwise rotation of the radial controller',
         shortName: 'RC\nLeft'
       },
       {
         name: 'RC\nCW',
-        title:
-          'Clockwise rotation of the radial controller, While pressing shift key, the rotation speed becomes slow 1/4 fine mode',
+        title: 'Clockwise rotation of the radial controller',
         shortName: 'RC\nRight'
       }
     ])

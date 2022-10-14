@@ -19,7 +19,7 @@ const RADIAL_CONTROLLER_MENU = {
           content: ['id_custom_rc_encoder_clicks', 5, 1]
         },
         {
-          label: 'Angular Speed While Key Pressing',
+          label: 'Angular Speed While Key Pressing: (15 - 270 deg/sec)',
           type: 'range',
           options: [0, 255],
           content: ['id_custom_rc_key_angular_speed', 5, 2]
@@ -91,7 +91,7 @@ function createTapDanceMenu(size) {
           content: [`id_custom_td_tap_hold`, 6 + i, 4]
         },
         {
-          label: 'Tapping Term',
+          label: 'Tapping Term: (0 - 1024 ms)',
           type: 'range',
           options: [0, 255],
           content: [`id_custom_td_tapping_term`, 6 + i, 5]
