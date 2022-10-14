@@ -153,6 +153,17 @@ bool process_record_custom_config(uint16_t keycode, keyrecord_t *record) {
 void via_custom_value_command_kb(uint8_t *data, uint8_t length) {
   // data = [ command_id, channel_id, value_id, value_data ]
   switch (data[1]) {
+    case id_custom_magic_channel:
+      switch (data[0]) {
+        case id_custom_set_value:
+          via_custom_magic_set_value(data[2], &(data[3]));
+          return;
+        case id_custom_get_value:
+          via_custom_magic_get_value(data[2], &(data[3]));
+          return;
+        case id_custom_save:
+          return;
+      }
 #  ifdef RADIAL_CONTROLLER_ENABLE
     case id_custom_rc_channel:
       switch (data[0]) {
@@ -183,6 +194,89 @@ void via_custom_value_command_kb(uint8_t *data, uint8_t length) {
   // Return the unhandled state
   data[0] = id_unhandled;
 }
+
+void via_custom_magic_get_value(uint8_t value_id, uint8_t *value_data) {
+  if (value_id == id_custom_magic_ee_hands_left) {
+    value_data[0] = eeconfig_read_handedness();
+  } else {
+    keymap_config.raw = eeconfig_read_keymap();
+    switch (value_id) {
+      case id_custom_magic_swap_control_capslock:
+        value_data[0] = keymap_config.swap_control_capslock;
+        break;
+      case id_custom_magic_swap_escape_capslock:
+        value_data[0] = keymap_config.swap_escape_capslock;
+        break;
+      case id_custom_magic_capslock_to_control:
+        value_data[0] = keymap_config.capslock_to_control;
+        break;
+      case id_custom_magic_swap_lctl_lgui:
+        value_data[0] = keymap_config.swap_lctl_lgui;
+        break;
+      case id_custom_magic_swap_rctl_rgui:
+        value_data[0] = keymap_config.swap_rctl_rgui;
+        break;
+      case id_custom_magic_swap_lalt_lgui:
+        value_data[0] = keymap_config.swap_lalt_lgui;
+        break;
+      case id_custom_magic_swap_ralt_rgui:
+        value_data[0] = keymap_config.swap_ralt_rgui;
+        break;
+      case id_custom_magic_no_gui:
+        value_data[0] = keymap_config.no_gui;
+        break;
+      case id_custom_magic_swap_grave_esc:
+        value_data[0] = keymap_config.swap_grave_esc;
+        break;
+      case id_custom_magic_host_nkro:
+        value_data[0] = keymap_config.nkro;
+        break;
+    }
+  }
+}
+
+void via_custom_magic_set_value(uint8_t value_id, uint8_t *value_data) {
+  if (value_id == id_custom_magic_ee_hands_left) {
+    eeconfig_update_handedness(value_data[0]);
+  } else {
+    keymap_config.raw = eeconfig_read_keymap();
+    switch (value_id) {
+      case id_custom_magic_swap_control_capslock:
+        keymap_config.swap_control_capslock = value_data[0];
+        break;
+      case id_custom_magic_swap_escape_capslock:
+        keymap_config.swap_escape_capslock = value_data[0];
+        break;
+      case id_custom_magic_capslock_to_control:
+        keymap_config.capslock_to_control = value_data[0];
+        break;
+      case id_custom_magic_swap_lctl_lgui:
+        keymap_config.swap_lctl_lgui = value_data[0];
+        break;
+      case id_custom_magic_swap_rctl_rgui:
+        keymap_config.swap_rctl_rgui = value_data[0];
+        break;
+      case id_custom_magic_swap_lalt_lgui:
+        keymap_config.swap_lalt_lgui = value_data[0];
+        break;
+      case id_custom_magic_swap_ralt_rgui:
+        keymap_config.swap_ralt_rgui = value_data[0];
+        break;
+      case id_custom_magic_no_gui:
+        keymap_config.no_gui = value_data[0];
+        break;
+      case id_custom_magic_swap_grave_esc:
+        keymap_config.swap_grave_esc = value_data[0];
+        break;
+      case id_custom_magic_host_nkro:
+        keymap_config.nkro = value_data[0];
+        break;
+    }
+    eeconfig_update_keymap(keymap_config.raw);
+  }
+  clear_keyboard();  // clear to prevent stuck keys
+}
+
 #endif  // VIA_VERSION == 3
 
 bool custom_config_raw_hid_is_enable() { return kb_config.raw_hid; }
