@@ -61,7 +61,11 @@ async function build(target) {
       via.keycodes = ['qmk_lighting']
     }
     if (lighting || customMenus.length) {
-      via.menus = [...(lighting ? [lighting] : []), ...customMenus]
+      via.menus = []
+      if (lighting) {
+        via.menus.push(lighting)
+      }
+      Array.prototype.push.apply(via.menus, customMenus)
     }
   }
   // matrix

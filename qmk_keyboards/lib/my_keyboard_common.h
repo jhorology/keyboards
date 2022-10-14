@@ -15,7 +15,7 @@
  */
 #pragma once
 
-#include "custom_keycodes.h"
+#include "lib/custom_keycodes.h"
 #include "quantum.h"
 
 // tap dance actions

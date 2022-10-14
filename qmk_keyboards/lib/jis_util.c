@@ -17,9 +17,9 @@
 
 #include "jis_util.h"
 
-#include "custom_config.h"
-#include "custom_keycodes.h"
 #include "keymap_extras/keymap_japanese.h"
+#include "lib/custom_config.h"
+#include "lib/custom_keycodes.h"
 
 typedef struct {
   uint8_t src;             // src keycode

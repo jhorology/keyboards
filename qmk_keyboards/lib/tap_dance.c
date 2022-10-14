@@ -14,10 +14,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include QMK_KEYBOARD_H
-
 #include "tap_dance.h"
 
-#include "custom_config.h"
+#include "lib/custom_config.h"
 
 static void on_tap_dance_finished(qk_tap_dance_state_t *state, tap_dance_data_t *data);
 static void on_tap_dance_reset(qk_tap_dance_state_t *state, tap_dance_data_t *data);

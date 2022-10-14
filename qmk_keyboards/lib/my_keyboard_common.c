@@ -17,13 +17,13 @@
 
 #include "my_keyboard_common.h"
 
-#include "apple_fn.h"
-#include "jis_util.h"
+#include "lib/apple_fn.h"
+#include "lib/jis_util.h"
 #ifdef RADIAL_CONTROLLER_ENABLE
-#  include "radial_controller.h"
+#  include "lib/radial_controller.h"
 #endif
-#include "custom_config.h"
-#include "tap_dance.h"
+#include "lib/custom_config.h"
+#include "lib/tap_dance.h"
 
 /*
  * pre-defined tap dance

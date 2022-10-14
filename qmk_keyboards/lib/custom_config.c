@@ -18,8 +18,8 @@
 
 #include <print.h>
 
-#include "custom_keycodes.h"
 #include "eeprom.h"
+#include "lib/custom_keycodes.h"
 
 #ifdef RADIAL_CONTROLLER_ENABLE
 #  ifndef RADIAL_CONTROLLER_ENCODER_CLICKS_DEFAULT
@@ -152,31 +152,36 @@ bool process_record_custom_config(uint16_t keycode, keyrecord_t *record) {
 #if VIA_VERSION == 3
 void via_custom_value_command_kb(uint8_t *data, uint8_t length) {
   // data = [ command_id, channel_id, value_id, value_data ]
-  uint8_t *command_id = &(data[0]);
-  uint8_t *channel_id = &(data[1]);
-
-#  ifdef CONSOLE_ENABLE
-  uprintf("via_custom command_id:%d channel_id:%d value_id:%d length:%d data[0]:%d data[1]:%d\n", *command_id,
-          *channel_id, data[2], length, data[3], data[4]);
-#  endif
-
-  // Tap Dance
-  // TODO dosen't work
-  if (*channel_id == id_custom_td_channel) {
-    via_custom_td_command(data, length);
-    return;
-  }
-
-  // Radial Controller
+  switch (data[1]) {
 #  ifdef RADIAL_CONTROLLER_ENABLE
-  if (*channel_id == id_custom_rc_channel) {
-    via_custom_rc_command(data, length);
-    return;
+    case id_custom_rc_channel:
+      switch (data[0]) {
+        case id_custom_set_value:
+          via_custom_rc_set_value(data[2], &(data[3]));
+          return;
+        case id_custom_get_value:
+          via_custom_rc_get_value(data[2], &(data[3]));
+          return;
+        case id_custom_save:
+          via_custom_rc_save();
+          return;
+      }
+#  endif
+    case id_custom_td_channel_start ... id_custom_td_channel_end:
+      switch (data[0]) {
+        case id_custom_set_value:
+          via_custom_td_set_value(data[1] - id_custom_td_channel_start, data[2], &(data[3]));
+          return;
+        case id_custom_get_value:
+          via_custom_td_get_value(data[1] - id_custom_td_channel_start, data[2], &(data[3]));
+          return;
+        case id_custom_save:
+          via_custom_td_save(data[1] - id_custom_td_channel_start);
+          return;
+      }
   }
-#  endif  // VIA_QMK_RGBLIGHT_ENABL
-
   // Return the unhandled state
-  *command_id = id_unhandled;
+  data[0] = id_unhandled;
 }
 #endif  // VIA_VERSION == 3
 
@@ -239,119 +244,89 @@ uint16_t custom_config_rc_get_key_angular_speed() {
   return (uint16_t)rc_config.key_angular_speed + RADIAL_CONTROLLER_KEY_ANGULAR_SPEED_OFFSET;
 }
 
-// retuirns divider power-of-2
+// returns divider power-of-2
 uint8_t custom_config_rc_get_fine_tune_ratio() { return (uint16_t)rc_config.fine_tune_ratio; }
 
 bool custom_config_rc_is_fine_tune_mod() {
   uint16_t mods = get_mods();
-  return rc_config.fine_tune_ratio &&
-         (rc_config.fine_tune_mod_ctrl || rc_config.fine_tune_mod_shift || rc_config.fine_tune_mod_alt ||
-          rc_config.fine_tune_mod_gui) &&
-         (!rc_config.fine_tune_mod_ctrl || mods & MOD_MASK_CTRL) &&
-         (!rc_config.fine_tune_mod_shift || mods & MOD_MASK_SHIFT) &&
-         (!rc_config.fine_tune_mod_alt || mods & MOD_MASK_ALT) && (!rc_config.fine_tune_mod_gui || mods & MOD_MASK_GUI);
+  // fine-tune off
+  if (!rc_config.fine_tune_ratio) return false;
+  // need modifier at least one.
+  if (!(rc_config.fine_tune_mod_ctrl || rc_config.fine_tune_mod_ctrl || rc_config.fine_tune_mod_ctrl ||
+        rc_config.fine_tune_mod_ctrl))
+    return false;
+  if (rc_config.fine_tune_mod_ctrl && !(mods & MOD_MASK_CTRL)) return false;
+  if (rc_config.fine_tune_mod_shift && !(mods & MOD_MASK_SHIFT)) return false;
+  if (rc_config.fine_tune_mod_alt && !(mods & MOD_MASK_ALT)) return false;
+  if (rc_config.fine_tune_mod_gui && !(mods & MOD_MASK_GUI)) return false;
+  return true;
 }
 
 #  if VIA_VERSION == 3
-void via_custom_rc_command(uint8_t *data, uint8_t length) {
-  // data = [ command_id, channel_id, value_id, value_data ]
-  uint8_t *command_id = &(data[0]);
-  uint8_t *value_id_and_data = &(data[2]);
-
-  switch (*command_id) {
-    case id_custom_set_value: {
-      via_custom_rc_set_value(value_id_and_data);
-      break;
-    }
-    case id_custom_get_value: {
-      via_custom_rc_get_value(value_id_and_data);
-      break;
-    }
-    case id_custom_save: {
-      via_custom_rc_save();
-      break;
-    }
-    default: {
-      *command_id = id_unhandled;
-      break;
-    }
-  }
-}
-
-void via_custom_rc_get_value(uint8_t *data) {
-  // data = [ value_id, value_data ]
-  uint8_t *value_id = &(data[0]);
-  uint8_t *value_data = &(data[1]);
-
-  switch (*value_id) {
-    case id_custom_rc_encoder_clicks: {
+void via_custom_rc_get_value(uint8_t value_id, uint8_t *value_data) {
+  switch (value_id) {
+    case id_custom_rc_encoder_clicks:
       value_data[0] = rc_config.encoder_clicks;
       break;
-    }
-    case id_custom_rc_key_angular_speed: {
+    case id_custom_rc_key_angular_speed:
       value_data[0] = rc_config.key_angular_speed;
       break;
-    }
-    case id_custom_rc_fine_tune_ratio: {
+    case id_custom_rc_fine_tune_ratio:
       value_data[0] = rc_config.fine_tune_ratio;
       break;
-    }
-    case id_custom_rc_fine_tune_mod_ctrl: {
+    case id_custom_rc_fine_tune_mod_ctrl:
       value_data[0] = rc_config.fine_tune_mod_ctrl ? 1 : 0;
       break;
-    }
-    case id_custom_rc_fine_tune_mod_shift: {
+    case id_custom_rc_fine_tune_mod_shift:
       value_data[0] = rc_config.fine_tune_mod_shift ? 1 : 0;
       break;
-    }
-    case id_custom_rc_fine_tune_mod_alt: {
+    case id_custom_rc_fine_tune_mod_alt:
       value_data[0] = rc_config.fine_tune_mod_alt ? 1 : 0;
       break;
-    }
-    case id_custom_rc_fine_tune_mod_gui: {
+    case id_custom_rc_fine_tune_mod_gui:
       value_data[0] = rc_config.fine_tune_mod_gui ? 1 : 0;
       break;
-    }
   }
+#    ifdef CONSOLE_ENABLE
+  uprintf("via_custom_rc_get_value:value_id:%d value:%02X %02X\n", value_id, value_data[0], value_data[1]);
+#    endif
 }
 
-void via_custom_rc_set_value(uint8_t *data) {
-  // data = [ value_id, value_data ]
-  uint8_t *value_id = &(data[0]);
-  uint8_t *value_data = &(data[1]);
-  switch (*value_id) {
-    case id_custom_rc_encoder_clicks: {
+void via_custom_rc_set_value(uint8_t value_id, uint8_t *value_data) {
+#    ifdef CONSOLE_ENABLE
+  uprintf("via_custom_rc_set_value:value_id:%d value:%02X %02X\n", value_id, value_data[0], value_data[1]);
+#    endif
+  switch (value_id) {
+    case id_custom_rc_encoder_clicks:
       rc_config.encoder_clicks = value_data[0];
       break;
-    }
-    case id_custom_rc_key_angular_speed: {
+    case id_custom_rc_key_angular_speed:
       rc_config.key_angular_speed = value_data[0];
       break;
-    }
-    case id_custom_rc_fine_tune_ratio: {
+    case id_custom_rc_fine_tune_ratio:
       rc_config.fine_tune_ratio = value_data[0];
       break;
-    }
-    case id_custom_rc_fine_tune_mod_ctrl: {
+    case id_custom_rc_fine_tune_mod_ctrl:
       rc_config.fine_tune_mod_ctrl = value_data[0];
       break;
-    }
-    case id_custom_rc_fine_tune_mod_shift: {
+    case id_custom_rc_fine_tune_mod_shift:
       rc_config.fine_tune_mod_shift = value_data[0];
       break;
-    }
-    case id_custom_rc_fine_tune_mod_alt: {
+    case id_custom_rc_fine_tune_mod_alt:
       rc_config.fine_tune_mod_alt = value_data[0];
       break;
-    }
-    case id_custom_rc_fine_tune_mod_gui: {
+    case id_custom_rc_fine_tune_mod_gui:
       rc_config.fine_tune_mod_gui = value_data[0];
       break;
-    }
   }
 }
 
-void via_custom_rc_save() { eeprom_update_dword((uint32_t *)RADIAL_CONTROLLER_EEPROM_ADDR, rc_config.raw); }
+void via_custom_rc_save() {
+#    ifdef CONSOLE_ENABLE
+  uprintf("via_custom_rc_save_value\n");
+#    endif
+  eeprom_update_dword((uint32_t *)RADIAL_CONTROLLER_EEPROM_ADDR, rc_config.raw);
+}
 
 #  endif  // VIA_VERSION == 3
 #endif    // RADIAL_CONTROLLER_ENABLE
@@ -368,118 +343,86 @@ void dynamic_tap_dance_reset(const tap_dance_entry_t *entry, uint8_t len) {
 }
 
 uint16_t dynamic_tap_dance_keycode(uint16_t index, tap_dance_state_t state) {
-  if (index >= 0 && index < TAP_DANCE_ENTRIES) {
-    uint16_t *adrs = (uint16_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + 10 * index);
+  uint16_t keycode = KC_NO;
+  if (index < TAP_DANCE_ENTRIES) {
     switch (state) {
-      case TD_SINGLE_TAP:
-        return eeprom_read_word(adrs);
-      case TD_SINGLE_HOLD:
-        return eeprom_read_word(adrs + 1);
-      case TD_MULTI_TAP:
-        return eeprom_read_word(adrs + 2);
-      case TD_TAP_HOLD:
-        return eeprom_read_word(adrs + 3);
+      case TD_SINGLE_TAP ... TD_TAP_HOLD:
+        keycode = eeprom_read_word((uint16_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + 10 * index + (state - 1) * 2));
       default:
-        return KC_NO;
+        break;
     }
   }
-  return KC_NO;
+#ifdef CONSOLE_ENABLE
+  uprintf("dynamic_tap_dance_keycode:td_index:%d state:%d keycode:%04X\n", index, state, keycode);
+#endif
+  return keycode;
 }
 
 uint16_t dynamic_tap_dance_tapping_term(uint16_t index) {
-  if (index >= 0 && index < TAP_DANCE_ENTRIES) {
-    return eeprom_read_word((uint16_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + 8 + 10 * index));
-  }
-  return TAPPING_TERM;
+  uint16_t tapping_term = index < TAP_DANCE_ENTRIES
+                              ? eeprom_read_word((uint16_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + 8 + 10 * index))
+                              : TAPPING_TERM;
+#ifdef CONSOLE_ENABLE
+  uprintf("dynamic_tap_dance_tapping_term:td_index:%d tapping_term:%d\n", index, tapping_term);
+#endif
+  return tapping_term;
 }
 
 #if VIA_VERSION == 3
-void via_custom_td_command(uint8_t *data, uint8_t length) {
-  // data = [ command_id, channel_id, value_id, value_data ]
-  uint8_t *command_id = &(data[0]);
-  uint8_t *value_id_and_data = &(data[2]);
 
-  switch (*command_id) {
-    case id_custom_set_value: {
-      via_custom_td_set_value(value_id_and_data);
+// TODO keycode control dosen't recognize 16bit keycode, maybe bug.
+// TODO slider control dosen't support value greater than 255
+void via_custom_td_get_value(uint8_t td_index, uint8_t value_id, uint8_t *value_data) {
+  uint16_t keycode;
+  switch (value_id) {
+    case id_custom_td_single_tap ... id_custom_td_tap_hold:
+      keycode = dynamic_tap_dance_keycode(td_index, value_id);
+      // should be BE
+      // value_data[0] = keycode >> 8;
+      // value_data[1] = keycode & 0xff;
+      // temporary fix: 8bit code only
+      value_data[0] = keycode & 0xff;
       break;
-    }
-    case id_custom_get_value: {
-      via_custom_td_get_value(value_id_and_data);
+    case id_custom_td_tapping_term:
+      // temporary fix: self ranged value (0...1024)ms -> (0...255)
+      value_data[0] = dynamic_tap_dance_tapping_term(td_index) >> 2;
       break;
-    }
-    case id_custom_save: {
-      via_custom_td_save();
-      break;
-    }
-    default: {
-      *command_id = id_unhandled;
-      break;
-    }
   }
+#  ifdef CONSOLE_ENABLE
+  uprintf("via_custom_td_get_value:td_index:%d value_id:%d value:%02X %02X\n", td_index, value_id, value_data[0],
+          value_data[1]);
+#  endif
 }
 
-void via_custom_td_get_value(uint8_t *data) {
-  // data = [ value_id, value_data ]
-  uint8_t *value_id = &(data[0]);
-  uint8_t *value_data = &(data[1]);
-  uint8_t td_index = (*value_id - 1) / 5;
-  uint8_t td_value_id = (*value_id - 1) % 5 + 1;
-  uint16_t value;
-  if (td_index >= TAP_DANCE_ENTRIES) {
-    value_data[0] = 0;
-    value_data[1] = 0;
-    return;
-  }
-  switch (td_value_id) {
-    case id_custom_td_single_tap:
-    case id_custom_td_single_hold:
-    case id_custom_td_multi_tap:
-    case id_custom_td_tap_hold: {
-      value = dynamic_tap_dance_keycode(td_index, td_value_id);
-      value_data[0] = value & 0xff;
-      value_data[1] = value >> 8;
-      break;
-    }
-    case id_custom_td_tapping_term: {
-      value = dynamic_tap_dance_tapping_term(td_index);
-      value_data[0] = value & 0xff;
-      value_data[1] = value >> 8;
-      break;
-    }
-  }
-}
-
-void via_custom_td_set_value(uint8_t *data) {
-  // data = [ value_id, value_data ]
-  uint8_t *value_id = &(data[0]);
-  uint8_t *value_data = &(data[1]);
-  uint8_t td_index = (*value_id - 1) / 5;
-  uint8_t td_value_id = (*value_id - 1) % 5 + 1;
+// TODO keycode control dosen't support 16bit keycode, maybe bug.
+// TODO slider control dosen't support value greater than 255
+void via_custom_td_set_value(uint8_t td_index, uint8_t value_id, uint8_t *value_data) {
   uint16_t *adrs = (uint16_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + 10 * td_index);
-  uint16_t value = ((uint16_t)value_data[1] << 8) + value_data[0];
+#  ifdef CONSOLE_ENABLE
+  uprintf("via_custom_td_set_value:td_index:%d value_id:%d value:%02X %02X\n", td_index, value_id, value_data[0],
+          value_data[1]);
+#  endif
   if (td_index < TAP_DANCE_ENTRIES) {
-    switch (td_value_id) {
-      case id_custom_td_single_tap:
-        eeprom_update_word(adrs, value);
+    switch (value_id) {
+      case id_custom_td_single_tap ... id_custom_td_tap_hold:
+        // temporary comment out: break 16 bit keycode.
+        // eeprom_update_word(adrs + value_id - 1, ((uint16_t)value_data[0] << 8) + value_data[1]);
         break;
-      case id_custom_td_single_hold:
-        eeprom_update_word(adrs + 1, value);
+      case id_custom_td_tapping_term:
+        // TODO should reduce the number of writing times
+        // temporary fix: self ranged value (0...255) -> (0...1024)ms
+        eeprom_update_word(adrs + 4, (uint16_t)value_data[0] << 2);
         break;
-      case id_custom_td_multi_tap:
-        eeprom_update_word(adrs + 2, value);
-        break;
-      case id_custom_td_tap_hold:
-        eeprom_update_word(adrs + 3, value);
-        break;
-      case id_custom_td_tapping_term: {
-        eeprom_update_word(adrs + 4, value);
-      }
     }
   }
 }
 
-void via_custom_td_save() {}
+// TODO should reduce the number of writing times of slider control
+void via_custom_td_save(uint8_t td_index) {
+#  ifdef CONSOLE_ENABLE
+  uprintf("via_custom_td_save:td_index:%d\n", td_index);
+#  endif
+}
 
 #endif  // VIA_VERSION == 3
 

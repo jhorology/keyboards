@@ -17,8 +17,8 @@
 
 #include "apple_fn.h"
 
-#include "custom_config.h"
-#include "custom_keycodes.h"
+#include "lib/custom_config.h"
+#include "lib/custom_keycodes.h"
 
 static bool process_apple_ff_fkey(uint16_t fkey_index, keyrecord_t *record);
 
