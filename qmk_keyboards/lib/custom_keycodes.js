@@ -63,7 +63,7 @@ module.exports = function (options, defines) {
     }
   ]
   if (options.RADIAL_CONTROLLER_ENABLE === 'yes') {
-    Array.prototype.push(customKeycodes, [
+    Array.prototype.push.apply(customKeycodes, [
       {
         name: 'RC\nBTN',
         title: 'The button located on radial controller',
