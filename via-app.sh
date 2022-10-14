@@ -10,14 +10,17 @@ zparseopts -D -E -F -- \
            -qmk-home:=qmk_home \
            -via-app-home:=via_app_home \
            -via-version:=via_version \
+           {u,-update-via-app}=update_via_app \
            {w,-without-generate}=without_generate \
   || return
 
 
 if (( $#help )); then
   print -rC1 --      \
-        "$0:t [-h|--help]" \
-        "$0:t [options...] TARGET" \
+        "Usage:" \
+        "$0:t <-h|--help>                                            help" \
+        "$0:t <-u|--update-via-app> [--via-app-home VIA_APP_HOME]    update & setup via/app" \
+        "$0:t [options...] TARGET                                    run via/app" \
         "" \
         "options:" \
         "  --qmk-home <QMK_HOME>            location for local qmk_firmware repository" \
@@ -25,16 +28,6 @@ if (( $#help )); then
         "  --via-version <2|3>              VIA version 2 or 3 default: 3" \
         "  -w,--without-generate            Use JSON file in dist folder without running builder"
   return
-fi
-
-if [ $# = 0 ]; then
-  print -r "Error: Missing target argument." >&2
-  exit 1
-fi
-if [ $# != 1 ]; then
-  # becuase all my keyboards are assigned same Product/Vendor ID in mac mode.
-  print -r "Error: Only one target is allowed." >&2
-  exit 1
 fi
 
 local -A KEYBOARDS=(
@@ -66,8 +59,39 @@ BUILD_JSON=true
 (( $#via_app_home )) && VIA_APP_HOME=${via_app_home[-1]##=}
 (( $#via_version )) && VIA_VERSION=${via_version[-1]##=}
 (( $#without_generate )) && BUILD_JSON=false
+
+# update via/app
+#______________________________________
+if (( $#update_via_app )); then
+  cd "$VIA_APP_HOME"
+  git reset --hard
+  git clean -dfx
+  git pull
+
+  patch -p1 < "$PROJECT/patches/via_app_custom_control_16bit_value.patch"
+
+  yarn install
+  yarn remove pelpi
+  yarn remove via-reader
+  yarn add https://github.com/the-via/pelpi.git
+  yarn add https://github.com/the-via/reader.git
+  yarn build
+  return
+fi
+
+
+if [ $# = 0 ]; then
+  print -r "Error: Missing target argument." >&2
+  exit 1
+fi
+if [ $# != 1 ]; then
+  # becuase all my keyboards are assigned same Product/Vendor ID in mac mode.
+  print -r "Error: Only one target is allowed." >&2
+  exit 1
+fi
 TARGET=$@
 MAKE_TARGET=$KEYBOARDS[$TARGET]
+
 
 # generate JSON
 #______________________________________
@@ -77,6 +101,7 @@ if $BUILD_JSON; then
   VIA_VERSION=$VIA_VERSION QMK_HOME="$QMK_HOME" \
     "$PROJECT/util/generate_via_json.js" $MAKE_TARGET
 fi
+
 
 # clean JSON files in via-keyboards
 #______________________________________
@@ -102,4 +127,5 @@ npx via-keyboards "${VIA_APP_HOME}/public/definitions"
 # start VIA
 #______________________________________
 cd "$VIA_APP_HOME"
+
 yarn start

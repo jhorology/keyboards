@@ -64,6 +64,7 @@ const RADIAL_CONTROLLER_MENU = {
   ]
 }
 function createTapDanceMenu(size) {
+  // id_field should be unique at all of content scope
   return {
     label: 'Tap Dance',
     content: _.range(size).map((i) => ({
@@ -73,33 +74,34 @@ function createTapDanceMenu(size) {
         {
           label: 'Single Tap',
           type: 'keycode',
-          content: [`id_custom_td_single_tap`, 6 + i, 1]
+          content: [`id_custom_td_${i}_single_tap`, 6 + i, 1]
         },
         {
           label: 'Hold',
           type: 'keycode',
-          content: [`id_custom_td_single_hold`, 6 + i, 2]
+          content: [`id_custom_td_${i}_single_hold`, 6 + i, 2]
         },
         {
           label: 'Double Tap',
           type: 'keycode',
-          content: [`id_custom_td_multi_tap`, 6 + i, 3]
+          content: [`id_custom_td_${i}_multi_tap`, 6 + i, 3]
         },
         {
           label: 'Tap Hold',
           type: 'keycode',
-          content: [`id_custom_td_tap_hold`, 6 + i, 4]
+          content: [`id_custom_td_${i}_tap_hold`, 6 + i, 4]
         },
         {
-          label: 'Tapping Term: (0 - 1024 ms)',
+          label: 'Tapping Term: (50 - 1000 ms)',
           type: 'range',
-          options: [0, 255],
-          content: [`id_custom_td_tapping_term`, 6 + i, 5]
+          options: [50, 1000],
+          content: [`id_custom_td_${i}_tapping_term`, 6 + i, 5]
         }
       ]
     }))
   }
 }
+
 module.exports = function (options, defines) {
   const customMenus = []
   if (defines.TAP_DANCE_ENTRIES) {

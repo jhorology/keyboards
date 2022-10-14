@@ -373,21 +373,21 @@ uint16_t dynamic_tap_dance_tapping_term(uint16_t index) {
 // TODO keycode control dosen't recognize 16bit keycode, maybe bug.
 // TODO slider control dosen't support value greater than 255
 void via_custom_td_get_value(uint8_t td_index, uint8_t value_id, uint8_t *value_data) {
-  uint16_t keycode;
+  uint16_t value;
   switch (value_id) {
     case id_custom_td_single_tap ... id_custom_td_tap_hold:
-      keycode = dynamic_tap_dance_keycode(td_index, value_id);
-      // should be BE
-      // value_data[0] = keycode >> 8;
-      // value_data[1] = keycode & 0xff;
-      // temporary fix: 8bit code only
-      value_data[0] = keycode & 0xff;
+      value = dynamic_tap_dance_keycode(td_index, value_id);
       break;
     case id_custom_td_tapping_term:
-      // temporary fix: self ranged value (0...1024)ms -> (0...255)
-      value_data[0] = dynamic_tap_dance_tapping_term(td_index) >> 2;
+      value = dynamic_tap_dance_tapping_term(td_index);
       break;
   }
+  // LE
+  value_data[0] = value & 0xff;
+  value_data[1] = value >> 8;
+  // BE
+  // value_data[0] = value >> 8;
+  // value_data[1] = value & 0xff;
 #  ifdef CONSOLE_ENABLE
   uprintf("via_custom_td_get_value:td_index:%d value_id:%d value:%02X %02X\n", td_index, value_id, value_data[0],
           value_data[1]);
@@ -405,13 +405,17 @@ void via_custom_td_set_value(uint8_t td_index, uint8_t value_id, uint8_t *value_
   if (td_index < TAP_DANCE_ENTRIES) {
     switch (value_id) {
       case id_custom_td_single_tap ... id_custom_td_tap_hold:
-        // temporary comment out: break 16 bit keycode.
+        // LE
+        eeprom_update_word(adrs + value_id - 1, ((uint16_t)value_data[1] << 8) + value_data[0]);
+        // BE
         // eeprom_update_word(adrs + value_id - 1, ((uint16_t)value_data[0] << 8) + value_data[1]);
         break;
       case id_custom_td_tapping_term:
         // TODO should reduce the number of writing times
-        // temporary fix: self ranged value (0...255) -> (0...1024)ms
-        eeprom_update_word(adrs + 4, (uint16_t)value_data[0] << 2);
+        // LE
+        eeprom_update_word(adrs + 4, ((uint16_t)value_data[1] << 8) + value_data[0]);
+        // BE
+        // eeprom_update_word(adrs + 4, ((uint16_t)value_data[0] << 8) + value_data[1]);
         break;
     }
   }
