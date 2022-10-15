@@ -95,10 +95,10 @@ module.exports = function (options, defines) {
         shortName: 'RC\nRight'
       },
       {
-        code: 'RC_TUNE',
-        name: 'RC\nTUNE',
+        code: 'RC_FINE',
+        name: 'RC\nFINE',
         title: 'Dial rotation speed becomes slow',
-        shortName: 'RC\nTUNE'
+        shortName: 'RC\nFINE'
       }
     ])
   }

@@ -69,6 +69,7 @@ if (( $#update_via_app )); then
   git pull
 
   patch -p1 < "$PROJECT/patches/via_app_custom_control_16bit_value.patch"
+  patch -p1 < "$PROJECT/patches/via_app_32_custome_keycodes.patch"
 
   yarn install
   yarn remove pelpi
