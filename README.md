@@ -12,13 +12,14 @@ This is a personal project for my own keyboards.
 | MAC_OFF | Disable true apple mode with switching base layer 1 |"|
 | APPLE_FN | Apple fn/🌐 key. |When NKRO is disabled, the key combinations of fn + F1-12 dosen't work as expected.|
 | APPLE_FF | Apple fn/🌐 key for the keyboard that dosen't have F1-12 keys. F1-12 keys can be mapped on top row. When mac mode is off, It simulates mac fn functions. |"|
-| EJ_TOGG | Toggle send KC_LANG2(英数) or KC_LNG1(かな) ||
+| EISU_KANA | Toggle send KC_LANG2(英数) or KC_LNG1(かな) ||
 | USJ_TOGG | Toggle enabling or disabling 社畜PC mode that is available to use ANSI layout on JIS driver. |Non-volatile setting|
 | USJ_ON | Enable 社畜PC mode |"|
 | USJ_OFF | Disable 社畜PC mode |"|
 | RC_BTN | Button located on radial controller ||
-| RC_CCW| Counter clockwise rotation of the radial controller. While pressing shift key, the rotation speed becomes slow as 1/4 fine mode ||
-| RC_CW| Clockwise rotation of the radial controller. While pressing shift key, the rotation speed becomes slow as 1/4 fine mode ||
+| RC_CCW| Counter clockwise rotation of the radial controller ||
+| RC_CW| Clockwise rotation of the radial controller ||
+| RC_FINE| Rotation speed of the radial controller becomes slow while key pressing ||
 | RGB_TOGX | Toggle keylight on/off. While pressing shift key, toggle underglow on/off  | FK680ProV2 only |
 
 ## Apple Fn/Globe Shortcuts

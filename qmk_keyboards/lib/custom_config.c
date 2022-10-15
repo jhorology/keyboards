@@ -31,9 +31,10 @@
 #  ifndef RADIAL_CONTROLLER_FINE_TUNE_RATIO_DEFAULT
 #    define RADIAL_CONTROLLER_FINE_TUNE_RATIO_DEFAULT 2
 #  endif
-// bit0: ctrl, bit1: shift, bit2: alt, bit3: gui
+// additional conbination of modfier for RC fine-tune.
+// ctrl, bit1: shift, bit2: alt, bit3: gui
 #  ifndef RADIAL_CONTROLLER_FINE_TUNE_MODS_DEFAULT
-#    define RADIAL_CONTROLLER_FINE_TUNE_MODS_DEFAULT 0x02
+#    define RADIAL_CONTROLLER_FINE_TUNE_MODS_DEFAULT 0x00
 #  endif
 #  define RADIAL_CONTROLLER_KEY_ANGULAR_SPEED_OFFSET 15
 #endif

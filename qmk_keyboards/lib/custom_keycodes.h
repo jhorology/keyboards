@@ -35,9 +35,10 @@ enum custom_user_keycodes {
   APPLE_FF,            // Apple fn/globe with remapping F1-12
   EJ_TOGG,             // Toggle send 英数 and かな
 #ifdef RADIAL_CONTROLLER_ENABLE
-  RC_BTN,  // State of the button located on radial controller
-  RC_CCW,  // counter clock wise rotation of the radial controller
-  RC_CW,   // clock wise rotation of the radial controller
+  RC_BTN,   // State of the button located on radial controller
+  RC_CCW,   // counter clock wise rotation of the radial controller
+  RC_CW,    // clock wise rotation of the radial controller
+  RC_FINE,  // Dial rotation speed becomes slow
 #endif
   CUSTOM_KEYCODES_SAFE_RANGE
 };
