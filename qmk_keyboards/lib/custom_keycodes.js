@@ -33,7 +33,7 @@ module.exports = function (options, defines) {
     {
       code: 'MAC_OFF',
       name: 'Mac\nOFF',
-      title: 'Enable true apple mode with switching base layer 1',
+      title: 'Disable true apple mode with switching base layer 1',
       shortName: 'Mac\nOFF'
     },
     {

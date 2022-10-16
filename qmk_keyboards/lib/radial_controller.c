@@ -18,18 +18,20 @@
 
 #include "radial_controller.h"
 
-#include "custom_config.h"
-#include "custom_keycodes.h"
+#include "lib/custom_config.h"
+#include "lib/custom_keycodes.h"
 
 static void process_dial(int16_t direction, keyrecord_t* record);
 static void process_dial_encoder(int16_t direction);
 static void process_dial_keyswitch(int16_t direction, bool pressed);
 static void report_dial_keyswitch(void);
 static uint32_t dial_rotation_service(uint32_t trigger_time, void* cb_arg);
+
 static report_radial_controller_t radial_controller_report;
 static int16_t rotating_direction;
 static deferred_token dial_service_token;
 static bool fine_tune;
+
 bool process_radial_controller(uint16_t keycode, keyrecord_t* record) {
   switch (keycode) {
     case RC_BTN:

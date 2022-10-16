@@ -25,20 +25,16 @@ tap_dance_data_t tap_dance_datas[TAP_DANCE_ENTRIES];
 qk_tap_dance_action_t tap_dance_actions[TAP_DANCE_ENTRIES];
 
 uint16_t tap_dance_get_tapping_term(uint16_t keycode, keyrecord_t *record) {
-  uint16_t index = TD_INDEX(keycode);
-  if (index >= 0 && index < TAP_DANCE_ENTRIES) {
+  uint16_t index = keycode - QK_TAP_DANCE;
+  if (index < TAP_DANCE_ENTRIES) {
     return dynamic_tap_dance_tapping_term(index);
   }
   return 0;
 }
 
 void tap_dance_actions_init() {
-  keyrecord_t record = {0};
   for (int i = 0; i < TAP_DANCE_ENTRIES; i++) {
     tap_dance_datas[i].index = i;
-    tap_dance_datas[i].state = TD_NONE;
-    tap_dance_datas[i].record = record;
-    tap_dance_actions[i].fn.on_each_tap = NULL;
     tap_dance_actions[i].fn.on_dance_finished = (void (*)(qk_tap_dance_state_t *, void *))on_tap_dance_finished;
     tap_dance_actions[i].fn.on_reset = (void (*)(qk_tap_dance_state_t *, void *))on_tap_dance_reset;
     tap_dance_actions[i].user_data = &tap_dance_datas[i];
@@ -46,8 +42,8 @@ void tap_dance_actions_init() {
 }
 
 bool process_tap_dance_store_event(uint16_t keycode, keyrecord_t *record) {
-  uint16_t index = TD_INDEX(keycode);
-  if (index >= 0 && index < TAP_DANCE_ENTRIES) {
+  uint16_t index = keycode - QK_TAP_DANCE;
+  if (index < TAP_DANCE_ENTRIES) {
     tap_dance_datas[index].record.event = record->event;
   }
   return true;
