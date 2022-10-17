@@ -1,5 +1,5 @@
 diff --git a/src/components/panes/configure-panes/custom/custom-control.tsx b/src/components/panes/configure-panes/custom/custom-control.tsx
-index ff01700..ad78740 100644
+index ff01700..7302763 100644
 --- a/src/components/panes/configure-panes/custom/custom-control.tsx
 +++ b/src/components/panes/configure-panes/custom/custom-control.tsx
 @@ -58,6 +58,7 @@ const boxOrArr = <N extends any>(elem: N | N[]) =>
@@ -17,7 +17,7 @@ index ff01700..ad78740 100644
 -          defaultValue={props.value[0]}
 -          onChange={(val: number) => props.updateValue(name, ...command, val)}
 +          defaultValue={props.value[0] + (props.value[1] << 8)}
-+          onChange={(val: number) => props.updateValue(name, ...command, val & 0xff, val >> 8)}
++          onChange={(val: number) => props.updateValue(name, ...command, val & 0xff, (val >> 8) & 0xff)}
          />
        );
      }
@@ -28,7 +28,7 @@ index ff01700..ad78740 100644
 +          value={props.value[0] + (props.value[1] << 8)}
            meta={{}}
 -          setValue={(val: number) => props.updateValue(name, ...command, val)}
-+          setValue={(val: number) => props.updateValue(name, ...command, val & 0xff, val >> 8)}
++          setValue={(val: number) => props.updateValue(name, ...command, val & 0xff, (val >> 8) & 0xff)}
          />
        );
      }

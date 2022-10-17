@@ -66,6 +66,20 @@ static void _custom_config_raw_hid_set_enable(bool enable);
 static void _custom_config_mac_set_enable(bool enable);
 static void _custom_config_usj_set_enable(bool enable);
 
+#define DEFER_EEPROM_UPDATE_ITEM_SIZE 4
+#define DEFER_EEPROM_UPDATE_DELAY_MILLIS 400
+typedef enum { BYTE, WORD, DWORD } defer_eeprom_update_value_type_t;
+typedef struct {
+  uint16_t id;  // 0: empty, channel_id << 8 + value_id
+  void *adrs;   // eeprom address
+  defer_eeprom_update_value_type_t value_type;
+  uint32_t value;        // data value
+  deferred_token token;  // defer_exec token
+} defer_eeprom_update_item_t;
+static defer_eeprom_update_item_t defer_eeprom_update_items[DEFER_EEPROM_UPDATE_ITEM_SIZE];
+static void defer_eeprom_update(uint16_t id, defer_eeprom_update_value_type_t value_type, void *adrs, uint32_t value);
+static uint32_t defer_eeprom_update_callback(uint32_t trigger_time, defer_eeprom_update_item_t *item);
+
 void custom_config_reset() {
   kb_config.raw = 0;
   kb_config.mac = true;
@@ -376,13 +390,13 @@ void via_custom_rc_set_value(uint8_t value_id, uint8_t *value_data) {
       }
       break;
   }
+  defer_eeprom_update(id_custom_rc_channel << 8, DWORD, (void *)RADIAL_CONTROLLER_EEPROM_ADDR, rc_config.raw);
 }
 
 void via_custom_rc_save() {
 #    ifdef CONSOLE_ENABLE
   uprintf("via_custom_rc_save_value\n");
 #    endif
-  eeprom_update_dword((uint32_t *)RADIAL_CONTROLLER_EEPROM_ADDR, rc_config.raw);
 }
 
 #  endif  // VIA_VERSION == 3
@@ -450,7 +464,7 @@ void via_custom_td_get_value(uint8_t td_index, uint8_t value_id, uint8_t *value_
 }
 
 void via_custom_td_set_value(uint8_t td_index, uint8_t value_id, uint8_t *value_data) {
-  uint16_t *adrs = (uint16_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + 10 * td_index);
+  uint16_t *adrs = (uint16_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + 10 * td_index + (value_id - 1) * 2);
 #  ifdef CONSOLE_ENABLE
   uprintf("via_custom_td_set_value:td_index:%d value_id:%d value:%02X %02X\n", td_index, value_id, value_data[0],
           value_data[1]);
@@ -459,16 +473,12 @@ void via_custom_td_set_value(uint8_t td_index, uint8_t value_id, uint8_t *value_
     switch (value_id) {
       case id_custom_td_single_tap ... id_custom_td_tap_hold:
         // LE
-        eeprom_update_word(adrs + value_id - 1, ((uint16_t)value_data[1] << 8) + value_data[0]);
-        // BE
-        // eeprom_update_word(adrs + value_id - 1, ((uint16_t)value_data[0] << 8) + value_data[1]);
+        eeprom_update_word(adrs, ((uint16_t)value_data[1] << 8) + value_data[0]);
         break;
       case id_custom_td_tapping_term:
-        // TODO should reduce the number of writing times
         // LE
-        eeprom_update_word(adrs + 4, ((uint16_t)value_data[1] << 8) + value_data[0]);
-        // BE
-        // eeprom_update_word(adrs + 4, ((uint16_t)value_data[0] << 8) + value_data[1]);
+        defer_eeprom_update(((id_custom_td_channel_start + td_index) << 8) + value_id, WORD, adrs,
+                            ((uint16_t)value_data[1] << 8) + value_data[0]);
         break;
     }
   }
@@ -487,4 +497,46 @@ void pgm_memcpy(void *dest, const void *src, size_t len) {
   for (size_t i = 0; i < len; i++) {
     *(uint8_t *)dest++ = pgm_read_byte((uint8_t *)src++);
   }
+}
+
+static void defer_eeprom_update(uint16_t id, defer_eeprom_update_value_type_t value_type, void *adrs, uint32_t value) {
+  defer_eeprom_update_item_t *new_item = NULL;
+  for (size_t i = 0; i < DEFER_EEPROM_UPDATE_ITEM_SIZE; i++) {
+    defer_eeprom_update_item_t *item = &defer_eeprom_update_items[i];
+    if (id == item->id) {
+      item->value = value;
+      extend_deferred_exec(item->token, DEFER_EEPROM_UPDATE_DELAY_MILLIS);
+      return;
+    } else if (new_item == NULL && item->id == 0) {
+      new_item = item;
+    }
+  }
+  if (new_item != NULL) {
+    new_item->id = id;
+    new_item->value_type = value_type;
+    new_item->adrs = adrs;
+    new_item->value = value;
+    new_item->token = defer_exec(DEFER_EEPROM_UPDATE_DELAY_MILLIS,
+                                 (uint32_t(*)(uint32_t, void *))defer_eeprom_update_callback, new_item);
+  }
+}
+
+static uint32_t defer_eeprom_update_callback(uint32_t trigger_time, defer_eeprom_update_item_t *item) {
+  switch (item->value_type) {
+    case BYTE:
+      eeprom_update_byte(item->adrs, item->value);
+      break;
+    case WORD:
+      eeprom_update_word(item->adrs, item->value);
+      break;
+    case DWORD:
+      eeprom_update_dword(item->adrs, item->value);
+      break;
+  }
+#ifdef CONSOLE_ENABLE
+  uprintf("defer_eeprom_update_callback:id:%04X value:%d\n", item->id, item->value);
+#endif
+  // release item
+  item->id = 0;
+  return 0;
 }

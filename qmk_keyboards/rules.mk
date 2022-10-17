@@ -14,6 +14,7 @@ APPLE_FN_ENABLE = yes
 SECURE_ENABLE = yes
 TAP_DANCE_ENABLE = yes
 COMBO_ENABLE = yes
+DEFERRED_EXEC_ENABLE = yes
 
 SRC += lib/my_keyboard_common.c
 SRC += lib/custom_config.c
