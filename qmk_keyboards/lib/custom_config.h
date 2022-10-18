@@ -20,44 +20,28 @@
 #include "quantum.h"
 #include "via.h"
 
-#define VIA_CUSTTOM_CHANNEL_ID_START 5
-enum via_custom_channel_id {
-  id_custom_magic_channel = VIA_CUSTTOM_CHANNEL_ID_START,
-  id_custom_rc_channel,                                                           // Radial Controller
-  id_custom_td_channel_start,                                                     // Tap Dance start
-  id_custom_td_channel_end = id_custom_td_channel_start + TAP_DANCE_ENTRIES - 1,  // Tap Dance end
-};
+typedef union {
+  uint32_t raw;
+  struct {
+    bool raw_hid : 1;  // allow access to raw hid
+    bool mac : 1;      // mac mode.
+    bool usj : 1;      // ANSI layou on JIS.
+  };
+} kb_config_t;
+extern kb_config_t kb_config;
 
-enum via_custom_magic_value_id {
-  id_custom_magic_swap_control_capslock = 1,
-  id_custom_magic_swap_escape_capslock,
-  id_custom_magic_capslock_to_control,
-  id_custom_magic_swap_lctl_lgui,
-  id_custom_magic_swap_rctl_rgui,
-  id_custom_magic_swap_lalt_lgui,
-  id_custom_magic_swap_ralt_rgui,
-  id_custom_magic_no_gui,
-  id_custom_magic_swap_grave_esc,
-  id_custom_magic_host_nkro
-};
-
-enum via_custom_rc_value_id {
-  id_custom_rc_encoder_clicks = 1,
-  id_custom_rc_key_angular_speed = 2,
-  id_custom_rc_fine_tune_ratio = 3,
-  id_custom_rc_fine_tune_mod_ctrl = 4,
-  id_custom_rc_fine_tune_mod_shift = 5,
-  id_custom_rc_fine_tune_mod_alt = 6,
-  id_custom_rc_fine_tune_mod_gui = 7,
-};
-
-enum via_custom_td_value_id {
-  id_custom_td_single_tap = 1,
-  id_custom_td_single_hold = 2,
-  id_custom_td_multi_tap = 3,
-  id_custom_td_tap_hold = 4,
-  id_custom_td_tapping_term = 5,
-};
+#ifdef RADIAL_CONTROLLER_ENABLE
+typedef union {
+  uint32_t raw;
+  struct {
+    uint8_t encoder_clicks;       // encoder clicks per rotation
+    uint8_t key_angular_speed;    // degree per second, 15 - 270 (offset 15)
+    uint8_t fine_tune_mods : 4;   // bit0: ctrl, bit1: shift, bit2: alt, bit3: gui
+    uint8_t fine_tune_ratio : 2;  // power-of-2 divider 0: none, 1: 1/2, 2:1/4, 3:1/8
+  };
+} rc_config_t;
+extern rc_config_t rc_config;
+#endif
 
 bool process_record_custom_config(uint16_t keycode, keyrecord_t *record);
 
@@ -76,28 +60,16 @@ bool custom_config_usj_is_enable(void);
 void custom_config_usj_toggle_enable(void);
 void custom_config_usj_set_enable(bool);
 
-void via_custom_magic_get_value(uint8_t value_id, uint8_t *value_data);
-void via_custom_magic_set_value(uint8_t value_id, uint8_t *value_data);
-
 #ifdef RADIAL_CONTROLLER_ENABLE
 uint8_t custom_config_rc_get_encoder_clicks(void);
 uint16_t custom_config_rc_get_key_angular_speed(void);
 uint8_t custom_config_rc_get_fine_tune_ratio(void);
-bool custom_config_rc_is_fine_tune_mod(void);
-#  if VIA_VERSION == 3
-void via_custom_rc_get_value(uint8_t value_id, uint8_t *value_data);
-void via_custom_rc_set_value(uint8_t value_id, uint8_t *value_data);
-void via_custom_rc_save(void);
-#  endif  // VIA_VERSION == 3
+uint8_t custom_config_rc_is_fine_tune_mods(void);
+bool custom_config_rc_is_fine_tune_mods_now(void);
 #endif
 
 void dynamic_tap_dance_reset(const tap_dance_entry_t *entry, uint8_t len);
 uint16_t dynamic_tap_dance_keycode(uint16_t index, tap_dance_state_t state);
 uint16_t dynamic_tap_dance_tapping_term(uint16_t index);
-#if VIA_VERSION == 3
-void via_custom_td_get_value(uint8_t td_index, uint8_t value_id, uint8_t *value_data);
-void via_custom_td_set_value(uint8_t td_index, uint8_t value_id, uint8_t *value_data);
-void via_custom_td_save(uint8_t td_index);
-#endif  // VIA_VERSION == 3
 
 void pgm_memcpy(void *dest, const void *src, size_t len);

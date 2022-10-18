@@ -63,7 +63,7 @@ static void process_dial(int16_t direction, keyrecord_t* record) {
 
 static void process_dial_encoder(int16_t direction) {
   uint16_t amount = 3600 / custom_config_rc_get_encoder_clicks();
-  if (fine_tune || custom_config_rc_is_fine_tune_mod()) {
+  if (fine_tune || custom_config_rc_is_fine_tune_mods_now()) {
     amount >>= custom_config_rc_get_fine_tune_ratio();
   }
   radial_controller_report.dial = direction * amount;
@@ -126,7 +126,7 @@ static void report_dial_keyswitch() {
     speed = 3600;
   }
   // 1/4 fine speed
-  if (fine_tune || custom_config_rc_is_fine_tune_mod()) {
+  if (fine_tune || custom_config_rc_is_fine_tune_mods_now()) {
     speed >>= custom_config_rc_get_fine_tune_ratio();
   }
   radial_controller_report.dial = rotating_direction * speed;
