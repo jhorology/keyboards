@@ -38,21 +38,21 @@ module.exports = function (options, defines) {
     },
     {
       code: 'USJ_TOGG',
-      name: 'USJ\nTOGG',
+      name: '社畜\nTOGG',
       title: 'Toggle enabling key overridng for ANSI layout on JIS environment',
-      shortName: 'USJ\nTOGG'
+      shortName: '社畜\nTOGG'
     },
     {
       code: 'USJ_ON',
-      name: 'USJ\nON',
+      name: '社畜\nON',
       title: 'Enable key overriding for ANSI layout on JIS environment',
-      shortName: 'USJ\nON'
+      shortName: '社畜\nON'
     },
     {
       code: 'USJ_OFF',
-      name: 'USJ\nOFF',
+      name: '社畜\nOFF',
       title: 'Disable key overriding for ANSI layout on JIS environment',
-      shortName: 'USJ\nOFF'
+      shortName: '社畜\nOFF'
     },
     {
       code: 'APPLE_FN',
