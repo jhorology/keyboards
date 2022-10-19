@@ -127,7 +127,7 @@ async function getDefineValues(targetDir) {
       path.join(targetDir, 'config.h')
     ],
     secureConfig = path.join(targetDir, 'secure_config.h')
-  if (readable(secureConfig)) {
+  if (await readable(secureConfig)) {
     files.push(secureConfig)
   }
   return await find_all_with_reduce(
