@@ -49,21 +49,21 @@ This is a personal project for my own keyboards.
 | Fn/Globe + M | Focus Menubar |
 
 ## Amethyst Shortcuts
-|Shortcut|Descrption|
+|Shortcut|keymap|Descrption|
 |--------|----------|
-| F18 | Cycle layout forward |
-| F17 | Cycle layout backwords |
-| shift + F17 | Shrink main pane |
-| shift + F18 | Expand main pane |
-| ctrl + F18 | Increase main pane count |
-| ctrl + F17 | Decrease main pane count |
-| F14 (Scroll Lock) | Move focus counter clockwise |
-| F15 (Pause) | Move focus clockwise |
-| F13 (Print Screen) | Move focus to counter clockwise screen |
-| shift + F13 (Print Screen) | Swap focused window to counter clockwise screen |
-| shift + F14 (Scroll Lock) | Swap focused window counter clockwise |
-| shift + F15 (Pause) | Swap focused window clockwise |
-| F16 | Force windows to be reevaluated |
+| F18 | MO(2) + E | Cycle layout forward |
+| F17 | MO(2) + W |Cycle layout backwords |
+| shift + F17 | MO(2) + shift + W | Shrink main pane |
+| shift + F18 | MO(2) + shift + E | Expand main pane |
+| ctrl + F18 | MO(2) + ctrl + E | Increase main pane count |
+| ctrl + F17 | MO(2) + ctrl + W | Decrease main pane count |
+| F14 (Scroll Lock) | MO(2) + O | Move focus counter clockwise |
+| F15 (Pause) | MO(2) + P | Move focus clockwise |
+| F13 (Print Screen) | MO(2) + I | Move focus to counter clockwise screen |
+| shift + F13 (Print Screen) | MO(2) + shift + I | Swap focused window to counter clockwise screen |
+| shift + F14 (Scroll Lock) | MO(2) + shift + O | Swap focused window counter clockwise |
+| shift + F15 (Pause) | MO(2) + shift + P | Swap focused window clockwise |
+| F16 | MO(2) + Q | Force windows to be reevaluated |
 
 ## References
 - qmk_firmware
