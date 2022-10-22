@@ -48,23 +48,37 @@ const tap_dance_entry_t PROGMEM tap_dance_entries_default[] = {
  * pre-defined apple fn functions for non-mac mode.
  */
 const uint16_t PROGMEM non_mac_fn_keys_default[] = {
-    [FN_F1] = KC_BRID,   // F1 decrease brightness
-    [FN_F2] = KC_BRIU,   // F2 increase brightness
-    [FN_F3] = KC_F3,     // TODO F3 mission control
-    [FN_F4] = KC_F4,     // TODO F4 older mac: launchpad / newer mac: spotlight
-    [FN_F5] = KC_F5,     // TODO F5 olfer mac: F5        / newer mac: dictaion
-    [FN_F6] = KC_F6,     // TODO F6 older mac: F6        / newer mac: sleep
-    [FN_F7] = KC_MPRV,   // F7 meda prev
-    [FN_F8] = KC_MPLY,   // F8 media play/pause
-    [FN_F9] = KC_MNXT,   // F9 media next
-    [FN_F10] = KC_MUTE,  // F10 mute audio
-    [FN_F11] = KC_VOLD,  // F11 decrease audio volume
-    [FN_F12] = KC_VOLU,  // F12 increase audio volume
+#ifdef MON_MAC_FN_KEYS_PREFER_LINUX
+// TODO Linux Gnome
+#else
+    // Windows
+    [FN_F1] = KC_BRID,    // decrease brightness
+    [FN_F2] = KC_BRIU,    // increase brightness
+    [FN_F3] = G(KC_TAB),  // mission control
+    [FN_F4] = A(KC_SPC),  // Spotlight -> PowerToys Run
+    [FN_F5] = G(KC_H),    // dictaion
+    [FN_F6] = KC_NO,      // Do not disturb -> TODO
+    [FN_F7] = KC_MPRV,    // meda prev
+    [FN_F8] = KC_MPLY,    // media play/pause
+    [FN_F9] = KC_MNXT,    // media next
+    [FN_F10] = KC_MUTE,   // mute audio
+    [FN_F11] = KC_VOLD,   // decrease audio volume
+    [FN_F12] = KC_VOLU,   // increase audio volume
+    [FN_SPC] = KC_NO,     // Hey Siri -> TODO Cortana
+    [FN_Q] = LAG(KC_N),   // Quick Notes
+    [FN_E] = G(KC_DOT),   // Emoji & Symbols
+    [FN_A] = G(KC_B),     // Focus Dock -> Focus Taskbar
+    [FN_D] = G(KC_H),     // Dictation
+    [FN_F] = KC_F11,      // Full screen mode
+    [FN_H] = G(KC_COMM),  // Show Desktop
+    [FN_C] = G(KC_A),     // Open Control Center -> Open Action Center
+    [FN_N] = KC_LALT,     // Focus menubar
+#endif  // MON_MAC_FN_KEYS_PREFER_LINUX
 };
 
 combo_t key_combos[COMBO_COUNT] = {};
 
-//  qmk/vial custom hook functsions
+//  qmk/vial custom hook functions
 //------------------------------------------
 
 void via_init_kb(void) {

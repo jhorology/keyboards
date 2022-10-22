@@ -60,6 +60,9 @@ bool process_apple_fn(uint16_t keycode, keyrecord_t *record) {
 static bool process_fkey_override(uint16_t keycode, keyrecord_t *record) {
   static uint16_t fkey_override_flags;
 
+  // ignore generated key
+  if (record->keycode) return true;
+
   if (!apple_ff && record->event.pressed) return true;
   if (!fkey_override_flags && !record->event.pressed) return true;
 
@@ -101,6 +104,10 @@ static bool process_non_mac_fn(uint16_t keycode, keyrecord_t *record) {
   static uint32_t fn_override_flags;
 
   if (custom_config_mac_is_enable()) return true;
+
+  // ignore generated key
+  if (record->keycode) return true;
+
   if (!(apple_fn || apple_ff) && record->event.pressed) return true;
   if (!fn_override_flags && !record->event.pressed) return true;
 

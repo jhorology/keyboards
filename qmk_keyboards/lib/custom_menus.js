@@ -220,10 +220,6 @@ function createTapDanceMenu(size) {
   }
 }
 
-const SHOW_IF_FKEY =
-  '{id_custom_non_mac_fn_mode} == 1 || {id_custom_non_mac_fn_mode} == 3'
-const SHOW_IF_ALPHA =
-  '{id_custom_non_mac_fn_mode} == 2 || {id_custom_non_mac_fn_mode} == 3'
 const NON_MAC_FN_MENU = {
   label: 'Non-macos fn🌐',
   content: [
@@ -245,17 +241,20 @@ const NON_MAC_FN_MENU = {
             1
           ]
         },
-        ..._.range(12).map((i) => ({
-          showIf: SHOW_IF_FKEY,
-          label: `fn🌐 + F${i + 1}`,
-          type: 'keycode',
-          content: [
-            `id_custom_non_mac_fn_f${i + 1}`,
-            ID_CUSTOM_NON_MAC_FN_CHANNEL,
-            i + 2
-          ]
-        })),
         ...[
+          // see https://manuals.info.apple.com/MANUALS/2000/MA2010/en_US/magic-keyboard-touchID-03404572-ug.pdf
+          { key: 'F1', desc: 'Decrese brightness of display' },
+          { key: 'F2', desc: 'Increase brightness of display' },
+          { key: 'F3', desc: 'Open Mission Control' },
+          { key: 'F4', desc: 'Open Spotlight' },
+          { key: 'F5', desc: 'Activate dictation' },
+          { key: 'F6', desc: 'Turn Do Not Disturb on or off' },
+          { key: 'F7', desc: 'Media Track prev' },
+          { key: 'F8', desc: 'Media Play/Pause' },
+          { key: 'F9', desc: 'Media Track next' },
+          { key: 'F10', desc: 'Mute sound' },
+          { key: 'F11', desc: 'Decrease volume of sound' },
+          { key: 'F12', desc: 'Increase volume of sound' },
           { key: 'SPC', desc: 'Hey Siri' },
           { key: 'Q', desc: 'Quick Notes' },
           { key: 'E', desc: 'Emoji & Symbols' },
@@ -263,17 +262,19 @@ const NON_MAC_FN_MENU = {
           { key: 'D', desc: 'Dictation' },
           { key: 'F', desc: 'Toggle Full Screen Mode' },
           { key: 'H', desc: 'Show Desktop' },
-          { key: 'C', desc: 'Show Control Center' },
-          { key: 'N', desc: 'Show Notification' },
+          { key: 'C', desc: 'Open Control Center' },
+          { key: 'N', desc: 'Open Notification' },
           { key: 'M', desc: 'Focus Menubar' }
         ].map((e, i) => ({
-          showIf: SHOW_IF_ALPHA,
+          showIf: `{id_custom_non_mac_fn_mode} == ${
+            i < 12 ? '1' : '2'
+          } || {id_custom_non_mac_fn_mode} == 3`,
           label: `fn🌐 + ${e.key}: ${e.desc}`,
           type: 'keycode',
           content: [
             `id_custom_non_mac_fn_${e.key.toLowerCase()}`,
             ID_CUSTOM_NON_MAC_FN_CHANNEL,
-            i + 14
+            i + 2
           ]
         }))
       ]
