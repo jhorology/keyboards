@@ -50,7 +50,7 @@ This is a personal project for my own keyboards.
 
 ## Amethyst Shortcuts
 |Shortcut|keymap|Descrption|
-|--------|----------|
+|--------|----------|----------|
 | F18 | MO(2) + E | Cycle layout forward |
 | F17 | MO(2) + W |Cycle layout backwords |
 | shift + F17 | MO(2) + shift + W | Shrink main pane |
