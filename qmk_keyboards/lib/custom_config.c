@@ -19,6 +19,19 @@
 #include "eeprom.h"
 #include "lib/custom_keycodes.h"
 
+#ifndef CUSTOM_CONFIG_RHID_DEFAULT
+#  define CUSTOM_CONFIG_RHID_DEFAULT false
+#endif
+#ifndef CUSTOM_CONFIG_MAC_DEFAULT
+#  define CUSTOM_CONFIG_MAC_DEFAULT true
+#endif
+#ifndef CUSTOM_CONFIG_USJ_DEFAULT
+#  define CUSTOM_CONFIG_USJ_DEFAULT false
+#endif
+#ifndef CUSTOM_CONFIG_NON_MAC_FN_MODE_DEFAULT
+#  define CUSTOM_CONFIG_NON_MAC_FN_MODE_DEFAULT 1
+#endif
+
 #ifdef RADIAL_CONTROLLER_ENABLE
 #  ifndef RADIAL_CONTROLLER_ENCODER_CLICKS_DEFAULT
 #    define RADIAL_CONTROLLER_ENCODER_CLICKS_DEFAULT 36
@@ -48,7 +61,11 @@ static void _custom_config_usj_set_enable(bool enable);
 
 void custom_config_reset() {
   kb_config.raw = 0;
-  kb_config.mac = true;
+  kb_config.raw_hid = CUSTOM_CONFIG_RHID_DEFAULT;
+  kb_config.mac = CUSTOM_CONFIG_MAC_DEFAULT;
+  kb_config.usj = CUSTOM_CONFIG_USJ_DEFAULT;
+  kb_config.non_mac_fn_mode = CUSTOM_CONFIG_NON_MAC_FN_MODE_DEFAULT;
+
   eeconfig_update_kb(kb_config.raw);
 #ifdef RADIAL_CONTROLLER_ENABLE
   rc_config.raw = 0;
@@ -66,7 +83,11 @@ void custom_config_init() {
 #ifdef RADIAL_CONTROLLER_ENABLE
   rc_config.raw = eeprom_read_dword((uint32_t *)RADIAL_CONTROLLER_EEPROM_ADDR);
 #endif
+#ifdef CUSTOM_CONFIG_RHID_MODE_PIN
+  setPinOutput(CUSTOM_CONFIG_RHID_MODE_PIN);
+#endif
 #ifdef CUSTOM_CONFIG_MAC_MODE_PIN
+  // write pin at initialize time only. mac mode is never changed without restart.
   setPinOutput(CUSTOM_CONFIG_MAC_MODE_PIN);
   writePin(CUSTOM_CONFIG_MAC_MODE_PIN, kb_config.mac);
 #endif
@@ -94,12 +115,15 @@ bool process_record_custom_config(uint16_t keycode, keyrecord_t *record) {
         custom_config_raw_hid_set_enable(false);
         return false;
       case MAC_TOGG:
+        // *keyboard will restart
         custom_config_mac_toggle_enable();
         return false;
       case MAC_ON:
+        // *keyboard may restart
         custom_config_mac_set_enable(true);
         return false;
       case MAC_OFF:
+        // *keyboard may restart
         custom_config_mac_set_enable(false);
         return false;
       case USJ_TOGG:
@@ -120,7 +144,12 @@ bool custom_config_raw_hid_is_enable() { return kb_config.raw_hid; }
 
 void custom_config_raw_hid_toggle_enable() { custom_config_raw_hid_set_enable(!kb_config.raw_hid); }
 
-static void _custom_config_raw_hid_set_enable(bool enable) { kb_config.raw_hid = enable; }
+static void _custom_config_raw_hid_set_enable(bool enable) {
+  kb_config.raw_hid = enable;
+#ifdef CUSTOM_CONFIG_RHID_MODE_PIN
+  writePin(CUSTOM_CONFIG_RHID_MODE_PIN, enable);
+#endif
+}
 
 void custom_config_raw_hid_set_enable(bool enable) {
   if (enable != kb_config.raw_hid) {
@@ -135,11 +164,11 @@ bool custom_config_mac_is_enable() { return kb_config.mac; }
 
 void custom_config_mac_toggle_enable() { custom_config_mac_set_enable(!kb_config.mac); }
 
-static void _custom_config_mac_set_enable(bool mac) { kb_config.mac = mac; }
+static void _custom_config_mac_set_enable(bool enable) { kb_config.mac = enable; }
 
-void custom_config_mac_set_enable(bool mac) {
-  if (mac != kb_config.mac) {
-    _custom_config_mac_set_enable(mac);
+void custom_config_mac_set_enable(bool enable) {
+  if (enable != kb_config.mac) {
+    _custom_config_mac_set_enable(enable);
     eeconfig_update_kb(kb_config.raw);
     // reboot for changing USB device descriptor
     soft_reset_keyboard();
@@ -150,19 +179,28 @@ bool custom_config_usj_is_enable() { return kb_config.usj; }
 
 void custom_config_usj_toggle_enable() { custom_config_usj_set_enable(!kb_config.usj); }
 
-static void _custom_config_usj_set_enable(bool usj) {
-  kb_config.usj = usj;
+static void _custom_config_usj_set_enable(bool enable) {
+  kb_config.usj = enable;
 #ifdef CUSTOM_CONFIG_USJ_MODE_PIN
-  writePin(CUSTOM_CONFIG_USJ_MODE_PIN, usj);
+  writePin(CUSTOM_CONFIG_USJ_MODE_PIN, enable);
 #endif
 }
 
-void custom_config_usj_set_enable(bool usj) {
-  if (usj != kb_config.usj) {
-    _custom_config_usj_set_enable(usj);
+void custom_config_usj_set_enable(bool enable) {
+  if (enable != kb_config.usj) {
+    _custom_config_usj_set_enable(enable);
 #ifndef CUSTOM_CONFIG_FORCE_USJ
     eeconfig_update_kb(kb_config.raw);
 #endif
+  }
+}
+
+uint8_t custom_config_non_mac_fn_get_mode() { return kb_config.non_mac_fn_mode; }
+
+void custom_config_non_mac_fn_set_mode(uint8_t mode) {
+  if (mode != kb_config.non_mac_fn_mode) {
+    kb_config.non_mac_fn_mode = mode;
+    eeconfig_update_kb(kb_config.raw);
   }
 }
 
@@ -208,7 +246,8 @@ uint16_t dynamic_tap_dance_keycode(uint16_t index, tap_dance_state_t state) {
   if (index < TAP_DANCE_ENTRIES) {
     switch (state) {
       case TD_SINGLE_TAP ... TD_TAP_HOLD:
-        keycode = eeprom_read_word((uint16_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + 10 * index + (state - 1) * 2));
+        keycode =
+            eeprom_read_word((uint16_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + 10 * index + (state - TD_SINGLE_TAP) * 2));
       default:
         break;
     }
@@ -220,13 +259,28 @@ uint16_t dynamic_tap_dance_keycode(uint16_t index, tap_dance_state_t state) {
 }
 
 uint16_t dynamic_tap_dance_tapping_term(uint16_t index) {
-  uint16_t tapping_term = index < TAP_DANCE_ENTRIES
-                              ? eeprom_read_word((uint16_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + 8 + 10 * index))
-                              : TAPPING_TERM;
+  uint16_t tapping_term =
+      (index < TAP_DANCE_ENTRIES ? eeprom_read_word((uint16_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + 8 + 10 * index))
+                                 : TAPPING_TERM) &
+      0x03ff;  // highest 6bits are reserved for future use
 #ifdef CONSOLE_ENABLE
   uprintf("dynamic_tap_dance_tapping_term:td_index:%d tapping_term:%d\n", index, tapping_term);
 #endif
   return tapping_term;
+}
+
+// none mac fn functions
+
+void dynamic_non_mac_fn_reset(const uint16_t *keycodes, size_t len) {
+  uint16_t *adrs = (uint16_t *)DYNAMIC_NON_MAC_FN_EEPROM_ADDR;
+  for (size_t i = 0; i < NON_MAC_FN_KEY_ENTRIES; i++) {
+    eeprom_update_word(adrs++, i < len ? pgm_read_word(&keycodes[i]) : KC_NO);
+  }
+}
+
+uint16_t dynamic_non_mac_fn_keycode(non_mac_fn_key_t fn_key) {
+  uint16_t *adrs = (uint16_t *)DYNAMIC_NON_MAC_FN_EEPROM_ADDR;
+  return eeprom_read_word(adrs + fn_key);
 }
 
 void pgm_memcpy(void *dest, const void *src, size_t len) {

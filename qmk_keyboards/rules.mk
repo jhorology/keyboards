@@ -25,5 +25,5 @@ SRC += lib/tap_dance.c
 
 OPT_DEFS += -DVIA_VERSION=$(strip $(VIA_VERSION))
 ifeq ($(strip $(VIA_VERSION)), 3)
-  SRC += lib/via_v3.c
+  SRC += lib/via_custom_menus.c
 endif

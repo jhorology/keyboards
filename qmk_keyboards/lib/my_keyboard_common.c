@@ -34,7 +34,7 @@
  * [3] tap hold
  * [4] tapping term
  */
-const tap_dance_entry_t PROGMEM via_tap_dance_entries_default[] = {
+const tap_dance_entry_t PROGMEM tap_dance_entries_default[] = {
     // for HHKB Right Alt, Alt + layer switch
     [TD_RALT_MO3] = {KC_RALT, KC_RALT, KC_RALT, MO(3), TAPPING_TERM},
 
@@ -43,6 +43,24 @@ const tap_dance_entry_t PROGMEM via_tap_dance_entries_default[] = {
 
     // Apple Fn key + IME switch
     [TD_APFF_EISU_KANA] = {KC_LNG2, APPLE_FF, KC_LNG1, APPLE_FF, TAPPING_TERM}};
+
+/*
+ * pre-defined apple fn functions for non-mac mode.
+ */
+const uint16_t PROGMEM non_mac_fn_keys_default[] = {
+    [FN_F1] = KC_BRID,   // F1 decrease brightness
+    [FN_F2] = KC_BRIU,   // F2 increase brightness
+    [FN_F3] = KC_F3,     // TODO F3 mission control
+    [FN_F4] = KC_F4,     // TODO F4 older mac: launchpad / newer mac: spotlight
+    [FN_F5] = KC_F5,     // TODO F5 olfer mac: F5        / newer mac: dictaion
+    [FN_F6] = KC_F6,     // TODO F6 older mac: F6        / newer mac: sleep
+    [FN_F7] = KC_MPRV,   // F7 meda prev
+    [FN_F8] = KC_MPLY,   // F8 media play/pause
+    [FN_F9] = KC_MNXT,   // F9 media next
+    [FN_F10] = KC_MUTE,  // F10 mute audio
+    [FN_F11] = KC_VOLD,  // F11 decrease audio volume
+    [FN_F12] = KC_VOLU,  // F12 increase audio volume
+};
 
 combo_t key_combos[COMBO_COUNT] = {};
 
@@ -57,7 +75,8 @@ void via_init_kb(void) {
 
 void eeconfig_init_kb(void) {
   custom_config_reset();
-  dynamic_tap_dance_reset(via_tap_dance_entries_default, TAP_DANCE_PRE_DEFINED_LENGTH);
+  dynamic_tap_dance_reset(tap_dance_entries_default, TAP_DANCE_PRE_DEFINED_LENGTH);
+  dynamic_non_mac_fn_reset(non_mac_fn_keys_default, sizeof(non_mac_fn_keys_default) >> 1);
   eeconfig_init_user();
 }
 

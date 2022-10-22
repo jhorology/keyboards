@@ -1,7 +1,8 @@
 const _ = require('underscore'),
   ID_CUSTOM_MAGIC_CHANNEL = 5,
   ID_CUSTOM_RC_CHANNEL = 6,
-  ID_CUSTOM_TD_CHANNEL_START = 7
+  ID_CUSTOM_NON_MAC_FN_CHANNEL = 7,
+  ID_CUSTOM_TD_CHANNEL_START = 8
 
 const QMK_MAGIC_MENU = {
   label: 'QMK Magic',
@@ -159,6 +160,7 @@ const RADIAL_CONTROLLER_MENU = {
     }
   ]
 }
+
 function createTapDanceMenu(size) {
   // id_field should be unique at all of content scope
   return {
@@ -218,13 +220,75 @@ function createTapDanceMenu(size) {
   }
 }
 
+const SHOW_IF_FKEY =
+  '{id_custom_non_mac_fn_mode} == 1 || {id_custom_non_mac_fn_mode} == 3'
+const SHOW_IF_ALPHA =
+  '{id_custom_non_mac_fn_mode} == 2 || {id_custom_non_mac_fn_mode} == 3'
+const NON_MAC_FN_MENU = {
+  label: 'Non-macos fn🌐',
+  content: [
+    {
+      label: 'Settings',
+      content: [
+        {
+          label: 'When mac mode is disabled, fn🌐 key apply to:',
+          type: 'dropdown',
+          options: [
+            ['OFF', 0],
+            ['F1-12 Key only', 1],
+            ['Alpha Key only', 2],
+            ['Both F1-12 and Alpha', 3]
+          ],
+          content: [
+            'id_custom_non_mac_fn_mode',
+            ID_CUSTOM_NON_MAC_FN_CHANNEL,
+            1
+          ]
+        },
+        ..._.range(12).map((i) => ({
+          showIf: SHOW_IF_FKEY,
+          label: `fn🌐 + F${i + 1}`,
+          type: 'keycode',
+          content: [
+            `id_custom_non_mac_fn_f${i + 1}`,
+            ID_CUSTOM_NON_MAC_FN_CHANNEL,
+            i + 2
+          ]
+        })),
+        ...[
+          { key: 'SPC', desc: 'Hey Siri' },
+          { key: 'Q', desc: 'Quick Notes' },
+          { key: 'E', desc: 'Emoji & Symbols' },
+          { key: 'A', desc: 'Focus Dock' },
+          { key: 'D', desc: 'Dictation' },
+          { key: 'F', desc: 'Toggle Full Screen Mode' },
+          { key: 'H', desc: 'Show Desktop' },
+          { key: 'C', desc: 'Show Control Center' },
+          { key: 'N', desc: 'Show Notification' },
+          { key: 'M', desc: 'Focus Menubar' }
+        ].map((e, i) => ({
+          showIf: SHOW_IF_ALPHA,
+          label: `fn🌐 + ${e.key}: ${e.desc}`,
+          type: 'keycode',
+          content: [
+            `id_custom_non_mac_fn_${e.key.toLowerCase()}`,
+            ID_CUSTOM_NON_MAC_FN_CHANNEL,
+            i + 14
+          ]
+        }))
+      ]
+    }
+  ]
+}
+
 module.exports = function (options, defines) {
   const customMenus = [QMK_MAGIC_MENU]
   if (defines.TAP_DANCE_ENTRIES) {
     customMenus.push(createTapDanceMenu(defines.TAP_DANCE_ENTRIES))
   }
+  customMenus.push(NON_MAC_FN_MENU)
   if (options.RADIAL_CONTROLLER_ENABLE === 'yes') {
     customMenus.push(RADIAL_CONTROLLER_MENU)
   }
-  return customMenus.length ? customMenus : undefined
+  return customMenus
 }

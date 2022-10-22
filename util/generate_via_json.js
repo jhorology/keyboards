@@ -303,6 +303,7 @@ function validate(target, via) {
     )
   }
   if (!validator(via)) {
+    console.log(JSON.stringify(via, null, 2))
     throw new Error(
       `via_json_generator: keyboard: ${target} - VIA v${VIA_VERSION} validation fails with errors:\n ${JSON.stringify(
         validator.errors,

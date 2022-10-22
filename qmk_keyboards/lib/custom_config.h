@@ -16,16 +16,22 @@
 
 #pragma once
 
+#include "lib/apple_fn.h"
 #include "lib/tap_dance.h"
 #include "quantum.h"
 #include "via.h"
 
+// apple fn override modes for non-macos
+#define NON_MAC_FN_MODE_FKEY_MASK 1
+#define NON_MAC_FN_MODE_ALPHA_MASK 2
+
 typedef union {
   uint32_t raw;
   struct {
-    bool raw_hid : 1;  // allow access to raw hid
-    bool mac : 1;      // mac mode.
-    bool usj : 1;      // ANSI layou on JIS.
+    bool raw_hid : 1;             // allow access to raw hid
+    bool usj : 1;                 // ANSI layou on JIS.
+    bool mac : 1;                 // mac mode.
+    uint8_t non_mac_fn_mode : 2;  // fn override mode for non-macos  0: OFF, 1: F1-12, 2: Alpha, 3: All
   };
 } kb_config_t;
 extern kb_config_t kb_config;
@@ -52,6 +58,9 @@ bool custom_config_raw_hid_is_enable(void);
 void custom_config_raw_hid_toggle_enable(void);
 void custom_config_raw_hid_set_enable(bool);
 
+void dynamic_none_mac_apple_fn_fkeys_reset(uint16_t *fkeys);
+void dynamic_none_mac_apple_fn_fkeys_keycode(uint16_t fkeys_index);
+
 bool custom_config_mac_is_enable(void);
 void custom_config_mac_toggle_enable(void);
 void custom_config_mac_set_enable(bool);
@@ -59,6 +68,9 @@ void custom_config_mac_set_enable(bool);
 bool custom_config_usj_is_enable(void);
 void custom_config_usj_toggle_enable(void);
 void custom_config_usj_set_enable(bool);
+
+uint8_t custom_config_non_mac_fn_get_mode(void);
+void custom_config_non_mac_fn_set_mode(uint8_t);
 
 #ifdef RADIAL_CONTROLLER_ENABLE
 uint8_t custom_config_rc_get_encoder_clicks(void);
@@ -71,5 +83,8 @@ bool custom_config_rc_is_fine_tune_mods_now(void);
 void dynamic_tap_dance_reset(const tap_dance_entry_t *entry, uint8_t len);
 uint16_t dynamic_tap_dance_keycode(uint16_t index, tap_dance_state_t state);
 uint16_t dynamic_tap_dance_tapping_term(uint16_t index);
+
+void dynamic_non_mac_fn_reset(const uint16_t *keycodes, size_t len);
+uint16_t dynamic_non_mac_fn_keycode(non_mac_fn_key_t fn_key);
 
 void pgm_memcpy(void *dest, const void *src, size_t len);

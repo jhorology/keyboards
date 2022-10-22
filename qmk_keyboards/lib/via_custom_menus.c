@@ -13,12 +13,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include "custom_config.h"
 #include QMK_KEYBOARD_H
-#include "via_v3.h"
+#include "via_custom_menus.h"
 
-#include <print.h>
-
+#ifdef CONSOLE_ENABLE
+#  include <print.h>
+#endif
 #include "eeprom.h"
+#include "lib/apple_fn.h"
 #include "lib/custom_config.h"
 #include "lib/tap_dance.h"
 
@@ -78,6 +81,17 @@ void via_custom_value_command_kb(uint8_t *data, uint8_t length) {
           return;
         case id_custom_save:
           via_custom_td_save(data[1] - id_custom_td_channel_start);
+          return;
+      }
+    case id_custom_non_mac_fn_channel:
+      switch (data[0]) {
+        case id_custom_set_value:
+          via_custom_non_mac_fn_set_value(data[2], &(data[3]));
+          return;
+        case id_custom_get_value:
+          via_custom_non_mac_fn_get_value(data[2], &(data[3]));
+          return;
+        case id_custom_save:
           return;
       }
   }
@@ -268,6 +282,44 @@ void via_custom_td_save(uint8_t td_index) {
   uprintf("via_custom_td_save:td_index:%d\n", td_index);
 #endif  // ONSOLE_ENABLE
 }
+
+// non-mac fn functions
+
+void via_custom_non_mac_fn_get_value(uint8_t value_id, uint8_t *value_data) {
+  switch (value_id) {
+    case id_custom_non_mac_fn_mode:
+      value_data[0] = custom_config_non_mac_fn_get_mode();
+      break;
+    case id_custom_non_mac_fn_f1 ... id_custom_non_mac_fn_m: {
+      uint16_t keycode = dynamic_non_mac_fn_keycode(FN_F1 + (value_id - id_custom_non_mac_fn_f1));
+      // LE
+      value_data[0] = keycode & 0xff;
+      value_data[1] = keycode >> 8;
+      break;
+    }
+  }
+#ifdef CONSOLE_ENABLE
+  uprintf("via_custom_non_mac_fn_get_value:value_id:%d value:%02X %02X\n", value_id, value_data[0], value_data[1]);
+#endif
+}
+
+void via_custom_non_mac_fn_set_value(uint8_t value_id, uint8_t *value_data) {
+#ifdef CONSOLE_ENABLE
+  uprintf("via_custom_non_mac_fn_set_value:value_id:%d value:%02X %02X\n", value_id, value_data[0], value_data[1]);
+#endif
+  switch (value_id) {
+    case id_custom_non_mac_fn_mode:
+      custom_config_non_mac_fn_set_mode(value_data[0]);
+      break;
+    case id_custom_non_mac_fn_f1 ... id_custom_non_mac_fn_m:
+      // LE
+      eeprom_update_word((uint16_t *)(DYNAMIC_NON_MAC_FN_EEPROM_ADDR + (value_id - id_custom_non_mac_fn_f1) * 2),
+                         ((uint16_t)value_data[1] << 8) + value_data[0]);
+      break;
+  }
+}
+
+// utility routine
 
 static void defer_eeprom_update(uint16_t id, defer_eeprom_update_value_type_t value_type, void *adrs, uint32_t value) {
   defer_eeprom_update_item_t *new_item = NULL;

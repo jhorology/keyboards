@@ -76,7 +76,7 @@ if (( $#update_via_app )); then
   yarn remove via-reader
   yarn add https://github.com/the-via/pelpi.git
   yarn add https://github.com/the-via/reader.git
-  yarn build
+  # yarn build
   return
 fi
 

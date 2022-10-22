@@ -22,8 +22,9 @@ typedef struct {
   uint16_t on_single_hold;
   uint16_t on_multi_tap;
   uint16_t on_tap_hold;
-  uint16_t tapping_term;
-} tap_dance_entry_t;
+  uint16_t tapping_term : 10;
+  uint8_t reserved : 6;  // reserved for future use
+} __attribute__((packed)) tap_dance_entry_t;
 
 typedef enum {
   TD_NONE,
@@ -43,5 +44,3 @@ typedef struct {
 uint16_t tap_dance_get_tapping_term(uint16_t keycode, keyrecord_t *record);
 void tap_dance_actions_init(void);
 bool process_tap_dance_store_event(uint16_t keycode, keyrecord_t *record);
-
-extern const tap_dance_entry_t via_tap_dance_entries_default[];
