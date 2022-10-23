@@ -84,7 +84,8 @@ const uint16_t PROGMEM non_mac_fn_keys_default[] = {
     [FN_F] = KC_F11,      // Full screen mode
     [FN_H] = G(KC_COMM),  // Show Desktop
     [FN_C] = G(KC_A),     // Open Control Center -> Open Action Center
-    [FN_N] = KC_LALT,     // Focus menubar
+    [FN_N] = G(KC_N),     // Open Notification
+    [FN_M] = KC_LALT,     // Focus menubar
 #endif  // MON_MAC_FN_KEYS_PREFER_LINUX
 };
 

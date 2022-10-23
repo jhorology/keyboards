@@ -115,7 +115,7 @@ static bool process_non_mac_fn(uint16_t keycode, keyrecord_t *record) {
         fn_key = FN_E;
         break;
       case KC_A:
-        fn_key = FN_D;
+        fn_key = FN_A;
         break;
       case KC_D:
         fn_key = FN_D;
