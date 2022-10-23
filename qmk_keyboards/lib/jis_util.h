@@ -17,4 +17,4 @@
 
 #include "quantum.h"
 
-bool process_ansi_layout_on_jis(uint16_t keycode, keyrecord_t *record);
+bool process_jis_util(uint16_t keycode, keyrecord_t *record);

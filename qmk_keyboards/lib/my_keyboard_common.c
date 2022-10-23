@@ -49,7 +49,19 @@ const tap_dance_entry_t PROGMEM tap_dance_entries_default[] = {
  */
 const uint16_t PROGMEM non_mac_fn_keys_default[] = {
 #ifdef MON_MAC_FN_KEYS_PREFER_LINUX
-// TODO Linux Gnome
+    // TODO Linux Gnome
+    [FN_F1] = KC_BRID,   // decrease brightness
+    [FN_F2] = KC_BRIU,   // increase brightness
+    [FN_F3] = KC_NO,     // mission control -> TODO
+    [FN_F4] = KC_NO,     // Spotlight -> TODO
+    [FN_F5] = KC_NO,     // dictaion -> TODO
+    [FN_F6] = KC_NO,     // Do not disturb -> TODO
+    [FN_F7] = KC_MPRV,   // media prev
+    [FN_F8] = KC_MPLY,   // media play/pause
+    [FN_F9] = KC_MNXT,   // media next
+    [FN_F10] = KC_MUTE,  // mute audio
+    [FN_F11] = KC_VOLD,  // decrease audio volume
+    [FN_F12] = KC_VOLU,  // increase audio volume
 #else
     // Windows
     [FN_F1] = KC_BRID,    // decrease brightness
@@ -58,7 +70,7 @@ const uint16_t PROGMEM non_mac_fn_keys_default[] = {
     [FN_F4] = A(KC_SPC),  // Spotlight -> PowerToys Run
     [FN_F5] = G(KC_H),    // dictaion
     [FN_F6] = KC_NO,      // Do not disturb -> TODO
-    [FN_F7] = KC_MPRV,    // meda prev
+    [FN_F7] = KC_MPRV,    // media prev
     [FN_F8] = KC_MPLY,    // media play/pause
     [FN_F9] = KC_MNXT,    // media next
     [FN_F10] = KC_MUTE,   // mute audio
@@ -78,7 +90,7 @@ const uint16_t PROGMEM non_mac_fn_keys_default[] = {
 
 combo_t key_combos[COMBO_COUNT] = {};
 
-//  qmk/vial custom hook functions
+//  qmk custom hook functions
 //------------------------------------------
 
 void via_init_kb(void) {
@@ -120,7 +132,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
 #ifdef RADIAL_CONTROLLER_ENABLE
          process_radial_controller(keycode, record) &&
 #endif
-         process_ansi_layout_on_jis(keycode, record);
+         process_jis_util(keycode, record);
 }
 
 void raw_hid_receive(uint8_t *data, uint8_t length) {

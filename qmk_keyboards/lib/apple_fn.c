@@ -13,31 +13,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "custom_config.h"
 #include QMK_KEYBOARD_H
 
 #include "apple_fn.h"
+
 #include "lib/custom_config.h"
 #include "lib/custom_keycodes.h"
 
 static bool process_fkey_override(uint16_t keycode, keyrecord_t *record);
 static bool process_non_mac_fn(uint16_t keycode, keyrecord_t *record);
-
-// apple-like F1-12 keys
-const uint16_t PROGMEM none_mac_fn_functions_default[] = {
-    [FN_F1] = KC_BRID,   // F1 decrease brightness
-    [FN_F2] = KC_BRIU,   // F2 increase brightness
-    [FN_F3] = KC_F3,     // TODO F3 mission control
-    [FN_F4] = KC_F4,     // TODO F4 older mac: launchpad / newer mac: spotlight
-    [FN_F5] = KC_F5,     // TODO F5 olfer mac: F5        / newer mac: dictaion
-    [FN_F6] = KC_F6,     // TODO F6 older mac: F6        / newer mac: sleep
-    [FN_F7] = KC_MPRV,   // F7 meda prev
-    [FN_F8] = KC_MPLY,   // F8 media play/pause
-    [FN_F9] = KC_MNXT,   // F9 media next
-    [FN_F10] = KC_MUTE,  // F10 mute audio
-    [FN_F11] = KC_VOLD,  // F11 decrease audio volume
-    [FN_F12] = KC_VOLU   // F12 increase audio volume
-};
 
 static bool apple_fn;
 static bool apple_ff;

@@ -39,19 +39,20 @@ module.exports = function (options, defines) {
     {
       code: 'USJ_TOGG',
       name: '社畜🔁\nTOGG',
-      title: 'Toggle enabling key overridng for ANSI layout on JIS environment',
+      title:
+        'Toggle enabling key overridng for ANSI layout under JIS environment',
       shortName: '社🔁'
     },
     {
       code: 'USJ_ON',
       name: '社畜🗹\nON',
-      title: 'Enable key overriding for ANSI layout on JIS environment',
+      title: 'Enable key overriding for ANSI layout under JIS environment',
       shortName: '社🗹'
     },
     {
       code: 'USJ_OFF',
       name: '社畜☐\nOFF',
-      title: 'Disable key overriding for ANSI layout on JIS environment',
+      title: 'Disable key overriding for ANSI layout under JIS environment',
       shortName: '社☐'
     },
     {

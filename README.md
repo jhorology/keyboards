@@ -13,7 +13,7 @@ This is a personal project for my own keyboards.
 | APPLE_FN | Apple fn/🌐 key. |When NKRO is disabled, the key combinations of fn + F1-12 dosen't work as expected.|
 | APPLE_FF | Apple fn/🌐 key for the keyboard that dosen't have F1-12 keys. F1-12 keys can be mapped on top row. When mac mode is off, It simulates mac fn functions. |"|
 | EISU_KANA | Toggle send KC_LANG2(英数) or KC_LNG1(かな) ||
-| USJ_TOGG | Toggle enabling or disabling 社畜PC mode that is available to use ANSI layout on JIS driver. |Non-volatile setting|
+| USJ_TOGG | Toggle enabling or disabling 社畜PC mode that is available to use ANSI layout under JIS environment. |Non-volatile setting|
 | USJ_ON | Enable 社畜PC mode |"|
 | USJ_OFF | Disable 社畜PC mode |"|
 | RC_BTN | Button located on radial controller ||

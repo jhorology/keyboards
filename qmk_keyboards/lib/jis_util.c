@@ -27,7 +27,7 @@ typedef struct {
   uint16_t dest_on_shift;  // destination keycode if shfited
 } layout_conversion_item_t;
 
-static layout_conversion_item_t ansi_on_jis_table[] = {
+static layout_conversion_item_t ansi_under_jis_table[] = {
     // src, dest, dest on shift
     {KC_GRV, JP_GRV, JP_TILD},    // "`", "~"
     {KC_2, 0, JP_AT},             // "@"
@@ -72,7 +72,7 @@ static bool process_layout_conversion(layout_conversion_item_t *table, uint16_t 
 // globl functions
 //------------------------------------------
 
-bool process_ansi_layout_on_jis(uint16_t keycode, keyrecord_t *record) {
+bool process_jis_util(uint16_t keycode, keyrecord_t *record) {
   static bool eisu_kana;
   switch (keycode) {
     case EJ_TOGG:
@@ -87,8 +87,8 @@ bool process_ansi_layout_on_jis(uint16_t keycode, keyrecord_t *record) {
       return false;
     default:
       if (custom_config_usj_is_enable()) {
-        return process_layout_conversion(&ansi_on_jis_table[0],
-                                         sizeof(ansi_on_jis_table) / sizeof(layout_conversion_item_t), keycode, record);
+        return process_layout_conversion(
+            ansi_under_jis_table, sizeof(ansi_under_jis_table) / sizeof(layout_conversion_item_t), keycode, record);
       }
   }
   return true;
@@ -99,10 +99,10 @@ bool process_ansi_layout_on_jis(uint16_t keycode, keyrecord_t *record) {
 
 static bool process_layout_conversion(layout_conversion_item_t *table, uint16_t table_length, uint16_t keycode,
                                       keyrecord_t *record) {
-  static uint16_t ansi_jis_override_key_flags;
-  static uint16_t ansi_jis_override_shift_flags;
+  static uint16_t override_key_flags;
+  static uint16_t override_shift_flags;
   uint16_t flag;
-  layout_conversion_item_t *item = 0;
+  layout_conversion_item_t *item = NULL;
   for (uint16_t i; i < table_length; i++) {
     if (keycode == table[i].src) {
       flag = 1 << i;
@@ -133,18 +133,18 @@ static bool process_layout_conversion(layout_conversion_item_t *table, uint16_t 
           if (l_shift) register_code(KC_LSFT);
           if (r_shift) register_code(KC_RSFT);
         }
-        ansi_jis_override_key_flags |= flag;
+        override_key_flags |= flag;
         if (shift) {
-          ansi_jis_override_shift_flags |= flag;
+          override_shift_flags |= flag;
         } else {
-          ansi_jis_override_shift_flags &= ~flag;
+          override_shift_flags &= ~flag;
         }
         return false;
       }
     } else {
-      if (ansi_jis_override_key_flags & flag) {
-        unregister_code(((ansi_jis_override_shift_flags & flag) ? item->dest_on_shift : item->dest) & 0xff);
-        ansi_jis_override_key_flags &= ~flag;
+      if (override_key_flags & flag) {
+        unregister_code(((override_shift_flags & flag) ? item->dest_on_shift : item->dest) & 0xff);
+        override_key_flags &= ~flag;
         return false;
       }
     }
