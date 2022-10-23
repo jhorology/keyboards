@@ -342,6 +342,20 @@ static void defer_eeprom_update(uint16_t id, defer_eeprom_update_value_type_t va
     if (new_item->token) {
       new_item->id = id;
     }
+  } else {
+    // DEFER_EEPROM_UPDATE_ITEM_SIZE is normally enough for GUI editing.
+    // however, it maybe overflow when load settings.
+    switch (value_type) {
+      case BYTE:
+        eeprom_update_byte(adrs, value);
+        break;
+      case WORD:
+        eeprom_update_word(adrs, value);
+        break;
+      case DWORD:
+        eeprom_update_dword(adrs, value);
+        break;
+    }
   }
 }
 
