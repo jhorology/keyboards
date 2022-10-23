@@ -230,7 +230,7 @@ const NON_MAC_FN_MENU = {
           label: 'When mac mode is disabled, fn🌐 key apply to:',
           type: 'dropdown',
           options: [
-            ['OFF', 0],
+            ['None', 0],
             ['F1-12 Key only', 1],
             ['Alpha Key only', 2],
             ['Both F1-12 and Alpha', 3]
