@@ -75,7 +75,7 @@ static bool process_layout_conversion(layout_conversion_item_t *table, uint16_t 
 bool process_jis_util(uint16_t keycode, keyrecord_t *record) {
   static bool eisu_kana;
   switch (keycode) {
-    case EJ_TOGG:
+    case EISU_KANA:
       if (record->event.pressed) {
         eisu_kana = !eisu_kana;
         // KC_LNG1 かな

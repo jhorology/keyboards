@@ -91,6 +91,11 @@ const QMK_MAGIC_MENU = {
           label: 'Enable N-key rollover',
           type: 'toggle',
           content: ['id_custom_magic_host_nkro', ID_CUSTOM_MAGIC_CHANNEL, 10]
+        },
+        {
+          label: 'Swap Backspace and Backslash',
+          type: 'toggle',
+          content: ['id_custom_magic_swap_bs_bsls', ID_CUSTOM_MAGIC_CHANNEL, 11]
         }
       ]
     }

@@ -50,8 +50,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [3] = LAYOUT_60_tsangan_hhkb(
     _______, KC_F13,  KC_F14,  KC_F15,  KC_F16,  KC_F17,  KC_F18,  KC_F19,  KC_F20,  KC_F21,  KC_F22,  KC_F23,  KC_F24,  _______, QK_BOOT,
     _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,          _______,
-    _______, RHID_OFF,MAC_ON,  USJ_OFF, NK_ON,   CL_NORM, AG_NORM, _______, _______, _______, _______, _______,                   _______,
-    _______,          RHID_ON, MAC_OFF, USJ_ON,  NK_OFF,  CL_SWAP, AG_SWAP, _______, _______, _______, _______,          _______, _______,
+    _______, RHID_OFF,MAC_ON,  USJ_OFF, NK_ON,   CL_NORM, AG_NORM, BB_NORM, _______, _______, _______, _______,                   _______,
+    _______,          RHID_ON, MAC_OFF, USJ_ON,  NK_OFF,  CL_SWAP, AG_SWAP, BB_SWAP, _______, _______, _______,          _______, _______,
     _______, _______, _______,                            _______,                                              _______, _______, _______
   )
 };

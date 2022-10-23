@@ -13,12 +13,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include "custom_config.h"
 #include QMK_KEYBOARD_H
-
-#include "my_keyboard_common.h"
 
 #include "lib/apple_fn.h"
 #include "lib/jis_util.h"
+#include "my_keyboard_common.h"
 #ifdef RADIAL_CONTROLLER_ENABLE
 #  include "lib/radial_controller.h"
 #endif
@@ -90,6 +90,7 @@ const uint16_t PROGMEM non_mac_fn_keys_default[] = {
 
 combo_t key_combos[COMBO_COUNT] = {};
 
+static bool proces_swap_bspc_bsls(uint16_t keycode, keyrecord_t *record);
 //  qmk custom hook functions
 //------------------------------------------
 
@@ -127,8 +128,9 @@ void keyboard_post_init_kb(void) {
 }
 
 bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
-  return process_record_user(keycode, record) && process_tap_dance_store_event(keycode, record) &&
-         process_record_custom_config(keycode, record) && process_apple_fn(keycode, record) &&
+  return process_record_user(keycode, record) && proces_swap_bspc_bsls(keycode, record) &&
+         process_tap_dance_store_event(keycode, record) && process_record_custom_config(keycode, record) &&
+         process_apple_fn(keycode, record) &&
 #ifdef RADIAL_CONTROLLER_ENABLE
          process_radial_controller(keycode, record) &&
 #endif
@@ -166,3 +168,25 @@ void suspend_wakeup_init_kb(void) {
   rgb_matrix_set_suspend_state(false);
 }
 #endif
+
+static bool proces_swap_bspc_bsls(uint16_t keycode, keyrecord_t *record) {
+  if (!custom_config_swap_bb_is_enable()) return true;
+  if (record->keycode) return true;
+  switch (keycode) {
+    case KC_BSPC:
+      if (record->event.pressed) {
+        register_code(KC_BSLS);
+      } else {
+        unregister_code(KC_BSLS);
+      }
+      return false;
+    case KC_BSLS:
+      if (record->event.pressed) {
+        register_code(KC_BSPC);
+      } else {
+        unregister_code(KC_BSPC);
+      }
+      return false;
+  }
+  return true;
+}

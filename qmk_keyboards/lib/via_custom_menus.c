@@ -13,6 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include "custom_config.h"
 #include QMK_KEYBOARD_H
 #include "via_custom_menus.h"
 
@@ -101,76 +102,89 @@ void via_custom_value_command_kb(uint8_t *data, uint8_t length) {
 // QMK Magic menu
 
 void via_custom_magic_get_value(uint8_t value_id, uint8_t *value_data) {
-  keymap_config.raw = eeconfig_read_keymap();
   switch (value_id) {
-    case id_custom_magic_swap_control_capslock:
-      value_data[0] = keymap_config.swap_control_capslock;
+    case id_custom_magic_swap_control_capslock ... id_custom_magic_host_nkro:
+      keymap_config.raw = eeconfig_read_keymap();
+      switch (value_id) {
+        case id_custom_magic_swap_control_capslock:
+          value_data[0] = keymap_config.swap_control_capslock;
+          break;
+        case id_custom_magic_swap_escape_capslock:
+          value_data[0] = keymap_config.swap_escape_capslock;
+          break;
+        case id_custom_magic_capslock_to_control:
+          value_data[0] = keymap_config.capslock_to_control;
+          break;
+        case id_custom_magic_swap_lctl_lgui:
+          value_data[0] = keymap_config.swap_lctl_lgui;
+          break;
+        case id_custom_magic_swap_rctl_rgui:
+          value_data[0] = keymap_config.swap_rctl_rgui;
+          break;
+        case id_custom_magic_swap_lalt_lgui:
+          value_data[0] = keymap_config.swap_lalt_lgui;
+          break;
+        case id_custom_magic_swap_ralt_rgui:
+          value_data[0] = keymap_config.swap_ralt_rgui;
+          break;
+        case id_custom_magic_no_gui:
+          value_data[0] = keymap_config.no_gui;
+          break;
+        case id_custom_magic_swap_grave_esc:
+          value_data[0] = keymap_config.swap_grave_esc;
+          break;
+        case id_custom_magic_host_nkro:
+          value_data[0] = keymap_config.nkro;
+          break;
+      }
       break;
-    case id_custom_magic_swap_escape_capslock:
-      value_data[0] = keymap_config.swap_escape_capslock;
-      break;
-    case id_custom_magic_capslock_to_control:
-      value_data[0] = keymap_config.capslock_to_control;
-      break;
-    case id_custom_magic_swap_lctl_lgui:
-      value_data[0] = keymap_config.swap_lctl_lgui;
-      break;
-    case id_custom_magic_swap_rctl_rgui:
-      value_data[0] = keymap_config.swap_rctl_rgui;
-      break;
-    case id_custom_magic_swap_lalt_lgui:
-      value_data[0] = keymap_config.swap_lalt_lgui;
-      break;
-    case id_custom_magic_swap_ralt_rgui:
-      value_data[0] = keymap_config.swap_ralt_rgui;
-      break;
-    case id_custom_magic_no_gui:
-      value_data[0] = keymap_config.no_gui;
-      break;
-    case id_custom_magic_swap_grave_esc:
-      value_data[0] = keymap_config.swap_grave_esc;
-      break;
-    case id_custom_magic_host_nkro:
-      value_data[0] = keymap_config.nkro;
+    case id_custom_magic_swap_bs_bsls:
+      value_data[0] = custom_config_swap_bb_is_enable();
       break;
   }
 }
 
 void via_custom_magic_set_value(uint8_t value_id, uint8_t *value_data) {
-  keymap_config.raw = eeconfig_read_keymap();
   switch (value_id) {
-    case id_custom_magic_swap_control_capslock:
-      keymap_config.swap_control_capslock = value_data[0];
-      break;
-    case id_custom_magic_swap_escape_capslock:
-      keymap_config.swap_escape_capslock = value_data[0];
-      break;
-    case id_custom_magic_capslock_to_control:
-      keymap_config.capslock_to_control = value_data[0];
-      break;
-    case id_custom_magic_swap_lctl_lgui:
-      keymap_config.swap_lctl_lgui = value_data[0];
-      break;
-    case id_custom_magic_swap_rctl_rgui:
-      keymap_config.swap_rctl_rgui = value_data[0];
-      break;
-    case id_custom_magic_swap_lalt_lgui:
-      keymap_config.swap_lalt_lgui = value_data[0];
-      break;
-    case id_custom_magic_swap_ralt_rgui:
-      keymap_config.swap_ralt_rgui = value_data[0];
-      break;
-    case id_custom_magic_no_gui:
-      keymap_config.no_gui = value_data[0];
-      break;
-    case id_custom_magic_swap_grave_esc:
-      keymap_config.swap_grave_esc = value_data[0];
-      break;
-    case id_custom_magic_host_nkro:
-      keymap_config.nkro = value_data[0];
+    case id_custom_magic_swap_control_capslock ... id_custom_magic_host_nkro:
+      keymap_config.raw = eeconfig_read_keymap();
+      switch (value_id) {
+        case id_custom_magic_swap_control_capslock:
+          keymap_config.swap_control_capslock = value_data[0];
+          break;
+        case id_custom_magic_swap_escape_capslock:
+          keymap_config.swap_escape_capslock = value_data[0];
+          break;
+        case id_custom_magic_capslock_to_control:
+          keymap_config.capslock_to_control = value_data[0];
+          break;
+        case id_custom_magic_swap_lctl_lgui:
+          keymap_config.swap_lctl_lgui = value_data[0];
+          break;
+        case id_custom_magic_swap_rctl_rgui:
+          keymap_config.swap_rctl_rgui = value_data[0];
+          break;
+        case id_custom_magic_swap_lalt_lgui:
+          keymap_config.swap_lalt_lgui = value_data[0];
+          break;
+        case id_custom_magic_swap_ralt_rgui:
+          keymap_config.swap_ralt_rgui = value_data[0];
+          break;
+        case id_custom_magic_no_gui:
+          keymap_config.no_gui = value_data[0];
+          break;
+        case id_custom_magic_swap_grave_esc:
+          keymap_config.swap_grave_esc = value_data[0];
+          break;
+        case id_custom_magic_host_nkro:
+          keymap_config.nkro = value_data[0];
+          break;
+      }
+      eeconfig_update_keymap(keymap_config.raw);
+    case id_custom_magic_swap_bs_bsls:
+      custom_config_swap_bb_set_enable(value_data[0]);
       break;
   }
-  eeconfig_update_keymap(keymap_config.raw);
   clear_keyboard();  // clear to prevent stuck keys
 }
 

@@ -73,6 +73,24 @@ module.exports = function (options, defines) {
       name: '英数\nかな',
       title: 'Toggle send かな(KC_LNG1) and 英数(KC_LNG2)',
       shortName: '英か'
+    },
+    {
+      code: 'BB_TOGG',
+      name: '\\←🔁\nTOGG',
+      title: 'Toogle Backslash and Backspace swap',
+      shortName: '\\←🔁'
+    },
+    {
+      code: 'BB_SWAP',
+      name: '\\←🗹\nSWAP',
+      title: 'Swap Backslash and Backspace',
+      shortName: '\\←🗹'
+    },
+    {
+      code: 'BB_NORM',
+      name: '\\←☐\nNORM',
+      title: 'Unswap Backslash and Backspace',
+      shortName: '\\←☐'
     }
   ]
   if (options.RADIAL_CONTROLLER_ENABLE === 'yes') {
