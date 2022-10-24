@@ -15,19 +15,14 @@
  */
 #pragma once
 
+#include "lib/apple_fn.h"
+#include "lib/custom_config.h"
 #include "lib/custom_keycodes.h"
-#include "quantum.h"
+#include "lib/jis_util.h"
+#ifdef RADIAL_CONTROLLER_ENABLE
+#  include "lib/radial_controller.h"
+#endif
+#include "lib/tap_dance.h"
+#include "lib/via_custom_menus.h"
 
-// tap dance actions
-enum tap_dance_action_index {
-  // for HHKB Right Alt, Alt + layer switch
-  TD_RALT_MO3,
-
-  // for HHKB Left Alt, Alt + Apple fn + IME switch
-  TD_LALT_APFF_EISU_KANA,
-
-  // Apple Fn key + IME switch
-  TD_APFF_EISU_KANA,  // Apple Fn/Globe + FK override, on double tap: toggle send 英数/かな
-
-  TAP_DANCE_PRE_DEFINED_LENGTH
-};
+extern const tap_dance_entry_t tap_dance_entries_default[TAP_DANCE_ENTRIES];

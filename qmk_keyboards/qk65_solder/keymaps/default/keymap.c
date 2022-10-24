@@ -17,7 +17,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include QMK_KEYBOARD_H
 
-#define APFF_EJ TD(TD_APFF_EISU_KANA)
+// tap dance
+// [single tap, single hold, multi tap, tap hold, tapping term]
+const tap_dance_entry_t PROGMEM tap_dance_entries_default[] = {
+    // Apple Fn key + IME switch
+    [0] = {KC_LNG2, APPLE_FF, KC_LNG1, APPLE_FF, TAPPING_TERM},
+    // Protect layer 3 from misstouh, Right Command + MO(3)
+    [1] = {KC_RGUI, KC_RGUI, KC_RGUI, MO(3), TAPPING_TERM},
+};
 
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -27,7 +34,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_LBRC, KC_RBRC, KC_BSPC, RC_CW,
     KC_LCTL, KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_QUOT,          KC_ENT,  RC_CCW,
     KC_LSFT,          KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH, KC_RSFT, MO(2),   RC_FINE,
-    APFF_EJ, KC_LALT, KC_LGUI,                            KC_SPC,                    MO(3),                     KC_MPRV, KC_MPLY, KC_MNXT
+    TD(0),   KC_LALT, KC_LGUI,                            KC_SPC,                    TD(1),                     KC_MPRV, KC_MPLY, KC_MNXT
   ),
   // standard base layer
   [1] = LAYOUT_65_ansi_blocker_tsangan_split_bs(
@@ -35,7 +42,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_LBRC, KC_RBRC, KC_BSPC, RC_CW,
     KC_LCTL, KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_QUOT,          KC_ENT,  RC_CCW,
     KC_LSFT,          KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH, KC_RSFT, MO(2),   RC_FINE,
-    APFF_EJ, KC_LALT, KC_LGUI,                            KC_SPC,                    MO(3),                     KC_MPRV, KC_MPLY, KC_MNXT
+    TD(0),   KC_LALT, KC_LGUI,                            KC_SPC,                    TD(1),                     KC_MPRV, KC_MPLY, KC_MNXT
   ),
   // HHKB-like fn layer
   [2] = LAYOUT_65_ansi_blocker_tsangan_split_bs(

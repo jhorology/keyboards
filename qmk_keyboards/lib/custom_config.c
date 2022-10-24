@@ -255,12 +255,12 @@ bool custom_config_rc_is_fine_tune_mods_now() {
 
 // dynamic tap dance
 
-void dynamic_tap_dance_reset(const tap_dance_entry_t *entry, uint8_t len) {
-  tap_dance_entry_t empty = {0};
+void dynamic_tap_dance_reset(const tap_dance_entry_t *entry) {
   tap_dance_entry_t data;
   for (int i = 0; i < TAP_DANCE_ENTRIES; i++) {
     pgm_memcpy(&data, &entry[i], 10);
-    eeprom_update_block((uint8_t *)(i < len ? &data : &empty), (uint8_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + 10 * i), 10);
+    eeprom_update_block((uint8_t *)&data, (uint8_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + 10 * i),
+                        sizeof(tap_dance_entry_t));
   }
 }
 

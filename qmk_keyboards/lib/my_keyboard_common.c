@@ -13,36 +13,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "custom_config.h"
 #include QMK_KEYBOARD_H
 
-#include "lib/apple_fn.h"
-#include "lib/jis_util.h"
 #include "my_keyboard_common.h"
-#ifdef RADIAL_CONTROLLER_ENABLE
-#  include "lib/radial_controller.h"
-#endif
-#include "lib/custom_config.h"
-#include "lib/tap_dance.h"
-
-/*
- * pre-defined tap dance
- *
- * [0] single tap
- * [1] single hold
- * [2] multi tap
- * [3] tap hold
- * [4] tapping term
- */
-const tap_dance_entry_t PROGMEM tap_dance_entries_default[] = {
-    // for HHKB Right Alt, Alt + layer switch
-    [TD_RALT_MO3] = {KC_RALT, KC_RALT, KC_RALT, MO(3), TAPPING_TERM},
-
-    // for HHKB Left Alt, Alt + Apple fn + IME switch
-    [TD_LALT_APFF_EISU_KANA] = {KC_LNG2, KC_LALT, KC_LNG1, APPLE_FF, TAPPING_TERM},
-
-    // Apple Fn key + IME switch
-    [TD_APFF_EISU_KANA] = {KC_LNG2, APPLE_FF, KC_LNG1, APPLE_FF, TAPPING_TERM}};
 
 /*
  * pre-defined apple fn functions for non-mac mode.
@@ -103,7 +76,7 @@ void via_init_kb(void) {
 
 void eeconfig_init_kb(void) {
   custom_config_reset();
-  dynamic_tap_dance_reset(tap_dance_entries_default, TAP_DANCE_PRE_DEFINED_LENGTH);
+  dynamic_tap_dance_reset(tap_dance_entries_default);
   dynamic_non_mac_fn_reset(non_mac_fn_keys_default, sizeof(non_mac_fn_keys_default) >> 1);
   eeconfig_init_user();
 }
