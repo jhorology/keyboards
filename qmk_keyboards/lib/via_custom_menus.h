@@ -49,6 +49,7 @@ enum via_custom_rc_value_id {
   id_custom_rc_fine_tune_mod_shift = 5,
   id_custom_rc_fine_tune_mod_alt = 6,
   id_custom_rc_fine_tune_mod_gui = 7,
+  id_custom_rc_fine_tune_mod_apple_fn = 8
 };
 
 enum via_custom_td_value_id {
@@ -56,7 +57,7 @@ enum via_custom_td_value_id {
   id_custom_td_single_hold = 2,
   id_custom_td_multi_tap = 3,
   id_custom_td_tap_hold = 4,
-  id_custom_td_tapping_term = 5,
+  id_custom_td_tapping_term = 5
 };
 
 enum via_custom_non_mac_fn_value_id {
@@ -82,7 +83,7 @@ enum via_custom_non_mac_fn_value_id {
   id_custom_non_mac_fn_h = 20,    // Show Desktop
   id_custom_non_mac_fn_c = 21,    // Show Control Cnecter
   id_custom_non_mac_fn_n = 22,    // Show Notification
-  id_custom_non_mac_fn_m = 23,    // Focus Menubar
+  id_custom_non_mac_fn_m = 23     // Focus Menubar
 };
 
 void via_custom_magic_get_value(uint8_t value_id, uint8_t *value_data);

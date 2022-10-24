@@ -160,6 +160,16 @@ const RADIAL_CONTROLLER_MENU = {
           label: 'Fine-tune Modifier: GUI',
           type: 'toggle',
           content: ['id_custom_rc_fine_tune_mod_gui', ID_CUSTOM_RC_CHANNEL, 7]
+        },
+        {
+          showIf: '{id_custom_rc_fine_tune_ratio} != 0',
+          label: 'Fine-tune Modifier: fn🌐',
+          type: 'toggle',
+          content: [
+            'id_custom_rc_fine_tune_mod_apple_fn',
+            ID_CUSTOM_RC_CHANNEL,
+            8
+          ]
         }
       ]
     }

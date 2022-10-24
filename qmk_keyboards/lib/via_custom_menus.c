@@ -202,7 +202,7 @@ void via_custom_rc_get_value(uint8_t value_id, uint8_t *value_data) {
     case id_custom_rc_fine_tune_ratio:
       value_data[0] = rc_config.fine_tune_ratio;
       break;
-    case id_custom_rc_fine_tune_mod_ctrl ... id_custom_rc_fine_tune_mod_gui:
+    case id_custom_rc_fine_tune_mod_ctrl ... id_custom_rc_fine_tune_mod_apple_fn:
       value_data[0] = (rc_config.fine_tune_mods & (1 << (value_id - id_custom_rc_fine_tune_mod_ctrl))) ? 1 : 0;
       break;
   }
@@ -226,7 +226,7 @@ void via_custom_rc_set_value(uint8_t value_id, uint8_t *value_data) {
     case id_custom_rc_fine_tune_ratio:
       rc_config.fine_tune_ratio = value_data[0];
       break;
-    case id_custom_rc_fine_tune_mod_ctrl ... id_custom_rc_fine_tune_mod_gui:
+    case id_custom_rc_fine_tune_mod_ctrl ... id_custom_rc_fine_tune_mod_apple_fn:
       mod_mask = 1 << (value_id - id_custom_rc_fine_tune_mod_ctrl);
       if (value_data[0]) {
         rc_config.fine_tune_mods |= mod_mask;

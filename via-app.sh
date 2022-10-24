@@ -122,7 +122,9 @@ cp "dist/${MAKE_TARGET//\//_}_via_v${VIA_VERSION}"*.json "$OUTPUT_DIR"
 rm -rf "${VIA_APP_HOME}/public/definitions"
 
 # TODO via-keybopards command rimraf dist folder
+mv dist evacuate_dist
 npx via-keyboards "${VIA_APP_HOME}/public/definitions"
+mv evacuate_dist dist
 
 # start VIA
 #______________________________________

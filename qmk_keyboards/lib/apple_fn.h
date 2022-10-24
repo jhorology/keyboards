@@ -31,3 +31,4 @@ typedef enum non_mac_fn_key {
 } non_mac_fn_key_t;
 
 bool process_apple_fn(uint16_t keycode, keyrecord_t *record);
+bool apple_fn_get_state(void);

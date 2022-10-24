@@ -84,6 +84,8 @@ static bool process_fkey_override(uint16_t keycode, keyrecord_t *record) {
   return true;
 }
 
+bool apple_fn_get_state() { return apple_fn || apple_ff; };
+
 static bool process_non_mac_fn(uint16_t keycode, keyrecord_t *record) {
   static uint32_t fn_override_flags;
 

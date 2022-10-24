@@ -24,7 +24,6 @@
 // apple fn override modes for non-macos
 #define NON_MAC_FN_MODE_FKEY_MASK 1
 #define NON_MAC_FN_MODE_ALPHA_MASK 2
-
 typedef union {
   uint32_t raw;
   struct {
@@ -43,8 +42,8 @@ typedef union {
   struct {
     uint8_t encoder_clicks;       // encoder clicks per rotation
     uint8_t key_angular_speed;    // degree per second, 15 - 270 (offset 15)
-    uint8_t fine_tune_mods : 4;   // bit0: ctrl, bit1: shift, bit2: alt, bit3: gui
     uint8_t fine_tune_ratio : 2;  // power-of-2 divider 0: none, 1: 1/2, 2:1/4, 3:1/8
+    uint8_t fine_tune_mods : 5;   // bit0: ctrl, bit1: shift, bit2: alt, bit3: gui, bit4: fn🌐
   };
 } rc_config_t;
 extern rc_config_t rc_config;

@@ -17,6 +17,7 @@
 #include "custom_config.h"
 
 #include "eeprom.h"
+#include "lib/apple_fn.h"
 #include "lib/custom_keycodes.h"
 
 #ifndef CUSTOM_CONFIG_RHID_DEFAULT
@@ -43,9 +44,9 @@
 #    define RADIAL_CONTROLLER_FINE_TUNE_RATIO_DEFAULT 2
 #  endif
 // additional conbination of modfier for RC fine-tune.
-// ctrl, bit1: shift, bit2: alt, bit3: gui
+// ctrl, bit1: shift, bit2: alt, bit3: gui, bit4: fn🌐
 #  ifndef RADIAL_CONTROLLER_FINE_TUNE_MODS_DEFAULT
-#    define RADIAL_CONTROLLER_FINE_TUNE_MODS_DEFAULT 0x00
+#    define RADIAL_CONTROLLER_FINE_TUNE_MODS_DEFAULT 0x10
 #  endif
 #  define RADIAL_CONTROLLER_KEY_ANGULAR_SPEED_OFFSET 15
 #endif
@@ -243,10 +244,9 @@ uint8_t custom_config_rc_is_fine_tune_mods(void) { return (uint16_t)rc_config.fi
 
 bool custom_config_rc_is_fine_tune_mods_now() {
   uint16_t mods = get_mods();
-  // fine-tune off
   if (rc_config.fine_tune_ratio && rc_config.fine_tune_mods) {
     uint8_t cur_mods = (mods & MOD_MASK_CTRL ? 1 : 0) + (mods & MOD_MASK_SHIFT ? 2 : 0) +
-                       (mods & MOD_MASK_ALT ? 4 : 0) + (mods & MOD_MASK_GUI ? 8 : 0);
+                       (mods & MOD_MASK_ALT ? 4 : 0) + (mods & MOD_MASK_GUI ? 8 : 0) + (apple_fn_get_state() ? 16 : 0);
     return (cur_mods & rc_config.fine_tune_mods) == rc_config.fine_tune_mods;
   }
   return false;
