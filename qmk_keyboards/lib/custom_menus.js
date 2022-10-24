@@ -284,7 +284,7 @@ const NON_MAC_FN_MENU = {
           showIf: `{id_custom_non_mac_fn_mode} == ${
             i < 12 ? '1' : '2'
           } || {id_custom_non_mac_fn_mode} == 3`,
-          label: `fn🌐 + ${e.key}: ${e.desc}`,
+          label: `fn + ${e.key}: ${e.desc}`,
           type: 'keycode',
           content: [
             `id_custom_non_mac_fn_${e.key.toLowerCase()}`,
