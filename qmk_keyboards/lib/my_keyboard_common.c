@@ -63,7 +63,6 @@ const uint16_t PROGMEM non_mac_fn_keys_default[] = {
 };
 
 combo_t key_combos[COMBO_COUNT] = {};
-
 static bool proces_swap_bspc_bsls(uint16_t keycode, keyrecord_t *record);
 //  qmk custom hook functions
 //------------------------------------------
@@ -96,9 +95,9 @@ void keyboard_pre_init_kb(void) {
 }
 
 void keyboard_post_init_kb(void) {
-  default_layer_set(custom_config_mac_is_enable() ? 1 : 2);
   tap_dance_actions_init();
   keyboard_post_init_user();
+  default_layer_set(custom_config_mac_is_enable() ? 1 : 2);
 }
 
 bool process_record_kb(uint16_t keycode, keyrecord_t *record) {

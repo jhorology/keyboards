@@ -72,7 +72,7 @@ void custom_config_usj_set_enable(bool);
 bool custom_config_swap_bb_is_enable(void);
 void custom_config_swap_bb_toggle_enable(void);
 void custom_config_swap_bb_set_enable(bool);
-
+void custom_config_mac_set_enable_without_reset(bool);
 uint8_t custom_config_non_mac_fn_get_mode(void);
 void custom_config_non_mac_fn_set_mode(uint8_t);
 
