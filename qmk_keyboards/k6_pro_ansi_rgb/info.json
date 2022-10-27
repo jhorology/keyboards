@@ -1,0 +1,9 @@
+{
+  "keyboard_name": "Keychron K6 Pro",
+  "manufacturer": "Keychron",
+  "usb": {
+    "vid": "0x3434",
+    "pid": "0x0260",
+    "device_version": "1.0.0"
+  }
+}

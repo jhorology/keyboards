@@ -98,7 +98,7 @@ index 459b48d07a..806342efa3 100644
  uint8_t  dynamic_keymap_macro_get_count(void);
  uint16_t dynamic_keymap_macro_get_buffer_size(void);
 diff --git a/quantum/via.c b/quantum/via.c
-index 37e2046a10..2abf0c8d5e 100644
+index 37e2046a10..8dfa015e01 100644
 --- a/quantum/via.c
 +++ b/quantum/via.c
 @@ -22,26 +22,6 @@
@@ -536,7 +536,7 @@ index 37e2046a10..2abf0c8d5e 100644
  
  #if defined(VIA_QMK_RGB_MATRIX_ENABLE)
  
-@@ -538,83 +626,152 @@ void via_qmk_rgblight_set_value(uint8_t *data) {
+@@ -538,83 +626,162 @@ void via_qmk_rgblight_set_value(uint8_t *data) {
  #        define RGB_MATRIX_MAXIMUM_BRIGHTNESS UINT8_MAX
  #    endif
  
@@ -636,7 +636,17 @@ index 37e2046a10..2abf0c8d5e 100644
 -        case id_qmk_rgblight_brightness:
 +
 +        case id_qmk_rgblight_brightness: {
++#ifdef RGB_MATRIX_TURN_OFF_VAL
++            if (!rgb_matrix_is_enabled() && value_data[0] >= RGB_MATRIX_TURN_OFF_VAL)  {
++                rgb_matrix_toggle_noeeprom();
++            }
++#endif
              rgb_matrix_sethsv_noeeprom(rgb_matrix_get_hue(), rgb_matrix_get_sat(), scale8(value_data[0], RGB_MATRIX_MAXIMUM_BRIGHTNESS));
++#ifdef RGB_MATRIX_TURN_OFF_VAL
++            if (rgb_matrix_is_enabled() && value_data[0] < RGB_MATRIX_TURN_OFF_VAL)  {
++                rgb_matrix_toggle_noeeprom();
++            }
++#endif
              break;
 -        case id_qmk_rgblight_effect:
 -            rgb_matrix_mode_noeeprom(value_data[0]);
@@ -654,18 +664,15 @@ index 37e2046a10..2abf0c8d5e 100644
 +        }
 +        case id_qmk_rgb_matrix_effect_speed: {
 +            rgblight_set_speed_noeeprom(value_data[0]);
-             break;
--        case id_qmk_rgblight_color:
--            rgb_matrix_sethsv_noeeprom(value_data[0], value_data[1], rgb_matrix_get_val());
++            break;
 +        }
 +        case id_qmk_rgb_matrix_color: {
 +            rgblight_sethsv_noeeprom(value_data[0], value_data[1], rgb_matrix_get_val());
-             break;
++            break;
 +        }
-     }
- }
- 
--#endif // #if defined(VIA_QMK_RGB_MATRIX_ENABLE)
++    }
++}
++
 +void via_qmk_rgb_matrix_save(void) { eeconfig_update_rgb_matrix(); }
 +
 +#endif  // #if defined(VIA_QMK_RGB_MATRIX_ENABLE)
@@ -722,15 +729,18 @@ index 37e2046a10..2abf0c8d5e 100644
 +    switch (*value_id) {
 +        case id_qmk_audio_enable: {
 +            audio_config.enable = value_data[0] ? 1 : 0;
-+            break;
+             break;
+-        case id_qmk_rgblight_color:
+-            rgb_matrix_sethsv_noeeprom(value_data[0], value_data[1], rgb_matrix_get_val());
 +        }
 +        case id_qmk_audio_clicky_enable: {
 +            audio_config.clicky_enable = value_data[0] ? 1 : 0;
-+            break;
+             break;
 +        }
-+    }
-+}
-+
+     }
+ }
+ 
+-#endif // #if defined(VIA_QMK_RGB_MATRIX_ENABLE)
 +void via_qmk_audio_save(void) { eeconfig_update_audio(audio_config.raw); }
 +
 +#endif  // #if defined(VIA_QMK_AUDIO_ENABLE)

@@ -32,6 +32,7 @@ local -A KEYBOARDS=(
   d60        dz60rgb_wkl_v2_1:bin
   fk680      fk680pro_v2:uf2
   ikki68     ikki68_aurora:hex
+  k6         k6_pro_ansi_rgb:bin
   prime_e    prime_e_rgb:hex
   qk65       qk65_solder:hex
   zoom65     zoom65:hex
@@ -54,13 +55,30 @@ MAKE_JOBS=8
 # -----------------------------------
 [ -s .config ] &&  source .config
 
+# targets
+# -----------------------------------
+(( $#@ )) && TARGETS=("$@")
+MAKE_TARGETS=()
+TARGET_COUNT=$TARGETS[(I)$TARGETS[-1]]
+
+KEYCHRON_BT=false
+for target in $TARGETS; do
+  kbd=(${(@s/:/)KEYBOARDS[$target]})
+  MAKE_TARGETS=($MAKE_TARGETS my_keyboards/$kbd[1])
+  if [ $target = "k6" ]; then
+    if [ $TARGET_COUNT -ge 2 ]; then
+      print -r "Error: Can't compile k6 together with other keyboards." >&2
+      exit 1
+    fi
+    KEYCHRON_BT=true
+  fi
+done
+
 # option parameters
 # -----------------------------------
 (( $#qmk_home )) && QMK_HOME=${qmk_home[-1]##=}
 (( $#via_version )) && VIA_VERSION=${via_version[-1]##=}
 (( $#without_update_qmk )) && UPDATE_QMK=false
-(( $#@ )) && TARGETS=("$@")
-
 
 if (( $#clean )); then
   rm -rf dist
@@ -74,17 +92,11 @@ if (( $#clean )); then
   make clean
   # checkout to revert changes.
   git checkout --recurse-submodules .
-  git reset HEAD
+  git reset --hard HEAD
   git clean -dfx
 
   return
 fi
-
-MAKE_TARGETS=()
-for target in $TARGETS; do
-  kbd=(${(@s/:/)KEYBOARDS[$target]})
-  MAKE_TARGETS=($MAKE_TARGETS my_keyboards/$kbd[1])
-done
 
 mkdir -p dist
 
@@ -92,6 +104,13 @@ mkdir -p dist
 # -----------------------------------
 
 cd "$QMK_HOME"
+
+if [ -s keychron_bluetooth_playground -a ! $KEYCHRON_BT ]; then
+  UPDATE_QMK=true
+fi
+if [ ! -s keychron_bluetooth_playground -a $KEYCHRON_BT ]; then
+  UPDATE_QMK=true
+fi
 
 if $UPDATE_QMK; then
   # checkout to revert changes.
@@ -101,7 +120,13 @@ if $UPDATE_QMK; then
   make git-submodule
 fi
 
-# patches
+# patch
+# -----------------------------------
+if $KEYCHRON_BT; then
+  [ ! -s keychron_bluetooth_playground ] && \
+    patch --verbose -p1 < "${PROJECT}/patches/keychron_bluetooth_playground.patch"
+fi
+
 [ -z "$(rg APPLE_FN_ENABLE builddefs/common_features.mk)" ] && \
   patch --verbose -p1 < "${PROJECT}/patches/applefn.patch"
 
@@ -119,12 +144,13 @@ if [ $VIA_VERSION = "3" ]; then
     patch --verbose -p1 < "${PROJECT}/patches/via_v3.patch"
 else
   [ -z "$(rg via_raw_hid_receive quantum/via.h)" ] && \
-    patch --verbose -p1 < "${PROJECT}/patches/via_raw_hid_receive.patch"
+    patch --verbose -p1 < "${PROJECT}/patches/via_V2.patch"
 fi
 [ -z "$(rg TAP_DANCE_IGNORE_COMBO quantum/process_keycode/process_tap_dance.c)" ] && \
   patch --verbose -p1 < "${PROJECT}/patches/tap_dance_ignore_combo.patch"
 
-
+# make
+# -----------------------------------
 rm -f keyboards/my_keyboards
 ln -s "${PROJECT}/qmk_keyboards" keyboards/my_keyboards
 
@@ -139,7 +165,6 @@ QMK_HOME="$QMK_HOME" VIA_VERSION=$VIA_VERSION \
 # dist
 # -----------------------------------
 cd "$PROJECT/dist"
-
 
 for target in $TARGETS; do
   # split ":" [1]=make target [2]=extension

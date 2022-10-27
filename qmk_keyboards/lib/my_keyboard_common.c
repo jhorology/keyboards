@@ -111,9 +111,13 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
          process_jis_util(keycode, record);
 }
 
+__attribute__((weak)) bool raw_hid_receive_user(uint8_t *data, uint8_t length) { return true; }
+
 void raw_hid_receive(uint8_t *data, uint8_t length) {
   if (custom_config_raw_hid_is_enable()) {
-    via_raw_hid_receive(data, length);
+    if (raw_hid_receive_user(data, length)) {
+      via_raw_hid_receive(data, length);
+    }
   }
 }
 

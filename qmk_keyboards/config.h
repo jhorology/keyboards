@@ -15,9 +15,8 @@
 #define ALTERNATE_VENDOR_ID 0x05Ac   // Apple
 #define ALTERNATE_PRODUCT_ID 0x024f  // ANSI
 #define TAP_DANCE_ENTRIES 8
-
-#define CUSTOM_CONFIG_FORCE_RHID false
-#define CUSTOM_CONFIG_FORCE_USJ false
+// #define CUSTOM_CONFIG_FORCE_RHID false
+// #define CUSTOM_CONFIG_FORCE_USJ false
 
 /* eeprom address */
 

@@ -36,6 +36,7 @@ local -A KEYBOARDS=(
   d60        dz60rgb_wkl_v2_1
   fk680      fk680pro_v2
   ikki68     ikki68_aurora
+  k6         k6_pro_ansi_rgb
   prime_e    prime_e_rgb
   qk65       qk65_solder
   zoom65     zoom65
@@ -70,6 +71,7 @@ if (( $#update_via_app )); then
 
   patch -p1 < "$PROJECT/patches/via_app_custom_control_16bit_value.patch"
   patch -p1 < "$PROJECT/patches/via_app_32_custom_keycodes.patch"
+  patch -p1 < "$PROJECT/patches/via_app_prefer_ja.patch"
 
   yarn install
   yarn remove pelpi
