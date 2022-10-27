@@ -116,6 +116,7 @@ bool process_record_custom_config(uint16_t keycode, keyrecord_t *record) {
       case RHID_OFF:
         custom_config_raw_hid_set_enable(false);
         return false;
+#ifndef DIP_SWITCH_ENABLE
       case MAC_TOGG:
         // *keyboard will restart
         custom_config_mac_toggle_enable();
@@ -128,6 +129,7 @@ bool process_record_custom_config(uint16_t keycode, keyrecord_t *record) {
         // *keyboard may restart
         custom_config_mac_set_enable(false);
         return false;
+#endif
       case USJ_TOGG:
         custom_config_usj_toggle_enable();
         return false;
@@ -180,7 +182,9 @@ static void _custom_config_mac_set_enable(bool enable) { kb_config.mac = enable;
 void custom_config_mac_set_enable(bool enable) {
   if (enable != kb_config.mac) {
     _custom_config_mac_set_enable(enable);
+#ifndef DIP_SWITCH_ENABLE
     eeconfig_update_kb(kb_config.raw);
+#endif
     // reboot for changing USB device descriptor
     soft_reset_keyboard();
   }

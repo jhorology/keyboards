@@ -1,5 +1,5 @@
 module.exports = function (options, defines) {
-  const customKeycodes = [
+  return [
     {
       code: 'RHID_TOGG',
       name: 'RHID🔁\nTOGG',
@@ -18,24 +18,29 @@ module.exports = function (options, defines) {
       title: 'Deny access to RAW HID',
       shortName: 'RH☐'
     },
-    {
-      code: 'MAC_TOGG',
-      name: 'Mac🔁\nTOGG',
-      title: 'Toggle true apple mode with switching base layer 0(mac) or 1',
-      shortName: 'Mac🔁'
-    },
-    {
-      code: 'MAC_ON',
-      name: 'Mac🗹\nON',
-      title: 'Enable true apple mode with switching base layer 0',
-      shortName: 'Mac🗹'
-    },
-    {
-      code: 'MAC_OFF',
-      name: 'Mac☐\nOFF',
-      title: 'Disable true apple mode with switching base layer 1',
-      shortName: 'Mac☐'
-    },
+    ...(options.DIP_SWITCH_ENABLE === 'yes'
+      ? []
+      : [
+          {
+            code: 'MAC_TOGG',
+            name: 'Mac🔁\nTOGG',
+            title:
+              'Toggle true apple mode with switching base layer 0(mac) or 1',
+            shortName: 'Mac🔁'
+          },
+          {
+            code: 'MAC_ON',
+            name: 'Mac🗹\nON',
+            title: 'Enable true apple mode with switching base layer 0',
+            shortName: 'Mac🗹'
+          },
+          {
+            code: 'MAC_OFF',
+            name: 'Mac☐\nOFF',
+            title: 'Disable true apple mode with switching base layer 1',
+            shortName: 'Mac☐'
+          }
+        ]),
     {
       code: 'USJ_TOGG',
       name: '社畜🔁\nTOGG',
@@ -91,35 +96,34 @@ module.exports = function (options, defines) {
       name: '\\←☐\nNORM',
       title: 'Unswap Backslash and Backspace',
       shortName: '\\←☐'
-    }
+    },
+    ...(options.RADIAL_CONTROLLER_ENABLE !== 'yes'
+      ? []
+      : [
+          {
+            code: 'RC_BTN',
+            name: 'RC↧️\nBTN️',
+            title: 'The button located on radial controller',
+            shortName: 'RC↧️'
+          },
+          {
+            code: 'RC_CCW',
+            name: 'RC↺️\nCCW',
+            title: 'Counter clockwise rotation of the radial controller',
+            shortName: 'RC↺️'
+          },
+          {
+            code: 'RC_CW',
+            name: 'RC↻️\nCW',
+            title: 'Clockwise rotation of the radial controller',
+            shortName: 'RC↻️'
+          },
+          {
+            code: 'RC_FINE',
+            name: 'RC🫳\nFINE',
+            title: 'Dial rotation speed becomes slow',
+            shortName: 'RC🫳️'
+          }
+        ])
   ]
-  if (options.RADIAL_CONTROLLER_ENABLE === 'yes') {
-    Array.prototype.push.apply(customKeycodes, [
-      {
-        code: 'RC_BTN',
-        name: 'RC↧️\nBTN️',
-        title: 'The button located on radial controller',
-        shortName: 'RC↧️'
-      },
-      {
-        code: 'RC_CCW',
-        name: 'RC↺️\nCCW',
-        title: 'Counter clockwise rotation of the radial controller',
-        shortName: 'RC↺️'
-      },
-      {
-        code: 'RC_CW',
-        name: 'RC↻️\nCW',
-        title: 'Clockwise rotation of the radial controller',
-        shortName: 'RC↻️'
-      },
-      {
-        code: 'RC_FINE',
-        name: 'RC🫳\nFINE',
-        title: 'Dial rotation speed becomes slow',
-        shortName: 'RC🫳️'
-      }
-    ])
-  }
-  return customKeycodes
 }
