@@ -97,6 +97,12 @@ module.exports = function (options, defines) {
       title: 'Unswap Backslash and Backspace',
       shortName: '\\←☐'
     },
+    {
+      code: 'TERM_LOCK',
+      name: '🖥️🔒\nLOCK',
+      title: 'Terminal Lock / Screen Saver',
+      shortName: '🖥️🔒'
+    },
     ...(options.RADIAL_CONTROLLER_ENABLE !== 'yes'
       ? []
       : [

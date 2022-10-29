@@ -39,6 +39,7 @@ enum custom_user_keycodes {
   BB_TOGG,    // Toogle Backslash and Backspace swap
   BB_SWAP,    // Sswap Backslash and Backspace
   BB_NORM,    // Unswap Backslash and Backspace
+  TERM_LCK,   // Terminal Lock
 #ifdef RADIAL_CONTROLLER_ENABLE
   RC_BTN,   // State of the button located on radial controller
   RC_CCW,   // counter clock wise rotation of the radial controller

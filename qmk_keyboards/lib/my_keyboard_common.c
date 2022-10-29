@@ -61,7 +61,9 @@ const uint16_t PROGMEM non_mac_fn_keys_default[] = {
 };
 
 combo_t key_combos[COMBO_COUNT] = {};
-static bool proces_swap_bspc_bsls(uint16_t keycode, keyrecord_t *record);
+
+static bool proces_extra_keys(uint16_t keycode, keyrecord_t *record);
+
 //  qmk custom hook functions
 //------------------------------------------
 
@@ -99,7 +101,7 @@ void keyboard_post_init_kb(void) {
 }
 
 bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
-  return process_record_user(keycode, record) && proces_swap_bspc_bsls(keycode, record) &&
+  return process_record_user(keycode, record) && proces_extra_keys(keycode, record) &&
          process_tap_dance_store_event(keycode, record) && process_record_custom_config(keycode, record) &&
          process_apple_fn(keycode, record) &&
 #ifdef RADIAL_CONTROLLER_ENABLE
@@ -144,23 +146,28 @@ void suspend_wakeup_init_kb(void) {
 }
 #endif
 
-static bool proces_swap_bspc_bsls(uint16_t keycode, keyrecord_t *record) {
-  if (!custom_config_swap_bb_is_enable()) return true;
-  if (record->keycode) return true;
+static bool proces_extra_keys(uint16_t keycode, keyrecord_t *record) {
+  if (custom_config_swap_bb_is_enable()) {
+    switch (keycode) {
+      case KC_BSPC:
+        if (record->event.pressed) {
+          register_code(KC_BSLS);
+        } else {
+          unregister_code(KC_BSLS);
+        }
+        return false;
+      case KC_BSLS:
+        if (record->event.pressed) {
+          register_code(KC_BSPC);
+        } else {
+          unregister_code(KC_BSPC);
+        }
+        return false;
+    }
+  }
   switch (keycode) {
-    case KC_BSPC:
-      if (record->event.pressed) {
-        register_code(KC_BSLS);
-      } else {
-        unregister_code(KC_BSLS);
-      }
-      return false;
-    case KC_BSLS:
-      if (record->event.pressed) {
-        register_code(KC_BSPC);
-      } else {
-        unregister_code(KC_BSPC);
-      }
+    case TERM_LCK:
+      host_consumer_send(record->event.pressed ? AL_LOCK : 0);
       return false;
   }
   return true;
