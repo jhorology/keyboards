@@ -13,13 +13,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include QMK_KEYBOARD_H
-
 #include "ckbt51.h"
+
+#include <raw_hid.h>
 
 #include "battery.h"
 #include "bluetooth.h"
-#include "raw_hid.h"
 #include "report_buffer.h"
 
 #ifndef CKBT51_INT_INPUT_PIN
@@ -107,8 +106,8 @@ static uint8_t payload[PACKET_MAX_LEN];
 static uint8_t reg_offset = 0xFF;
 
 bluetooth_transport_t bluetooth_transport = {
-    ckbt51_init,      ckbt51_connect,       ckbt51_become_discoverable, ckbt51_disconnect, ckbt51_send_keyboard,
-    ckbt51_send_nkro, ckbt51_send_consumer, ckbt51_send_system,         ckbt51_send_mouse, ckbt51_task};
+  ckbt51_init,      ckbt51_connect,       ckbt51_become_discoverable, ckbt51_disconnect, ckbt51_send_keyboard,
+  ckbt51_send_nkro, ckbt51_send_consumer, ckbt51_send_system,         ckbt51_send_mouse, ckbt51_task};
 
 void ckbt51_init(bool wakeup_from_low_power_mode) {
 #if (HAL_USE_SERIAL == TRUE)

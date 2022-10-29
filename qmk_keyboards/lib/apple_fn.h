@@ -1,6 +1,6 @@
 #pragma once
 
-#include "quantum.h"
+#include <quantum.h>
 
 typedef enum non_mac_fn_key {
   FN_F1 = 0,

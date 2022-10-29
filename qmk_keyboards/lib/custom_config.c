@@ -13,12 +13,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include QMK_KEYBOARD_H
 #include "custom_config.h"
 
-#include "eeprom.h"
-#include "lib/apple_fn.h"
-#include "lib/custom_keycodes.h"
+#include <eeprom.h>
+
+#include "custom_keycodes.h"
 
 #ifndef CUSTOM_CONFIG_RHID_DEFAULT
 #  define CUSTOM_CONFIG_RHID_DEFAULT false
@@ -73,7 +72,7 @@ void custom_config_reset() {
   rc_config.raw = 0;
   rc_config.encoder_clicks = RADIAL_CONTROLLER_ENCODER_CLICKS_DEFAULT;
   rc_config.key_angular_speed =
-      RADIAL_CONTROLLER_KEY_ANGULAR_SPEED_DEFAULT - RADIAL_CONTROLLER_KEY_ANGULAR_SPEED_OFFSET;
+    RADIAL_CONTROLLER_KEY_ANGULAR_SPEED_DEFAULT - RADIAL_CONTROLLER_KEY_ANGULAR_SPEED_OFFSET;
   rc_config.fine_tune_ratio = RADIAL_CONTROLLER_FINE_TUNE_RATIO_DEFAULT;
   rc_config.fine_tune_mods = RADIAL_CONTROLLER_FINE_TUNE_MODS_DEFAULT;
   eeprom_update_dword((uint32_t *)RADIAL_CONTROLLER_EEPROM_ADDR, rc_config.raw);
@@ -265,20 +264,20 @@ bool custom_config_rc_is_fine_tune_mods_now() {
 
 void dynamic_tap_dance_reset(const tap_dance_entry_t *entry) {
   tap_dance_entry_t data;
-  for (int i = 0; i < TAP_DANCE_ENTRIES; i++) {
+  for (uint8_t i = 0; i < TAP_DANCE_ENTRIES; i++) {
     pgm_memcpy(&data, &entry[i], 10);
     eeprom_update_block((uint8_t *)&data, (uint8_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + 10 * i),
                         sizeof(tap_dance_entry_t));
   }
 }
 
-uint16_t dynamic_tap_dance_keycode(uint16_t index, tap_dance_state_t state) {
+uint16_t dynamic_tap_dance_keycode(uint8_t index, tap_dance_state_t state) {
   uint16_t keycode = KC_NO;
   if (index < TAP_DANCE_ENTRIES) {
     switch (state) {
       case TD_SINGLE_TAP ... TD_TAP_HOLD:
         keycode =
-            eeprom_read_word((uint16_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + 10 * index + (state - TD_SINGLE_TAP) * 2));
+          eeprom_read_word((uint16_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + 10 * index + (state - TD_SINGLE_TAP) * 2));
       default:
         break;
     }
@@ -289,11 +288,11 @@ uint16_t dynamic_tap_dance_keycode(uint16_t index, tap_dance_state_t state) {
   return keycode;
 }
 
-uint16_t dynamic_tap_dance_tapping_term(uint16_t index) {
+uint16_t dynamic_tap_dance_tapping_term(uint8_t index) {
   uint16_t tapping_term =
-      (index < TAP_DANCE_ENTRIES ? eeprom_read_word((uint16_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + 8 + 10 * index))
-                                 : TAPPING_TERM) &
-      0x03ff;  // highest 6bits are reserved for future use
+    (index < TAP_DANCE_ENTRIES ? eeprom_read_word((uint16_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + 8 + 10 * index))
+                               : TAPPING_TERM) &
+    0x03ff;  // highest 6bits are reserved for future use
 #ifdef CONSOLE_ENABLE
   uprintf("dynamic_tap_dance_tapping_term:td_index:%d tapping_term:%d\n", index, tapping_term);
 #endif
@@ -302,9 +301,9 @@ uint16_t dynamic_tap_dance_tapping_term(uint16_t index) {
 
 // none mac fn functions
 
-void dynamic_non_mac_fn_reset(const uint16_t *keycodes, size_t len) {
+void dynamic_non_mac_fn_reset(const uint16_t *keycodes, uint8_t len) {
   uint16_t *adrs = (uint16_t *)DYNAMIC_NON_MAC_FN_EEPROM_ADDR;
-  for (size_t i = 0; i < NON_MAC_FN_KEY_ENTRIES; i++) {
+  for (uint8_t i = 0; i < NON_MAC_FN_KEY_ENTRIES; i++) {
     eeprom_update_word(adrs++, i < len ? pgm_read_word(&keycodes[i]) : KC_NO);
   }
 }
@@ -314,8 +313,8 @@ uint16_t dynamic_non_mac_fn_keycode(non_mac_fn_key_t fn_key) {
   return eeprom_read_word(adrs + fn_key);
 }
 
-void pgm_memcpy(void *dest, const void *src, size_t len) {
-  for (size_t i = 0; i < len; i++) {
+void pgm_memcpy(void *dest, const void *src, uint8_t len) {
+  for (uint8_t i = 0; i < len; i++) {
     *(uint8_t *)dest++ = pgm_read_byte((uint8_t *)src++);
   }
 }

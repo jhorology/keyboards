@@ -13,12 +13,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include QMK_KEYBOARD_H
-
 #include "apple_fn.h"
 
-#include "lib/custom_config.h"
-#include "lib/custom_keycodes.h"
+#include "custom_config.h"
+#include "custom_keycodes.h"
 
 static bool process_fkey_override(uint16_t keycode, keyrecord_t *record);
 static bool process_non_mac_fn(uint16_t keycode, keyrecord_t *record);
@@ -50,7 +48,7 @@ static bool process_fkey_override(uint16_t keycode, keyrecord_t *record) {
   if (!apple_ff && record->event.pressed) return true;
   if (!fkey_override_flags && !record->event.pressed) return true;
 
-  uint16_t fkey_index;
+  uint8_t fkey_index;
   switch (keycode) {
     case KC_1 ... KC_0:
       fkey_index = keycode - KC_1;

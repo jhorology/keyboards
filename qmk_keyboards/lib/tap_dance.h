@@ -15,7 +15,7 @@
  */
 #pragma once
 
-#include "quantum.h"
+#include <quantum.h>
 
 typedef struct {
   uint16_t on_single_tap;

@@ -17,7 +17,6 @@
 #pragma once
 
 #include "lib/my_keyboard_common.h"
-#include "quantum.h"
 
 #define ___ KC_NO
 

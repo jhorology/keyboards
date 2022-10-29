@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <quantum.h>
+
 typedef enum {
   TRANSPORT_NONE,
   TRANSPORT_USB,

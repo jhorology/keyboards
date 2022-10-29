@@ -23,7 +23,7 @@ RADIAL_CONTROLLER_ENABLE = yes
 SRC += lib/radial_controller.c
 
 # Enter lower-power sleep mode when on the ChibiOS idle thread
-OPT_DEFS += -DNO_USB_STARTUP_CHECK -DENABLE_FACTORY_TEST
+OPT_DEFS += -DNO_USB_STARTUP_CHECK
 
 CUSTOM_MATRIX = lite
 SRC += matrix.c
@@ -40,4 +40,5 @@ SRC += \
   bluetooth/battery.c \
   bluetooth/bat_level_animation.c
 
-VPATH += $(TOP_DIR)/keyboards/my_keyboards/k6_pro_ansi_rgb/bluetooth
+KEYCHRON_BLUETOOTH_DIR := $(dir $(lastword $(MAKEFILE_LIST)))bluetooth
+VPATH += $(KEYCHRON_BLUETOOTH_DIR)

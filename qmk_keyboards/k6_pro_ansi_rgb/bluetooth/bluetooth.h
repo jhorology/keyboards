@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <quantum.h>
+
 #include "bluetooth_event_type.h"
 
 /* Low power mode */

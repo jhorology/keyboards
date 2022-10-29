@@ -16,7 +16,8 @@
 
 #pragma once
 
-#include "stdint.h"
+#include <quantum.h>
+#include <stdint.h>
 
 #ifdef BT_DRIVER_UART_BANK
 #  define BT_DRIVER_UART_TX_BANK BT_DRIVER_UART_BANK
@@ -62,8 +63,8 @@
 
 // Error checking
 #if !STM32_SERIAL_USE_USART1 && !STM32_SERIAL_USE_USART2 && !STM32_SERIAL_USE_USART3 && !STM32_SERIAL_USE_UART4 && \
-    !STM32_SERIAL_USE_UART5 && !STM32_SERIAL_USE_USART6 && !STM32_SERIAL_USE_UART7 && !STM32_SERIAL_USE_UART8 &&   \
-    !STM32_SERIAL_USE_LPUART1
+  !STM32_SERIAL_USE_UART5 && !STM32_SERIAL_USE_USART6 && !STM32_SERIAL_USE_UART7 && !STM32_SERIAL_USE_UART8 &&     \
+  !STM32_SERIAL_USE_LPUART1
 #  error "BT driver activated but no USART/UART peripheral assigned"
 #endif
 

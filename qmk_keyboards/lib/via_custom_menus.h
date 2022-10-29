@@ -15,8 +15,8 @@
  */
 #pragma once
 
-#include "quantum.h"
-#include "via.h"
+#include <quantum.h>
+#include <via.h>
 
 #define VIA_CUSTTOM_CHANNEL_ID_START 5
 enum via_custom_channel_id {

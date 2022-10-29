@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "quantum.h"
+#include <quantum.h>
 
 #define RADIAL_CONTROLLER_REPORT_INTERVAL_MILLIS 100
 

@@ -12,7 +12,7 @@
 #define MATRIX_COL_PINS                                                                                             \
   {                                                                                                                 \
     NO_PIN, NO_PIN, NO_PIN, NO_PIN, NO_PIN, NO_PIN, NO_PIN, NO_PIN, NO_PIN, NO_PIN, NO_PIN, NO_PIN, NO_PIN, NO_PIN, \
-        NO_PIN                                                                                                      \
+      NO_PIN                                                                                                        \
   }
 
 /* COL2ROW or ROW2COL */

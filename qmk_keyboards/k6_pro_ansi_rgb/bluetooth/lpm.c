@@ -21,15 +21,18 @@
  *  Description:   Contains low power mode implementation
  *
  ******************************************************************************/
-#include QMK_KEYBOARD_H
+
+#include "lpm.h"
+
+#include <quantum.h>
 
 #if defined(PROTOCOL_CHIBIOS)
 #  include <usb_main.h>
 #endif
+
 #include "battery.h"
 #include "bluetooth.h"
 #include "indicator.h"
-#include "lpm.h"
 #include "transport.h"
 
 extern matrix_row_t matrix[MATRIX_ROWS];

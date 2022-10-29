@@ -1,4 +1,4 @@
-#include QMK_KEYBOARD_H
+#include "bat_level_animation.h"
 
 #include "bluetooth.h"
 #include "indicator.h"

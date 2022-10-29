@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <quantum.h>
+
 #include "bluetooth.h"
 #include "config.h"
 

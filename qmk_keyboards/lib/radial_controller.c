@@ -14,12 +14,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include QMK_KEYBOARD_H
-
 #include "radial_controller.h"
 
-#include "lib/custom_config.h"
-#include "lib/custom_keycodes.h"
+#include "custom_config.h"
+#include "custom_keycodes.h"
 
 static void process_dial(int16_t direction, keyrecord_t* record);
 static void process_dial_encoder(int16_t direction);

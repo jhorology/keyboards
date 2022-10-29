@@ -14,15 +14,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
+#include <quantum.h>
 
-#include "lib/apple_fn.h"
-#include "lib/custom_config.h"
-#include "lib/custom_keycodes.h"
-#include "lib/jis_util.h"
+#include "apple_fn.h"
+#include "custom_config.h"
+#include "custom_keycodes.h"
+#include "jis_util.h"
 #ifdef RADIAL_CONTROLLER_ENABLE
-#  include "lib/radial_controller.h"
+#  include "radial_controller.h"
 #endif
-#include "lib/tap_dance.h"
-#include "lib/via_custom_menus.h"
+#include "tap_dance.h"
+#include "via_custom_menus.h"
 
 extern const tap_dance_entry_t tap_dance_entries_default[TAP_DANCE_ENTRIES];

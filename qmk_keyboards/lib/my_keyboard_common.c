@@ -13,8 +13,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include QMK_KEYBOARD_H
-
 #include "my_keyboard_common.h"
 
 /*
@@ -22,43 +20,43 @@
  */
 const uint16_t PROGMEM non_mac_fn_keys_default[] = {
 #ifdef MON_MAC_FN_KEYS_PREFER_LINUX
-    // TODO Linux Gnome
-    [FN_F1] = KC_BRID,   // decrease brightness
-    [FN_F2] = KC_BRIU,   // increase brightness
-    [FN_F3] = KC_NO,     // mission control -> TODO
-    [FN_F4] = KC_NO,     // Spotlight -> TODO
-    [FN_F5] = KC_NO,     // dictaion -> TODO
-    [FN_F6] = KC_NO,     // Do not disturb -> TODO
-    [FN_F7] = KC_MPRV,   // media prev
-    [FN_F8] = KC_MPLY,   // media play/pause
-    [FN_F9] = KC_MNXT,   // media next
-    [FN_F10] = KC_MUTE,  // mute audio
-    [FN_F11] = KC_VOLD,  // decrease audio volume
-    [FN_F12] = KC_VOLU,  // increase audio volume
+  // TODO Linux Gnome
+  [FN_F1] = KC_BRID,   // decrease brightness
+  [FN_F2] = KC_BRIU,   // increase brightness
+  [FN_F3] = KC_NO,     // mission control -> TODO
+  [FN_F4] = KC_NO,     // Spotlight -> TODO
+  [FN_F5] = KC_NO,     // dictaion -> TODO
+  [FN_F6] = KC_NO,     // Do not disturb -> TODO
+  [FN_F7] = KC_MPRV,   // media prev
+  [FN_F8] = KC_MPLY,   // media play/pause
+  [FN_F9] = KC_MNXT,   // media next
+  [FN_F10] = KC_MUTE,  // mute audio
+  [FN_F11] = KC_VOLD,  // decrease audio volume
+  [FN_F12] = KC_VOLU,  // increase audio volume
 #else
-    // Windows
-    [FN_F1] = KC_BRID,    // decrease brightness
-    [FN_F2] = KC_BRIU,    // increase brightness
-    [FN_F3] = G(KC_TAB),  // mission control
-    [FN_F4] = A(KC_SPC),  // Spotlight -> PowerToys Run
-    [FN_F5] = G(KC_H),    // dictaion
-    [FN_F6] = KC_NO,      // Do not disturb -> TODO
-    [FN_F7] = KC_MPRV,    // media prev
-    [FN_F8] = KC_MPLY,    // media play/pause
-    [FN_F9] = KC_MNXT,    // media next
-    [FN_F10] = KC_MUTE,   // mute audio
-    [FN_F11] = KC_VOLD,   // decrease audio volume
-    [FN_F12] = KC_VOLU,   // increase audio volume
-    [FN_SPC] = KC_NO,     // Hey Siri -> TODO Cortana
-    [FN_Q] = LAG(KC_N),   // Quick Notes
-    [FN_E] = G(KC_DOT),   // Emoji & Symbols
-    [FN_A] = G(KC_B),     // Focus Dock -> Focus Taskbar
-    [FN_D] = G(KC_H),     // Dictation
-    [FN_F] = KC_F11,      // Full screen mode
-    [FN_H] = G(KC_COMM),  // Show Desktop
-    [FN_C] = G(KC_A),     // Open Control Center -> Open Action Center
-    [FN_N] = G(KC_N),     // Open Notification
-    [FN_M] = KC_LALT,     // Focus menubar
+  // Windows
+  [FN_F1] = KC_BRID,    // decrease brightness
+  [FN_F2] = KC_BRIU,    // increase brightness
+  [FN_F3] = G(KC_TAB),  // mission control
+  [FN_F4] = A(KC_SPC),  // Spotlight -> PowerToys Run
+  [FN_F5] = G(KC_H),    // dictaion
+  [FN_F6] = KC_NO,      // Do not disturb -> TODO
+  [FN_F7] = KC_MPRV,    // media prev
+  [FN_F8] = KC_MPLY,    // media play/pause
+  [FN_F9] = KC_MNXT,    // media next
+  [FN_F10] = KC_MUTE,   // mute audio
+  [FN_F11] = KC_VOLD,   // decrease audio volume
+  [FN_F12] = KC_VOLU,   // increase audio volume
+  [FN_SPC] = KC_NO,     // Hey Siri -> TODO Cortana
+  [FN_Q] = LAG(KC_N),   // Quick Notes
+  [FN_E] = G(KC_DOT),   // Emoji & Symbols
+  [FN_A] = G(KC_B),     // Focus Dock -> Focus Taskbar
+  [FN_D] = G(KC_H),     // Dictation
+  [FN_F] = KC_F11,      // Full screen mode
+  [FN_H] = G(KC_COMM),  // Show Desktop
+  [FN_C] = G(KC_A),     // Open Control Center -> Open Action Center
+  [FN_N] = G(KC_N),     // Open Notification
+  [FN_M] = KC_LALT,     // Focus menubar
 #endif  // MON_MAC_FN_KEYS_PREFER_LINUX
 };
 

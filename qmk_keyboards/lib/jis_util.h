@@ -15,6 +15,6 @@
  */
 #pragma once
 
-#include "quantum.h"
+#include <quantum.h>
 
 bool process_jis_util(uint16_t keycode, keyrecord_t *record);

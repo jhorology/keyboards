@@ -13,17 +13,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "custom_config.h"
-#include QMK_KEYBOARD_H
 #include "via_custom_menus.h"
 
 #ifdef CONSOLE_ENABLE
 #  include <print.h>
 #endif
-#include "eeprom.h"
-#include "lib/apple_fn.h"
-#include "lib/custom_config.h"
-#include "lib/tap_dance.h"
+#include <eeprom.h>
+
+#include "apple_fn.h"
+#include "custom_config.h"
+#include "tap_dance.h"
 
 #define DEFER_EEPROM_UPDATE_ITEM_SIZE 4
 #define DEFER_EEPROM_UPDATE_DELAY_MILLIS 400
@@ -336,7 +335,7 @@ void via_custom_non_mac_fn_set_value(uint8_t value_id, uint8_t *value_data) {
 
 static void defer_eeprom_update(uint16_t id, defer_eeprom_update_value_type_t value_type, void *adrs, uint32_t value) {
   defer_eeprom_update_item_t *new_item = NULL;
-  for (size_t i = 0; i < DEFER_EEPROM_UPDATE_ITEM_SIZE; i++) {
+  for (uint8_t i = 0; i < DEFER_EEPROM_UPDATE_ITEM_SIZE; i++) {
     defer_eeprom_update_item_t *item = &defer_eeprom_update_items[i];
     if (id == item->id) {
       item->value = value;

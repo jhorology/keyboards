@@ -13,13 +13,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include QMK_KEYBOARD_H
-
 #include "jis_util.h"
 
-#include "keymap_extras/keymap_japanese.h"
-#include "lib/custom_config.h"
-#include "lib/custom_keycodes.h"
+#include <keymap_extras/keymap_japanese.h>
+
+#include "custom_config.h"
+#include "custom_keycodes.h"
 
 typedef struct {
   uint8_t src;             // src keycode
@@ -28,42 +27,42 @@ typedef struct {
 } layout_conversion_item_t;
 
 static layout_conversion_item_t ansi_under_jis_table[] = {
-    // src, dest, dest on shift
-    {KC_GRV, JP_GRV, JP_TILD},    // "`", "~"
-    {KC_2, 0, JP_AT},             // "@"
-    {KC_6, 0, JP_CIRC},           // "^"
-    {KC_7, 0, JP_AMPR},           // "&"
-    {KC_8, 0, JP_ASTR},           // "*"
-    {KC_9, 0, JP_LPRN},           // "("
-    {KC_0, 0, JP_RPRN},           // ")"
-    {KC_MINS, 0, JP_UNDS},        // "_"
-    {KC_EQL, JP_EQL, JP_PLUS},    // "=", "+"
-    {KC_LBRC, JP_LBRC, JP_LCBR},  // "[", "{"
-    {KC_RBRC, JP_RBRC, JP_RCBR},  // "]", "}"
+  // src, dest, dest on shift
+  {KC_GRV, JP_GRV, JP_TILD},    // "`", "~"
+  {KC_2, 0, JP_AT},             // "@"
+  {KC_6, 0, JP_CIRC},           // "^"
+  {KC_7, 0, JP_AMPR},           // "&"
+  {KC_8, 0, JP_ASTR},           // "*"
+  {KC_9, 0, JP_LPRN},           // "("
+  {KC_0, 0, JP_RPRN},           // ")"
+  {KC_MINS, 0, JP_UNDS},        // "_"
+  {KC_EQL, JP_EQL, JP_PLUS},    // "=", "+"
+  {KC_LBRC, JP_LBRC, JP_LCBR},  // "[", "{"
+  {KC_RBRC, JP_RBRC, JP_RCBR},  // "]", "}"
 #ifdef USJ_APPLE_JIS_BSLS
-    {KC_BSLS, LALT(JP_YEN), JP_PIPE},  // "\", "|"
-                                       // TODO
-                                       // some applications (eg.emacs) interprets backslash as Alt + JP_YEN
-                                       // see https://qiita.com/hirokisince1998/items/029741559d7ba7078523
-                                       //
-                                       // for emacs init.el:
-                                       //
-                                       // (define-key global-map [?\M-¥] [?\\])
-                                       // (define-key global-map [?\C-\M-¥] [?\C-\\])
-                                       // (defun isearch-add-backslash()
-                                       // (interactive)
-                                       // (isearch-printing-char ?\\ 1))
-                                       // (define-key isearch-mode-map [?\M-¥] 'isearch-add-backslash)
+  {KC_BSLS, LALT(JP_YEN), JP_PIPE},  // "\", "|"
+                                     // TODO
+                                     // some applications (eg.emacs) interprets backslash as Alt + JP_YEN
+                                     // see https://qiita.com/hirokisince1998/items/029741559d7ba7078523
+                                     //
+                                     // for emacs init.el:
+                                     //
+                                     // (define-key global-map [?\M-¥] [?\\])
+                                     // (define-key global-map [?\C-\M-¥] [?\C-\\])
+                                     // (defun isearch-add-backslash()
+                                     // (interactive)
+                                     // (isearch-printing-char ?\\ 1))
+                                     // (define-key isearch-mode-map [?\M-¥] 'isearch-add-backslash)
 #else
-    {KC_BSLS, JP_BSLS, JP_PIPE},  // "\", "|"
+  {KC_BSLS, JP_BSLS, JP_PIPE},  // "\", "|"
 #endif
 #ifdef USJ_JIS_LIKE_CAPS
-    {KC_CAPS, JP_EISU, JP_CAPS},  // CAPSLOCK
+  {KC_CAPS, JP_EISU, JP_CAPS},  // CAPSLOCK
 #else
-    {KC_CAPS, JP_CAPS, JP_EISU},  // CAPSLOCK
+  {KC_CAPS, JP_CAPS, JP_EISU},  // CAPSLOCK
 #endif
-    {KC_SCLN, 0, JP_COLN},       // :
-    {KC_QUOT, JP_QUOT, JP_DQUO}  // '
+  {KC_SCLN, 0, JP_COLN},       // :
+  {KC_QUOT, JP_QUOT, JP_DQUO}  // '
 };
 
 static bool process_layout_conversion(layout_conversion_item_t *table, uint16_t table_length, uint16_t keycode,
@@ -88,7 +87,7 @@ bool process_jis_util(uint16_t keycode, keyrecord_t *record) {
     default:
       if (custom_config_usj_is_enable()) {
         return process_layout_conversion(
-            ansi_under_jis_table, sizeof(ansi_under_jis_table) / sizeof(layout_conversion_item_t), keycode, record);
+          ansi_under_jis_table, sizeof(ansi_under_jis_table) / sizeof(layout_conversion_item_t), keycode, record);
       }
   }
   return true;
@@ -103,7 +102,7 @@ static bool process_layout_conversion(layout_conversion_item_t *table, uint16_t 
   static uint16_t override_shift_flags;
   uint16_t flag;
   layout_conversion_item_t *item = NULL;
-  for (uint16_t i; i < table_length; i++) {
+  for (uint8_t i = 0; i < table_length; i++) {
     if (keycode == table[i].src) {
       flag = 1 << i;
       item = &table[i];

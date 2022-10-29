@@ -6,10 +6,10 @@
 // tap dance
 // [single tap, single hold, multi tap, tap hold, tapping term]
 const tap_dance_entry_t PROGMEM tap_dance_entries_default[] = {
-    // Left Alt, Alt + Apple fn + IME switch
-    [0] = {KC_LNG2, KC_LALT, KC_LNG1, APPLE_FF, TAPPING_TERM},
-    // Right Alt, Alt + layer switch
-    [1] = {KC_RALT, KC_RALT, KC_RALT, MO(3), TAPPING_TERM}};
+  // Left Alt, Alt + Apple fn + IME switch
+  [0] = {KC_LNG2, KC_LALT, KC_LNG1, APPLE_FF, TAPPING_TERM},
+  // Right Alt, Alt + layer switch
+  [1] = {KC_RALT, KC_RALT, KC_RALT, MO(3), TAPPING_TERM}};
 
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {

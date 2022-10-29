@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <quantum.h>
+
 enum {
   BAT_NOT_CHARGING = 0,
   BAT_CHARGING,

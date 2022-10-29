@@ -20,10 +20,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // tap dance
 // [single tap, single hold, multi tap, tap hold, tapping term]
 const tap_dance_entry_t PROGMEM tap_dance_entries_default[] = {
-    // Apple Fn key + IME switch
-    [0] = {KC_LNG2, APPLE_FF, KC_LNG1, APPLE_FF, TAPPING_TERM},
-    // Protect layer 3 from misstouh, Right Command + MO(3)
-    [1] = {KC_RGUI, KC_RGUI, KC_RGUI, MO(3), TAPPING_TERM},
+  // Apple Fn key + IME switch
+  [0] = {KC_LNG2, APPLE_FF, KC_LNG1, APPLE_FF, TAPPING_TERM},
+  // Protect layer 3 from misstouh, Right Command + MO(3)
+  [1] = {KC_RGUI, KC_RGUI, KC_RGUI, MO(3), TAPPING_TERM},
 };
 
 // clang-format off

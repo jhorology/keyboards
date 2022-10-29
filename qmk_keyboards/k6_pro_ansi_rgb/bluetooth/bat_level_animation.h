@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <quantum.h>
+
 void bat_level_animiation_start(uint8_t percentage);
 void bat_level_animiation_stop(void);
 bool bat_level_animiation_actived(void);

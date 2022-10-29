@@ -21,8 +21,6 @@
  *  Description:   Contains low power mode implementation
  *
  ******************************************************************************/
-#include QMK_KEYBOARD_H
-
 #include <usb_main.h>
 
 #include "battery.h"

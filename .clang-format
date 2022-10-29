@@ -1,29 +1,6 @@
 BasedOnStyle: Google
-TabWidth: '2'
+IndentWidth: '2'
+ContinuationIndentWidth: 2
 UseTab: Never
 ColumnLimit: '120'
 IndentPPDirectives: AfterHash
-
-# AlignAfterOpenBracket: Align
-# AlignConsecutiveAssignments: 'true'
-# AlignConsecutiveDeclarations: 'true'
-# AlignOperands: 'true'
-# AllowAllParametersOfDeclarationOnNextLine: 'false'
-# AllowShortCaseLabelsOnASingleLine: 'false'
-# AllowShortFunctionsOnASingleLine: Empty
-# AllowShortLoopsOnASingleLine: 'false'
-# AlwaysBreakAfterDefinitionReturnType: None
-# AlwaysBreakAfterReturnType: None
-# AlwaysBreakBeforeMultilineStrings: 'false'
-# BinPackArguments: 'true'
-# BinPackParameters: 'true'
-# IndentCaseLabels: 'true'
-# IndentPPDirectives: AfterHash
-# IndentWidth: '4'
-# MaxEmptyLinesToKeep: '1'
-# PointerAlignment: Right
-# SortIncludes: 'false'
-# SpaceBeforeAssignmentOperators: 'true'
-# SpaceBeforeParens: ControlStatements
-# SpaceInEmptyParentheses: 'false'
-# SpacesBeforeTrailingComments: 1

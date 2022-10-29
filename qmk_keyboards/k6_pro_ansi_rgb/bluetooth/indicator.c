@@ -13,8 +13,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include QMK_KEYBOARD_H
-
 #include "indicator.h"
 
 #include "battery.h"
@@ -283,7 +281,7 @@ void indicator_set(bluetooth_state_t state, uint8_t host_index) {
       } else {
         /* Set timer so that user has chance to turn on the backlight when is off */
         indicator_set_backlit_timeout(
-            DECIDE_TIME(DISCONNECTED_BACKLIGHT_DISABLE_TIMEOUT * 1000, indicator_config.duration));
+          DECIDE_TIME(DISCONNECTED_BACKLIGHT_DISABLE_TIMEOUT * 1000, indicator_config.duration));
       }
       break;
 
@@ -301,7 +299,7 @@ void indicator_set(bluetooth_state_t state, uint8_t host_index) {
       indicator_config.value = (indicator_config.type == INDICATOR_NONE) ? 0 : LED_ON | host_index;
       indicator_timer_cb((void *)&indicator_config.type);
       indicator_set_backlit_timeout(
-          DECIDE_TIME(DISCONNECTED_BACKLIGHT_DISABLE_TIMEOUT * 1000, indicator_config.duration));
+        DECIDE_TIME(DISCONNECTED_BACKLIGHT_DISABLE_TIMEOUT * 1000, indicator_config.duration));
       break;
 
     case BLUETOOTH_RECONNECTING:
@@ -309,7 +307,7 @@ void indicator_set(bluetooth_state_t state, uint8_t host_index) {
       indicator_config.value = (indicator_config.type == INDICATOR_NONE) ? 0 : LED_ON | host_index;
       indicator_timer_cb((void *)&indicator_config.type);
       indicator_set_backlit_timeout(
-          DECIDE_TIME(DISCONNECTED_BACKLIGHT_DISABLE_TIMEOUT * 1000, indicator_config.duration));
+        DECIDE_TIME(DISCONNECTED_BACKLIGHT_DISABLE_TIMEOUT * 1000, indicator_config.duration));
       break;
 
     case BLUETOOTH_SUSPEND:

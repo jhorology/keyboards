@@ -16,10 +16,11 @@
 
 #pragma once
 
-#include "lib/apple_fn.h"
-#include "lib/tap_dance.h"
-#include "quantum.h"
-#include "via.h"
+#include <quantum.h>
+#include <via.h>
+
+#include "apple_fn.h"
+#include "tap_dance.h"
 
 // apple fn override modes for non-macos
 #define NON_MAC_FN_MODE_FKEY_MASK 1
@@ -59,7 +60,7 @@ void custom_config_raw_hid_toggle_enable(void);
 void custom_config_raw_hid_set_enable(bool);
 
 void dynamic_none_mac_apple_fn_fkeys_reset(uint16_t *fkeys);
-void dynamic_none_mac_apple_fn_fkeys_keycode(uint16_t fkeys_index);
+void dynamic_none_mac_apple_fn_fkeys_keycode(uint8_t fkeys_index);
 
 bool custom_config_mac_is_enable(void);
 void custom_config_mac_toggle_enable(void);
@@ -85,10 +86,10 @@ bool custom_config_rc_is_fine_tune_mods_now(void);
 #endif
 
 void dynamic_tap_dance_reset(const tap_dance_entry_t *entry);
-uint16_t dynamic_tap_dance_keycode(uint16_t index, tap_dance_state_t state);
-uint16_t dynamic_tap_dance_tapping_term(uint16_t index);
+uint16_t dynamic_tap_dance_keycode(uint8_t index, tap_dance_state_t state);
+uint16_t dynamic_tap_dance_tapping_term(uint8_t index);
 
-void dynamic_non_mac_fn_reset(const uint16_t *keycodes, size_t len);
+void dynamic_non_mac_fn_reset(const uint16_t *keycodes, uint8_t len);
 uint16_t dynamic_non_mac_fn_keycode(non_mac_fn_key_t fn_key);
 
-void pgm_memcpy(void *dest, const void *src, size_t len);
+void pgm_memcpy(void *dest, const void *src, uint8_t len);
