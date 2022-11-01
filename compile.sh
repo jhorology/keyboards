@@ -139,6 +139,9 @@ fi
 [ -z "$(rg ENCODER_LOOKUP_TABLE quantum/encoder.c)" ] && \
   patch --verbose -p1 < "${PROJECT}/patches/encoder_lookup_table.patch"
 
+[ -z "$(rg normal_true quantum/process_keycode/process_magic.c)" ] && \
+  patch --verbose -p1 < "${PROJECT}/patches/qmk_magic_shift_reverse.patch"
+
 if [ $VIA_VERSION = "3" ]; then
   [ -z "$(rg via_raw_hid_receive quantum/via.h)" ] && \
     patch --verbose -p1 < "${PROJECT}/patches/via_v3.patch"

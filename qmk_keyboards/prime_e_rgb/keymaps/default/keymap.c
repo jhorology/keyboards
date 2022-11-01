@@ -62,13 +62,12 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   ),
 
   // settings, amethyst
-  // row 1: usual settings
-  // row 2: unusual settings
+  // row 2: normal settings, +shift key for unusual reversed setting
   // +Shift key for RGB decrement functions
   [4] = LAYOUT(
-    QK_BOOT,  KC_F16,  KC_F17,  KC_F18,  _______, _______,     _______, _______, KC_F13,  KC_F14,  KC_F15, TERM_LCK,KC_ESC,
-    _______, RHID_OFF,MAC_ON,  USJ_OFF, NK_ON,   CL_NORM,     AG_NORM, BB_NORM, RGB_TOG, RGB_VAI, RGB_HUI, _______,
-    _______, RHID_ON, MAC_OFF, USJ_ON,  NK_OFF,  CL_SWAP,     AG_SWAP, BB_SWAP, RGB_MOD, RGB_SPI, RGB_SAI, _______, _______,
+    QK_BOOT,  KC_F16,  KC_F17,  KC_F18,  _______, _______,    _______, _______, KC_F13,  KC_F14,  KC_F15, TERM_LCK,KC_ESC,
+    _______, _______,  _______, _______, _______, _______,    _______, _______, RGB_TOG, RGB_VAI, RGB_HUI, _______,
+    _______, RHID_OFF, MAC_ON,  USJ_OFF, NK_ON,   CL_NORM,    AG_NORM, BB_NORM, RGB_MOD, RGB_SPI, RGB_SAI, _______, _______,
     _______, AG_TOGG,                   _______, _______,     _______, _______,                            _______, _______
   )
 };

@@ -105,15 +105,17 @@ void custom_config_init() {
 
 bool process_record_custom_config(uint16_t keycode, keyrecord_t *record) {
   if (record->event.pressed) {
+    bool normal_true = get_mods() & MOD_MASK_SHIFT ? false : true;
+    bool normal_false = !normal_true;
     switch (keycode) {
       case RHID_TOGG:
         custom_config_raw_hid_toggle_enable();
         return false;
       case RHID_ON:
-        custom_config_raw_hid_set_enable(true);
+        custom_config_raw_hid_set_enable(normal_true);
         return false;
       case RHID_OFF:
-        custom_config_raw_hid_set_enable(false);
+        custom_config_raw_hid_set_enable(normal_false);
         return false;
 #ifndef DIP_SWITCH_ENABLE
       case MAC_TOGG:
@@ -122,30 +124,30 @@ bool process_record_custom_config(uint16_t keycode, keyrecord_t *record) {
         return false;
       case MAC_ON:
         // *keyboard may restart
-        custom_config_mac_set_enable(true);
+        custom_config_mac_set_enable(normal_true);
         return false;
       case MAC_OFF:
         // *keyboard may restart
-        custom_config_mac_set_enable(false);
+        custom_config_mac_set_enable(normal_false);
         return false;
 #endif
       case USJ_TOGG:
         custom_config_usj_toggle_enable();
         return false;
       case USJ_ON:
-        custom_config_usj_set_enable(true);
+        custom_config_usj_set_enable(normal_true);
         return false;
       case USJ_OFF:
-        custom_config_usj_set_enable(false);
+        custom_config_usj_set_enable(normal_false);
         return false;
       case BB_TOGG:
         custom_config_swap_bb_toggle_enable();
         return false;
       case BB_SWAP:
-        custom_config_swap_bb_set_enable(true);
+        custom_config_swap_bb_set_enable(normal_true);
         return false;
       case BB_NORM:
-        custom_config_swap_bb_set_enable(false);
+        custom_config_swap_bb_set_enable(normal_false);
         return false;
     }
   }

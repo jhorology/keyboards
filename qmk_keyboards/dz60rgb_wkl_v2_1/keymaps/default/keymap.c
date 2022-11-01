@@ -39,13 +39,12 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
              _______, _______,                            _______,                            _______, _______
   ),
   // settings, application-specific keys
-  // row 2: usual settings
-  // row 3: unusual settings
+  // row 3: normal settings, +shift key for unusual reversed setting
   [3] = LAYOUT_60_hhkb(
     QK_BOOT, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, TERM_LCK,
     _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
+    _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,          _______,
     _______, RHID_OFF,MAC_ON,  USJ_OFF, NK_ON,   CL_NORM, AG_NORM, BB_NORM, _______, _______, _______, _______,          _______,
-    _______, RHID_ON, MAC_OFF, USJ_ON,  NK_OFF,  CL_SWAP, AG_SWAP, BB_SWAP, _______, _______, _______, _______,          _______,
              _______, _______,                            _______,                                     _______, _______
   )
 };
