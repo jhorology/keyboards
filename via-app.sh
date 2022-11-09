@@ -65,19 +65,21 @@ BUILD_JSON=true
 #______________________________________
 if (( $#update_via_app )); then
   cd "$VIA_APP_HOME"
-  git reset --hard
+
+  # v3 keycodes was breaking-changed, stay revision 'd5d92c6' until officially released.
+  git reset --hard d5d92c6
   git clean -dfx
-  git pull
+  # git pull
 
   patch -p1 < "$PROJECT/patches/via_app_custom_control_16bit_value.patch"
   patch -p1 < "$PROJECT/patches/via_app_32_custom_keycodes.patch"
   patch -p1 < "$PROJECT/patches/via_app_prefer_ja.patch"
 
   yarn install
-  yarn remove pelpi
-  yarn remove via-reader
-  yarn add https://github.com/the-via/pelpi.git
-  yarn add https://github.com/the-via/reader.git
+  # yarn remove pelpi
+  # yarn remove via-reader
+  # yarn add https://github.com/the-via/pelpi.git
+  # yarn add https://github.com/the-via/reader.git
   # yarn build
   return
 fi
