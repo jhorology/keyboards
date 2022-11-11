@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//#include "q1_bluetooth.h"
+// #include "q1_bluetooth.h"
 #include "gpio.h"
 #include "hal.h"
 #include "quantum.h"

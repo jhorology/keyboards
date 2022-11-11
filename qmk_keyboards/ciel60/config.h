@@ -18,7 +18,7 @@
 #define LAYOUT_OPTION_BOTTOM_ROW_TSANGAN 0x1
 
 #undef TAP_DANCE_ENTRIES
-#define TAP_DANCE_ENTRIES 4
+#define TAP_DANCE_ENTRIES 2
 
 #if __has_include("secure_config.h")
 #  include "secure_config.h"

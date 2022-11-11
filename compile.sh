@@ -33,6 +33,7 @@ local -A KEYBOARDS=(
   fk680      fk680pro_v2:uf2
   ikki68     ikki68_aurora:hex
   k6         k6_pro_ansi_rgb:bin
+  libra      libra_mini:hex
   prime_e    prime_e_rgb:hex
   qk65       qk65_solder:hex
   zoom65     zoom65:hex

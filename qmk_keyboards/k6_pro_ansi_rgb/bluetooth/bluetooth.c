@@ -306,7 +306,7 @@ void bluetooth_send_keyboard(report_keyboard_t *report) {
     } else
 #endif
     {
-      //#ifdef KEYBOARD_SHARED_EP
+      // #ifdef KEYBOARD_SHARED_EP
       if (bluetooth_transport.send_keyboard) {
 #ifndef DISABLE_REPORT_BUFFER
         if (report_buffer_is_empty() && report_buffer_next_inverval()) {
@@ -322,7 +322,7 @@ void bluetooth_send_keyboard(report_keyboard_t *report) {
         bluetooth_transport.send_keyboard(&report->mods);
 #endif
       }
-      //#endif
+      // #endif
     }
 
   } else if (bt_state != BLUETOOTH_RESET) {
