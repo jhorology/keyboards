@@ -44,7 +44,7 @@ local -A KEYBOARDS=(
 
 # defaults
 
-TARGETS=(neko60 ciel60 d60 fk680 ikki68 prime_e qk65 zoom65)
+TARGETS=(neko60 ciel60 d60 fk680 ikki68 libra prime_e qk65 zoom65)
 QMK_HOME="$HOME/Documents/Sources/qmk_firmware"
 VIA_VERSION=3
 UPDATE_QMK=true
