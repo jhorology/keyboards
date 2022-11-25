@@ -7,9 +7,9 @@ cd "$PROJECT"
 zparseopts -D -E -F -- \
            {h,-help}=help  \
            {c,-clean}=clean \
-           -qmk-home:=qmk_home \
-           -via-version:=via_version \
-           -without-update-qmk=without_update_qmk \
+           {H,-qmk-home}:=qmk_home \
+           {v,-via-version}:=via_version \
+           {w,-without-update-qmk}=without_update_qmk \
   || return
 
 
@@ -20,9 +20,9 @@ if (( $#help )); then
         "$0:t [options...] [<TARGET...>]" \
         "" \
         "options:" \
-        "  --qmk-home <QMK_HOME>            location for local qmk_firmware repository" \
-        "  --via-version <2|3>              VIA version 2 or 3 default: 3" \
-        "  --without-update-qmk             don't sync remote repository"
+        "  -H,--qmk-home <QMK_HOME>            location for local qmk_firmware repository" \
+        "  -v,--via-version <2|3>              VIA version 2 or 3 default: 3" \
+        "  -w,--without-update-qmk             don't sync remote repository"
   return
 fi
 
@@ -35,6 +35,7 @@ local -A KEYBOARDS=(
   k6         k6_pro_ansi_rgb:bin
   libra      libra_mini:hex
   prime_e    prime_e_rgb:hex
+  qk60       qk60:bin
   qk65       qk65_solder:hex
   zoom65     zoom65:hex
 )
@@ -44,7 +45,7 @@ local -A KEYBOARDS=(
 
 # defaults
 
-TARGETS=(neko60 ciel60 d60 fk680 ikki68 libra prime_e qk65 zoom65)
+TARGETS=(neko60 ciel60 d60 fk680 ikki68 libra prime_e qk60 qk65 zoom65)
 QMK_HOME="$HOME/Documents/Sources/qmk_firmware"
 VIA_VERSION=3
 UPDATE_QMK=true
@@ -106,11 +107,10 @@ mkdir -p dist
 
 cd "$QMK_HOME"
 
-if [ -s keychron_bluetooth_playground -a ! $KEYCHRON_BT ]; then
-  UPDATE_QMK=true
-fi
-if [ ! -s keychron_bluetooth_playground -a $KEYCHRON_BT ]; then
-  UPDATE_QMK=true
+if $$KEYCHRON_BT; then
+  [ ! -s keychron_bluetooth_playground ] && UPDATE_QMK=true;
+else
+  [ -s keychron_bluetooth_playground ] && UPDATE_QMK=true;
 fi
 
 if $UPDATE_QMK; then

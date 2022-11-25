@@ -1,0 +1,9 @@
+{
+  "keyboard_name": "qk60",
+  "manufacturer": "Qwertykeys",
+  "usb": {
+    "vid": "0x4F53",
+    "pid": "0x3630",
+    "device_version": "0.0.1"
+  }
+}

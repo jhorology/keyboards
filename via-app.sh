@@ -38,6 +38,7 @@ local -A KEYBOARDS=(
   ikki68     ikki68_aurora
   k6         k6_pro_ansi_rgb
   prime_e    prime_e_rgb
+  qk60       qk60
   qk65       qk65_solder
   zoom65     zoom65
 )
