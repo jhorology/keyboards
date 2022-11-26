@@ -107,10 +107,10 @@ mkdir -p dist
 
 cd "$QMK_HOME"
 
-if $$KEYCHRON_BT; then
-  [ ! -s keychron_bluetooth_playground ] && UPDATE_QMK=true;
+if $KEYCHRON_BT; then
+  [ ! -s keychron_bluetooth_playground ] && UPDATE_QMK=true
 else
-  [ -s keychron_bluetooth_playground ] && UPDATE_QMK=true;
+  [ -s keychron_bluetooth_playground ] && UPDATE_QMK=true
 fi
 
 if $UPDATE_QMK; then
