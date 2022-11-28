@@ -30,7 +30,6 @@ typedef union {
   struct {
     bool raw_hid : 1;             // allow access to raw hid
     bool usj : 1;                 // ANSI layou on JIS.
-    bool swap_bb : 1;             // Swap Backslash and Backspace
     bool mac : 1;                 // mac mode.
     uint8_t non_mac_fn_mode : 2;  // fn override mode for non-macos  0: OFF, 1: F1-12, 2: Alpha, 3: All
   };
@@ -70,9 +69,6 @@ bool custom_config_usj_is_enable(void);
 void custom_config_usj_toggle_enable(void);
 void custom_config_usj_set_enable(bool);
 
-bool custom_config_swap_bb_is_enable(void);
-void custom_config_swap_bb_toggle_enable(void);
-void custom_config_swap_bb_set_enable(bool);
 void custom_config_mac_set_enable_without_reset(bool);
 uint8_t custom_config_non_mac_fn_get_mode(void);
 void custom_config_non_mac_fn_set_mode(uint8_t);

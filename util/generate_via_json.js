@@ -12,7 +12,6 @@ const path = require('path'),
     isKeyboardDefinitionV3
   } = require('via-reader'),
   QMK_HOME = process.env['QMK_HOME'],
-  VIA_VERSION = parseInt(process.env['VIA_VERSION']),
   MAKE_TARGETS = process.argv.slice(2),
   PROJECT_DIR = path.join(__dirname, '..'),
   OUTPUT_DIR = process.env['OUTPUT_DIR'] || path.join(PROJECT_DIR, 'dist'),
@@ -30,9 +29,9 @@ async function build(target) {
       productId: info.usb.pid
     }
 
-  if (VIA_VERSION === 2) {
-    // lighting
-    via.lighting =
+  // https://www.caniusevia.com/docs/v3_changes
+  via.firmwareVersion = parseInt(defines.VIA_FIRMWARE_VERSION)
+  const lighting =
       options.BACKLIGHT_ENABLE === 'yes' && options.RGBLIGHT_ENABLE === 'yes'
         ? 'qmk_backlight_rgblight'
         : options.BACKLIGHT_ENABLE === 'yes'
@@ -40,33 +39,19 @@ async function build(target) {
         : options.RGBLIGHT_ENABLE === 'yes'
         ? 'qmk_rgblight'
         : options.RGB_MATRIX_ENABLE === 'yes'
-        ? { extends: 'none', keycodes: 'qmk' }
-        : 'none'
-  } else if (VIA_VERSION === 3) {
-    // https://www.caniusevia.com/docs/v3_changes
-    via.firmwareVersion = parseInt(defines.VIA_FIRMWARE_VERSION)
-    const lighting =
-        options.BACKLIGHT_ENABLE === 'yes' && options.RGBLIGHT_ENABLE === 'yes'
-          ? 'qmk_backlight_rgblight'
-          : options.BACKLIGHT_ENABLE === 'yes'
-          ? 'qmk_backlight'
-          : options.RGBLIGHT_ENABLE === 'yes'
-          ? 'qmk_rgblight'
-          : options.RGB_MATRIX_ENABLE === 'yes'
-          ? await getRgbMatrixEffects(targetDir)
-          : undefined,
-      customMenus = await getCustomMenus(targetDir, options, defines)
+        ? await getRgbMatrixEffects(targetDir)
+        : undefined,
+    customMenus = await getCustomMenus(targetDir, options, defines)
 
+  if (lighting) {
+    via.keycodes = ['qmk_lighting']
+  }
+  if (lighting || customMenus.length) {
+    via.menus = []
     if (lighting) {
-      via.keycodes = ['qmk_lighting']
+      via.menus.push(lighting)
     }
-    if (lighting || customMenus.length) {
-      via.menus = []
-      if (lighting) {
-        via.menus.push(lighting)
-      }
-      Array.prototype.push.apply(via.menus, customMenus)
-    }
+    Array.prototype.push.apply(via.menus, customMenus)
   }
   // matrix
   via.matrix = info.matrix_pins
@@ -87,7 +72,7 @@ async function build(target) {
 
   // output JSON
   await fs.writeFile(
-    path.join(OUTPUT_DIR, `${target}_via_v${VIA_VERSION}.json`),
+    path.join(OUTPUT_DIR, `${target}_via.json`),
     JSON.stringify(via, null, 2)
   )
   // alternate device ID
@@ -97,7 +82,7 @@ async function build(target) {
     via.productId =
       '0x' + defines.ALTERNATE_PRODUCT_ID.toString(16).padStart(4, '0')
     await fs.writeFile(
-      path.join(OUTPUT_DIR, `${target}_via_v${VIA_VERSION}_mac.json`),
+      path.join(OUTPUT_DIR, `${target}_via_mac.json`),
       JSON.stringify(via, null, 2)
     )
   }
@@ -291,22 +276,11 @@ async function readable(filePath) {
 }
 
 function validate(target, via) {
-  const validator = [
-    undefined,
-    undefined,
-    isKeyboardDefinitionV2,
-    isKeyboardDefinitionV3
-  ][VIA_VERSION]
-  if (!validator) {
-    throw new Error(
-      `via_json_generator: keyboard: ${target} - unsuppoted VIA version: ${VIA_VERSION}`
-    )
-  }
-  if (!validator(via)) {
+  if (!isKeyboardDefinitionV3(via)) {
     console.log(JSON.stringify(via, null, 2))
     throw new Error(
-      `via_json_generator: keyboard: ${target} - VIA v${VIA_VERSION} validation fails with errors:\n ${JSON.stringify(
-        validator.errors,
+      `via_json_generator: keyboard: ${target} - VIA validation fails with errors:\n ${JSON.stringify(
+        isKeyboardDefinitionV3.errors,
         null,
         2
       )}`

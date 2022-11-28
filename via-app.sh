@@ -9,7 +9,6 @@ zparseopts -D -E -F -- \
            {h,-help}=help  \
            -qmk-home:=qmk_home \
            -via-app-home:=via_app_home \
-           -via-version:=via_version \
            {u,-update-via-app}=update_via_app \
            {w,-without-generate}=without_generate \
   || return
@@ -25,7 +24,6 @@ if (( $#help )); then
         "options:" \
         "  --qmk-home <QMK_HOME>            location for local qmk_firmware repository" \
         "  --via-app-home <VIA_APP_HOME>    location for local via/app repository" \
-        "  --via-version <2|3>              VIA version 2 or 3 default: 3" \
         "  -w,--without-generate            Use JSON file in dist folder without running builder"
   return
 fi
@@ -47,7 +45,6 @@ local -A KEYBOARDS=(
 # -----------------------------------
 QMK_HOME="$HOME/Documents/Sources/qmk_firmware"
 VIA_APP_HOME="$HOME/Documents/Sources/via/app"
-VIA_VERSION=3
 BUILD_JSON=true
 
 # .config
@@ -59,7 +56,6 @@ BUILD_JSON=true
 # -----------------------------------
 (( $#qmk_home )) && QMK_HOME=${qmk_home[-1]##=}
 (( $#via_app_home )) && VIA_APP_HOME=${via_app_home[-1]##=}
-(( $#via_version )) && VIA_VERSION=${via_version[-1]##=}
 (( $#without_generate )) && BUILD_JSON=false
 
 # update via/app
@@ -68,20 +64,15 @@ if (( $#update_via_app )); then
   cd "$VIA_APP_HOME"
 
   # v3 keycodes was breaking-changed, stay revision 'd5d92c6' until officially released.
-  git reset --hard d5d92c6
+  git reset --hard HEAD
   git clean -dfx
-  # git pull
+  git pull
 
   patch -p1 < "$PROJECT/patches/via_app_custom_control_16bit_value.patch"
   patch -p1 < "$PROJECT/patches/via_app_32_custom_keycodes.patch"
   patch -p1 < "$PROJECT/patches/via_app_prefer_ja.patch"
 
   yarn install
-  # yarn remove pelpi
-  # yarn remove via-reader
-  # yarn add https://github.com/the-via/pelpi.git
-  # yarn add https://github.com/the-via/reader.git
-  # yarn build
   return
 fi
 
@@ -104,7 +95,7 @@ MAKE_TARGET=$KEYBOARDS[$TARGET]
 if $BUILD_JSON; then
   mkdir -p dist
   # generate via json file
-  VIA_VERSION=$VIA_VERSION QMK_HOME="$QMK_HOME" \
+  QMK_HOME="$QMK_HOME" \
     "$PROJECT/util/generate_via_json.js" $MAKE_TARGET
 fi
 
@@ -118,9 +109,7 @@ mkdir node_modules/via-keyboards/v3
 # copy JSON files into via-keyboards
 #______________________________________
 OUTPUT_DIR=node_modules/via-keyboards/v3
-[ $VIA_VERSION = 2 ] && \
-  OUTPUT_DIR=node_modules/via-keyboards/src
-cp "dist/${MAKE_TARGET//\//_}_via_v${VIA_VERSION}"*.json "$OUTPUT_DIR"
+cp "dist/${MAKE_TARGET//\//_}_via"*.json "$OUTPUT_DIR"
 
 # convert JSON to via/app definition
 #______________________________________

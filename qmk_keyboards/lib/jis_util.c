@@ -79,9 +79,9 @@ bool process_jis_util(uint16_t keycode, keyrecord_t *record) {
         eisu_kana = !eisu_kana;
         // KC_LNG1 かな
         // KC_LNG2 英数
-        register_code(eisu_kana ? KC_LNG1 : KC_LANG2);
+        register_code(eisu_kana ? KC_LNG1 : KC_LNG2);
       } else {
-        unregister_code(eisu_kana ? KC_LNG1 : KC_LANG2);
+        unregister_code(eisu_kana ? KC_LNG1 : KC_LNG2);
       }
       return false;
     default:

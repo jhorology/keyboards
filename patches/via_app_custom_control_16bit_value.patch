@@ -1,5 +1,5 @@
 diff --git a/src/components/panes/configure-panes/custom/custom-control.tsx b/src/components/panes/configure-panes/custom/custom-control.tsx
-index ff01700..7302763 100644
+index dcd9abd..445962a 100644
 --- a/src/components/panes/configure-panes/custom/custom-control.tsx
 +++ b/src/components/panes/configure-panes/custom/custom-control.tsx
 @@ -58,6 +58,7 @@ const boxOrArr = <N extends any>(elem: N | N[]) =>

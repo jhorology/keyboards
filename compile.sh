@@ -21,7 +21,6 @@ if (( $#help )); then
         "" \
         "options:" \
         "  -H,--qmk-home <QMK_HOME>            location for local qmk_firmware repository" \
-        "  -v,--via-version <2|3>              VIA version 2 or 3 default: 3" \
         "  -w,--without-update-qmk             don't sync remote repository"
   return
 fi
@@ -47,7 +46,6 @@ local -A KEYBOARDS=(
 
 TARGETS=(neko60 ciel60 d60 fk680 ikki68 libra prime_e qk60 qk65 zoom65)
 QMK_HOME="$HOME/Documents/Sources/qmk_firmware"
-VIA_VERSION=3
 UPDATE_QMK=true
 MAKE_JOBS=8
 [ $(uname) = "Darwin" ] && MAKE_JOBS=$(sysctl -n hw.ncpu)
@@ -79,7 +77,6 @@ done
 # option parameters
 # -----------------------------------
 (( $#qmk_home )) && QMK_HOME=${qmk_home[-1]##=}
-(( $#via_version )) && VIA_VERSION=${via_version[-1]##=}
 (( $#without_update_qmk )) && UPDATE_QMK=false
 
 if (( $#clean )); then
@@ -143,13 +140,9 @@ fi
 [ -z "$(rg normal_true quantum/process_keycode/process_magic.c)" ] && \
   patch --verbose -p1 < "${PROJECT}/patches/qmk_magic_shift_reverse.patch"
 
-if [ $VIA_VERSION = "3" ]; then
-  [ -z "$(rg via_raw_hid_receive quantum/via.h)" ] && \
-    patch --verbose -p1 < "${PROJECT}/patches/via_v3.patch"
-else
-  [ -z "$(rg via_raw_hid_receive quantum/via.h)" ] && \
-    patch --verbose -p1 < "${PROJECT}/patches/via_V2.patch"
-fi
+[ -z "$(rg via_raw_hid_receive quantum/via.h)" ] && \
+  patch --verbose -p1 < "${PROJECT}/patches/via_raw_hid_receive.patch"
+
 [ -z "$(rg TAP_DANCE_IGNORE_COMBO quantum/process_keycode/process_tap_dance.c)" ] && \
   patch --verbose -p1 < "${PROJECT}/patches/tap_dance_ignore_combo.patch"
 
@@ -158,12 +151,12 @@ fi
 rm -f keyboards/my_keyboards
 ln -s "${PROJECT}/qmk_keyboards" keyboards/my_keyboards
 
-make -j $MAKE_JOBS $MAKE_TARGETS[*] VIA_VERSION=$VIA_VERSION
+make -j $MAKE_JOBS $MAKE_TARGETS[*]
 
-VERSION="$(date +"%Y%m%d")_qmk_$(git describe --abbrev=0 --tags)_$(git rev-parse --short HEAD)_via_v$VIA_VERSION"
+VERSION="$(date +"%Y%m%d")_qmk_$(git describe --abbrev=0 --tags)_$(git rev-parse --short HEAD)_via"
 
 # generate via json file
-QMK_HOME="$QMK_HOME" VIA_VERSION=$VIA_VERSION \
+QMK_HOME="$QMK_HOME" \
   "$PROJECT/util/generate_via_json.js" $MAKE_TARGETS[*]
 
 # dist

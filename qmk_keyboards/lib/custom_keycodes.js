@@ -80,24 +80,6 @@ module.exports = function (options, defines) {
       shortName: '英か'
     },
     {
-      code: 'BB_TOGG',
-      name: '\\←🔁\nTOGG',
-      title: 'Toogle Backslash and Backspace swap',
-      shortName: '\\←🔁'
-    },
-    {
-      code: 'BB_SWAP',
-      name: '\\←🗹\nSWAP',
-      title: 'Swap Backslash and Backspace',
-      shortName: '\\←🗹'
-    },
-    {
-      code: 'BB_NORM',
-      name: '\\←☐\nNORM',
-      title: 'Unswap Backslash and Backspace',
-      shortName: '\\←☐'
-    },
-    {
       code: 'TERM_LOCK',
       name: '🖥️🔒\nLOCK',
       title: 'Terminal Lock / Screen Saver',

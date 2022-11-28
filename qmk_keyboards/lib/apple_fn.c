@@ -28,11 +28,11 @@ bool process_apple_fn(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
     case APPLE_FN:
       apple_fn = record->event.pressed;
-      host_apple_send(apple_fn ? 1 : 0);
+      host_apple_fn_send(apple_fn);
       return false;
     case APPLE_FF:
       apple_ff = record->event.pressed;
-      host_apple_send(apple_ff ? 1 : 0);
+      host_apple_fn_send(apple_ff);
       return false;
     default:
       return process_fkey_override(keycode, record) && process_non_mac_fn(keycode, record);

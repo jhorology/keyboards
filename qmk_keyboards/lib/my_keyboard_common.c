@@ -122,7 +122,7 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
 
 #ifdef RGB_MATRIX_ENABLE
 
-void rgb_matrix_indicators_kb(void) {
+bool rgb_matrix_indicators_kb(void) {
 #  ifdef RGB_MATRIX_CAPS_LOCK_LED
   static bool capslock_prev;
   bool capslock = host_keyboard_led_state().caps_lock;
@@ -132,7 +132,7 @@ void rgb_matrix_indicators_kb(void) {
   capslock_prev = capslock;
 #  endif
 
-  rgb_matrix_indicators_user();
+  return rgb_matrix_indicators_user();
 }
 
 void suspend_power_down_kb(void) {
@@ -147,24 +147,6 @@ void suspend_wakeup_init_kb(void) {
 #endif
 
 static bool proces_extra_keys(uint16_t keycode, keyrecord_t *record) {
-  if (custom_config_swap_bb_is_enable()) {
-    switch (keycode) {
-      case KC_BSPC:
-        if (record->event.pressed) {
-          register_code(KC_BSLS);
-        } else {
-          unregister_code(KC_BSLS);
-        }
-        return false;
-      case KC_BSLS:
-        if (record->event.pressed) {
-          register_code(KC_BSPC);
-        } else {
-          unregister_code(KC_BSPC);
-        }
-        return false;
-    }
-  }
   switch (keycode) {
     case TERM_LCK:
       host_consumer_send(record->event.pressed ? AL_LOCK : 0);

@@ -58,7 +58,6 @@ rc_config_t rc_config;
 static void _custom_config_raw_hid_set_enable(bool enable);
 static void _custom_config_mac_set_enable(bool enable);
 static void _custom_config_usj_set_enable(bool enable);
-static void _custom_config_swap_bb_set_enable(bool enable);
 
 void custom_config_reset() {
   kb_config.raw = 0;
@@ -140,15 +139,6 @@ bool process_record_custom_config(uint16_t keycode, keyrecord_t *record) {
       case USJ_OFF:
         custom_config_usj_set_enable(normal_false);
         return false;
-      case BB_TOGG:
-        custom_config_swap_bb_toggle_enable();
-        return false;
-      case BB_SWAP:
-        custom_config_swap_bb_set_enable(normal_true);
-        return false;
-      case BB_NORM:
-        custom_config_swap_bb_set_enable(normal_false);
-        return false;
     }
   }
   return true;
@@ -221,19 +211,6 @@ void custom_config_usj_set_enable(bool enable) {
 #ifndef CUSTOM_CONFIG_FORCE_USJ
     eeconfig_update_kb(kb_config.raw);
 #endif
-  }
-}
-
-bool custom_config_swap_bb_is_enable() { return kb_config.swap_bb; }
-
-void custom_config_swap_bb_toggle_enable() { custom_config_usj_set_enable(!kb_config.swap_bb); }
-
-static void _custom_config_swap_bb_set_enable(bool enable) { kb_config.swap_bb = enable; }
-
-void custom_config_swap_bb_set_enable(bool enable) {
-  if (enable != kb_config.swap_bb) {
-    _custom_config_swap_bb_set_enable(enable);
-    eeconfig_update_kb(kb_config.raw);
   }
 }
 

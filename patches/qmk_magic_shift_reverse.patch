@@ -1,140 +1,130 @@
 diff --git a/quantum/process_keycode/process_magic.c b/quantum/process_keycode/process_magic.c
-index ae60f29bf5..8f69c9cc26 100644
+index 72332b20d7..c1eb0095cb 100644
 --- a/quantum/process_keycode/process_magic.c
 +++ b/quantum/process_keycode/process_magic.c
-@@ -45,98 +45,100 @@ bool process_magic(uint16_t keycode, keyrecord_t *record) {
-             case MAGIC_SWAP_LCTL_LGUI ... MAGIC_EE_HANDS_RIGHT:
-             case MAGIC_TOGGLE_GUI:
-             case MAGIC_TOGGLE_CONTROL_CAPSLOCK:
--            case MAGIC_SWAP_ESCAPE_CAPSLOCK ... MAGIC_TOGGLE_ESCAPE_CAPSLOCK:
-+            case MAGIC_SWAP_ESCAPE_CAPSLOCK ... MAGIC_TOGGLE_ESCAPE_CAPSLOCK: {
-+                bool normal_true = get_mods() & MOD_MASK_SHIFT ? false : true;
-+                bool normal_false = !normal_true;
-                 /* keymap config */
-                 keymap_config.raw = eeconfig_read_keymap();
-                 switch (keycode) {
-                     case MAGIC_SWAP_CONTROL_CAPSLOCK:
--                        keymap_config.swap_control_capslock = true;
-+                        keymap_config.swap_control_capslock = normal_true;
-                         break;
-                     case MAGIC_SWAP_ESCAPE_CAPSLOCK:
--                        keymap_config.swap_escape_capslock = true;
-+                        keymap_config.swap_escape_capslock = normal_true;
-                         break;
-                     case MAGIC_CAPSLOCK_TO_CONTROL:
--                        keymap_config.capslock_to_control = true;
-+                        keymap_config.capslock_to_control = normal_true;
-                         break;
-                     case MAGIC_SWAP_LALT_LGUI:
--                        keymap_config.swap_lalt_lgui = true;
-+                        keymap_config.swap_lalt_lgui = normal_true;
-                         break;
-                     case MAGIC_SWAP_RALT_RGUI:
--                        keymap_config.swap_ralt_rgui = true;
-+                        keymap_config.swap_ralt_rgui = normal_true;
-                         break;
-                     case MAGIC_SWAP_LCTL_LGUI:
--                        keymap_config.swap_lctl_lgui = true;
-+                        keymap_config.swap_lctl_lgui = normal_true;
-                         break;
-                     case MAGIC_SWAP_RCTL_RGUI:
--                        keymap_config.swap_rctl_rgui = true;
-+                        keymap_config.swap_rctl_rgui = normal_true;
-                         break;
-                     case MAGIC_NO_GUI:
--                        keymap_config.no_gui = true;
-+                        keymap_config.no_gui = normal_true;
-                         break;
-                     case MAGIC_SWAP_GRAVE_ESC:
--                        keymap_config.swap_grave_esc = true;
-+                        keymap_config.swap_grave_esc = normal_true;
-                         break;
-                     case MAGIC_SWAP_BACKSLASH_BACKSPACE:
--                        keymap_config.swap_backslash_backspace = true;
-+                        keymap_config.swap_backslash_backspace = normal_true;
-                         break;
-                     case MAGIC_HOST_NKRO:
-                         clear_keyboard(); // clear first buffer to prevent stuck keys
--                        keymap_config.nkro = true;
-+                        keymap_config.nkro = normal_true;
-                         break;
-                     case MAGIC_SWAP_ALT_GUI:
--                        keymap_config.swap_lalt_lgui = keymap_config.swap_ralt_rgui = true;
-+                        keymap_config.swap_lalt_lgui = keymap_config.swap_ralt_rgui = normal_true;
+@@ -41,97 +41,99 @@ bool process_magic(uint16_t keycode, keyrecord_t *record) {
+     // skip anything that isn't a keyup
+     if (record->event.pressed) {
+         if (IS_MAGIC_KEYCODE(keycode)) {
++            bool normal_true = get_mods() & MOD_MASK_SHIFT ? false : true;
++            bool normal_false = !normal_true;
+             /* keymap config */
+             keymap_config.raw = eeconfig_read_keymap();
+             switch (keycode) {
+                 case MAGIC_SWAP_CONTROL_CAPSLOCK:
+-                    keymap_config.swap_control_capslock = true;
++                    keymap_config.swap_control_capslock = normal_true;
+                     break;
+                 case MAGIC_SWAP_ESCAPE_CAPSLOCK:
+-                    keymap_config.swap_escape_capslock = true;
++                    keymap_config.swap_escape_capslock = normal_true;
+                     break;
+                 case MAGIC_CAPSLOCK_TO_CONTROL:
+-                    keymap_config.capslock_to_control = true;
++                    keymap_config.capslock_to_control = normal_true;
+                     break;
+                 case MAGIC_SWAP_LALT_LGUI:
+-                    keymap_config.swap_lalt_lgui = true;
++                    keymap_config.swap_lalt_lgui = normal_true;
+                     break;
+                 case MAGIC_SWAP_RALT_RGUI:
+-                    keymap_config.swap_ralt_rgui = true;
++                    keymap_config.swap_ralt_rgui = normal_true;
+                     break;
+                 case MAGIC_SWAP_LCTL_LGUI:
+-                    keymap_config.swap_lctl_lgui = true;
++                    keymap_config.swap_lctl_lgui = normal_true;
+                     break;
+                 case MAGIC_SWAP_RCTL_RGUI:
+-                    keymap_config.swap_rctl_rgui = true;
++                    keymap_config.swap_rctl_rgui = normal_true;
+                     break;
+                 case MAGIC_NO_GUI:
+-                    keymap_config.no_gui = true;
++                    keymap_config.no_gui = normal_true;
+                     break;
+                 case MAGIC_SWAP_GRAVE_ESC:
+-                    keymap_config.swap_grave_esc = true;
++                    keymap_config.swap_grave_esc = normal_true;
+                     break;
+                 case MAGIC_SWAP_BACKSLASH_BACKSPACE:
+-                    keymap_config.swap_backslash_backspace = true;
++                    keymap_config.swap_backslash_backspace = normal_true;
+                     break;
+                 case MAGIC_HOST_NKRO:
+                     clear_keyboard(); // clear first buffer to prevent stuck keys
+-                    keymap_config.nkro = true;
++                    keymap_config.nkro = normal_true;
+                     break;
+                 case MAGIC_SWAP_ALT_GUI:
+-                    keymap_config.swap_lalt_lgui = keymap_config.swap_ralt_rgui = true;
++                    keymap_config.swap_lalt_lgui = keymap_config.swap_ralt_rgui = normal_true;
  #ifdef AUDIO_ENABLE
-                         PLAY_SONG(ag_swap_song);
+                     PLAY_SONG(ag_swap_song);
  #endif
-                         break;
-                     case MAGIC_SWAP_CTL_GUI:
--                        keymap_config.swap_lctl_lgui = keymap_config.swap_rctl_rgui = true;
-+                        keymap_config.swap_lctl_lgui = keymap_config.swap_rctl_rgui = normal_true;
+                     break;
+                 case MAGIC_SWAP_CTL_GUI:
+-                    keymap_config.swap_lctl_lgui = keymap_config.swap_rctl_rgui = true;
++                    keymap_config.swap_lctl_lgui = keymap_config.swap_rctl_rgui = normal_true;
  #ifdef AUDIO_ENABLE
-                         PLAY_SONG(cg_swap_song);
+                     PLAY_SONG(cg_swap_song);
  #endif
-                         break;
-                     case MAGIC_UNSWAP_CONTROL_CAPSLOCK:
--                        keymap_config.swap_control_capslock = false;
-+                        keymap_config.swap_control_capslock = normal_false;
-                         break;
-                     case MAGIC_UNSWAP_ESCAPE_CAPSLOCK:
--                        keymap_config.swap_escape_capslock = false;
-+                        keymap_config.swap_escape_capslock = normal_false;
-                         break;
-                     case MAGIC_UNCAPSLOCK_TO_CONTROL:
--                        keymap_config.capslock_to_control = false;
-+                        keymap_config.capslock_to_control = normal_false;
-                         break;
-                     case MAGIC_UNSWAP_LALT_LGUI:
--                        keymap_config.swap_lalt_lgui = false;
-+                        keymap_config.swap_lalt_lgui = normal_false;
-                         break;
-                     case MAGIC_UNSWAP_RALT_RGUI:
--                        keymap_config.swap_ralt_rgui = false;
-+                        keymap_config.swap_ralt_rgui = normal_false;
-                         break;
-                     case MAGIC_UNSWAP_LCTL_LGUI:
--                        keymap_config.swap_lctl_lgui = false;
-+                        keymap_config.swap_lctl_lgui = normal_false;
-                         break;
-                     case MAGIC_UNSWAP_RCTL_RGUI:
--                        keymap_config.swap_rctl_rgui = false;
-+                        keymap_config.swap_rctl_rgui = normal_false;
-                         break;
-                     case MAGIC_UNNO_GUI:
--                        keymap_config.no_gui = false;
-+                        keymap_config.no_gui = normal_false;
-                         break;
-                     case MAGIC_UNSWAP_GRAVE_ESC:
--                        keymap_config.swap_grave_esc = false;
-+                        keymap_config.swap_grave_esc = normal_false;
-                         break;
-                     case MAGIC_UNSWAP_BACKSLASH_BACKSPACE:
--                        keymap_config.swap_backslash_backspace = false;
-+                        keymap_config.swap_backslash_backspace = normal_false;
-                         break;
-                     case MAGIC_UNHOST_NKRO:
-                         clear_keyboard(); // clear first buffer to prevent stuck keys
--                        keymap_config.nkro = false;
-+                        keymap_config.nkro = normal_false;
-                         break;
-                     case MAGIC_UNSWAP_ALT_GUI:
--                        keymap_config.swap_lalt_lgui = keymap_config.swap_ralt_rgui = false;
-+                        keymap_config.swap_lalt_lgui = keymap_config.swap_ralt_rgui = normal_false;
+                     break;
+                 case MAGIC_UNSWAP_CONTROL_CAPSLOCK:
+-                    keymap_config.swap_control_capslock = false;
++                    keymap_config.swap_control_capslock = normal_false;
+                     break;
+                 case MAGIC_UNSWAP_ESCAPE_CAPSLOCK:
+-                    keymap_config.swap_escape_capslock = false;
++                    keymap_config.swap_escape_capslock = normal_false;
+                     break;
+                 case MAGIC_UNCAPSLOCK_TO_CONTROL:
+-                    keymap_config.capslock_to_control = false;
++                    keymap_config.capslock_to_control = normal_false;
+                     break;
+                 case MAGIC_UNSWAP_LALT_LGUI:
+-                    keymap_config.swap_lalt_lgui = false;
++                    keymap_config.swap_lalt_lgui = normal_false;
+                     break;
+                 case MAGIC_UNSWAP_RALT_RGUI:
+-                    keymap_config.swap_ralt_rgui = false;
++                    keymap_config.swap_ralt_rgui = normal_false;
+                     break;
+                 case MAGIC_UNSWAP_LCTL_LGUI:
+-                    keymap_config.swap_lctl_lgui = false;
++                    keymap_config.swap_lctl_lgui = normal_false;
+                     break;
+                 case MAGIC_UNSWAP_RCTL_RGUI:
+-                    keymap_config.swap_rctl_rgui = false;
++                    keymap_config.swap_rctl_rgui = normal_false;
+                     break;
+                 case MAGIC_UNNO_GUI:
+-                    keymap_config.no_gui = false;
++                    keymap_config.no_gui = normal_false;
+                     break;
+                 case MAGIC_UNSWAP_GRAVE_ESC:
+-                    keymap_config.swap_grave_esc = false;
++                    keymap_config.swap_grave_esc = normal_false;
+                     break;
+                 case MAGIC_UNSWAP_BACKSLASH_BACKSPACE:
+-                    keymap_config.swap_backslash_backspace = false;
++                    keymap_config.swap_backslash_backspace = normal_false;
+                     break;
+                 case MAGIC_UNHOST_NKRO:
+                     clear_keyboard(); // clear first buffer to prevent stuck keys
+-                    keymap_config.nkro = false;
++                    keymap_config.nkro = normal_false;
+                     break;
+                 case MAGIC_UNSWAP_ALT_GUI:
+-                    keymap_config.swap_lalt_lgui = keymap_config.swap_ralt_rgui = false;
++                    keymap_config.swap_lalt_lgui = keymap_config.swap_ralt_rgui = normal_false;
  #ifdef AUDIO_ENABLE
-                         PLAY_SONG(ag_norm_song);
+                     PLAY_SONG(ag_norm_song);
  #endif
-                         break;
-                     case MAGIC_UNSWAP_CTL_GUI:
--                        keymap_config.swap_lctl_lgui = keymap_config.swap_rctl_rgui = false;
-+                        keymap_config.swap_lctl_lgui = keymap_config.swap_rctl_rgui = normal_false;
+                     break;
+                 case MAGIC_UNSWAP_CTL_GUI:
+-                    keymap_config.swap_lctl_lgui = keymap_config.swap_rctl_rgui = false;
++                    keymap_config.swap_lctl_lgui = keymap_config.swap_rctl_rgui = normal_false;
  #ifdef AUDIO_ENABLE
-                         PLAY_SONG(cg_norm_song);
+                     PLAY_SONG(cg_norm_song);
  #endif
-@@ -188,6 +190,7 @@ bool process_magic(uint16_t keycode, keyrecord_t *record) {
-                 clear_keyboard(); // clear to prevent stuck keys
- 
-                 return false;
-+            }
-         }
-     }
- 

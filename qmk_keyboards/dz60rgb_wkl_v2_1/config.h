@@ -33,7 +33,7 @@
 
 #define DRIVER_ADDR_1 0b1010000
 #define DRIVER_COUNT 1
-#define DRIVER_LED_TOTAL 62
+#define RGB_MATRIX_LED_COUNT 62
 
 /* ViA layout options */
 #define LAYOUT_OPTION_HHKB 0x0

@@ -1,8 +1,8 @@
 diff --git a/builddefs/common_features.mk b/builddefs/common_features.mk
-index a23b5e82b9..1e3de2ee29 100644
+index 63814bbfae..12c45cf1e1 100644
 --- a/builddefs/common_features.mk
 +++ b/builddefs/common_features.mk
-@@ -852,6 +852,13 @@ ifeq ($(strip $(JOYSTICK_ENABLE)), yes)
+@@ -851,6 +851,13 @@ ifeq ($(strip $(JOYSTICK_ENABLE)), yes)
      endif
  endif
  
@@ -16,93 +16,106 @@ index a23b5e82b9..1e3de2ee29 100644
  USBPD_ENABLE ?= no
  VALID_USBPD_DRIVER_TYPES = custom vendor
  USBPD_DRIVER ?= vendor
-diff --git a/tmk_core/protocol/chibios/usb_main.c b/tmk_core/protocol/chibios/usb_main.c
-index eb9ef82554..e60eda8625 100644
---- a/tmk_core/protocol/chibios/usb_main.c
-+++ b/tmk_core/protocol/chibios/usb_main.c
-@@ -985,6 +985,11 @@ void send_consumer(uint16_t data) {
+diff --git a/drivers/bluetooth/bluetooth.c b/drivers/bluetooth/bluetooth.c
+index d5382401e7..4aba29967f 100644
+--- a/drivers/bluetooth/bluetooth.c
++++ b/drivers/bluetooth/bluetooth.c
+@@ -60,3 +60,7 @@ void bluetooth_send_consumer(uint16_t usage) {
+     rn42_send_consumer(usage);
  #endif
  }
- 
-+void send_apple(uint8_t data) {
-+#if defined(EXTRAKEY_ENABLE) && defined(APPLE_FN_ENABLE)
-+    send_extra(REPORT_ID_APPLE, (uint16_t)data);
-+#endif
++
++void bluetooth_send_apple_fn(bool pressed) {
++     // TODO not implemented yet
 +}
- void send_programmable_button(uint32_t data) {
- #ifdef PROGRAMMABLE_BUTTON_ENABLE
-     osalSysLock();
+diff --git a/drivers/bluetooth/bluetooth.h b/drivers/bluetooth/bluetooth.h
+index 2e4d0df538..deafd2253c 100644
+--- a/drivers/bluetooth/bluetooth.h
++++ b/drivers/bluetooth/bluetooth.h
+@@ -50,3 +50,10 @@ void bluetooth_send_mouse(report_mouse_t *report);
+  * \param usage The consumer usage to send.
+  */
+ void bluetooth_send_consumer(uint16_t usage);
++
++/**
++ * \brief Send a apple fn.
++ *
++ * \param pressed The pressd state to send.
++ */
++void bluetooth_send_apple_fn(bool pressed);
 diff --git a/tmk_core/protocol/host.c b/tmk_core/protocol/host.c
-index 3d8604d541..6aa8f36d41 100644
+index 2c6654e9a6..c41cacb9fa 100644
 --- a/tmk_core/protocol/host.c
 +++ b/tmk_core/protocol/host.c
-@@ -32,6 +32,7 @@ extern keymap_config_t keymap_config;
+@@ -43,6 +43,7 @@ extern keymap_config_t keymap_config;
  static host_driver_t *driver;
- static uint16_t       last_system_report              = 0;
- static uint16_t       last_consumer_report            = 0;
-+static uint8_t        last_apple_report               = 0;
- static uint32_t       last_programmable_button_report = 0;
+ static uint16_t       last_system_usage   = 0;
+ static uint16_t       last_consumer_usage = 0;
++static uint8_t        apple_fn_cnt        = 0;
  
  void host_set_driver(host_driver_t *d) {
-@@ -118,6 +119,15 @@ void host_consumer_send(uint16_t report) {
-     (*driver->send_consumer)(report);
+     driver = d;
+@@ -159,6 +160,33 @@ void host_consumer_send(uint16_t usage) {
+     (*driver->send_extra)(&report);
  }
  
-+void host_apple_send(uint8_t report) {
-+    if (report == last_apple_report) return;
-+    last_apple_report = report;
++void host_apple_fn_send(bool pressed) {
++     uint8_t prev_cnt = apple_fn_cnt;
++     if (pressed) {
++         apple_fn_cnt++;
++     } else if (apple_fn_cnt) {
++         apple_fn_cnt--;
++     }
++     if ((prev_cnt == 0 && apple_fn_cnt == 0) || (prev_cnt > 0 && apple_fn_cnt > 0)) {
++         return;
++     }
++#ifdef BLUETOOTH_ENABLE
++    if (where_to_send() == OUTPUT_BLUETOOTH) {
++        bluetooth_send_apple_fn(pressed);
++        return;
++    }
++#endif
 +
 +    if (!driver) return;
-+    send_apple(report);
-+}
-+__attribute__((weak))void send_apple(uint8_t report) {}
 +
- void host_digitizer_send(digitizer_t *digitizer) {
++    report_extra_t report = {
++        .report_id = REPORT_ID_APPLE,
++        .usage     = pressed ? 1 : 0,
++    };
++    (*driver->send_extra)(&report);
++}
++
++
+ #ifdef JOYSTICK_ENABLE
+ void host_joystick_send(joystick_t *joystick) {
      if (!driver) return;
- 
+@@ -253,3 +281,7 @@ uint16_t host_last_system_usage(void) {
+ uint16_t host_last_consumer_usage(void) {
+     return last_consumer_usage;
+ }
++
++bool host_apple_fn_is_pressed(void) {
++    return apple_fn_cnt != 0;
++}
 diff --git a/tmk_core/protocol/host.h b/tmk_core/protocol/host.h
-index 6b15f0d0c1..37737b57e8 100644
+index dfa86cd7b5..1a8d1939a2 100644
 --- a/tmk_core/protocol/host.h
 +++ b/tmk_core/protocol/host.h
-@@ -47,6 +47,7 @@ void    host_keyboard_send(report_keyboard_t *report);
+@@ -47,10 +47,12 @@ void    host_keyboard_send(report_keyboard_t *report);
  void    host_mouse_send(report_mouse_t *report);
- void    host_system_send(uint16_t data);
- void    host_consumer_send(uint16_t data);
-+void    host_apple_send(uint8_t data);
+ void    host_system_send(uint16_t usage);
+ void    host_consumer_send(uint16_t usage);
++void    host_apple_fn_send(bool pressed);
  void    host_programmable_button_send(uint32_t data);
  
- uint16_t host_last_system_report(void);
-diff --git a/tmk_core/protocol/host_driver.h b/tmk_core/protocol/host_driver.h
-index affd0dcb34..6494aa6ef1 100644
---- a/tmk_core/protocol/host_driver.h
-+++ b/tmk_core/protocol/host_driver.h
-@@ -32,4 +32,5 @@ typedef struct {
-     void (*send_programmable_button)(uint32_t);
- } host_driver_t;
+ uint16_t host_last_system_usage(void);
+ uint16_t host_last_consumer_usage(void);
++bool host_apple_fn_is_pressed(void);
  
--void send_digitizer(report_digitizer_t *report);
-\ No newline at end of file
-+void send_apple(uint8_t);
-+void send_digitizer(report_digitizer_t *report);
-diff --git a/tmk_core/protocol/lufa/lufa.c b/tmk_core/protocol/lufa/lufa.c
-index b4b03357a3..810b058438 100644
---- a/tmk_core/protocol/lufa/lufa.c
-+++ b/tmk_core/protocol/lufa/lufa.c
-@@ -785,6 +785,12 @@ static void send_consumer(uint16_t data) {
- #endif
+ #ifdef __cplusplus
  }
- 
-+void send_apple(uint8_t data) {
-+#if defined(EXTRAKEY_ENABLE) && defined(APPLE_FN_ENABLE)
-+    send_extra(REPORT_ID_APPLE, (uint16_t)data);
-+#endif
-+}
-+
- static void send_programmable_button(uint32_t data) {
- #ifdef PROGRAMMABLE_BUTTON_ENABLE
-     static report_programmable_button_t r;
 diff --git a/tmk_core/protocol/report.h b/tmk_core/protocol/report.h
-index 735ccdb4a1..414883b8a3 100644
+index e4526e4ee6..ed4dd78810 100644
 --- a/tmk_core/protocol/report.h
 +++ b/tmk_core/protocol/report.h
 @@ -29,6 +29,7 @@ enum hid_report_ids {
@@ -114,10 +127,10 @@ index 735ccdb4a1..414883b8a3 100644
      REPORT_ID_NKRO,
      REPORT_ID_JOYSTICK,
 diff --git a/tmk_core/protocol/usb_descriptor.c b/tmk_core/protocol/usb_descriptor.c
-index 21795cef60..97460208e2 100644
+index 99c52952a0..48839bd1ed 100644
 --- a/tmk_core/protocol/usb_descriptor.c
 +++ b/tmk_core/protocol/usb_descriptor.c
-@@ -251,6 +251,24 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
+@@ -318,6 +318,24 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
          HID_RI_REPORT_SIZE(8, 16),
          HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_ARRAY | HID_IOF_ABSOLUTE),
      HID_RI_END_COLLECTION(0),
@@ -143,23 +156,10 @@ index 21795cef60..97460208e2 100644
  
  #ifdef PROGRAMMABLE_BUTTON_ENABLE
 diff --git a/tmk_core/protocol/vusb/vusb.c b/tmk_core/protocol/vusb/vusb.c
-index d07cc0d27e..f970a8731d 100644
+index 2d17761978..23f4e40ce9 100644
 --- a/tmk_core/protocol/vusb/vusb.c
 +++ b/tmk_core/protocol/vusb/vusb.c
-@@ -297,6 +297,12 @@ static void send_consumer(uint16_t data) {
- #endif
- }
- 
-+void send_apple(uint8_t data) {
-+#if defined(EXTRAKEY_ENABLE) && defined(APPLE_FN_ENABLE)
-+    send_extra(REPORT_ID_APPLE, (uint16_t)data);
-+#endif
-+}
-+
- void send_digitizer(report_digitizer_t *report) {
- #ifdef DIGITIZER_ENABLE
-     if (usbInterruptIsReadyShared()) {
-@@ -552,6 +558,23 @@ const PROGMEM uchar shared_hid_report[] = {
+@@ -536,6 +536,23 @@ const PROGMEM uchar shared_hid_report[] = {
      0x75, 0x10,               //   Report Size (16)
      0x81, 0x00,               //   Input (Data, Array, Absolute)
      0xC0,                     // End Collection
@@ -182,4 +182,4 @@ index d07cc0d27e..f970a8731d 100644
 +#    endif
  #endif
  
- #ifdef DIGITIZER_ENABLE
+ #ifdef JOYSTICK_ENABLE

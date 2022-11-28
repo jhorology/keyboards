@@ -36,9 +36,6 @@ enum custom_user_keycodes {
   APPLE_FN,   // Apple fn/globe key
   APPLE_FF,   // Apple fn/globe with remapping F1-12
   EISU_KANA,  // Toggle send 英数(KC_LNG2) and かな(KC_LNG1)
-  BB_TOGG,    // Toogle Backslash and Backspace swap
-  BB_SWAP,    // Sswap Backslash and Backspace
-  BB_NORM,    // Unswap Backslash and Backspace
   TERM_LCK,   // Terminal Lock
 #ifdef RADIAL_CONTROLLER_ENABLE
   RC_BTN,   // State of the button located on radial controller
