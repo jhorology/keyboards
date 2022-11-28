@@ -21,18 +21,17 @@
 static bool process_fkey_override(uint16_t keycode, keyrecord_t *record);
 static bool process_non_mac_fn(uint16_t keycode, keyrecord_t *record);
 
-static bool apple_fn;
-static bool apple_ff;
+static uint8_t apple_ff_cnt;
 
 bool process_apple_fn(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
     case APPLE_FN:
-      apple_fn = record->event.pressed;
-      host_apple_fn_send(apple_fn);
+      host_apple_fn_send(record->event.pressed);
       return false;
     case APPLE_FF:
-      apple_ff = record->event.pressed;
-      host_apple_fn_send(apple_ff);
+      apple_ff_cnt += record->event.pressed ? 1 : -1;
+      host_apple_fn_send(record->event.pressed);
+      if (!host_apple_fn_is_pressed()) apple_ff_cnt = 0;
       return false;
     default:
       return process_fkey_override(keycode, record) && process_non_mac_fn(keycode, record);
@@ -45,7 +44,7 @@ static bool process_fkey_override(uint16_t keycode, keyrecord_t *record) {
   // ignore generated key
   if (record->keycode) return true;
 
-  if (!apple_ff && record->event.pressed) return true;
+  if (apple_ff_cnt == 0 && record->event.pressed) return true;
   if (!fkey_override_flags && !record->event.pressed) return true;
 
   uint8_t fkey_index;
@@ -82,8 +81,6 @@ static bool process_fkey_override(uint16_t keycode, keyrecord_t *record) {
   return true;
 }
 
-bool apple_fn_get_state() { return apple_fn || apple_ff; };
-
 static bool process_non_mac_fn(uint16_t keycode, keyrecord_t *record) {
   static uint32_t fn_override_flags;
 
@@ -92,7 +89,7 @@ static bool process_non_mac_fn(uint16_t keycode, keyrecord_t *record) {
   // ignore generated key
   if (record->keycode) return true;
 
-  if (!(apple_fn || apple_ff) && record->event.pressed) return true;
+  if (!host_apple_fn_is_pressed() && record->event.pressed) return true;
   if (!fn_override_flags && !record->event.pressed) return true;
 
   non_mac_fn_key_t fn_key = FN_UNKNOWN;
