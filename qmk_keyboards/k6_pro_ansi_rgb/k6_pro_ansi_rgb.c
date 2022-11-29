@@ -27,7 +27,7 @@
 #include "transport.h"
 
 // clang-format off
-const ckled2001_led g_ckled2001_leds[DRIVER_LED_TOTAL] = {
+const ckled2001_led g_ckled2001_leds[RGB_MATRIX_LED_COUNT] = {
 /* Refer to IS31 manual for these locations
  *   driver
  *   |  R location
@@ -279,7 +279,7 @@ void battery_calculte_voltage(uint16_t value) {
     for (uint8_t i = 0; i < DRIVER_COUNT; i++)
       for (uint8_t j = 0; j < 192; j++) totalBuf += g_pwm_buffer[i][j];
     /* We assumpt it is linear relationship*/
-    uint32_t compensation = 60 * totalBuf / DRIVER_LED_TOTAL / 255 / 3;
+    uint32_t compensation = 60 * totalBuf / RGB_MATRIX_LED_COUNT / 255 / 3;
     voltage += compensation;
   }
   battery_set_voltage(voltage);

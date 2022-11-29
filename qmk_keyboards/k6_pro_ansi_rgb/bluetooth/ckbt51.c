@@ -18,7 +18,7 @@
 #include <raw_hid.h>
 
 #include "battery.h"
-#include "bluetooth.h"
+#include "keychron_bluetooth.h"
 #include "report_buffer.h"
 
 #ifndef CKBT51_INT_INPUT_PIN

@@ -24,8 +24,8 @@
 #include <usb_main.h>
 
 #include "battery.h"
-#include "bluetooth.h"
 #include "indicator.h"
+#include "keychron_bluetooth.h"
 #include "lpm.h"
 #include "report_buffer.h"
 #include "transport.h"

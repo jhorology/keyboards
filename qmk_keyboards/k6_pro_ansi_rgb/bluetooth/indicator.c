@@ -33,10 +33,10 @@
 #endif
 
 #ifdef LED_MATRIX_ENABLE
-#  define DECIDE_TIME(t, duration) (duration == 0 ? LED_DISABLE_TIME_INFINITE : ((t > duration) ? t : duration))
+#  define DECIDE_TIME(t, duration) (duration == 0 ? LED_MATRIX_TIME_INFINITE : ((t > duration) ? t : duration))
 #endif
 #ifdef RGB_MATRIX_ENABLE
-#  define DECIDE_TIME(t, duration) (duration == 0 ? RGB_DISABLE_TIME_INFINITE : ((t > duration) ? t : duration))
+#  define DECIDE_TIME(t, duration) (duration == 0 ? RGB_MATRIX_TIME_INFINITE : ((t > duration) ? t : duration))
 #endif
 
 #define LED_ON 0x80
@@ -86,8 +86,8 @@ static pin_t host_led_pin_list[HOST_DEVICES_COUNT] = HOST_LED_PIN_LIST;
 #  define LED_DRIVER_ALLOW_SHUTDOWN led_matrix_driver_allow_shutdown
 #  define LED_DRIVER_ENABLE_NOEEPROM led_matrix_enable_noeeprom
 #  define LED_DRIVER_DISABLE_NOEEPROM led_matrix_disable_noeeprom
-#  define LED_DRIVER_DISABLE_TIMEOUT_SET led_matrix_disable_timeout_set
-#  define LED_DRIVER_DISABLE_TIME_RESET led_matrix_disable_time_reset
+#  define LED_DRIVER_DISABLE_TIMEOUT_SET led_matrix_timeout_set
+#  define LED_DRIVER_DISABLE_TIME_RESET led_matrix_time_reset
 #endif
 
 #ifdef RGB_MATRIX_ENABLE
@@ -107,8 +107,8 @@ static pin_t host_led_pin_list[HOST_DEVICES_COUNT] = HOST_LED_PIN_LIST;
 #  define LED_DRIVER_ALLOW_SHUTDOWN rgb_matrix_driver_allow_shutdown
 #  define LED_DRIVER_ENABLE_NOEEPROM rgb_matrix_enable_noeeprom
 #  define LED_DRIVER_DISABLE_NOEEPROM rgb_matrix_disable_noeeprom
-#  define LED_DRIVER_DISABLE_TIMEOUT_SET rgb_matrix_disable_timeout_set
-#  define LED_DRIVER_DISABLE_TIME_RESET rgb_matrix_disable_time_reset
+#  define LED_DRIVER_DISABLE_TIMEOUT_SET rgb_matrix_timeout_set
+#  define LED_DRIVER_DISABLE_TIME_RESET rgb_matrix_time_reset
 #endif
 void indicator_init(void) {
   memset(&indicator_config, 0, sizeof(indicator_config));
@@ -391,12 +391,12 @@ static void os_state_indicate(void) {
 #  endif
 }
 
-void LED_INDICATORS_KB(void) {
+bool LED_INDICATORS_KB(void) {
   if (get_transport() == TRANSPORT_BLUETOOTH) {
     /* Prevent backlight flash caused by key activities */
     if (battery_is_critical_low()) {
       SET_ALL_LED_OFF();
-      return;
+      return true;
     }
 
     if (bat_level_animiation_actived()) {
@@ -424,6 +424,7 @@ void LED_INDICATORS_KB(void) {
 
   } else
     os_state_indicate();
+  return true;
 }
 
 bool led_update_user(led_t led_state) {

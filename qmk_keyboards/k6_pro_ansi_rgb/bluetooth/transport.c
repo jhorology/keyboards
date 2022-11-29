@@ -1,7 +1,7 @@
 #include "transport.h"
 
-#include "bluetooth.h"
 #include "indicator.h"
+#include "keychron_bluetooth.h"
 #include "lpm.h"
 #if defined(PROTOCOL_CHIBIOS)
 #  include <usb_main.h>

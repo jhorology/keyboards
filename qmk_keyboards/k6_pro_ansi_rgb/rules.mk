@@ -29,7 +29,7 @@ CUSTOM_MATRIX = lite
 SRC += matrix.c
 
 SRC += \
-  bluetooth/bluetooth.c \
+  bluetooth/keychron_bluetooth.c \
   bluetooth/report_buffer.c \
   bluetooth/ckbt51.c \
   bluetooth/indicator.c \

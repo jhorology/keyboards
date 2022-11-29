@@ -15,7 +15,7 @@
  */
 #include <quantum.h>
 
-#include "bluetooth.h"
+#include "keychron_bluetooth.h"
 #include "transport.h"
 
 __attribute__((weak)) void bluetooth_pre_task(void) {}

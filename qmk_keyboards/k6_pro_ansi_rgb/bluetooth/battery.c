@@ -15,8 +15,8 @@
  */
 #include "battery.h"
 
-#include "bluetooth.h"
 #include "ckbt51.h"
+#include "keychron_bluetooth.h"
 #include "lpm.h"
 #include "transport.h"
 
