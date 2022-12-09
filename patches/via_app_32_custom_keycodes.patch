@@ -1,8 +1,8 @@
 diff --git a/src/utils/key-to-byte/default.json5 b/src/utils/key-to-byte/default.json5
-index 6a217a3..53bdb2d 100644
+index 582740b..e5ae85e 100644
 --- a/src/utils/key-to-byte/default.json5
 +++ b/src/utils/key-to-byte/default.json5
-@@ -378,6 +378,22 @@
+@@ -374,6 +374,22 @@
    USER13: 0x5f8d,
    USER14: 0x5f8e,
    USER15: 0x5f8f,
@@ -22,14 +22,14 @@ index 6a217a3..53bdb2d 100644
 +  USER29: 0x5f9d,
 +  USER30: 0x5f9e,
 +  USER31: 0x5f9f,
- 
-   // Hard-coded aliases for LT(layer,KC_SPC)
    SPC_FN1: 0x412c,
+   SPC_FN2: 0x422c,
+   SPC_FN3: 0x432c,
 diff --git a/src/utils/key-to-byte/v11.json5 b/src/utils/key-to-byte/v11.json5
-index 8e7d74b..b6ad240 100644
+index 99ccb81..d147682 100644
 --- a/src/utils/key-to-byte/v11.json5
 +++ b/src/utils/key-to-byte/v11.json5
-@@ -515,7 +515,23 @@
+@@ -527,6 +527,22 @@
    USER13: 0x7f0d,
    USER14: 0x7f0e,
    USER15: 0x7f0f,
@@ -50,15 +50,13 @@ index 8e7d74b..b6ad240 100644
 +  USER30: 0x7f1e,
 +  USER31: 0x7f1f,
    SPC_FN1: 0x412c,
--  SPC_FN2: 0x422c,
-+  oSPC_FN2: 0x422c,
+   SPC_FN2: 0x422c,
    SPC_FN3: 0x432c,
- }
 diff --git a/src/utils/key.ts b/src/utils/key.ts
-index 27d39f6..40dadc5 100644
+index e1d00fc..bf53b46 100644
 --- a/src/utils/key.ts
 +++ b/src/utils/key.ts
-@@ -186,7 +186,7 @@ export function isUserKeycodeByte(
+@@ -198,7 +198,7 @@ export function isUserKeycodeByte(
    byte: number,
    basicKeyToByte: Record<string, number>,
  ) {
@@ -67,7 +65,7 @@ index 27d39f6..40dadc5 100644
  }
  
  export function getUserKeycodeIndex(
-@@ -1338,6 +1338,22 @@ export function getKeycodes(): IKeycodeMenu[] {
+@@ -1344,6 +1344,22 @@ export function getKeycodes(): IKeycodeMenu[] {
          {name: 'User13', code: 'USER13', title: 'Custom Keycode 13'},
          {name: 'User14', code: 'USER14', title: 'Custom Keycode 14'},
          {name: 'User15', code: 'USER15', title: 'Custom Keycode 15'},

@@ -63,7 +63,6 @@ BUILD_JSON=true
 if (( $#update_via_app )); then
   cd "$VIA_APP_HOME"
 
-  # v3 keycodes was breaking-changed, stay revision 'd5d92c6' until officially released.
   git reset --hard HEAD
   git clean -dfx
   git pull
