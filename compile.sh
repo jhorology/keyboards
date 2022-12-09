@@ -25,26 +25,25 @@ if (( $#help )); then
   return
 fi
 
-local -A KEYBOARDS=(
-  neko60     bakeneko60:hex
-  ciel60     ciel60:hex
-  d60        dz60rgb_wkl_v2_1:bin
-  fk680      fk680pro_v2:uf2
-  ikki68     ikki68_aurora:hex
-  k6         k6_pro_ansi_rgb:bin
-  libra      libra_mini:hex
-  prime_e    prime_e_rgb:hex
-  qk60       qk60:bin
-  qk65       qk65_solder:hex
-  zoom65     zoom65:hex
-)
 
 # configuration
 # -----------------------------------
-
-# defaults
-
-TARGETS=(neko60 ciel60 d60 fk680 ikki68 libra prime_e qk60 qk65 zoom65)
+# <make target name>:<keymap>:<extension of firmware file>
+local -A KEYBOARDS=(
+  neko60     bakeneko60:default:hex
+  ciel60     ciel60:default:hex
+  d60        dz60rgb_wkl_v2_1:hhkb:bin
+  fk680      fk680pro_v2:default:uf2
+  ikki68     ikki68_aurora:default:hex
+  k6         k6_pro_ansi_rgb:default:bin
+  libra      libra_mini:default:hex
+  prime_e    prime_e_rgb:default:hex
+  qk60       qk60:default:bin
+  qk65       qk65_solder:default:hex
+  wood60     dz60rgb_wkl_v2_1:tsangan:bin
+  zoom65     zoom65:default:hex
+)
+TARGETS=(neko60 ciel60 d60 fk680 ikki68 libra prime_e qk60 qk65 wood60 zoom65)
 QMK_HOME="$HOME/Documents/Sources/qmk_firmware"
 UPDATE_QMK=true
 MAKE_JOBS=8
@@ -59,12 +58,14 @@ MAKE_JOBS=8
 # -----------------------------------
 (( $#@ )) && TARGETS=("$@")
 MAKE_TARGETS=()
+local -A VIA_JSON_TARGETS=()
 TARGET_COUNT=$TARGETS[(I)$TARGETS[-1]]
 
 KEYCHRON_BT=false
 for target in $TARGETS; do
   kbd=(${(@s/:/)KEYBOARDS[$target]})
-  MAKE_TARGETS=($MAKE_TARGETS my_keyboards/$kbd[1])
+  MAKE_TARGETS=($MAKE_TARGETS my_keyboards/$kbd[1]:$kbd[2])
+  VIA_JSON_TARGETS[$kbd[1]]=$kbd[1]
   if [ $target = "k6" ]; then
     if [ $TARGET_COUNT -ge 2 ]; then
       print -r "Error: Can't compile k6 together with other keyboards." >&2
@@ -157,17 +158,21 @@ VERSION="$(date +"%Y%m%d")_qmk_$(git describe --abbrev=0 --tags)_$(git rev-parse
 
 # generate via json file
 QMK_HOME="$QMK_HOME" \
-  "$PROJECT/util/generate_via_json.js" $MAKE_TARGETS[*]
+  "$PROJECT/util/generate_via_json.js" $VIA_JSON_TARGETS[*]
 
 # dist
 # -----------------------------------
 cd "$PROJECT/dist"
 
 for target in $TARGETS; do
-  # split ":" [1]=make target [2]=extension
+  # split ":" [1]=make target [2]=keymap [3]=extension
   kbd=(${(@s/:/)KEYBOARDS[$target]})
-  firmware_name="${kbd[1]//\//_}"
-  mv "$QMK_HOME/my_keyboards_${firmware_name}_default.$kbd[2]" ${firmware_name}_$VERSION.$kbd[2]
+  board=${kbd[1]//\//_}
+  firmware_name=$board
+  if [ $kbd[2] != "default" ]; then
+    firmware_name=${firmware_name}_${kbd[2]}
+  fi
+  mv "$QMK_HOME/my_keyboards_${board}_${kbd[2]}.${kbd[3]}" ${firmware_name}_$VERSION.$kbd[3]
 done
 
 # formatter

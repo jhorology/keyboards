@@ -38,6 +38,7 @@ local -A KEYBOARDS=(
   prime_e    prime_e_rgb
   qk60       qk60
   qk65       qk65_solder
+  wood60     dz60rgb_wkl_v2_1
   zoom65     zoom65
 )
 

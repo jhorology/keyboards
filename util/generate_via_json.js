@@ -12,15 +12,14 @@ const path = require('path'),
     isKeyboardDefinitionV3
   } = require('via-reader'),
   QMK_HOME = process.env['QMK_HOME'],
-  MAKE_TARGETS = process.argv.slice(2),
+  TARGETS = process.argv.slice(2),
   PROJECT_DIR = path.join(__dirname, '..'),
   OUTPUT_DIR = process.env['OUTPUT_DIR'] || path.join(PROJECT_DIR, 'dist'),
   KEYBOARDS_DIR = path.join(PROJECT_DIR, 'qmk_keyboards'),
   LIB_DIR = path.join(KEYBOARDS_DIR, 'lib')
 
-async function build(target) {
-  const targetDir = path.join(KEYBOARDS_DIR, target),
-    options = await getMakeOptions(targetDir),
+async function build(target, targetDir) {
+  const options = await getMakeOptions(targetDir),
     defines = await getDefineValues(targetDir),
     info = await getInfo(targetDir, options, defines),
     via = {
@@ -332,8 +331,11 @@ async function find_all_with_reduce(
 }
 
 Promise.all(
-  MAKE_TARGETS.map((target) =>
-    build(target.replace(/^my_keyboards\//, '').replaceAll('/', '_'))
+  TARGETS.map((target) =>
+    build(
+      target.replace(/^my_keyboards\//, '').replaceAll('/', '_'),
+      path.join(KEYBOARDS_DIR, target)
+    )
   )
 ).catch((err) => {
   console.error(err)
