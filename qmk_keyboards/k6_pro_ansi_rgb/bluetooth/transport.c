@@ -1,7 +1,7 @@
 #include "transport.h"
 
+#include "bluetooth.h"
 #include "indicator.h"
-#include "keychron_bluetooth.h"
 #include "lpm.h"
 #if defined(PROTOCOL_CHIBIOS)
 #  include <usb_main.h>
@@ -134,12 +134,7 @@ static void reinit_led_drvier(void) {
   while (chTimeI2MS(chVTTimeElapsedSinceX(start)) < 100) {
   };
 
-#ifdef LED_MATRIX_ENABLE
-  led_matrix_init();
-#endif
-#ifdef RGB_MATRIX_ENABLE
   rgb_matrix_init();
-#endif
 }
 
 void transport_changed(transport_t new_transport) {
@@ -147,16 +142,10 @@ void transport_changed(transport_t new_transport) {
   reinit_led_drvier();
 #endif
 
-#if defined(RGB_MATRIX_ENABLE) && defined(RGB_DISABLE_TIMEOUT)
+#ifdef RGB_DISABLE_TIMEOUT
 #  if (RGB_DISABLE_TIMEOUT > 0)
   rgb_matrix_disable_timeout_set(RGB_DISABLE_TIME_INFINITE);
   rgb_matrix_disable_time_reset();
-#  endif
-#endif
-#if defined(LED_MATRIX_ENABLE) && defined(LED_DISABLE_TIMEOUT)
-#  if (LED_DISABLE_TIMEOUT > 0)
-  led_matrix_disable_timeout_set(LED_DISABLE_TIME_INFINITE);
-  led_matrix_disable_time_reset();
 #  endif
 #endif
 }

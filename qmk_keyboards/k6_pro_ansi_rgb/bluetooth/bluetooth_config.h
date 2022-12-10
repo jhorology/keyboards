@@ -19,6 +19,11 @@
 
 #include "config.h"
 
+//
+#ifndef HOST_DEVICES_COUNT
+#  define HOST_DEVICES_COUNT 3
+#endif
+
 //  Uint: Second
 #ifndef DISCONNECTED_BACKLIGHT_OFF_DELAY_TIME
 #  define DISCONNECTED_BACKLIGHT_OFF_DELAY_TIME 40

@@ -82,14 +82,8 @@ void lpm_task(void) {
     lpm_timer_buffer = 0;
   }
 
-  if (get_transport() == TRANSPORT_BLUETOOTH && lpm_time_up && !indicator_is_running()
-#ifdef LED_MATRIX_ENABLE
-      && led_matrix_is_driver_shutdown()
-#endif
-#ifdef RGB_MATRIX_ENABLE
-      && rgb_matrix_is_driver_shutdown()
-#endif
-      && !lpm_any_matrix_action())
+  if (get_transport() == TRANSPORT_BLUETOOTH && lpm_time_up && !indicator_is_running() &&
+      rgb_matrix_is_driver_shutdown() && !lpm_any_matrix_action())
 
     enter_power_mode(LOW_POWER_MODE);
 }

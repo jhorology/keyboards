@@ -10,7 +10,8 @@ BOOTLOADER = stm32-dfu
 # Do not enable SLEEP_LED_ENABLE. it uses the same timer as BACKLIGHT_ENABLE
 SLEEP_LED_ENABLE = no       # Breathing sleep LED during USB suspend
 # if this doesn't work, see here: https://github.com/tmk/tmk_keyboard/wiki/FAQ#nkro-doesnt-work
-BLUETOOTH_ENABLE = yes       # Enable Bluetooth with
+BLUETOOTH_ENABLE = no       # Enable Bluetooth with
+KC_BLUETOOTH_ENABLE = yes       # Enable Bluetooth with
 BLUETOOTH_DRIVER = custom
 DIP_SWITCH_ENABLE = yes
 RGB_MATRIX_ENABLE = yes
@@ -24,12 +25,13 @@ SRC += lib/radial_controller.c
 
 # Enter lower-power sleep mode when on the ChibiOS idle thread
 OPT_DEFS += -DNO_USB_STARTUP_CHECK
+OPT_DEFS += -DKC_BLUETOOTH_ENABLE
 
 CUSTOM_MATRIX = lite
 SRC += matrix.c
 
 SRC += \
-  bluetooth/keychron_bluetooth.c \
+  bluetooth/bluetooth.c \
   bluetooth/report_buffer.c \
   bluetooth/ckbt51.c \
   bluetooth/indicator.c \

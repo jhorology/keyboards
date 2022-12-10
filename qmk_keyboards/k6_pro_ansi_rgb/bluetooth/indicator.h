@@ -18,8 +18,7 @@
 
 #include <quantum.h>
 
-#include "config.h"
-#include "keychron_bluetooth.h"
+#include "bluetooth.h"
 
 /* Indication of pairing */
 #ifndef INDICATOR_CONFIG_PARING

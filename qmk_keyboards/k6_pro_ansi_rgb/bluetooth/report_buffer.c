@@ -15,7 +15,7 @@
  */
 #include "report_buffer.h"
 
-#include "keychron_bluetooth.h"
+#include "bluetooth.h"
 #include "lpm.h"
 
 /* The report buffer is mainly used to fix key press lost issue of macro

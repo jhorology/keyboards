@@ -1,14 +1,10 @@
 #include "bat_level_animation.h"
 
+#include <eeprom.h>
+
+#include "bluetooth.h"
 #include "indicator.h"
-#include "keychron_bluetooth.h"
 #include "lpm.h"
-#if defined(PROTOCOL_CHIBIOS)
-#  include <usb_main.h>
-#elif if defined(PROTOCOL_LUFA)
-#  include "lufa.h"
-#endif
-#include "eeprom.h"
 
 #ifndef BAT_LEVEL_GROWING_INTERVAL
 #  define BAT_LEVEL_GROWING_INTERVAL 150
@@ -16,14 +12,6 @@
 
 #ifndef BAT_LEVEL_ON_INTERVAL
 #  define BAT_LEVEL_ON_INTERVAL 3000
-#endif
-
-#ifdef LED_MATRIX_ENABLE
-#  define LED_DRIVER_IS_ENABLED led_matrix_is_enabled
-#endif
-
-#ifdef RGB_MATRIX_ENABLE
-#  define LED_DRIVER_IS_ENABLED rgb_matrix_is_enabled
 #endif
 
 enum {
@@ -38,9 +26,7 @@ static uint32_t bat_lvl_ani_timer_buffer = 0;
 static uint8_t bat_percentage;
 static uint8_t cur_percentage;
 static uint32_t time_interval;
-#ifdef RGB_MATRIX_ENABLE
 static uint8_t r, g, b;
-#endif
 
 extern indicator_config_t indicator_config;
 extern backlight_state_t original_backlight_state;
@@ -54,9 +40,7 @@ void bat_level_animiation_start(uint8_t percentage) {
   bat_lvl_ani_timer_buffer = sync_timer_read32();
   cur_percentage = 0;
   time_interval = BAT_LEVEL_GROWING_INTERVAL;
-#ifdef RGB_MATRIX_ENABLE
   r = g = b = 255;
-#endif
 }
 
 void bat_level_animiation_stop(void) { animation_state = BAT_LVL_ANI_NONE; }
@@ -75,7 +59,6 @@ void bat_level_animiation_indicate(void) {
     for (uint8_t i = 0; i < cur_percentage / 10; i++) led_matrix_set_value(bat_lvl_led_list[i], 255);
 #endif
 
-#ifdef RGB_MATRIX_ENABLE
   uint8_t bat_lvl_led_list[10] = BAT_LEVEL_LED_LIST;
 
   for (uint8_t i = 0; i <= RGB_MATRIX_LED_COUNT; i++) {
@@ -87,7 +70,6 @@ void bat_level_animiation_indicate(void) {
       rgb_matrix_set_color(bat_lvl_led_list[i], r, g, b);
     }
   }
-#endif
 }
 
 void bat_level_animiation_update(void) {
@@ -102,7 +84,6 @@ void bat_level_animiation_update(void) {
       break;
 
     case BAT_LVL_ANI_BLINK_OFF:
-#ifdef RGB_MATRIX_ENABLE
       if (bat_percentage < 30) {
         r = 255;
         b = g = 0;
@@ -110,7 +91,6 @@ void bat_level_animiation_update(void) {
         r = b = 0;
         g = 255;
       }
-#endif
       time_interval = BAT_LEVEL_ON_INTERVAL;
       animation_state = BAT_LVL_ANI_BLINK_ON;
       break;
@@ -118,7 +98,7 @@ void bat_level_animiation_update(void) {
     case BAT_LVL_ANI_BLINK_ON:
       animation_state = BAT_LVL_ANI_NONE;
       indicator_eeconfig_reload();
-      if (indicator_config.value == 0 && !LED_DRIVER_IS_ENABLED()) {
+      if (indicator_config.value == 0 && !rgb_matrix_is_enabled()) {
         indicator_disable();
       }
       break;
