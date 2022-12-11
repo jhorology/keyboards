@@ -97,7 +97,9 @@ void keyboard_pre_init_kb(void) {
 void keyboard_post_init_kb(void) {
   tap_dance_actions_init();
   keyboard_post_init_user();
-  default_layer_set(custom_config_mac_is_enable() ? 1 : 2);
+#if defined(MAC_BASE_LAYER) && defined(NON_MAC_BASE_LAYER)
+  default_layer_set(custom_config_mac_is_enable() ? (1 << MAC_BASE_LAYER) : (1 << NON_MAC_BASE_LAYER));
+#endif
 }
 
 bool process_record_kb(uint16_t keycode, keyrecord_t *record) {

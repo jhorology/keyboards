@@ -18,6 +18,9 @@
 // #define CUSTOM_CONFIG_FORCE_RHID false
 // #define CUSTOM_CONFIG_FORCE_USJ false
 
+#define MAC_BASE_LAYER 0
+#define NON_MAC_BASE_LAYER 1
+
 /* eeprom address */
 
 #ifdef RADIAL_CONTROLLER_ENABLE
