@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "q60_ansi_stm32l432.h"
+#include "q60_ansi.h"
 
 #define __ NO_LED
 

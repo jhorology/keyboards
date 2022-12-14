@@ -38,7 +38,7 @@ local -A KEYBOARDS=(
   k6         k6_pro_ansi_rgb:default:bin
   libra      libra_mini:default:hex
   prime_e    prime_e_rgb:default:hex
-  q60        q60_ansi_stm32l432:default:bin
+  q60        q60_ansi:default:bin
   qk60       qk60:default:bin
   qk65       qk65_solder:default:hex
   wood60     dz60rgb_wkl_v2_1:tsangan:bin

@@ -35,8 +35,7 @@
 /* RGB Matrix Driver Configuration */
 #define DRIVER_COUNT 1
 #define DRIVER_ADDR_1 0b1110100
-#define DRIVER_1_LED_TOTAL 60
-#define RGB_MATRIX_LED_COUNT DRIVER_1_LED_TOTAL
+#define RGB_MATRIX_LED_COUNT 60
 
 /* Increase I2C speed to 1000 KHz */
 #define I2C1_TIMINGR_PRESC 0U
@@ -60,8 +59,6 @@
 
 /* turn off effects when suspended */
 #define RGB_DISABLE_WHEN_USB_SUSPENDED
-
-#define DYNAMIC_KEYMAP_LAYER_COUNT 6
 
 /* EEPROM Driver Configuration */
 #define WEAR_LEVELING_LOGICAL_SIZE 2048
