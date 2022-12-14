@@ -44,7 +44,7 @@ local -A KEYBOARDS=(
   wood60     dz60rgb_wkl_v2_1:tsangan:bin
   zoom65     zoom65:default:hex
 )
-TARGETS=(neko60 ciel60 d60 fk680 ikki68 libra prime_e qk60 qk65 wood60 zoom65)
+TARGETS=(neko60 ciel60 d60 fk680 ikki68 libra prime_e q60 qk60 qk65 wood60 zoom65)
 QMK_HOME="$HOME/Documents/Sources/qmk_firmware"
 UPDATE_QMK=true
 MAKE_JOBS=8
