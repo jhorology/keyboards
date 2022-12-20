@@ -1,0 +1,9 @@
+{
+  "keyboard_name": "Tetrix 60",
+  "manufacturer": "Rien",
+  "usb": {
+    "vid": "0xEC5A",
+    "pid": "0xE060",
+    "device_version": "0.0.1"
+  }
+}

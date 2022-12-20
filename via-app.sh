@@ -39,6 +39,7 @@ local -A KEYBOARDS=(
   q60        q60_ansi
   qk60       qk60
   qk65       qk65_solder
+  t60        tetrix60
   wood60     dz60rgb_wkl_v2_1
   zoom65     zoom65
 )

@@ -41,10 +41,11 @@ local -A KEYBOARDS=(
   q60        q60_ansi:default:bin
   qk60       qk60:default:bin
   qk65       qk65_solder:default:hex
+  t60        tetrix60:default:hex
   wood60     dz60rgb_wkl_v2_1:tsangan:bin
   zoom65     zoom65:default:hex
 )
-TARGETS=(neko60 ciel60 d60 fk680 ikki68 libra prime_e q60 qk60 qk65 wood60 zoom65)
+TARGETS=(neko60 ciel60 d60 fk680 ikki68 libra prime_e q60 qk60 qk65 t60 wood60 zoom65)
 QMK_HOME="$HOME/Documents/Sources/qmk_firmware"
 UPDATE_QMK=true
 MAKE_JOBS=8
