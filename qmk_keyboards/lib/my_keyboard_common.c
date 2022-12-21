@@ -75,7 +75,7 @@ void via_init_kb(void) {
 
 void eeconfig_init_kb(void) {
   custom_config_reset();
-  dynamic_tap_dance_reset(tap_dance_entries_default);
+  dynamic_tap_dance_reset();
   dynamic_non_mac_fn_reset(non_mac_fn_keys_default, sizeof(non_mac_fn_keys_default) >> 1);
   eeconfig_init_user();
 }

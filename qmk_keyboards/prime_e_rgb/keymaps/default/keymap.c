@@ -20,11 +20,11 @@
 
 // tap dance
 // [single tap, single hold, multi tap, tap hold, tapping term]
-const tap_dance_entry_t PROGMEM tap_dance_entries_default[] = {
-  // Apple Fn key + IME switch
-  [0] = {KC_LNG2, APPLE_FF, KC_LNG1, APPLE_FF, TAPPING_TERM},
-  // Protect layer 4 from misstouch, MENU + MO(3)
-  [1] = {KC_APP, KC_APP, KC_APP, MO(4), TAPPING_TERM},
+const tap_dance_entry_t PROGMEM tap_dance_predefined_entries[NUM_TAP_DANCE_PREDEFINED_ENTRIES] = {
+  // TD(0) - Apple Fn key + IME switch
+  {KC_LNG2, APPLE_FF, KC_LNG1, APPLE_FF, TAPPING_TERM},
+  // TD(1) - Protect layer 4 from misstouch, MENU + MO(3)
+  {KC_APP, KC_APP, KC_APP, MO(4), TAPPING_TERM},
 };
 
 // clang-format off

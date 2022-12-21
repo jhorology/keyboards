@@ -1,15 +1,13 @@
 #include QMK_KEYBOARD_H
 
-#define ALT_MO3 TD(TD_RALT_MO3)
-#define ALT_APFF_EJ TD(TD_LALT_APFF_EISU_KANA)
-
 // tap dance
 // [single tap, single hold, multi tap, tap hold, tapping term]
-const tap_dance_entry_t PROGMEM tap_dance_entries_default[] = {
-  // Left Alt, Alt + Apple fn + IME switch
-  [0] = {KC_LNG2, KC_LALT, KC_LNG1, APPLE_FF, TAPPING_TERM},
-  // Right Alt, Alt + layer switch
-  [1] = {KC_RALT, KC_RALT, KC_RALT, MO(3), TAPPING_TERM}};
+const tap_dance_entry_t PROGMEM tap_dance_predefined_entries[NUM_TAP_DANCE_PREDEFINED_ENTRIES] = {
+  // TD(0) - Left Alt, Alt + Apple fn + IME switch
+  {KC_LNG2, KC_LALT, KC_LNG1, APPLE_FF, TAPPING_TERM},
+  // TD(1) - Right Alt, Alt + layer switch
+  {KC_RALT, KC_RALT, KC_RALT, MO(3), TAPPING_TERM},
+};
 
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {

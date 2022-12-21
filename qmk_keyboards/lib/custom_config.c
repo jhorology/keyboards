@@ -18,6 +18,7 @@
 #include <eeprom.h>
 
 #include "custom_keycodes.h"
+#include "tap_dance.h"
 
 #ifndef CUSTOM_CONFIG_RHID_DEFAULT
 #  define CUSTOM_CONFIG_RHID_DEFAULT false
@@ -49,6 +50,8 @@
 #  endif
 #  define RADIAL_CONTROLLER_KEY_ANGULAR_SPEED_OFFSET 15
 #endif
+
+extern const tap_dance_entry_t PROGMEM tap_dance_predefined_entries[];
 
 kb_config_t kb_config;
 #ifdef RADIAL_CONTROLLER_ENABLE
@@ -173,7 +176,9 @@ static void _custom_config_mac_set_enable(bool enable) { kb_config.mac = enable;
 void custom_config_mac_set_enable(bool enable) {
   if (enable != kb_config.mac) {
     _custom_config_mac_set_enable(enable);
+#ifndef DIP_SWITCH_ENABLE
     eeconfig_update_kb(kb_config.raw);
+#endif
     // reboot for changing USB device descriptor
     soft_reset_keyboard();
   }
@@ -181,7 +186,9 @@ void custom_config_mac_set_enable(bool enable) {
 void custom_config_mac_set_enable_without_reset(bool enable) {
   if (enable != kb_config.mac) {
     _custom_config_mac_set_enable(enable);
+#ifndef DIP_SWITCH_ENABLE
     eeconfig_update_kb(kb_config.raw);
+#endif
   }
 }
 
@@ -242,11 +249,17 @@ bool custom_config_rc_is_fine_tune_mods_now() {
 
 // dynamic tap dance
 
-void dynamic_tap_dance_reset(const tap_dance_entry_t *entry) {
+void dynamic_tap_dance_reset() {
+  tap_dance_entry_t initial_data = {0};
   tap_dance_entry_t data;
+  initial_data.tapping_term = TAPPING_TERM;
   for (uint8_t i = 0; i < TAP_DANCE_ENTRIES; i++) {
-    pgm_memcpy(&data, &entry[i], 10);
-    eeprom_update_block((uint8_t *)&data, (uint8_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + 10 * i),
+    if (i < NUM_TAP_DANCE_PREDEFINED_ENTRIES) {
+      pgm_memcpy(&data, &tap_dance_predefined_entries[i], sizeof(tap_dance_entry_t));
+    } else {
+      data = initial_data;
+    }
+    eeprom_update_block((uint8_t *)&data, (uint8_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + sizeof(tap_dance_entry_t) * i),
                         sizeof(tap_dance_entry_t));
   }
 }
@@ -256,8 +269,8 @@ uint16_t dynamic_tap_dance_keycode(uint8_t index, tap_dance_state_t state) {
   if (index < TAP_DANCE_ENTRIES) {
     switch (state) {
       case TD_SINGLE_TAP ... TD_TAP_HOLD:
-        keycode =
-          eeprom_read_word((uint16_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + 10 * index + (state - TD_SINGLE_TAP) * 2));
+        keycode = eeprom_read_word((uint16_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + sizeof(tap_dance_entry_t) * index +
+                                                (state - TD_SINGLE_TAP) * 2));
       default:
         break;
     }

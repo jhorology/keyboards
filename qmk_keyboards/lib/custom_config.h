@@ -81,7 +81,7 @@ uint8_t custom_config_rc_is_fine_tune_mods(void);
 bool custom_config_rc_is_fine_tune_mods_now(void);
 #endif
 
-void dynamic_tap_dance_reset(const tap_dance_entry_t *entry);
+void dynamic_tap_dance_reset(void);
 uint16_t dynamic_tap_dance_keycode(uint8_t index, tap_dance_state_t state);
 uint16_t dynamic_tap_dance_tapping_term(uint8_t index);
 

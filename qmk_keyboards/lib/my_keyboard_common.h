@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-#include <quantum.h>
+#include QMK_KEYBOARD_H
 
 #include "apple_fn.h"
 #include "custom_config.h"
@@ -25,5 +25,3 @@
 #endif
 #include "tap_dance.h"
 #include "via_custom_menus.h"
-
-extern const tap_dance_entry_t tap_dance_entries_default[TAP_DANCE_ENTRIES];
