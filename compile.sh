@@ -7,23 +7,10 @@ cd "$PROJECT"
 zparseopts -D -E -F -- \
            {h,-help}=help  \
            {c,-clean}=clean \
+           {f,-flash}=flash \
            {H,-qmk-home}:=qmk_home \
-           {v,-via-version}:=via_version \
            {w,-without-update-qmk}=without_update_qmk \
   || return
-
-
-if (( $#help )); then
-  print -rC1 --      \
-        "$0:t [-h|--help]" \
-        "$0:t [-c|--clean] [--qmk-home <QMK_HOME>]" \
-        "$0:t [options...] [<TARGET...>]" \
-        "" \
-        "options:" \
-        "  -H,--qmk-home <QMK_HOME>            location for local qmk_firmware repository" \
-        "  -w,--without-update-qmk             don't sync remote repository"
-  return
-fi
 
 
 # configuration
@@ -56,6 +43,30 @@ MAKE_JOBS=8
 # -----------------------------------
 [ -s .config ] &&  source .config
 
+# help usage
+# -----------------------------------
+if (( $#help )); then
+  print -rC1 --      \
+        "" \
+        "usage:" \
+        "   $0:t [-h|--help]                            show this help" \
+        "   $0:t [-c|--clean] [--qmk-home <QMK_HOME>]   clean build env" \
+        "   $0:t [options...] [<TARGET...>]             build firmwares" \
+        "   $0:t [-f|--flash] [options...] <TARGET>     build and flash firmware" \
+        "" \
+        "options:" \
+        "  -H,--qmk-home <QMK_HOME>            location for local qmk_firmware repository" \
+        "  -w,--without-update-qmk             don't sync remote repository" \
+        "" \
+        "available targets:"
+  for target in $TARGETS; do
+    print -rC2 -- "   ${target}:"  "${KEYBOARDS[$target]}"
+  done
+  return
+fi
+
+
+
 # targets
 # -----------------------------------
 (( $#@ )) && TARGETS=("$@")
@@ -63,10 +74,25 @@ MAKE_TARGETS=()
 local -A VIA_JSON_TARGETS=()
 TARGET_COUNT=$TARGETS[(I)$TARGETS[-1]]
 
+if (( $#flash )); then
+  if [ $# = 0 ]; then
+    print -r "Error: Missing target argument." >&2
+    exit 1
+  fi
+  if [ $# != 1 ]; then
+    print -r "Error: Only one target is allowed." >&2
+    exit 1
+  fi
+fi
+
 KEYCHRON_BT=false
 for target in $TARGETS; do
   kbd=(${(@s/:/)KEYBOARDS[$target]})
-  MAKE_TARGETS=($MAKE_TARGETS my_keyboards/$kbd[1]:$kbd[2])
+  MAKE_TARGET="my_keyboards/${kbd[1]}:${kbd[2]}"
+  if (( $#flash )); then
+    MAKE_TARGET="${MAKE_TARGET}:flash"
+  fi
+  MAKE_TARGETS=($MAKE_TARGETS $MAKE_TARGET)
   VIA_JSON_TARGETS[$kbd[1]]=$kbd[1]
   if [ $target = "k6" ]; then
     if [ $TARGET_COUNT -ge 2 ]; then
@@ -76,6 +102,8 @@ for target in $TARGETS; do
     KEYCHRON_BT=true
   fi
 done
+
+
 
 # option parameters
 # -----------------------------------
