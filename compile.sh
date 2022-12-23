@@ -19,7 +19,7 @@ zparseopts -D -E -F -- \
 local -A KEYBOARDS=(
   neko60     bakeneko60:default:hex
   ciel60     ciel60:default:hex
-  d60        dz60rgb_wkl_v2_1:hhkb:bin
+  d60        dz60rgb_wkl_v2_1_atmel_dfu:hhkb:hex
   fk680      fk680pro_v2:default:uf2
   ikki68     ikki68_aurora:default:hex
   k6         k6_pro_ansi_rgb:default:bin
@@ -29,7 +29,7 @@ local -A KEYBOARDS=(
   qk60       qk60:default:bin
   qk65       qk65_solder:default:hex
   t60        tetrix60:default:hex
-  wood60     dz60rgb_wkl_v2_1:tsangan:bin
+  wood60     dz60rgb_wkl_v2_1_atmel_dfu:tsangan:hex
   zoom65     zoom65:default:hex
 )
 TARGETS=(neko60 ciel60 d60 fk680 ikki68 libra prime_e q60 qk60 qk65 t60 wood60 zoom65)

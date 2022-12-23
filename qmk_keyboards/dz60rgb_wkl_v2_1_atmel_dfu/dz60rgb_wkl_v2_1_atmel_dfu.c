@@ -1,4 +1,4 @@
-#include "dz60rgb_wkl_v2_1.h"
+#include "dz60rgb_wkl_v2_1_atmel_dfu.h"
 
 #define xx NO_LED
 // clang-format off

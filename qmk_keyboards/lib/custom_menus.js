@@ -109,7 +109,7 @@ const RADIAL_CONTROLLER_MENU = {
       label: 'Settings',
       content: [
         {
-          label: 'Encoder Clicks per Roatation',
+          label: 'Encoder Clicks per Rotation',
           type: 'dropdown',
           options: [
             ['16', 16],
