@@ -31,7 +31,7 @@ fi
 local -A KEYBOARDS=(
   neko60     bakeneko60
   ciel60     ciel60
-  d60        dz60rgb_wkl_v2_1
+  d60        dz60rgb_wkl_v2_1_atmel_dfu
   fk680      fk680pro_v2
   ikki68     ikki68_aurora
   k6         k6_pro_ansi_rgb
@@ -40,7 +40,7 @@ local -A KEYBOARDS=(
   qk60       qk60
   qk65       qk65_solder
   t60        tetrix60
-  wood60     dz60rgb_wkl_v2_1
+  wood60     dz60rgb_wkl_v2_1_atmel_dfu
   zoom65     zoom65
 )
 
