@@ -18,26 +18,20 @@
 
 #define __ NO_LED
 
-static bool initialized;
+static bool dip_switch_initialized;
 
 const matrix_row_t matrix_mask[] = {
   0b11111111111111, 0b11111111111111, 0b11111111111111, 0b11111111111111, 0b11111111101111,
 };
 
-void keyboard_pre_init_user(void) { dip_switch_read(true); }
-
-void keyboard_post_init_user(void) {
-  dip_switch_read(true);
-  initialized = true;
-}
-
 bool dip_switch_update_user(uint8_t index, bool active) {
   if (index == 0) {
-    if (!initialized) {
+    if (!dip_switch_initialized) {
       custom_config_mac_set_enable_without_reset(!active);
     } else {
       custom_config_mac_set_enable(!active);
     }
+    dip_switch_initialized = true;
   }
   return true;
 }

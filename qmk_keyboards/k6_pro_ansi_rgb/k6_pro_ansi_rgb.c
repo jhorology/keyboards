@@ -148,15 +148,16 @@ static virtual_timer_t pairing_key_timer;
 extern uint8_t g_pwm_buffer[DRIVER_COUNT][192];
 
 static void pairing_key_timer_cb(void *arg) { bluetooth_pairing_ex(*(uint8_t *)arg, NULL); }
-static bool initialized;
+static bool dip_switch_initialized;
 
 bool dip_switch_update_user(uint8_t index, bool active) {
   if (index == 0) {
-    if (!initialized) {
+    if (!dip_switch_initialized) {
       custom_config_mac_set_enable_without_reset(!active);
     } else {
       custom_config_mac_set_enable(!active);
     }
+    dip_switch_initialized = true;
   }
   return true;
 }
@@ -190,11 +191,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   return true;
 }
 
-void keyboard_pre_init_user(void) { dip_switch_read(true); }
-
 void keyboard_post_init_user(void) {
-  dip_switch_read(true);
-
   /* Currently we don't use this reset pin */
   palSetLineMode(CKBT51_RESET_PIN, PAL_MODE_UNCONNECTED);
 
@@ -208,7 +205,6 @@ void keyboard_post_init_user(void) {
 
   power_on_indicator_timer_buffer = sync_timer_read32() | 1;
   writePin(BAT_LOW_LED_PIN, BAT_LOW_LED_PIN_ON_STATE);
-  initialized = true;
 }
 
 void matrix_scan_user(void) {

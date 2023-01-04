@@ -176,9 +176,7 @@ static void _custom_config_mac_set_enable(bool enable) { kb_config.mac = enable;
 void custom_config_mac_set_enable(bool enable) {
   if (enable != kb_config.mac) {
     _custom_config_mac_set_enable(enable);
-#ifndef DIP_SWITCH_ENABLE
     eeconfig_update_kb(kb_config.raw);
-#endif
     // reboot for changing USB device descriptor
     soft_reset_keyboard();
   }
@@ -186,9 +184,7 @@ void custom_config_mac_set_enable(bool enable) {
 void custom_config_mac_set_enable_without_reset(bool enable) {
   if (enable != kb_config.mac) {
     _custom_config_mac_set_enable(enable);
-#ifndef DIP_SWITCH_ENABLE
     eeconfig_update_kb(kb_config.raw);
-#endif
   }
 }
 
