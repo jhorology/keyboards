@@ -115,11 +115,8 @@ static bool process_layout_conversion(layout_conversion_item_t *table, uint16_t 
       uint16_t kc = cur_shift ? item->dest_on_shift : item->dest;
       if (kc == KC_NO) return true;
 
-      bool kc_shifted = kc & QK_LSFT;
-
-      if (!kc_shifted) {
-        if (cur_shift) del_mods(cur_shift);
-      }
+      bool clear_shift = (kc & QK_LSFT) && cur_shift;
+      if (clear_shift) del_mods(cur_shift);
       register_code16(kc);
       if (kc & QK_LSFT) {
         del_weak_mods(KC_LSFT);
@@ -127,9 +124,7 @@ static bool process_layout_conversion(layout_conversion_item_t *table, uint16_t 
       if (kc & QK_LALT) {
         del_weak_mods(KC_LALT);
       }
-      if (!kc_shifted) {
-        if (cur_shift) add_mods(cur_shift);
-      }
+      if (clear_shift) add_mods(cur_shift);
       override_key_flags |= flag;
       if (cur_shift) {
         override_shift_flags |= flag;
