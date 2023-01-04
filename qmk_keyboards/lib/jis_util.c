@@ -29,13 +29,13 @@ typedef struct {
 static layout_conversion_item_t ansi_under_jis_table[] = {
   // src, dest, dest on shift
   {KC_GRV, JP_GRV, JP_TILD},    // "`", "~"
-  {KC_2, 0, JP_AT},             // "@"
-  {KC_6, 0, JP_CIRC},           // "^"
-  {KC_7, 0, JP_AMPR},           // "&"
-  {KC_8, 0, JP_ASTR},           // "*"
-  {KC_9, 0, JP_LPRN},           // "("
-  {KC_0, 0, JP_RPRN},           // ")"
-  {KC_MINS, 0, JP_UNDS},        // "_"
+  {KC_2, KC_NO, JP_AT},         // "@"
+  {KC_6, KC_NO, JP_CIRC},       // "^"
+  {KC_7, KC_NO, JP_AMPR},       // "&"
+  {KC_8, KC_NO, JP_ASTR},       // "*"
+  {KC_9, KC_NO, JP_LPRN},       // "("
+  {KC_0, KC_NO, JP_RPRN},       // ")"
+  {KC_MINS, KC_NO, JP_UNDS},    // "_"
   {KC_EQL, JP_EQL, JP_PLUS},    // "=", "+"
   {KC_LBRC, JP_LBRC, JP_LCBR},  // "[", "{"
   {KC_RBRC, JP_RBRC, JP_RCBR},  // "]", "}"
@@ -61,7 +61,7 @@ static layout_conversion_item_t ansi_under_jis_table[] = {
 #else
   {KC_CAPS, JP_CAPS, JP_EISU},  // CAPSLOCK
 #endif
-  {KC_SCLN, 0, JP_COLN},       // :
+  {KC_SCLN, KC_NO, JP_COLN},   // :
   {KC_QUOT, JP_QUOT, JP_DQUO}  // '
 };
 
@@ -111,41 +111,36 @@ static bool process_layout_conversion(layout_conversion_item_t *table, uint16_t 
   }
   if (item) {
     if (record->event.pressed) {
-      bool l_shift = keyboard_report->mods & MOD_BIT(KC_LSFT);
-      bool r_shift = keyboard_report->mods & MOD_BIT(KC_RSFT);
-      bool shift = l_shift || r_shift;
-      bool alt = keyboard_report->mods & (MOD_BIT(KC_LALT) | MOD_BIT(KC_RALT));
-      uint16_t dest_kc = shift ? item->dest_on_shift : item->dest;
-      if (dest_kc != 0) {
-        if (dest_kc & QK_LSFT) {
-          if (!shift) register_code(KC_LSFT);
-          register_code(dest_kc & 0xff);
-          if (!shift) unregister_code(KC_LSFT);
-        } else if (dest_kc & QK_LALT) {
-          if (!alt) register_code(KC_LALT);
-          register_code(dest_kc & 0xff);
-          if (!alt) unregister_code(KC_LALT);
-        } else {
-          if (l_shift) unregister_code(KC_LSFT);
-          if (r_shift) unregister_code(KC_RSFT);
-          register_code(dest_kc & 0xff);
-          if (l_shift) register_code(KC_LSFT);
-          if (r_shift) register_code(KC_RSFT);
-        }
-        override_key_flags |= flag;
-        if (shift) {
-          override_shift_flags |= flag;
-        } else {
-          override_shift_flags &= ~flag;
-        }
-        return false;
+      uint16_t cur_shift = get_mods() & MOD_MASK_SHIFT;
+      uint16_t kc = cur_shift ? item->dest_on_shift : item->dest;
+      if (kc == KC_NO) return true;
+
+      bool kc_shifted = kc & QK_LSFT;
+
+      if (!kc_shifted) {
+        if (cur_shift) del_mods(cur_shift);
       }
-    } else {
-      if (override_key_flags & flag) {
-        unregister_code(((override_shift_flags & flag) ? item->dest_on_shift : item->dest) & 0xff);
-        override_key_flags &= ~flag;
-        return false;
+      register_code16(kc);
+      if (kc & QK_LSFT) {
+        del_weak_mods(KC_LSFT);
       }
+      if (kc & QK_LALT) {
+        del_weak_mods(KC_LALT);
+      }
+      if (!kc_shifted) {
+        if (cur_shift) add_mods(cur_shift);
+      }
+      override_key_flags |= flag;
+      if (cur_shift) {
+        override_shift_flags |= flag;
+      } else {
+        override_shift_flags &= ~flag;
+      }
+      return false;
+    } else if (override_key_flags & flag) {
+      unregister_code(((override_shift_flags & flag) ? item->dest_on_shift : item->dest) & 0xff);
+      override_key_flags &= ~flag;
+      return false;
     }
   }
   return true;
