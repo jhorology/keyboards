@@ -78,9 +78,9 @@ if (( $#update_via_app )); then
   git clean -dfx
   git pull
 
-  patch -p1 < "$PROJECT/patches/via_app_custom_control_16bit_value.patch"
-  patch -p1 < "$PROJECT/patches/via_app_32_custom_keycodes.patch"
-  patch -p1 < "$PROJECT/patches/via_app_prefer_ja.patch"
+  for patch in $(ls -v "${PROJECT}/patches/"via_app_*.patch); do
+    patch --verbose -p1 < $patch
+  done
 
   yarn install
   return
