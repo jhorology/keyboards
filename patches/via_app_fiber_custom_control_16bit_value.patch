@@ -1,0 +1,34 @@
+diff --git a/src/components/panes/configure-panes/custom/custom-control.tsx b/src/components/panes/configure-panes/custom/custom-control.tsx
+index 5815434..4e32fed 100644
+--- a/src/components/panes/configure-panes/custom/custom-control.tsx
++++ b/src/components/panes/configure-panes/custom/custom-control.tsx
+@@ -61,6 +61,7 @@ const boxOrArr = <N extends any>(elem: N | N[]) =>
+ const valueIsChecked = (option: number | number[], value: number[]) =>
+   boxOrArr(option).every((o, i) => o == value[i]);
+ 
++// VIA_APP_CUSTOM_CONTROL_16BIT_VALUE patched
+ export const VIACustomControl = (props: VIACustomControlProps) => {
+   const {content, type, options, value} = props as any;
+   const [name, ...command] = content;
+@@ -70,17 +71,17 @@ export const VIACustomControl = (props: VIACustomControlProps) => {
+         <AccentRange
+           min={options[0]}
+           max={options[1]}
+-          defaultValue={props.value[0]}
+-          onChange={(val: number) => props.updateValue(name, ...command, val)}
++          defaultValue={props.value[0] + (props.value[1] << 8)}
++          onChange={(val: number) => props.updateValue(name, ...command, val & 0xff, (val >> 8) & 0xff)}
+         />
+       );
+     }
+     case 'keycode': {
+       return (
+         <PelpiKeycodeInput
+-          value={props.value[0]}
++          value={props.value[0] + (props.value[1] << 8)}
+           meta={{}}
+-          setValue={(val: number) => props.updateValue(name, ...command, val)}
++          setValue={(val: number) => props.updateValue(name, ...command, val & 0xff, (val >> 8) & 0xff)}
+         />
+       );
+     }

@@ -6,10 +6,11 @@ PROJECT=$(realpath $0:h)
 cd "$PROJECT"
 
 zparseopts -D -E -F -- \
-           {h,-help}=help  \
+           {h,-help}=help \
            -qmk-home:=qmk_home \
            -via-app-home:=via_app_home \
            {u,-update-via-app}=update_via_app \
+           {f,-fiber}=fiber \
            {w,-without-generate}=without_generate \
   || return
 
@@ -47,9 +48,9 @@ BUILD_JSON=true
 if (( $#help )); then
   print -rC1 --      \
         "Usage:" \
-        "$0:t <-h|--help>                                            help" \
-        "$0:t <-u|--update-via-app> [--via-app-home VIA_APP_HOME]    update & setup via/app" \
-        "$0:t [options...] TARGET                                    run via/app" \
+        "$0:t <-h|--help>                                                    help" \
+        "$0:t <-u|--update-via-app> [--via-app-home VIA_APP_HOME] [--fiber]  update & setup via/app" \
+        "$0:t [options...] TARGET                                            run via/app" \
         "" \
         "options:" \
         "  --qmk-home <QMK_HOME>            location for local qmk_firmware repository" \
@@ -75,14 +76,27 @@ if (( $#update_via_app )); then
   cd "$VIA_APP_HOME"
 
   git reset --hard HEAD
+  if (( $#fiber )); then
+    git checkout fiber
+  else
+    git checkout main
+  fi
   git clean -dfx
   git pull
 
-  for patch in $(ls -v "${PROJECT}/patches/"via_app_*.patch); do
-    patch --verbose -p1 < $patch
-  done
-
+  if (( $#fiber )); then
+    for patch in $(ls -v "${PROJECT}/patches/"via_app_fiber*.patch); do
+      patch --verbose -p1 < $patch
+    done
+  else
+    for patch in $(ls -v "${PROJECT}/patches/"via_app_main*.patch); do
+      patch --verbose -p1 < $patch
+    done
+  fi
   yarn install
+  if (( $#fiber )); then
+    yarn add @fortawesome/fontawesome-svg-core
+  fi
   return
 fi
 
