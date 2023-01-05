@@ -14,20 +14,6 @@ zparseopts -D -E -F -- \
   || return
 
 
-if (( $#help )); then
-  print -rC1 --      \
-        "Usage:" \
-        "$0:t <-h|--help>                                            help" \
-        "$0:t <-u|--update-via-app> [--via-app-home VIA_APP_HOME]    update & setup via/app" \
-        "$0:t [options...] TARGET                                    run via/app" \
-        "" \
-        "options:" \
-        "  --qmk-home <QMK_HOME>            location for local qmk_firmware repository" \
-        "  --via-app-home <VIA_APP_HOME>    location for local via/app repository" \
-        "  -w,--without-generate            Use JSON file in dist folder without running builder"
-  return
-fi
-
 local -A KEYBOARDS=(
   neko60     bakeneko60
   ciel60     ciel60
@@ -35,6 +21,7 @@ local -A KEYBOARDS=(
   fk680      fk680pro_v2
   ikki68     ikki68_aurora
   k6         k6_pro_ansi_rgb
+  libra      libra_mini
   prime_e    prime_e_rgb
   q60        q60_ansi
   qk60       qk60
@@ -54,6 +41,27 @@ BUILD_JSON=true
 #  override configuration
 # -----------------------------------
 [ -s .config ] &&  source .config
+
+# help usage
+# -----------------------------------
+if (( $#help )); then
+  print -rC1 --      \
+        "Usage:" \
+        "$0:t <-h|--help>                                            help" \
+        "$0:t <-u|--update-via-app> [--via-app-home VIA_APP_HOME]    update & setup via/app" \
+        "$0:t [options...] TARGET                                    run via/app" \
+        "" \
+        "options:" \
+        "  --qmk-home <QMK_HOME>            location for local qmk_firmware repository" \
+        "  --via-app-home <VIA_APP_HOME>    location for local via/app repository" \
+        "  -w,--without-generate            Use JSON file in dist folder without running builder" \
+        "" \
+        "available targets:"
+  for target in ${(k)KEYBOARDS}; do
+    print -rC2 -- "   ${target}:"  "${KEYBOARDS[$target]}"
+  done
+  return
+fi
 
 # option parameters
 # -----------------------------------

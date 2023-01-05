@@ -152,30 +152,19 @@ fi
 # patch
 # -----------------------------------
 if $KEYCHRON_BT; then
-  [ ! -s keychron_bluetooth_playground ] && \
+  if [ ! -f keychron_bluetooth_playground ]; then
     patch --verbose -p1 < "${PROJECT}/patches/keychron_bluetooth_playground.patch"
+    touch keychron_bluetooth_playground
+  fi
 fi
 
-[ -z "$(rg APPLE_FN_ENABLE builddefs/common_features.mk)" ] && \
-  patch --verbose -p1 < "${PROJECT}/patches/applefn.patch"
-
-[ -z "$(rg get_usb_device_descriptor_ptr tmk_core/protocol/usb_descriptor.h)" ] && \
-  patch --verbose -p1 < "${PROJECT}/patches/device_descriptor.patch"
-
-[ -z "$(rg RADIAL_CONTROLLER_ENABLE builddefs/common_features.mk)" ] && \
-  patch --verbose -p1 < "${PROJECT}/patches/radial_controller.patch"
-
-[ -z "$(rg ENCODER_LOOKUP_TABLE quantum/encoder.c)" ] && \
-  patch --verbose -p1 < "${PROJECT}/patches/encoder_lookup_table.patch"
-
-[ -z "$(rg normal_true quantum/process_keycode/process_magic.c)" ] && \
-  patch --verbose -p1 < "${PROJECT}/patches/qmk_magic_shift_reverse.patch"
-
-[ -z "$(rg via_raw_hid_receive quantum/via.h)" ] && \
-  patch --verbose -p1 < "${PROJECT}/patches/via_raw_hid_receive.patch"
-
-[ -z "$(rg TAP_DANCE_IGNORE_COMBO quantum/process_keycode/process_tap_dance.c)" ] && \
-  patch --verbose -p1 < "${PROJECT}/patches/tap_dance_ignore_combo.patch"
+for patch in $(ls -v "${PROJECT}/patches/"qmk_*.patch); do
+  patched=${${patch##*/}%.*}
+  if [ ! -f "${patched}" ]; then
+    patch --verbose -p1 < "${patch}"
+    touch "${patched}"
+  fi
+done
 
 # make
 # -----------------------------------
