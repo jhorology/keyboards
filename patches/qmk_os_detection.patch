@@ -1,0 +1,83 @@
+diff --git a/tmk_core/protocol/chibios/usb_main.c b/tmk_core/protocol/chibios/usb_main.c
+index 62a11faff7..adcac289c5 100644
+--- a/tmk_core/protocol/chibios/usb_main.c
++++ b/tmk_core/protocol/chibios/usb_main.c
+@@ -43,12 +43,14 @@
+ #include "usb_device_state.h"
+ #include "usb_descriptor.h"
+ #include "usb_driver.h"
+-
+ #ifdef NKRO_ENABLE
+ #    include "keycode_config.h"
+ 
+ extern keymap_config_t keymap_config;
+ #endif
++#ifdef OS_DETECTION_ENABLE
++#    include "os_detection.h"
++#endif
+ 
+ /* ---------------------------------------------------------
+  *       Global interface variables and declarations
+@@ -113,6 +115,11 @@ static const USBDescriptor *usb_get_descriptor_cb(USBDriver *usbp, uint8_t dtype
+     static USBDescriptor desc;
+     uint16_t             wValue = ((uint16_t)dtype << 8) | dindex;
+     desc.ud_string              = NULL;
++#ifdef OS_DETECTION_ENABLE
++    if (dtype == DTYPE_String) {
++        process_wlength(((uint16_t)usbp->setup[7] << 8) | usbp->setup[6]);
++    }
++#endif
+     desc.ud_size                = get_usb_descriptor(wValue, wIndex, (const void **const) & desc.ud_string);
+     if (desc.ud_string == NULL)
+         return NULL;
+diff --git a/tmk_core/protocol/lufa/lufa.c b/tmk_core/protocol/lufa/lufa.c
+index 8f36e02b9a..88051aaf64 100644
+--- a/tmk_core/protocol/lufa/lufa.c
++++ b/tmk_core/protocol/lufa/lufa.c
+@@ -73,6 +73,10 @@ extern keymap_config_t keymap_config;
+ #    include "raw_hid.h"
+ #endif
+ 
++#ifdef OS_DETECTION_ENABLE
++#    include "os_detection.h"
++#endif
++
+ uint8_t keyboard_idle = 0;
+ /* 0: Boot Protocol, 1: Report Protocol(default) */
+ uint8_t        keyboard_protocol  = 1;
+@@ -901,5 +905,10 @@ void protocol_post_task(void) {
+ }
+ 
+ uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue, const uint16_t wIndex, const void **const DescriptorAddress) {
++#ifdef OS_DETECTION_ENABLE
++    if ((wValue >> 8) == DTYPE_String) {
++        process_wlength(USB_ControlRequest.wLength);
++    }
++#endif
+     return get_usb_descriptor(wValue, wIndex, DescriptorAddress);
+ }
+diff --git a/tmk_core/protocol/vusb/vusb.c b/tmk_core/protocol/vusb/vusb.c
+index 2d17761978..b3eeff9e01 100644
+--- a/tmk_core/protocol/vusb/vusb.c
++++ b/tmk_core/protocol/vusb/vusb.c
+@@ -44,6 +44,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ #    include "ring_buffer.h"
+ #endif
+ 
++#ifdef OS_DETECTION_ENABLE
++#    include "os_detection.h"
++#endif
++
+ #define NEXT_INTERFACE __COUNTER__
+ 
+ /*
+@@ -1013,6 +1017,9 @@ USB_PUBLIC usbMsgLen_t usbFunctionDescriptor(struct usbRequest *rq) {
+                     break;
+ #endif
+             }
++#ifdef OS_DETECTION_ENABLE
++            process_wlength(rq->wLength.word);
++#endif
+             break;
+         case USBDESCR_HID:
+             switch (rq->wValue.bytes[0]) {

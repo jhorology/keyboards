@@ -1,4 +1,4 @@
-/* Copyright 2022 Msafumi
+/* Copyright 2022 Ruslan Sayfutdinov (@KapJI)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,16 +13,26 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#pragma once
-#include <quantum.h>
 
-#include "apple_fn.h"
-#include "custom_config.h"
-#include "custom_keycodes.h"
-#include "jis_util.h"
-#ifdef RADIAL_CONTROLLER_ENABLE
-#  include "radial_controller.h"
+#pragma once
+
+#include <stdint.h>
+
+#ifdef OS_DETECTION_ENABLE
+typedef enum {
+  OS_UNSURE,
+  OS_LINUX,
+  OS_WINDOWS,
+  OS_MACOS,
+  OS_IOS,
+} os_variant_t;
+
+void process_wlength(const uint16_t w_length);
+os_variant_t detected_host_os(void);
+void erase_wlength_data(void);
 #endif
-#include "os_detection.h"
-#include "tap_dance.h"
-#include "via_custom_menus.h"
+
+#ifdef OS_DETECTION_DEBUG_ENABLE
+void print_stored_setups(void);
+void store_setups_in_eeprom(void);
+#endif

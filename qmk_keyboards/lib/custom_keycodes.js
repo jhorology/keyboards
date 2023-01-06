@@ -112,6 +112,12 @@ module.exports = function (options, defines) {
             title: 'Dial rotation speed becomes slow',
             shortName: 'RC🫳️'
           }
-        ])
+        ]),
+    {
+      code: 'TEST_OS',
+      name: 'TEST\nOS',
+      title: 'SEND_STRING detected os vairant',
+      shortName: 'OS'
+    }
   ]
 }
