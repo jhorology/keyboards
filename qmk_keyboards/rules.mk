@@ -16,10 +16,9 @@ TAP_DANCE_ENABLE = yes
 COMBO_ENABLE = yes
 DEFERRED_EXEC_ENABLE = yes
 OS_DETECTION_ENABLE = yes
-# OS_DETECTION_DEBUG_ENABLE = yes
+SEND_STRING_ENABLE = yes
 
 OPT_DEFS += -DOS_DETECTION_ENABLE
-# OPT_DEFS += -DOS_DETECTION_DEBUG_ENABLE
 
 SRC += lib/my_keyboard_common.c
 SRC += lib/custom_config.c
@@ -30,5 +29,5 @@ SRC += lib/tap_dance.c
 SRC += lib/via_custom_menus.c
 SRC += lib/os_detection.c
 
-COMMON_LIB_DIR := $(dir $(lastword $(MAKEFILE_LIST)))lib
-VPATH += $(COMMON_LIB_DIR)
+MY_COMMON_LIB_DIR := $(dir $(lastword $(MAKEFILE_LIST)))lib
+VPATH += $(MY_COMMON_LIB_DIR)

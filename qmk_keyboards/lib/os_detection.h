@@ -18,7 +18,6 @@
 
 #include <stdint.h>
 
-#ifdef OS_DETECTION_ENABLE
 typedef enum {
   OS_UNSURE,
   OS_LINUX,
@@ -27,12 +26,7 @@ typedef enum {
   OS_IOS,
 } os_variant_t;
 
+void os_detection_update_kb(os_variant_t);
 void process_wlength(const uint16_t w_length);
 os_variant_t detected_host_os(void);
-void erase_wlength_data(void);
-#endif
-
-#ifdef OS_DETECTION_DEBUG_ENABLE
-void print_stored_setups(void);
-void store_setups_in_eeprom(void);
-#endif
+void send_os_detection_result(void);

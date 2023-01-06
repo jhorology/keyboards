@@ -16,30 +16,27 @@
 
 #include "os_detection.h"
 
-#include <string.h>
+#include <deferred_exec.h>
+#include <send_string.h>
 
-#ifdef OS_DETECTION_DEBUG_ENABLE
-#  include "eeconfig.h"
-#  include "eeprom.h"
-#  include "print.h"
-
-#  define STORED_USB_SETUPS 50
-#  define EEPROM_USER_OFFSET (uint8_t*)EECONFIG_SIZE
-
-uint16_t usb_setups[STORED_USB_SETUPS];
+#define STORED_USB_SETUPS 50
+#ifndef OS_DETECTION_TIMEOUT_MILLIS
+#  define OS_DETECTION_TIMEOUT_MILLIS 300
 #endif
 
-#ifdef OS_DETECTION_ENABLE
-struct setups_data_t {
+static uint16_t usb_setups[STORED_USB_SETUPS];
+static deferred_token timeout_token;
+
+typedef struct {
   uint8_t count;
   uint8_t cnt_02;
   uint8_t cnt_04;
   uint8_t cnt_ff;
   uint16_t last_wlength;
   os_variant_t detected_os;
-};
+} setups_data_t;
 
-struct setups_data_t setups_data = {
+setups_data_t setups_data = {
   .count = 0,
   .cnt_02 = 0,
   .cnt_04 = 0,
@@ -47,8 +44,79 @@ struct setups_data_t setups_data = {
   .detected_os = OS_UNSURE,
 };
 
+static void make_guess(void);
+static uint32_t os_detection_timeout_callback(uint32_t trigger_time, void* cb_arg);
+
+__attribute__((weak)) void os_detection_update_kb(os_variant_t os) {}
+
+void process_wlength(const uint16_t w_length) {
+  if (timeout_token == 0) {
+    setups_data_t empty = {0};
+    setups_data = empty;
+  }
+  if (setups_data.count < STORED_USB_SETUPS) usb_setups[setups_data.count] = w_length;
+  setups_data.count++;
+  setups_data.last_wlength = w_length;
+  if (w_length == 0x2) {
+    setups_data.cnt_02++;
+  } else if (w_length == 0x4) {
+    setups_data.cnt_04++;
+  } else if (w_length == 0xFF) {
+    setups_data.cnt_ff++;
+  }
+  if (timeout_token) {
+    extend_deferred_exec(timeout_token, OS_DETECTION_TIMEOUT_MILLIS);
+  } else {
+    timeout_token = defer_exec(OS_DETECTION_TIMEOUT_MILLIS, os_detection_timeout_callback, NULL);
+  }
+}
+
+os_variant_t detected_host_os(void) { return setups_data.detected_os; }
+
+void send_os_detection_result() {
+  send_string("count: 0x");
+  send_byte(setups_data.count);
+  send_string(",\ncnt_02: 0x");
+  send_byte(setups_data.cnt_02);
+  send_string(",\ncnt_04: 0x");
+  send_byte(setups_data.cnt_04);
+  send_string(",\ncnt_ff: 0x");
+  send_byte(setups_data.cnt_ff);
+  send_string(",\nlast_wlength: 0x");
+  send_byte(setups_data.last_wlength);
+  send_string(",\ndetected_os: ");
+  switch (setups_data.detected_os) {
+    case OS_UNSURE:
+      send_string("'UNSURE'");
+      break;
+    case OS_LINUX:
+      send_string("'LINUX'");
+      break;
+    case OS_WINDOWS:
+      send_string("'WINDOWS'");
+      break;
+    case OS_MACOS:
+      send_string("'MACOS'");
+      break;
+    case OS_IOS:
+      send_string("IOS");
+      break;
+  }
+  send_string(",\nwlengths: [");
+  for (uint8_t i = 0; i < setups_data.count; i++) {
+    if (i >= STORED_USB_SETUPS) break;
+    if (i == 0) {
+      send_string("0x");
+    } else {
+      send_string(", 0x");
+    }
+    send_word(usb_setups[i]);
+  }
+  send_string("]\n");
+}
+
 // Some collected sequences of wLength can be found in tests.
-void make_guess(void) {
+static void make_guess(void) {
   if (setups_data.count < 3) {
     return;
   }
@@ -56,16 +124,27 @@ void make_guess(void) {
     setups_data.detected_os = OS_WINDOWS;
     return;
   }
+
   if (setups_data.count == setups_data.cnt_ff) {
     // Linux has 3 packets with 0xFF.
     setups_data.detected_os = OS_LINUX;
     return;
   }
+
   if (setups_data.count == 5 && setups_data.last_wlength == 0xFF && setups_data.cnt_ff == 1 &&
       setups_data.cnt_02 == 2) {
+    // Mac mini M1
     setups_data.detected_os = OS_MACOS;
     return;
   }
+
+  if (setups_data.count == 7 && setups_data.last_wlength == 0xFF && setups_data.cnt_ff == 1 &&
+      setups_data.cnt_02 == 3) {
+    // iMac Pro
+    setups_data.detected_os = OS_MACOS;
+    return;
+  }
+
   if (setups_data.count == 4 && setups_data.cnt_ff == 0 && setups_data.cnt_02 == 2) {
     // iOS and iPadOS don't have the last 0xFF packet.
     setups_data.detected_os = OS_IOS;
@@ -83,44 +162,9 @@ void make_guess(void) {
   }
 }
 
-void process_wlength(const uint16_t w_length) {
-#  ifdef OS_DETECTION_DEBUG_ENABLE
-  usb_setups[setups_data.count] = w_length;
-#  endif
-  setups_data.count++;
-  setups_data.last_wlength = w_length;
-  if (w_length == 0x2) {
-    setups_data.cnt_02++;
-  } else if (w_length == 0x4) {
-    setups_data.cnt_04++;
-  } else if (w_length == 0xFF) {
-    setups_data.cnt_ff++;
-  }
+static uint32_t os_detection_timeout_callback(uint32_t trigger_time, void* cb_arg) {
+  timeout_token = 0;
   make_guess();
+  os_detection_update_kb(setups_data.detected_os);
+  return 0;
 }
-
-os_variant_t detected_host_os(void) { return setups_data.detected_os; }
-
-void erase_wlength_data(void) { memset(&setups_data, 0, sizeof(setups_data)); }
-#endif  // OS_DETECTION_ENABLE
-
-#ifdef OS_DETECTION_DEBUG_ENABLE
-void print_stored_setups(void) {
-#  ifdef CONSOLE_ENABLE
-  uint8_t cnt = eeprom_read_byte(EEPROM_USER_OFFSET);
-  for (uint16_t i = 0; i < cnt; ++i) {
-    uint16_t* addr = (uint16_t*)EEPROM_USER_OFFSET + i * sizeof(uint16_t) + sizeof(uint8_t);
-    xprintf("i: %d, wLength: 0x%02X\n", i, eeprom_read_word(addr));
-  }
-#  endif
-}
-
-void store_setups_in_eeprom(void) {
-  eeprom_update_byte(EEPROM_USER_OFFSET, setups_data.count);
-  for (uint16_t i = 0; i < setups_data.count; ++i) {
-    uint16_t* addr = (uint16_t*)EEPROM_USER_OFFSET + i * sizeof(uint16_t) + sizeof(uint8_t);
-    eeprom_update_word(addr, usb_setups[i]);
-  }
-}
-
-#endif  // OS_DETECTION_DEBUG_ENABLE

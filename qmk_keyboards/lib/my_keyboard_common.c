@@ -155,23 +155,7 @@ static bool proces_extra_keys(uint16_t keycode, keyrecord_t *record) {
       return false;
     case TEST_OS:
       if (record->event.pressed) {
-        switch (detected_host_os()) {
-          case OS_UNSURE:
-            SEND_STRING("UNSURE");
-            break;
-          case OS_LINUX:
-            SEND_STRING("LINUX");
-            break;
-          case OS_WINDOWS:
-            SEND_STRING("WINDOWS");
-            break;
-          case OS_MACOS:
-            SEND_STRING("MACOS");
-            break;
-          case OS_IOS:
-            SEND_STRING("IOS");
-            break;
-        }
+        send_os_detection_result();
       }
       return false;
   }
