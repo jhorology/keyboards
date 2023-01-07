@@ -18,20 +18,14 @@
 
 #define __ NO_LED
 
-static bool dip_switch_initialized;
-
 const matrix_row_t matrix_mask[] = {
   0b11111111111111, 0b11111111111111, 0b11111111111111, 0b11111111111111, 0b11111111101111,
 };
 
 bool dip_switch_update_user(uint8_t index, bool active) {
+  // active true=windows false=mac
   if (index == 0) {
-    if (!dip_switch_initialized) {
-      custom_config_mac_set_enable_without_reset(!active);
-    } else {
-      custom_config_mac_set_enable(!active);
-    }
-    dip_switch_initialized = true;
+    custom_config_mac_set_enable(!active);
   }
   return true;
 }

@@ -14,6 +14,11 @@ RGB_MATRIX_ENABLE = yes        # Use RGB matrix
 RGB_MATRIX_DRIVER = WS2812
 WS2812_DRIVER = pwm
 
+# os detection debug
+OS_DETECTION_DEBUG_ENABLE = yes
+OPT_DEFS += -DOS_DETECTION_DEBUG_ENABLE
+SEND_STRING_ENABLE = yes
+
 # radial controller
 RADIAL_CONTROLLER_ENABLE = yes
 SRC += lib/radial_controller.c

@@ -113,11 +113,15 @@ module.exports = function (options, defines) {
             shortName: 'RC🫳️'
           }
         ]),
-    {
-      code: 'TEST_OS',
-      name: 'TEST\nOS',
-      title: 'SEND_STRING detected os vairant',
-      shortName: 'OS'
-    }
+    ...(options.OS_DETECTION_DEBUG_ENABLEE !== 'yes'
+      ? []
+      : [
+          {
+            code: 'TEST_OS',
+            name: 'TEST\nOS',
+            title: 'SEND_STRING detected os vairant',
+            shortName: 'OS'
+          }
+        ])
   ]
 }

@@ -19,12 +19,16 @@
 #include <deferred_exec.h>
 #include <send_string.h>
 
-#define STORED_USB_SETUPS 50
 #ifndef OS_DETECTION_TIMEOUT_MILLIS
 #  define OS_DETECTION_TIMEOUT_MILLIS 300
 #endif
 
+#define STORED_USB_SETUPS 50
+
+#ifdef OS_DETECTION_DEBUG_ENABLE
 static uint16_t usb_setups[STORED_USB_SETUPS];
+#endif
+
 static deferred_token timeout_token;
 
 typedef struct {
@@ -36,13 +40,7 @@ typedef struct {
   os_variant_t detected_os;
 } setups_data_t;
 
-setups_data_t setups_data = {
-  .count = 0,
-  .cnt_02 = 0,
-  .cnt_04 = 0,
-  .cnt_ff = 0,
-  .detected_os = OS_UNSURE,
-};
+setups_data_t setups_data = {0};
 
 static void make_guess(void);
 static uint32_t os_detection_timeout_callback(uint32_t trigger_time, void* cb_arg);
@@ -54,7 +52,9 @@ void process_wlength(const uint16_t w_length) {
     setups_data_t empty = {0};
     setups_data = empty;
   }
+#ifdef OS_DETECTION_DEBUG_ENABLE
   if (setups_data.count < STORED_USB_SETUPS) usb_setups[setups_data.count] = w_length;
+#endif
   setups_data.count++;
   setups_data.last_wlength = w_length;
   if (w_length == 0x2) {
@@ -73,6 +73,7 @@ void process_wlength(const uint16_t w_length) {
 
 os_variant_t detected_host_os(void) { return setups_data.detected_os; }
 
+#ifdef OS_DETECTION_DEBUG_ENABLE
 void send_os_detection_result() {
   send_string("count: 0x");
   send_byte(setups_data.count);
@@ -114,6 +115,7 @@ void send_os_detection_result() {
   }
   send_string("]\n");
 }
+#endif
 
 // Some collected sequences of wLength can be found in tests.
 static void make_guess(void) {

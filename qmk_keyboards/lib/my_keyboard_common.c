@@ -153,11 +153,13 @@ static bool proces_extra_keys(uint16_t keycode, keyrecord_t *record) {
     case TERM_LCK:
       host_consumer_send(record->event.pressed ? AL_LOCK : 0);
       return false;
+#ifdef OS_DETECTION_DEBUG_ENABLE
     case TEST_OS:
       if (record->event.pressed) {
         send_os_detection_result();
       }
       return false;
+#endif
   }
   return true;
 }

@@ -148,16 +148,10 @@ static virtual_timer_t pairing_key_timer;
 extern uint8_t g_pwm_buffer[DRIVER_COUNT][192];
 
 static void pairing_key_timer_cb(void *arg) { bluetooth_pairing_ex(*(uint8_t *)arg, NULL); }
-static bool dip_switch_initialized;
 
 bool dip_switch_update_user(uint8_t index, bool active) {
   if (index == 0) {
-    if (!dip_switch_initialized) {
-      custom_config_mac_set_enable_without_reset(!active);
-    } else {
-      custom_config_mac_set_enable(!active);
-    }
-    dip_switch_initialized = true;
+    custom_config_mac_set_enable(!active);
   }
   return true;
 }

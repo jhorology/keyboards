@@ -29,4 +29,7 @@ typedef enum {
 void os_detection_update_kb(os_variant_t);
 void process_wlength(const uint16_t w_length);
 os_variant_t detected_host_os(void);
+
+#ifdef OS_DETECTION_DEBUG_ENABLE
 void send_os_detection_result(void);
+#endif
