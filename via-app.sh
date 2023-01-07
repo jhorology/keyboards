@@ -76,13 +76,20 @@ if (( $#update_via_app )); then
   cd "$VIA_APP_HOME"
 
   git reset --hard HEAD
-  if (( $#fiber )); then
-    git checkout fiber
-  else
-    git checkout main
-  fi
   git clean -dfx
-  git pull
+  CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+  if (( $#fiber )) && [[ "$CURRENT_BRANCH" != "fiber" ]]; then
+    echo "main to fiber"
+    git checkout fiber
+    git pull --rebase
+  elif ! (( $#fiber )) && [[ "$CURRENT_BRANCH" != "main" ]]; then
+    echo "fiber to main"
+    git checkout main
+    git pull --rebase
+  else
+    echo "normal"
+    git pull
+  fi
 
   if (( $#fiber )); then
     for patch in $(ls -v "${PROJECT}/patches/"via_app_fiber*.patch); do
@@ -101,11 +108,11 @@ if (( $#update_via_app )); then
 fi
 
 
-if [ $# = 0 ]; then
+if [[ $# = 0 ]]; then
   print -r "Error: Missing target argument." >&2
   exit 1
 fi
-if [ $# != 1 ]; then
+if [[ $# != 1 ]]; then
   # becuase all my keyboards are assigned same Product/Vendor ID in mac mode.
   print -r "Error: Only one target is allowed." >&2
   exit 1

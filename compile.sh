@@ -75,11 +75,11 @@ local -A VIA_JSON_TARGETS=()
 TARGET_COUNT=$TARGETS[(I)$TARGETS[-1]]
 
 if (( $#flash )); then
-  if [ $# = 0 ]; then
+  if [[ $# = 0 ]]; then
     print -r "Error: Missing target argument." >&2
     exit 1
   fi
-  if [ $# != 1 ]; then
+  if [[ $# != 1 ]]; then
     print -r "Error: Only one target is allowed." >&2
     exit 1
   fi
@@ -94,8 +94,8 @@ for target in $TARGETS; do
   fi
   MAKE_TARGETS=($MAKE_TARGETS $MAKE_TARGET)
   VIA_JSON_TARGETS[$kbd[1]]=$kbd[1]
-  if [ $target = "k6" ]; then
-    if [ $TARGET_COUNT -ge 2 ]; then
+  if [[ $target = "k6" ]]; then
+    if [[ $TARGET_COUNT -ge 2 ]]; then
       print -r "Error: Can't compile k6 together with other keyboards." >&2
       exit 1
     fi
@@ -136,9 +136,9 @@ mkdir -p dist
 cd "$QMK_HOME"
 
 if $KEYCHRON_BT; then
-  [ ! -s keychron_bluetooth_playground ] && UPDATE_QMK=true
+  [[ ! -f keychron_bluetooth_playground ]] && UPDATE_QMK=true
 else
-  [ -s keychron_bluetooth_playground ] && UPDATE_QMK=true
+  [[ -f keychron_bluetooth_playground ]] && UPDATE_QMK=true
 fi
 
 if $UPDATE_QMK; then
@@ -152,7 +152,7 @@ fi
 # patch
 # -----------------------------------
 if $KEYCHRON_BT; then
-  if [ ! -f keychron_bluetooth_playground ]; then
+  if [[ ! -f keychron_bluetooth_playground ]]; then
     patch --verbose -p1 < "${PROJECT}/patches/keychron_bluetooth_playground.patch"
     touch keychron_bluetooth_playground
   fi
@@ -160,7 +160,7 @@ fi
 
 for patch in $(ls -v "${PROJECT}/patches/"qmk_*.patch); do
   patched=${${patch##*/}%.*}
-  if [ ! -f "${patched}" ]; then
+  if [[ ! -f "${patched}" ]]; then
     patch --verbose -p1 < "${patch}"
     touch "${patched}"
   fi
