@@ -85,9 +85,8 @@ module.exports = function (options, defines) {
       title: 'Terminal Lock / Screen Saver',
       shortName: '🖥️🔒'
     },
-    ...(options.RADIAL_CONTROLLER_ENABLE !== 'yes'
-      ? []
-      : [
+    ...(options.RADIAL_CONTROLLER_ENABLE === 'yes'
+      ? [
           {
             code: 'RC_BTN',
             name: 'RC↧️\nBTN️',
@@ -112,16 +111,17 @@ module.exports = function (options, defines) {
             title: 'Dial rotation speed becomes slow',
             shortName: 'RC🫳️'
           }
-        ]),
-    ...(options.OS_DETECTION_DEBUG_ENABLEE !== 'yes'
-      ? []
-      : [
+        ]
+      : []),
+    ...(options.OS_DETECTION_DEBUG_ENABLE === 'yes'
+      ? [
           {
             code: 'TEST_OS',
             name: 'TEST\nOS',
             title: 'SEND_STRING detected os vairant',
             shortName: 'OS'
           }
-        ])
+        ]
+      : [])
   ]
 }
