@@ -26,9 +26,12 @@ typedef enum {
   OS_IOS,
 } os_variant_t;
 
+typedef enum { INITIAL, DETECTING, DETECTED_ON_INTERRUPT, DETECTED_ON_TIMEOUT, IGNORE } os_detection_state_t;
+
 void os_detection_update_kb(os_variant_t);
-void process_wlength(const uint16_t w_length);
+void process_os_detection(const uint8_t dtype, const uint16_t w_length);
 os_variant_t detected_host_os(void);
+os_detection_state_t os_detection_state(void);
 
 #ifdef OS_DETECTION_DEBUG_ENABLE
 void send_os_detection_result(void);

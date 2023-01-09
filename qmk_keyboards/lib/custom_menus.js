@@ -187,6 +187,7 @@ function createTapDanceMenu(size) {
         {
           label: 'Single Tap',
           type: 'keycode',
+          bytes: 2,
           content: [
             `id_custom_td_${i}_single_tap`,
             ID_CUSTOM_TD_CHANNEL_START + i,
@@ -196,6 +197,7 @@ function createTapDanceMenu(size) {
         {
           label: 'Hold',
           type: 'keycode',
+          bytes: 2,
           content: [
             `id_custom_td_${i}_single_hold`,
             ID_CUSTOM_TD_CHANNEL_START + i,
@@ -205,6 +207,7 @@ function createTapDanceMenu(size) {
         {
           label: 'Double Tap',
           type: 'keycode',
+          bytes: 2,
           content: [
             `id_custom_td_${i}_multi_tap`,
             ID_CUSTOM_TD_CHANNEL_START + i,
@@ -214,6 +217,7 @@ function createTapDanceMenu(size) {
         {
           label: 'Tap Hold',
           type: 'keycode',
+          bytes: 2,
           content: [
             `id_custom_td_${i}_tap_hold`,
             ID_CUSTOM_TD_CHANNEL_START + i,
@@ -223,6 +227,7 @@ function createTapDanceMenu(size) {
         {
           label: 'Tapping Term: (50 - 1000 ms)',
           type: 'range',
+          bytes: 2,
           options: [50, 1000],
           content: [
             `id_custom_td_${i}_tapping_term`,
@@ -286,6 +291,7 @@ const NON_MAC_FN_MENU = {
           } || {id_custom_non_mac_fn_mode} == 3`,
           label: `fn + ${e.key}: ${e.desc}`,
           type: 'keycode',
+          bytes: 2,
           content: [
             `id_custom_non_mac_fn_${e.key.toLowerCase()}`,
             ID_CUSTOM_NON_MAC_FN_CHANNEL,
