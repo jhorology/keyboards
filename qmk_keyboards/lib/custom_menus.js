@@ -240,67 +240,80 @@ function createTapDanceMenu(size) {
   }
 }
 
-const NON_MAC_FN_MENU = {
-  label: 'Non-macos fn🌐',
-  content: [
-    {
-      label: 'Settings',
-      content: [
-        {
-          label: 'When mac mode is disabled, fn🌐 key apply to:',
-          type: 'dropdown',
-          options: [
-            ['None', 0],
-            ['F1-12 Key only', 1],
-            ['Alpha Key only', 2],
-            ['Both F1-12 and Alpha', 3]
-          ],
-          content: [
-            'id_custom_non_mac_fn_mode',
-            ID_CUSTOM_NON_MAC_FN_CHANNEL,
-            1
-          ]
-        },
-        ...[
-          // see https://manuals.info.apple.com/MANUALS/2000/MA2010/en_US/magic-keyboard-touchID-03404572-ug.pdf
-          { key: 'F1', desc: 'Decrese brightness of display' },
-          { key: 'F2', desc: 'Increase brightness of display' },
-          { key: 'F3', desc: 'Open Mission Control' },
-          { key: 'F4', desc: 'Open Spotlight' },
-          { key: 'F5', desc: 'Activate dictation' },
-          { key: 'F6', desc: 'Turn Do Not Disturb on or off' },
-          { key: 'F7', desc: 'Media Track prev' },
-          { key: 'F8', desc: 'Media Play/Pause' },
-          { key: 'F9', desc: 'Media Track next' },
-          { key: 'F10', desc: 'Mute sound' },
-          { key: 'F11', desc: 'Decrease volume of sound' },
-          { key: 'F12', desc: 'Increase volume of sound' },
-          { key: 'SPC', desc: 'Hey Siri' },
-          { key: 'Q', desc: 'Quick Notes' },
-          { key: 'E', desc: 'Emoji & Symbols' },
-          { key: 'A', desc: 'Focus Dock' },
-          { key: 'D', desc: 'Dictation' },
-          { key: 'F', desc: 'Toggle Full Screen Mode' },
-          { key: 'H', desc: 'Show Desktop' },
-          { key: 'C', desc: 'Open Control Center' },
-          { key: 'N', desc: 'Open Notification' },
-          { key: 'M', desc: 'Focus Menubar' }
-        ].map((e, i) => ({
-          showIf: `{id_custom_non_mac_fn_mode} == ${
-            i < 12 ? '1' : '2'
-          } || {id_custom_non_mac_fn_mode} == 3`,
-          label: `fn + ${e.key}: ${e.desc}`,
-          type: 'keycode',
-          bytes: 2,
-          content: [
-            `id_custom_non_mac_fn_${e.key.toLowerCase()}`,
-            ID_CUSTOM_NON_MAC_FN_CHANNEL,
-            i + 2
-          ]
-        }))
-      ]
-    }
-  ]
+function createNonMacFnMenu(hasDipSwitch) {
+  return {
+    label: 'Non-macos fn🌐',
+    content: [
+      {
+        label: 'Settings',
+        content: [
+          {
+            label:
+              'Auto-detect mac/non-mac mode' +
+              (hasDipSwitch ? ' *(dip-switch will not work)' : ''),
+            type: 'toggle',
+            content: [
+              'id_custom_non_mac_fn_auto_detect',
+              ID_CUSTOM_NON_MAC_FN_CHANNEL,
+              1
+            ]
+          },
+          {
+            label: 'When mac mode is disabled, fn🌐 key apply to:',
+            type: 'dropdown',
+            options: [
+              ['None', 0],
+              ['F1-12 Key only', 1],
+              ['Alpha Key only', 2],
+              ['Both F1-12 and Alpha', 3]
+            ],
+            content: [
+              'id_custom_non_mac_fn_mode',
+              ID_CUSTOM_NON_MAC_FN_CHANNEL,
+              2
+            ]
+          },
+          ...[
+            // see https://manuals.info.apple.com/MANUALS/2000/MA2010/en_US/magic-keyboard-touchID-03404572-ug.pdf
+            { key: 'F1', desc: 'Decrese brightness of display' },
+            { key: 'F2', desc: 'Increase brightness of display' },
+            { key: 'F3', desc: 'Open Mission Control' },
+            { key: 'F4', desc: 'Open Spotlight' },
+            { key: 'F5', desc: 'Activate dictation' },
+            { key: 'F6', desc: 'Turn Do Not Disturb on or off' },
+            { key: 'F7', desc: 'Media Track prev' },
+            { key: 'F8', desc: 'Media Play/Pause' },
+            { key: 'F9', desc: 'Media Track next' },
+            { key: 'F10', desc: 'Mute sound' },
+            { key: 'F11', desc: 'Decrease volume of sound' },
+            { key: 'F12', desc: 'Increase volume of sound' },
+            { key: 'SPC', desc: 'Hey Siri' },
+            { key: 'Q', desc: 'Quick Notes' },
+            { key: 'E', desc: 'Emoji & Symbols' },
+            { key: 'A', desc: 'Focus Dock' },
+            { key: 'D', desc: 'Dictation' },
+            { key: 'F', desc: 'Toggle Full Screen Mode' },
+            { key: 'H', desc: 'Show Desktop' },
+            { key: 'C', desc: 'Open Control Center' },
+            { key: 'N', desc: 'Open Notification' },
+            { key: 'M', desc: 'Focus Menubar' }
+          ].map((e, i) => ({
+            showIf: `{id_custom_non_mac_fn_mode} == ${
+              i < 12 ? '1' : '2'
+            } || {id_custom_non_mac_fn_mode} == 3`,
+            label: `fn + ${e.key}: ${e.desc}`,
+            type: 'keycode',
+            bytes: 2,
+            content: [
+              `id_custom_non_mac_fn_${e.key.toLowerCase()}`,
+              ID_CUSTOM_NON_MAC_FN_CHANNEL,
+              i + 3
+            ]
+          }))
+        ]
+      }
+    ]
+  }
 }
 
 module.exports = function (options, defines) {
@@ -308,7 +321,7 @@ module.exports = function (options, defines) {
   if (defines.TAP_DANCE_ENTRIES) {
     customMenus.push(createTapDanceMenu(defines.TAP_DANCE_ENTRIES))
   }
-  customMenus.push(NON_MAC_FN_MENU)
+  customMenus.push(createNonMacFnMenu(options.DIP_SWITCH_ENABLE === 'yes'))
   if (options.RADIAL_CONTROLLER_ENABLE === 'yes') {
     customMenus.push(RADIAL_CONTROLLER_MENU)
   }

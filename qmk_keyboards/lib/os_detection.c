@@ -20,33 +20,28 @@
 #include <send_string.h>
 
 #ifndef OS_DETECTION_TIMEOUT_MILLIS
-#  define OS_DETECTION_TIMEOUT_MILLIS 1000
+#  define OS_DETECTION_TIMEOUT_MILLIS 500
 #endif
 
 #define DTYPE_STRING 0x03
+#define DTYPE_CONFIG 0x02
 
 #ifdef OS_DETECTION_DEBUG_ENABLE
-#  define NUM_DESCRIPTOR_REQUESTS 32
-static uint8_t descriptor_requests[NUM_DESCRIPTOR_REQUESTS][2];
-static uint8_t descriptor_requests_count;
+#  define NUM_DESCRIPTOR_REQUESTS 24
+static uint8_t fingerprint[NUM_DESCRIPTOR_REQUESTS][2];
+static uint8_t descriptor_request_count;
+static uint32_t test1;
+static uint32_t test2;
+static uint32_t test3;
 #endif
 
-// static deferred_token timeout_token;
-
-typedef struct {
-  uint8_t count;
-  uint8_t cnt_02;
-  uint8_t cnt_04;
-  uint8_t cnt_ff;
-  uint8_t last_wlength;
-  os_detection_state_t state;
-} setups_data_t;
-
-setups_data_t setups_data = {0};
+static uint32_t wlengths;
+static uint8_t string_count;
+static bool end_detection;
+static deferred_token timeout_token;
 static os_variant_t detected_os;
 
-// static void make_guess(void);
-// static uint32_t os_detection_timeout_callback(uint32_t trigger_time, void* cb_arg);
+static uint32_t os_detection_timeout_callback(uint32_t trigger_time, void* cb_arg);
 
 __attribute__((weak)) void os_detection_update_kb(os_variant_t os) {}
 
@@ -54,156 +49,108 @@ void process_os_detection(const uint8_t dtype, const uint16_t w_length) {
   // don't need hi-byte
   uint8_t wlength = (uint8_t)(w_length > 0xff ? 0 : w_length);
 #ifdef OS_DETECTION_DEBUG_ENABLE
-  if (descriptor_requests_count < NUM_DESCRIPTOR_REQUESTS) {
-    descriptor_requests[descriptor_requests_count][0] = dtype;
-    descriptor_requests[descriptor_requests_count][1] = wlength;
-    descriptor_requests_count++;
+  if (descriptor_request_count < NUM_DESCRIPTOR_REQUESTS) {
+    fingerprint[descriptor_request_count][0] = dtype;
+    fingerprint[descriptor_request_count][1] = wlength;
+    descriptor_request_count++;
   }
 #endif
-  if (dtype == DTYPE_STRING) {
-    setups_data.count++;
-    setups_data.state = DETECTING;
-    setups_data.last_wlength = wlength;
-    if (wlength == 0x2) {
-      setups_data.cnt_02++;
-    } else if (wlength == 0x4) {
-      setups_data.cnt_04++;
-    } else if (wlength == 0xFF) {
-      setups_data.cnt_ff++;
+  if (!end_detection) {
+    if (dtype == DTYPE_STRING) {
+      wlengths <<= 8;
+      wlengths += wlength;
+      string_count++;
+      if (string_count == 3 && (wlengths & 0xff00ffUL) != 0x020002) {
+#ifdef OS_DETECTION_DEBUG_ENABLE
+        test1 = wlengths;
+#endif
+        detected_os = NOT_APPLE_DEVICE;
+        end_detection = true;
+      }
+    } else {
+      if (dtype == DTYPE_CONFIG && string_count == 4 && (wlengths & 0xff00ff00UL) == 0x02000200UL) {
+#ifdef OS_DETECTION_DEBUG_ENABLE
+        test2 = wlengths;
+#endif
+        detected_os = APPLE_DEVICE;
+        end_detection = true;
+      }
+      string_count = 0;
     }
   }
-  // if (timeout_token) {
-  //   extend_deferred_exec(timeout_token, OS_DETECTION_TIMEOUT_MILLIS);
-  // } else {
-  //   timeout_token = defer_exec(OS_DETECTION_TIMEOUT_MILLIS, os_detection_timeout_callback, NULL);
-  // }
+  if (timeout_token) {
+    extend_deferred_exec(timeout_token, OS_DETECTION_TIMEOUT_MILLIS);
+  } else {
+    timeout_token = defer_exec(OS_DETECTION_TIMEOUT_MILLIS, os_detection_timeout_callback, NULL);
+  }
 }
 
 os_variant_t detected_host_os(void) { return detected_os; }
-os_detection_state_t os_detection_state(void) { return setups_data.state; }
 
 #ifdef OS_DETECTION_DEBUG_ENABLE
-void send_os_detection_result() {
-  send_string("count: 0x");
-  send_byte(setups_data.count);
-  send_string(",\ncnt_02: 0x");
-  send_byte(setups_data.cnt_02);
-  send_string(",\ncnt_04: 0x");
-  send_byte(setups_data.cnt_04);
-  send_string(",\ncnt_ff: 0x");
-  send_byte(setups_data.cnt_ff);
-  send_string(",\nlast_wlength: 0x");
-  send_byte(setups_data.last_wlength);
-  send_string(",\nstate: ");
-  switch (setups_data.state) {
-    case INITIAL:
-      send_string("'INITIAL'");
-      break;
-    case DETECTING:
-      send_string("'DETECTING'");
-      break;
-    case DETECTED_ON_INTERRUPT:
-      send_string("'DETECTED_ON_INTERRUPT'");
-      break;
-    case DETECTED_ON_TIMEOUT:
-      send_string("'DETECTED_ON_TIMEOUT'");
-      break;
-    case IGNORE:
-      send_string("'IGNORE'");
-      break;
-  }
+void send_os_fingerprint() {
+  send_string("wlengths: 0x");
+  send_dword(wlengths);
+  send_string("\ntest1: 0x");
+  send_dword(test1);
+  send_string("\ntest2: 0x");
+  send_dword(test2);
+  send_string("\ntest3: 0x");
+  send_dword(test3);
   send_string(",\ndetected_os: ");
   switch (detected_os) {
-    case OS_UNSURE:
+    case UNSURE:
       send_string("'UNSURE'");
       break;
-    case OS_LINUX:
-      send_string("'LINUX'");
+    case APPLE_DEVICE:
+      send_string("'APPLE_DEVICE'");
       break;
-    case OS_WINDOWS:
-      send_string("'WINDOWS'");
-      break;
-    case OS_MACOS:
-      send_string("'MACOS'");
-      break;
-    case OS_IOS:
-      send_string("'IOS'");
+    case NOT_APPLE_DEVICE:
+      send_string("'NOT_APPLE_DEVICE'");
       break;
   }
-  send_string(",\nrequests: [");
-  for (uint8_t i = 0; i < descriptor_requests_count; i++) {
+  send_string(",\nfingerprint: [");
+  for (uint8_t i = 0; i < descriptor_request_count; i++) {
     if (i >= NUM_DESCRIPTOR_REQUESTS) break;
     if (i > 0) {
       send_string(", ");
     }
     send_string("[0x");
-    send_byte(descriptor_requests[i][0]);
+    send_byte(fingerprint[i][0]);
     send_string(", 0x");
-    send_byte(descriptor_requests[i][1]);
+    send_byte(fingerprint[i][1]);
     send_string("]");
   }
   send_string("]\n");
   // clear data
-  setups_data_t empty = {0};
-  setups_data = empty;
-  descriptor_requests_count = 0;
+  descriptor_request_count = 0;
+  test1 = 0;
+  test2 = 0;
+  test3 = 0;
 }
 #endif
 
-/*
-// Some collected sequences of wLength can be found in tests.
-static void make_guess(void) {
-  if (setups_data.count < 3) {
-    return;
-  }
-  if (setups_data.cnt_ff >= 2 && setups_data.cnt_04 >= 1) {
-    detected_os = OS_WINDOWS;
-    return;
-  }
-
-  if (setups_data.count == setups_data.cnt_ff) {
-    // Linux has 3 packets with 0xFF.
-    detected_os = OS_LINUX;
-    return;
-  }
-
-  if (setups_data.count == 5 && setups_data.last_wlength == 0xFF && setups_data.cnt_ff == 1 &&
-      setups_data.cnt_02 == 2) {
-    // Mac mini M1
-    detected_os = OS_MACOS;
-    return;
-  }
-
-  if (setups_data.count == 7 && setups_data.last_wlength == 0xFF && setups_data.cnt_ff == 1 &&
-      setups_data.cnt_02 == 3) {
-    // iMac Pro
-    detected_os = OS_MACOS;
-    return;
-  }
-
-  if (setups_data.count == 4 && setups_data.cnt_ff == 0 && setups_data.cnt_02 == 2) {
-    // iOS and iPadOS don't have the last 0xFF packet.
-    detected_os = OS_IOS;
-    return;
-  }
-  if (setups_data.cnt_ff == 0 && setups_data.cnt_02 == 3 && setups_data.cnt_04 == 1) {
-    // This is actually PS5.
-    detected_os = OS_LINUX;
-    return;
-  }
-  if (setups_data.cnt_ff >= 1 && setups_data.cnt_02 == 0 && setups_data.cnt_04 == 0) {
-    // This is actually Quest 2 or Nintendo Switch.
-    detected_os = OS_LINUX;
-    return;
-  }
-}
-*/
-/*
 static uint32_t os_detection_timeout_callback(uint32_t trigger_time, void* cb_arg) {
+#ifdef OS_DETECTION_DEBUG_ENABLE
+  if (descriptor_request_count < NUM_DESCRIPTOR_REQUESTS) {
+    // end of request sequence
+    fingerprint[descriptor_request_count][0] = 0;
+    fingerprint[descriptor_request_count][1] = 0;
+    descriptor_request_count++;
+  }
+#endif
+  if (!end_detection && string_count >= 3) {
+#ifdef OS_DETECTION_DEBUG_ENABLE
+    test3 = wlengths;
+#endif
+    detected_os = NOT_APPLE_DEVICE;
+    end_detection = true;
+  }
+  if (end_detection) {
+    os_detection_update_kb(detected_os);
+  }
+  string_count = 0;
+  end_detection = false;
   timeout_token = 0;
-  make_guess();
-  setups_data.state = DETECTED_ON_TIMEOUT;
-  os_detection_update_kb(detected_os);
   return 0;
 }
-*/

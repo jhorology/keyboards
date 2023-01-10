@@ -31,6 +31,7 @@ typedef union {
     bool raw_hid : 1;             // allow access to raw hid
     bool usj : 1;                 // ANSI layou on JIS.
     bool mac : 1;                 // mac mode.
+    bool auto_detect : 1;         // auto detect mac/non-mac mode.
     uint8_t non_mac_fn_mode : 2;  // fn override mode for non-macos  0: OFF, 1: F1-12, 2: Alpha, 3: All
   };
 } kb_config_t;
@@ -61,13 +62,17 @@ void custom_config_raw_hid_set_enable(bool);
 void dynamic_none_mac_apple_fn_fkeys_reset(uint16_t *fkeys);
 void dynamic_none_mac_apple_fn_fkeys_keycode(uint8_t fkeys_index);
 
+bool custom_config_usj_is_enable(void);
+void custom_config_usj_toggle_enable(void);
+void custom_config_usj_set_enable(bool);
+
 bool custom_config_mac_is_enable(void);
 void custom_config_mac_toggle_enable(void);
 void custom_config_mac_set_enable(bool);
 
-bool custom_config_usj_is_enable(void);
-void custom_config_usj_toggle_enable(void);
-void custom_config_usj_set_enable(bool);
+bool custom_config_auto_detect_is_enable(void);
+void custom_config_auto_detect_toggle_enable(void);
+void custom_config_auto_detect_set_enable(bool);
 
 void custom_config_mac_set_enable_without_reset(bool);
 uint8_t custom_config_non_mac_fn_get_mode(void);

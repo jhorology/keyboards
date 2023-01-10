@@ -15,6 +15,9 @@
  */
 #include "my_keyboard_common.h"
 
+#include "custom_config.h"
+#include "os_detection.h"
+
 /*
  * pre-defined apple fn functions for non-mac mode.
  */
@@ -67,6 +70,11 @@ static bool proces_extra_keys(uint16_t keycode, keyrecord_t *record);
 //  qmk custom hook functions
 //------------------------------------------
 
+void keyboard_pre_init_kb(void) {
+  custom_config_init();
+  keyboard_pre_init_user();
+}
+
 void via_init_kb(void) {
   if (!via_eeprom_is_valid()) {
     eeconfig_init_kb();
@@ -89,17 +97,18 @@ uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) {
   return TAPPING_TERM;
 }
 
-void keyboard_pre_init_kb(void) {
-  custom_config_init();
-  keyboard_pre_init_user();
-}
-
 void keyboard_post_init_kb(void) {
   tap_dance_actions_init();
   keyboard_post_init_user();
 #if defined(MAC_BASE_LAYER) && defined(NON_MAC_BASE_LAYER)
   default_layer_set(custom_config_mac_is_enable() ? (1 << MAC_BASE_LAYER) : (1 << NON_MAC_BASE_LAYER));
 #endif
+}
+
+void os_detection_update_kb(os_variant_t os) {
+  if (custom_config_auto_detect_is_enable()) {
+    custom_config_mac_set_enable(os == APPLE_DEVICE);
+  }
 }
 
 bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
@@ -156,7 +165,7 @@ static bool proces_extra_keys(uint16_t keycode, keyrecord_t *record) {
 #ifdef OS_DETECTION_DEBUG_ENABLE
     case TEST_OS:
       if (record->event.pressed) {
-        send_os_detection_result();
+        send_os_fingerprint();
       }
       return false;
 #endif

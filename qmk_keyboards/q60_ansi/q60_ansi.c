@@ -25,7 +25,9 @@ const matrix_row_t matrix_mask[] = {
 bool dip_switch_update_user(uint8_t index, bool active) {
   // active true=windows false=mac
   if (index == 0) {
-    custom_config_mac_set_enable(!active);
+    if (!custom_config_auto_detect_is_enable()) {
+      custom_config_mac_set_enable(!active);
+    }
   }
   return true;
 }

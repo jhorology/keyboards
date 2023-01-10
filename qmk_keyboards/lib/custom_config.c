@@ -167,6 +167,26 @@ void custom_config_raw_hid_set_enable(bool enable) {
   }
 }
 
+bool custom_config_usj_is_enable() { return kb_config.usj; }
+
+void custom_config_usj_toggle_enable() { custom_config_usj_set_enable(!kb_config.usj); }
+
+static void _custom_config_usj_set_enable(bool enable) {
+  kb_config.usj = enable;
+#ifdef CUSTOM_CONFIG_USJ_MODE_PIN
+  writePin(CUSTOM_CONFIG_USJ_MODE_PIN, enable);
+#endif
+}
+
+void custom_config_usj_set_enable(bool enable) {
+  if (enable != kb_config.usj) {
+    _custom_config_usj_set_enable(enable);
+#ifndef CUSTOM_CONFIG_FORCE_USJ
+    eeconfig_update_kb(kb_config.raw);
+#endif
+  }
+}
+
 bool custom_config_mac_is_enable() { return kb_config.mac; }
 
 void custom_config_mac_toggle_enable() { custom_config_mac_set_enable(!kb_config.mac); }
@@ -188,32 +208,23 @@ void custom_config_mac_set_enable_without_reset(bool enable) {
   }
 }
 
+bool custom_config_auto_detect_is_enable() { return kb_config.auto_detect; }
+
+void custom_config_auto_detect_toggle_enable() { custom_config_auto_detect_set_enable(!kb_config.auto_detect); }
+
+void custom_config_auto_detect_set_enable(bool enable) {
+  if (enable != kb_config.auto_detect) {
+    kb_config.auto_detect = enable;
+    eeconfig_update_kb(kb_config.raw);
+  }
+}
+
 uint8_t custom_config_non_mac_fn_get_mode() { return kb_config.non_mac_fn_mode; }
 
 void custom_config_non_mac_fn_set_mode(uint8_t mode) {
   if (mode != kb_config.non_mac_fn_mode) {
     kb_config.non_mac_fn_mode = mode;
     eeconfig_update_kb(kb_config.raw);
-  }
-}
-
-bool custom_config_usj_is_enable() { return kb_config.usj; }
-
-void custom_config_usj_toggle_enable() { custom_config_usj_set_enable(!kb_config.usj); }
-
-static void _custom_config_usj_set_enable(bool enable) {
-  kb_config.usj = enable;
-#ifdef CUSTOM_CONFIG_USJ_MODE_PIN
-  writePin(CUSTOM_CONFIG_USJ_MODE_PIN, enable);
-#endif
-}
-
-void custom_config_usj_set_enable(bool enable) {
-  if (enable != kb_config.usj) {
-    _custom_config_usj_set_enable(enable);
-#ifndef CUSTOM_CONFIG_FORCE_USJ
-    eeconfig_update_kb(kb_config.raw);
-#endif
   }
 }
 

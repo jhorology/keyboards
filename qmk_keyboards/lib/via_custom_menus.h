@@ -43,47 +43,48 @@ enum via_custom_magic_value_id {
 
 enum via_custom_rc_value_id {
   id_custom_rc_encoder_clicks = 1,
-  id_custom_rc_key_angular_speed = 2,
-  id_custom_rc_fine_tune_ratio = 3,
-  id_custom_rc_fine_tune_mod_ctrl = 4,
-  id_custom_rc_fine_tune_mod_shift = 5,
-  id_custom_rc_fine_tune_mod_alt = 6,
-  id_custom_rc_fine_tune_mod_gui = 7,
-  id_custom_rc_fine_tune_mod_apple_fn = 8
+  id_custom_rc_key_angular_speed,
+  id_custom_rc_fine_tune_ratio,
+  id_custom_rc_fine_tune_mod_ctrl,
+  id_custom_rc_fine_tune_mod_shift,
+  id_custom_rc_fine_tune_mod_alt,
+  id_custom_rc_fine_tune_mod_gui,
+  id_custom_rc_fine_tune_mod_apple_fn
 };
 
 enum via_custom_td_value_id {
   id_custom_td_single_tap = 1,
-  id_custom_td_single_hold = 2,
-  id_custom_td_multi_tap = 3,
-  id_custom_td_tap_hold = 4,
-  id_custom_td_tapping_term = 5
+  id_custom_td_single_hold,
+  id_custom_td_multi_tap,
+  id_custom_td_tap_hold,
+  id_custom_td_tapping_term
 };
 
 enum via_custom_non_mac_fn_value_id {
-  id_custom_non_mac_fn_mode = 1,
-  id_custom_non_mac_fn_f1 = 2,
-  id_custom_non_mac_fn_f2 = 3,
-  id_custom_non_mac_fn_f3 = 4,
-  id_custom_non_mac_fn_f4 = 5,
-  id_custom_non_mac_fn_f5 = 6,
-  id_custom_non_mac_fn_f6 = 7,
-  id_custom_non_mac_fn_f7 = 8,
-  id_custom_non_mac_fn_f8 = 9,
-  id_custom_non_mac_fn_f9 = 10,
-  id_custom_non_mac_fn_f10 = 11,
-  id_custom_non_mac_fn_f11 = 12,
-  id_custom_non_mac_fn_f12 = 13,
-  id_custom_non_mac_fn_spc = 14,  // Hey Siri
-  id_custom_non_mac_fn_q = 15,    // Qick Notes
-  id_custom_non_mac_fn_e = 16,    // Emoji & Symbols
-  id_custom_non_mac_fn_a = 17,    // Focus Dock
-  id_custom_non_mac_fn_d = 18,    // Start Dictation
-  id_custom_non_mac_fn_f = 19,    // Toggle full screen mode
-  id_custom_non_mac_fn_h = 20,    // Show Desktop
-  id_custom_non_mac_fn_c = 21,    // Show Control Cnecter
-  id_custom_non_mac_fn_n = 22,    // Show Notification
-  id_custom_non_mac_fn_m = 23     // Focus Menubar
+  id_custom_non_mac_auto_detect = 1,
+  id_custom_non_mac_fn_mode,
+  id_custom_non_mac_fn_f1,
+  id_custom_non_mac_fn_f2,
+  id_custom_non_mac_fn_f3,
+  id_custom_non_mac_fn_f4,
+  id_custom_non_mac_fn_f5,
+  id_custom_non_mac_fn_f6,
+  id_custom_non_mac_fn_f7,
+  id_custom_non_mac_fn_f8,
+  id_custom_non_mac_fn_f9,
+  id_custom_non_mac_fn_f10,
+  id_custom_non_mac_fn_f11,
+  id_custom_non_mac_fn_f12,
+  id_custom_non_mac_fn_spc,  // Hey Siri
+  id_custom_non_mac_fn_q,    // Qick Notes
+  id_custom_non_mac_fn_e,    // Emoji & Symbols
+  id_custom_non_mac_fn_a,    // Focus Dock
+  id_custom_non_mac_fn_d,    // Start Dictation
+  id_custom_non_mac_fn_f,    // Toggle full screen mode
+  id_custom_non_mac_fn_h,    // Show Desktop
+  id_custom_non_mac_fn_c,    // Show Control Cnecter
+  id_custom_non_mac_fn_n,    // Show Notification
+  id_custom_non_mac_fn_m     // Focus Menubar
 };
 
 void via_custom_magic_get_value(uint8_t value_id, uint8_t *value_data);

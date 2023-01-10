@@ -151,7 +151,9 @@ static void pairing_key_timer_cb(void *arg) { bluetooth_pairing_ex(*(uint8_t *)a
 
 bool dip_switch_update_user(uint8_t index, bool active) {
   if (index == 0) {
-    custom_config_mac_set_enable(!active);
+    if (!custom_config_auto_detect_is_enable()) {
+      custom_config_mac_set_enable(!active);
+    }
   }
   return true;
 }

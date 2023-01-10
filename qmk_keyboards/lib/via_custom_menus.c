@@ -313,6 +313,9 @@ void via_custom_non_mac_fn_set_value(uint8_t value_id, uint8_t *value_data) {
   uprintf("via_custom_non_mac_fn_set_value:value_id:%d value:%02X %02X\n", value_id, value_data[0], value_data[1]);
 #endif
   switch (value_id) {
+    case id_custom_non_mac_auto_detect:
+      custom_config_auto_detect_set_enable(value_data[0]);
+      break;
     case id_custom_non_mac_fn_mode:
       custom_config_non_mac_fn_set_mode(value_data[0]);
       break;
