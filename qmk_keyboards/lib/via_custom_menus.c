@@ -292,6 +292,9 @@ void via_custom_td_save(uint8_t td_index) {
 
 void via_custom_non_mac_fn_get_value(uint8_t value_id, uint8_t *value_data) {
   switch (value_id) {
+    case id_custom_non_mac_auto_detect:
+      value_data[0] = custom_config_auto_detect_is_enable();
+      break;
     case id_custom_non_mac_fn_mode:
       value_data[0] = custom_config_non_mac_fn_get_mode();
       break;
