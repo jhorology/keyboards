@@ -107,7 +107,7 @@ void keyboard_post_init_kb(void) {
 
 void os_detection_update_kb(os_variant_t os) {
   if (custom_config_auto_detect_is_enable()) {
-    custom_config_mac_set_enable(os == APPLE_DEVICE);
+    custom_config_mac_set_enable(os == DARWIN);
   }
 }
 

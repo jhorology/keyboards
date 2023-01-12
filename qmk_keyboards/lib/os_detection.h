@@ -18,9 +18,7 @@
 
 #include <stdint.h>
 
-typedef enum { UNSURE, APPLE_DEVICE, NOT_APPLE_DEVICE } os_variant_t;
-
-typedef enum { INITIAL, DETECTING, DETECTED_ON_INTERRUPT, DETECTED_ON_TIMEOUT, IGNORE } os_detection_state_t;
+typedef enum { UNSURE, DARWIN, NOT_DARWIN } os_variant_t;
 
 void os_detection_update_kb(os_variant_t);
 void process_os_detection(const uint8_t dtype, const uint16_t w_length);

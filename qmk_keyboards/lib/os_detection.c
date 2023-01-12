@@ -64,7 +64,10 @@ void process_os_detection(const uint8_t dtype, const uint16_t w_length) {
 #ifdef OS_DETECTION_DEBUG_ENABLE
         test1 = wlengths;
 #endif
-        detected_os = NOT_APPLE_DEVICE;
+        detected_os = NOT_DARWIN;
+#ifdef OS_DETECTION_NOTIFY_IMMEDIATELY
+        os_detection_update_kb(detected_os);
+#endif
         end_detection = true;
       }
     } else {
@@ -72,7 +75,11 @@ void process_os_detection(const uint8_t dtype, const uint16_t w_length) {
 #ifdef OS_DETECTION_DEBUG_ENABLE
         test2 = wlengths;
 #endif
-        detected_os = APPLE_DEVICE;
+        detected_os = DARWIN;
+#ifdef OS_DETECTION_NOTIFY_IMMEDIATELY
+        // TODO resting inside hook causes freez
+        os_detection_update_kb(detected_os);
+#endif
         end_detection = true;
       }
       string_count = 0;
@@ -102,11 +109,11 @@ void send_os_fingerprint() {
     case UNSURE:
       send_string("'UNSURE'");
       break;
-    case APPLE_DEVICE:
-      send_string("'APPLE_DEVICE'");
+    case DARWIN:
+      send_string("'DARWIN'");
       break;
-    case NOT_APPLE_DEVICE:
-      send_string("'NOT_APPLE_DEVICE'");
+    case NOT_DARWIN:
+      send_string("'NOT_DARWIN'");
       break;
   }
   send_string(",\nfingerprint: [");
@@ -143,12 +150,17 @@ static uint32_t os_detection_timeout_callback(uint32_t trigger_time, void* cb_ar
 #ifdef OS_DETECTION_DEBUG_ENABLE
     test3 = wlengths;
 #endif
-    detected_os = NOT_APPLE_DEVICE;
+    detected_os = NOT_DARWIN;
+#ifdef OS_DETECTION_NOTIFY_IMMEDIATELY
+    os_detection_update_kb(detected_os);
+#endif
     end_detection = true;
   }
+#ifndef OS_DETECTION_NOTIFY_IMMEDIATELY
   if (end_detection) {
     os_detection_update_kb(detected_os);
   }
+#endif
   string_count = 0;
   end_detection = false;
   timeout_token = 0;
