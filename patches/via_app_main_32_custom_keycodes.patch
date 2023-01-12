@@ -1,8 +1,8 @@
-diff --git a/src/utils/key-to-byte/default.json5 b/src/utils/key-to-byte/default.json5
-index 2c6aa4c..c4898e7 100644
---- a/src/utils/key-to-byte/default.json5
-+++ b/src/utils/key-to-byte/default.json5
-@@ -353,6 +353,22 @@
+diff --git a/src/utils/key-to-byte/default.ts b/src/utils/key-to-byte/default.ts
+index 76d87f9..0c48d9a 100644
+--- a/src/utils/key-to-byte/default.ts
++++ b/src/utils/key-to-byte/default.ts
+@@ -356,6 +356,22 @@ export default {
    USER13: 0x5f8d,
    USER14: 0x5f8e,
    USER15: 0x5f8f,
@@ -25,11 +25,38 @@ index 2c6aa4c..c4898e7 100644
    SPC_FN1: 0x412c,
    SPC_FN2: 0x422c,
    SPC_FN3: 0x432c,
-diff --git a/src/utils/key-to-byte/v11.json5 b/src/utils/key-to-byte/v11.json5
-index a81a404..6dae91f 100644
---- a/src/utils/key-to-byte/v11.json5
-+++ b/src/utils/key-to-byte/v11.json5
-@@ -540,6 +540,22 @@
+diff --git a/src/utils/key-to-byte/v10.ts b/src/utils/key-to-byte/v10.ts
+index 1dc53fd..fc60c23 100644
+--- a/src/utils/key-to-byte/v10.ts
++++ b/src/utils/key-to-byte/v10.ts
+@@ -356,6 +356,22 @@ export default {
+   USER13: 0x5f8d,
+   USER14: 0x5f8e,
+   USER15: 0x5f8f,
++  USER16: 0x5f90,
++  USER17: 0x5f91,
++  USER18: 0x5f92,
++  USER19: 0x5f93,
++  USER20: 0x5f94,
++  USER21: 0x5f95,
++  USER22: 0x5f96,
++  USER23: 0x5f97,
++  USER24: 0x5f98,
++  USER25: 0x5f99,
++  USER26: 0x5f9a,
++  USER27: 0x5f9b,
++  USER28: 0x5f9c,
++  USER29: 0x5f9d,
++  USER30: 0x5f9e,
++  USER31: 0x5f9f,
+   SPC_FN1: 0x412c,
+   SPC_FN2: 0x422c,
+   SPC_FN3: 0x432c,
+diff --git a/src/utils/key-to-byte/v11.ts b/src/utils/key-to-byte/v11.ts
+index a5839c6..ba2808b 100644
+--- a/src/utils/key-to-byte/v11.ts
++++ b/src/utils/key-to-byte/v11.ts
+@@ -542,6 +542,22 @@ export default {
    USER13: 0x7f0d,
    USER14: 0x7f0e,
    USER15: 0x7f0f,
@@ -53,10 +80,10 @@ index a81a404..6dae91f 100644
    SPC_FN2: 0x422c,
    SPC_FN3: 0x432c,
 diff --git a/src/utils/key.ts b/src/utils/key.ts
-index cd0bf03..6625c1c 100644
+index 59afcb2..5acc157 100644
 --- a/src/utils/key.ts
 +++ b/src/utils/key.ts
-@@ -198,7 +198,7 @@ export function isUserKeycodeByte(
+@@ -232,7 +232,7 @@ export function isUserKeycodeByte(
    byte: number,
    basicKeyToByte: Record<string, number>,
  ) {
@@ -65,7 +92,7 @@ index cd0bf03..6625c1c 100644
  }
  
  export function getUserKeycodeIndex(
-@@ -1343,6 +1343,22 @@ export function getKeycodes(): IKeycodeMenu[] {
+@@ -1377,6 +1377,22 @@ export function getKeycodes(): IKeycodeMenu[] {
          {name: 'User13', code: 'USER13', title: 'Custom Keycode 13'},
          {name: 'User14', code: 'USER14', title: 'Custom Keycode 14'},
          {name: 'User15', code: 'USER15', title: 'Custom Keycode 15'},

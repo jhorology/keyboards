@@ -224,9 +224,11 @@ static void ckbt51_param_init(void) {
                           .pairing_mode = 0,
                           .reconnect_timeout = 5,
                           .report_rate = 90,
-                          .vendor_id_source = 1,
-                          .verndor_id = 0,  // Must be 0x3434
-                          .product_id = PRODUCT_ID};
+                          .rsvd1 = 0xff,
+                          .rsvd2 = 0xff,
+                          .vendor_id_source = 0xff,
+                          .verndor_id = ALTERNATE_VENDOR_ID,  // Must be 0x3434
+                          .product_id = ALTERNATE_PRODUCT_ID};
   ckbt51_set_param(&param);
 }
 

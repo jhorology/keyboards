@@ -1,8 +1,8 @@
 diff --git a/src/utils/key-to-byte/default.ts b/src/utils/key-to-byte/default.ts
-index e56f7cf..8b70ad9 100644
+index 9b97430..5707307 100644
 --- a/src/utils/key-to-byte/default.ts
 +++ b/src/utils/key-to-byte/default.ts
-@@ -384,6 +384,22 @@ export default {
+@@ -353,6 +353,22 @@ export default {
    USER13: 0x5f8d,
    USER14: 0x5f8e,
    USER15: 0x5f8f,
@@ -26,10 +26,10 @@ index e56f7cf..8b70ad9 100644
    SPC_FN2: 0x422c,
    SPC_FN3: 0x432c,
 diff --git a/src/utils/key-to-byte/v10.ts b/src/utils/key-to-byte/v10.ts
-index e4e404b..6515f02 100644
+index c831217..2a38bed 100644
 --- a/src/utils/key-to-byte/v10.ts
 +++ b/src/utils/key-to-byte/v10.ts
-@@ -384,6 +384,22 @@ export default {
+@@ -353,6 +353,22 @@ export default {
    USER13: 0x5f8d,
    USER14: 0x5f8e,
    USER15: 0x5f8f,
@@ -53,10 +53,10 @@ index e4e404b..6515f02 100644
    SPC_FN2: 0x422c,
    SPC_FN3: 0x432c,
 diff --git a/src/utils/key-to-byte/v11.ts b/src/utils/key-to-byte/v11.ts
-index af1aff3..3d4f263 100644
+index a056a3a..1061bc0 100644
 --- a/src/utils/key-to-byte/v11.ts
 +++ b/src/utils/key-to-byte/v11.ts
-@@ -536,6 +536,22 @@ export default {
+@@ -539,6 +539,22 @@ export default {
    USER13: 0x7f0d,
    USER14: 0x7f0e,
    USER15: 0x7f0f,
@@ -80,7 +80,7 @@ index af1aff3..3d4f263 100644
    SPC_FN2: 0x422c,
    SPC_FN3: 0x432c,
 diff --git a/src/utils/key.ts b/src/utils/key.ts
-index e4a6bc8..404d69a 100644
+index 7b6fe64..445aaa4 100644
 --- a/src/utils/key.ts
 +++ b/src/utils/key.ts
 @@ -252,7 +252,7 @@ export function isUserKeycodeByte(
@@ -92,7 +92,7 @@ index e4a6bc8..404d69a 100644
  }
  
  export function getUserKeycodeIndex(
-@@ -1397,6 +1397,22 @@ export function getKeycodes(): IKeycodeMenu[] {
+@@ -1018,6 +1018,22 @@ export function getKeycodes(): IKeycodeMenu[] {
          {name: 'User13', code: 'USER13', title: 'Custom Keycode 13'},
          {name: 'User14', code: 'USER14', title: 'Custom Keycode 14'},
          {name: 'User15', code: 'USER15', title: 'Custom Keycode 15'},
