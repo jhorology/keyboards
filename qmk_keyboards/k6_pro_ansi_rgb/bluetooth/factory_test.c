@@ -51,6 +51,7 @@ enum {
   FACTORY_TEST_CMD_INT_PIN,
   FACTORY_TEST_CMD_GET_TRANSPORT,
   FACTORY_TEST_CMD_CHARGING_ADC,
+  FACTORY_TEST_CMD_RADIO_CARRIER,
 };
 
 enum {
@@ -181,6 +182,7 @@ bool led_matrix_indicators_user(void) {
   if (factory_reset_ind_state) {
     led_matrix_set_value_all(factory_reset_ind_state % 2 ? 0 : 255);
   }
+
   return false;
 }
 #endif
@@ -188,6 +190,7 @@ bool led_matrix_indicators_user(void) {
 #ifdef RGB_MATRIX_ENABLE
 bool rgb_matrix_indicators_user(void) {
   if (factory_reset_ind_state) {
+    backlight_test_mode = BACKLIGHT_TEST_OFF;
     rgb_matrix_set_color_all(factory_reset_ind_state % 2 ? 0 : 255, 0, 0);
   } else if (backlight_test_mode) {
     switch (backlight_test_mode) {
@@ -205,6 +208,7 @@ bool rgb_matrix_indicators_user(void) {
         break;
     }
   }
+
   return false;
 }
 #endif
@@ -241,8 +245,10 @@ void factory_test_rx(uint8_t *data, uint8_t length) {
     /* Verify checksum */
     if ((checksum & 0xFF) != data[RAW_EPSIZE - 2] || checksum >> 8 != data[RAW_EPSIZE - 1]) return;
 
+#ifdef KC_BLUETOOTH_ENABLE
     uint8_t payload[32];
     uint8_t len = 0;
+#endif
 
     switch (data[1]) {
       case FACTORY_TEST_CMD_BACKLIGHT:
@@ -258,6 +264,7 @@ void factory_test_rx(uint8_t *data, uint8_t length) {
       case FACTORY_TEST_CMD_JUMP_TO_BL:
         // if (memcmp(&data[2], "JumpToBootloader", strlen("JumpToBootloader")) == 0) bootloader_jump();
         break;
+#ifdef KC_BLUETOOTH_ENABLE
       case FACTORY_TEST_CMD_INT_PIN:
         switch (data[2]) {
           /* Enalbe/disable test */
@@ -283,6 +290,7 @@ void factory_test_rx(uint8_t *data, uint8_t length) {
         payload[len++] = readPin(USB_POWER_SENSE_PIN);
         factory_test_send(payload, len);
         break;
+#endif
 #ifdef BATTERY_CHARGE_DONE_DETECT_ADC
       case FACTORY_TEST_CMD_CHARGING_ADC:
       case 0xA1:
@@ -294,12 +302,18 @@ void factory_test_rx(uint8_t *data, uint8_t length) {
         factory_test_send(payload, len);
         break;
 #endif
+      case FACTORY_TEST_CMD_RADIO_CARRIER:
+        if (data[2] < 79) ckbt51_radio_test(data[2]);
+        break;
     }
   }
 }
 
 bool dip_switch_update_user(uint8_t index, bool active) {
   if (report_os_sw_state) {
+#ifdef INVERT_OS_SWITCH_STATE
+    active = !active;
+#endif
     uint8_t payload[3] = {FACTORY_TEST_CMD_OS_SWITCH, OS_SWITCH, active};
     factory_test_send(payload, 3);
   }

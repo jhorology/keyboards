@@ -83,7 +83,7 @@ void lpm_task(void) {
   }
 
   if (get_transport() == TRANSPORT_BLUETOOTH && lpm_time_up && !indicator_is_running() &&
-      rgb_matrix_is_driver_shutdown() && !lpm_any_matrix_action())
+      rgb_matrix_is_driver_shutdown() && !lpm_any_matrix_action() && !battery_power_on_sample())
 
     enter_power_mode(LOW_POWER_MODE);
 }

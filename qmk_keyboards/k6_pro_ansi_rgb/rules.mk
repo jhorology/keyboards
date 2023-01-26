@@ -40,7 +40,8 @@ SRC += \
   bluetooth/lpm.c \
   bluetooth/lpm_stm32l432.c \
   bluetooth/battery.c \
-  bluetooth/bat_level_animation.c
+  bluetooth/bat_level_animation.c \
+  bluetooth/rtc_timer.c
 
 KEYCHRON_BLUETOOTH_DIR := $(dir $(lastword $(MAKEFILE_LIST)))bluetooth
 VPATH += $(KEYCHRON_BLUETOOTH_DIR)

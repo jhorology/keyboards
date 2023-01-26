@@ -163,26 +163,37 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
   if (get_transport() == TRANSPORT_BLUETOOTH) {
     lpm_timer_reset();
-  }
 
-  switch (keycode) {
-    case BT_HST1 ... BT_HST3:
-      if (get_transport() == TRANSPORT_BLUETOOTH) {
-        if (record->event.pressed) {
-          host_idx = keycode - BT_HST1 + 1;
-          chVTSet(&pairing_key_timer, TIME_MS2I(2000), (vtfunc_t)pairing_key_timer_cb, &host_idx);
-          bluetooth_connect_ex(host_idx, 0);
-        } else {
-          host_idx = 0;
-          chVTReset(&pairing_key_timer);
+#if defined(BAT_LOW_LED_PIN) || defined(LOW_BAT_IND_INDEX)
+    if (battery_is_empty() && bluetooth_get_state() == BLUETOOTH_CONNECTED && record->event.pressed) {
+#  if defined(BAT_LOW_LED_PIN)
+      indicator_battery_low_enable(true);
+#  endif
+#  if defined(LOW_BAT_IND_INDEX)
+      indicator_battery_low_backlit_enable(true);
+#  endif
+    }
+#endif
+
+    switch (keycode) {
+      case BT_HST1 ... BT_HST3:
+        if (get_transport() == TRANSPORT_BLUETOOTH) {
+          if (record->event.pressed) {
+            host_idx = keycode - BT_HST1 + 1;
+            chVTSet(&pairing_key_timer, TIME_MS2I(2000), (vtfunc_t)pairing_key_timer_cb, &host_idx);
+            bluetooth_connect_ex(host_idx, 0);
+          } else {
+            host_idx = 0;
+            chVTReset(&pairing_key_timer);
+          }
         }
-      }
-      return false;
-    case BAT_LVL:
-      if (get_transport() == TRANSPORT_BLUETOOTH && !usb_power_connected()) {
-        bat_level_animiation_start(battery_get_percentage());
-      }
-      return false;
+        return false;
+      case BAT_LVL:
+        if (get_transport() == TRANSPORT_BLUETOOTH && !usb_power_connected()) {
+          bat_level_animiation_start(battery_get_percentage());
+        }
+        return false;
+    }
   }
   return true;
 }
@@ -254,13 +265,6 @@ void bluetooth_pre_task(void) {
       mode = readPin(USB_BT_MODE_SELECT_PIN);
       set_transport(mode == 0 ? TRANSPORT_BLUETOOTH : TRANSPORT_USB);
     }
-  }
-}
-
-void battery_measure(void) {
-  if (rgb_matrix_is_enabled()) {
-    ckbt51_read_state_reg(0x05, 0x02);
-    return;
   }
 }
 

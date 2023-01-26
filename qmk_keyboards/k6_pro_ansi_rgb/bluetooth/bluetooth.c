@@ -19,6 +19,7 @@
 #include "indicator.h"
 #include "lpm.h"
 #include "report_buffer.h"
+#include "rtc_timer.h"
 #include "transport.h"
 
 extern uint8_t pairing_indication;
@@ -101,6 +102,7 @@ void bluetooth_init(void) {
 #endif
 
   lpm_init();
+  rtc_timer_init();
 }
 
 /*
@@ -211,8 +213,11 @@ static void bluetooth_enter_connected(uint8_t host_idx) {
 #endif
 
   bluetooth_enter_connected_kb(host_idx);
-
-  if (battery_is_empty()) indicator_battery_low_enable(true);
+#ifdef BAT_LOW_LED_PIN
+  if (battery_is_empty()) {
+    indicator_battery_low_enable(true);
+  }
+#endif
 }
 
 /* Enters disconnected state. Upon entering this state we perform the following actions:
@@ -234,7 +239,12 @@ static void bluetooth_enter_disconnected(uint8_t host_idx) {
 #endif
   retry = 0;
   bluetooth_enter_disconnected_kb(host_idx);
+#ifdef BAT_LOW_LED_PIN
   indicator_battery_low_enable(false);
+#endif
+#if defined(LOW_BAT_IND_INDEX)
+  indicator_battery_low_backlit_enable(false);
+#endif
 }
 
 /* Enter pin code entry state. */
@@ -366,18 +376,20 @@ void bluetooth_send_consumer(uint16_t data) {
 }
 
 void bluetooth_send_extra(report_extra_t *report) {
-  switch (report->report_id) {
-    case REPORT_ID_CONSUMER:
-      bluetooth_send_consumer(report->usage);
-      break;
-    case REPORT_ID_SYSTEM:
-      bluetooth_send_system(report->usage);
-      break;
+  if (report->report_id == REPORT_ID_SYSTEM) {
+    bluetooth_send_system(report->usage);
+  } else if (report->report_id == REPORT_ID_CONSUMER) {
+    bluetooth_send_consumer(report->usage);
   }
 }
 
 void bluetooth_low_battery_shutdown(void) {
+#ifdef BAT_LOW_LED_PIN
   indicator_battery_low_enable(false);
+#endif
+#if defined(LOW_BAT_IND_INDEX)
+  indicator_battery_low_backlit_enable(false);
+#endif
   bluetooth_disconnect();
 }
 
@@ -433,4 +445,4 @@ void bluetooth_task(void) {
   lpm_task();
 }
 
-bluetooth_state_t bluetooth_get_state(void) { return bt_state; };
+bluetooth_state_t bluetooth_get_state(void) { return bt_state; }

@@ -154,6 +154,7 @@
 
 #define DIM_CAPS_LOCK
 #define CAPS_LOCK_INDEX 30
+#define LOW_BAT_IND_INDEX 61
 
 #if __has_include("secure_config.h")
 #  include "secure_config.h"

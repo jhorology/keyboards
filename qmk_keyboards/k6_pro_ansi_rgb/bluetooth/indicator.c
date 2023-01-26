@@ -20,6 +20,10 @@
 #include "bat_level_animation.h"
 #include "battery.h"
 #include "bluetooth_config.h"
+#include "eeprom.h"
+#include "i2c_master.h"
+#include "rgb_matrix.h"
+#include "rtc_timer.h"
 #include "transport.h"
 
 #define DECIDE_TIME(t, duration) (duration == 0 ? RGB_MATRIX_TIMEOUT_INFINITE : ((t > duration) ? t : duration))
@@ -42,11 +46,37 @@ static bluetooth_state_t indicator_state;
 static uint16_t next_period;
 static indicator_type_t type;
 static uint32_t indicator_timer_buffer = 0;
-static uint32_t battery_low_indicator = 0;
+
+#if defined(BAT_LOW_LED_PIN)
+static uint32_t bat_low_pin_indicator = 0;
+static uint32_t bat_low_blink_duration = 0;
+#endif
+
+#if defined(LOW_BAT_IND_INDEX)
+static uint32_t bat_low_backlit_indicator = 0;
+static uint8_t bat_low_ind_state = 0;
+static uint32_t rtc_time = 0;
+#endif
 
 backlight_state_t original_backlight_state;
 
 static uint8_t host_led_matrix_list[HOST_DEVICES_COUNT] = HOST_LED_MATRIX_LIST;
+
+#ifdef HOST_LED_PIN_LIST
+static pin_t host_led_pin_list[HOST_DEVICES_COUNT] = HOST_LED_PIN_LIST;
+#endif
+
+#define LED_DRIVER rgb_matrix_driver
+#define SET_ALL_LED_OFF() rgb_matrix_set_color_all(0, 0, 0)
+#define SET_LED_OFF(idx) rgb_matrix_set_color(idx, 0, 0, 0)
+#define SET_LED_ON(idx) rgb_matrix_set_color(idx, 255, 255, 255)
+#define SET_LED_BT(idx) rgb_matrix_set_color(idx, 0, 0, 255)
+#define SET_LED_LOW_BAT(idx) rgb_matrix_set_color(idx, 255, 0, 0)
+#define LED_DRIVER_EECONFIG_RELOAD()                                                     \
+  eeprom_read_block(&rgb_matrix_config, EECONFIG_RGB_MATRIX, sizeof(rgb_matrix_config)); \
+  if (!rgb_matrix_config.mode) {                                                         \
+    eeconfig_update_rgb_matrix_default();                                                \
+  }
 
 void indicator_init(void) {
   memset(&indicator_config, 0, sizeof(indicator_config));
@@ -78,14 +108,18 @@ static inline void indicator_reset_backlit_time(void) { rgb_matrix_disable_time_
 
 bool indicator_is_enabled(void) { return rgb_matrix_is_enabled(); }
 
-void indicator_eeconfig_reload(void) {
-  eeprom_read_block(&rgb_matrix_config, EECONFIG_RGB_MATRIX, sizeof(rgb_matrix_config));
-  if (!rgb_matrix_config.mode) {
-    eeconfig_update_rgb_matrix_default();
-  }
-}
+void indicator_eeconfig_reload(void) { LED_DRIVER_EECONFIG_RELOAD(); }
 
-bool indicator_is_running(void) { return !!indicator_config.value; }
+bool indicator_is_running(void) {
+  return
+#if defined(BAT_LOW_LED_PIN)
+    bat_low_blink_duration ||
+#endif
+#if defined(LOW_BAT_IND_INDEX)
+    bat_low_ind_state ||
+#endif
+    !!indicator_config.value;
+}
 
 static void indicator_timer_cb(void *arg) {
   if (*(indicator_type_t *)arg != INDICATOR_LAST) type = *(indicator_type_t *)arg;
@@ -173,7 +207,7 @@ static void indicator_timer_cb(void *arg) {
   if (time_up) {
     /* Set indicator to off on timeup, avoid keeping light up until next update in raindrop effect */
     indicator_config.value = indicator_config.value & 0x0F;
-    rgb_matrix_indicators_kb();
+    rgb_matrix_indicators_user();
     indicator_config.value = 0;
   }
 
@@ -210,6 +244,9 @@ void indicator_set(bluetooth_state_t state, uint8_t host_index) {
 
   switch (state) {
     case BLUETOOTH_DISCONNECTED:
+#ifdef HOST_LED_PIN_LIST
+      writePin(host_led_pin_list[host_index - 1], !HOST_LED_PIN_ON_STATE);
+#endif
       INDICATOR_SET(disconnected);
       indicator_config.value = (indicator_config.type == INDICATOR_NONE) ? 0 : host_index;
       indicator_timer_cb((void *)&indicator_config.type);
@@ -273,10 +310,85 @@ void indicator_stop(void) {
   }
 }
 
-void indicator_battery_low_enable(bool enable) {
-  battery_low_indicator = enable ? (sync_timer_read32() | 1) : 0;
 #ifdef BAT_LOW_LED_PIN
-  if (!enable) writePin(BAT_LOW_LED_PIN, !BAT_LOW_LED_PIN_ON_STATE);
+void indicator_battery_low_enable(bool enable) {
+  if (enable) {
+    if (bat_low_blink_duration == 0) {
+      bat_low_blink_duration = bat_low_pin_indicator = sync_timer_read32() | 1;
+    } else
+      bat_low_blink_duration = sync_timer_read32() | 1;
+  } else
+    writePin(BAT_LOW_LED_PIN, !BAT_LOW_LED_PIN_ON_STATE);
+}
+#endif
+
+#if defined(LOW_BAT_IND_INDEX)
+void indicator_battery_low_backlit_enable(bool enable) {
+  if (enable) {
+    uint32_t t = rtc_timer_read_ms();
+    /* Check overflow */
+    if (rtc_time > t) {
+      if (bat_low_ind_state == 0)
+        rtc_time = t;  // Update rtc_time if indicating is not running
+      else {
+        rtc_time += t;
+      }
+    }
+    /* Indicating at first time or after the interval */
+    if ((rtc_time == 0 || t - rtc_time > LOW_BAT_LED_TRIG_INTERVAL) && bat_low_ind_state == 0) {
+      bat_low_backlit_indicator = enable ? (timer_read32() | 1) : 0;
+      rtc_time = rtc_timer_read_ms();
+      bat_low_ind_state = 1;
+
+      indicator_enable();
+    }
+  } else {
+    rtc_time = 0;
+    bat_low_ind_state = 0;
+
+    indicator_eeconfig_reload();
+    if (!rgb_matrix_is_enabled()) indicator_disable();
+  }
+}
+#endif
+
+void indicator_battery_low(void) {
+#ifdef BAT_LOW_LED_PIN
+  if (bat_low_pin_indicator && sync_timer_elapsed32(bat_low_pin_indicator) > (LOW_BAT_LED_BLINK_PERIOD)) {
+    togglePin(BAT_LOW_LED_PIN);
+    bat_low_pin_indicator = sync_timer_read32() | 1;
+    // Turn off low battery indication if we reach the duration
+    if (sync_timer_elapsed32(bat_low_blink_duration) > LOW_BAT_LED_BLINK_DURATION &&
+        palReadLine(BAT_LOW_LED_PIN) != BAT_LOW_LED_PIN_ON_STATE) {
+      bat_low_blink_duration = bat_low_pin_indicator = 0;
+    }
+  }
+#endif
+#if defined(LOW_BAT_IND_INDEX)
+  if (bat_low_ind_state) {
+    if ((bat_low_ind_state & 0x0F) <= (LOW_BAT_LED_BLINK_TIMES) &&
+        sync_timer_elapsed32(bat_low_backlit_indicator) > (LOW_BAT_LED_BLINK_PERIOD)) {
+      if (bat_low_ind_state & 0x80) {
+        bat_low_ind_state &= 0x7F;
+        bat_low_ind_state++;
+      } else {
+        bat_low_ind_state |= 0x80;
+      }
+
+      bat_low_backlit_indicator = sync_timer_read32() | 1;
+
+      /*  Restore backligth state */
+      if ((bat_low_ind_state & 0x0F) > (LOW_BAT_LED_BLINK_TIMES)) {
+#  if defined(NUM_LOCK_INDEX) || defined(CAPS_LOCK_INDEX) || defined(SCROLL_LOCK_INDEX) || \
+    defined(COMPOSE_LOCK_INDEX) || defined(KANA_LOCK_INDEX)
+        if (rgb_matrix_driver_allow_shutdown())
+#  endif
+          indicator_disable();
+      }
+    } else if ((bat_low_ind_state & 0x0F) > (LOW_BAT_LED_BLINK_TIMES)) {
+      bat_low_ind_state = 0;
+    }
+  }
 #endif
 }
 
@@ -288,54 +400,58 @@ void indicator_task(void) {
     indicator_timer_buffer = sync_timer_read32();
   }
 
-  if (battery_low_indicator && sync_timer_elapsed32(battery_low_indicator) > LOW_BAT_ON_OFF_DURATION) {
-#ifdef BAT_LOW_LED_PIN
-    togglePin(BAT_LOW_LED_PIN);
-#endif
-    battery_low_indicator = sync_timer_read32() | 1;
-  }
+  indicator_battery_low();
 }
 
 static void os_state_indicate(void) {
 #if defined(NUM_LOCK_INDEX)
   if (host_keyboard_led_state().num_lock) {
-    rgb_matrix_set_color(NUM_LOCK_INDEX, 255, 255, 255);
+    SET_LED_ON(NUM_LOCK_INDEX);
   }
 #endif
 #if defined(CAPS_LOCK_INDEX)
   if (host_keyboard_led_state().caps_lock) {
 #  if defined(DIM_CAPS_LOCK)
-    rgb_matrix_set_color(CAPS_LOCK_INDEX, 0, 0, 0);
+    SET_LED_OFF(CAPS_LOCK_INDEX);
 #  else
-    rgb_matrix_set_color(CAPS_LOCK_INDEX, 255, 255, 255);
+    SET_LED_ON(CAPS_LOCK_INDEX);
 #  endif
   }
 #endif
 #if defined(SCROLL_LOCK_INDEX)
   if (host_keyboard_led_state().scroll_lock) {
-    rgb_matrix_set_color(SCROLL_LOCK_INDEX, 255, 255, 255);
+    SET_LED_ON(SCROLL_LOCK_INDEX);
   }
 #endif
 #if defined(COMPOSE_LOCK_INDEX)
   if (host_keyboard_led_state().compose) {
-    rgb_matrix_set_color(COMPOSE_LOCK_INDEX, 255, 255, 255);
+    SET_LED_ON(COMPOSE_LOCK_INDEX);
   }
 #endif
 #if defined(KANA_LOCK_INDEX)
   if (host_keyboard_led_state().kana) {
-    rgb_matrix_set_color(KANA_LOCK_INDEX, 255, 255, 255);
+    SET_LED_ON(KANA_LOCK_INDEX);
   }
 #endif
 }
 
-bool rgb_matrix_indicators_user(void) {
+bool rgb_matrix_indicator_user(void) {
   if (get_transport() == TRANSPORT_BLUETOOTH) {
     /* Prevent backlight flash caused by key activities */
     if (battery_is_critical_low()) {
-      rgb_matrix_set_color_all(0, 0, 0);
+      SET_ALL_LED_OFF();
       return false;
     }
 
+#if (defined(LED_MATRIX_ENABLE) || defined(RGB_MATRIX_ENABLE)) && defined(LOW_BAT_IND_INDEX)
+    if (battery_is_empty()) SET_ALL_LED_OFF();
+    if (bat_low_ind_state && (bat_low_ind_state & 0x0F) <= LOW_BAT_LED_BLINK_TIMES) {
+      if (bat_low_ind_state & 0x80)
+        SET_LED_LOW_BAT(LOW_BAT_IND_INDEX);
+      else
+        SET_LED_OFF(LOW_BAT_IND_INDEX);
+    }
+#endif
     if (bat_level_animiation_actived()) {
       bat_level_animiation_indicate();
     }
@@ -345,35 +461,36 @@ bool rgb_matrix_indicators_user(void) {
       uint8_t host_index = indicator_config.value & 0x0F;
 
       if (indicator_config.highlight) {
-        rgb_matrix_set_color_all(0, 0, 0);
+        SET_ALL_LED_OFF();
       } else if (last_host_index != host_index) {
-        rgb_matrix_set_color(host_led_matrix_list[last_host_index - 1], 0, 0, 0);
+        SET_LED_OFF(host_led_matrix_list[last_host_index - 1]);
         last_host_index = host_index;
       }
 
       if (indicator_config.value & 0x80) {
-        rgb_matrix_set_color(host_led_matrix_list[last_host_index - 1], 0, 0, 255);
+        SET_LED_BT(host_led_matrix_list[host_index - 1]);
       } else {
-        rgb_matrix_set_color(host_led_matrix_list[last_host_index - 1], 0, 0, 0);
+        SET_LED_OFF(host_led_matrix_list[host_index - 1]);
       }
     } else
       os_state_indicate();
 
   } else
     os_state_indicate();
+
   return false;
 }
 
 bool led_update_user(led_t led_state) {
   if (!rgb_matrix_is_enabled()) {
 #ifdef RGB_MATRIX_DRIVER_SHUTDOWN_ENABLE
-    rgb_matrix_driver.exit_shutdown();
+    LED_DRIVER.exit_shutdown();
 #endif
-    rgb_matrix_set_color_all(0, 0, 0);
+    SET_ALL_LED_OFF();
     os_state_indicate();
-    rgb_matrix_driver.flush();
+    LED_DRIVER.flush();
 #ifdef RGB_MATRIX_DRIVER_SHUTDOWN_ENABLE
-    if (rgb_matrix_driver_allow_shutdown()) rgb_matrix_driver.shutdown();
+    if (rgb_matrix_driver_allow_shutdown()) LED_DRIVER.shutdown();
 #endif
   }
   return true;
