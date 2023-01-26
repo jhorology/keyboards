@@ -64,7 +64,7 @@ This is a personal project for my own keyboards.
 | shift + F14 (Scroll Lock) | MO(2) + shift + O | Swap focused window counter clockwise |
 | shift + F15 (Pause) | MO(2) + shift + P | Swap focused window clockwise |
 | cmd + F14 (Scroll Lock) | MO(2) + cmd + O | Throw focused window to space left |
-| cmd + F15 (Pause) | MO(2) + cmd + P | Throw focused window to space left |
+| cmd + F15 (Pause) | MO(2) + cmd + P | Throw focused window to space right |
 | F16 | MO(2) + Q | Force windows to be reevaluated |
 
 ## References
