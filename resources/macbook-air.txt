@@ -1,0 +1,585 @@
+mac-hid-dump:
+0000 0000: Apple -
+DESCRIPTOR:
+  05  01  09  06  a1  01  85  01  05  07  19  e0  29  e7  15  00
+  25  01  75  01  95  08  81  02  95  01  75  08  81  01  95  05
+  75  01  05  08  19  01  29  05  91  02  95  01  75  03  91  01
+  95  06  75  08  15  00  26  ff  00  05  07  19  00  29  ff  81
+  00  05  0c  75  01  95  01  09  b8  15  00  25  01  81  02  05
+  ff  09  03  75  07  95  01  81  02  c0  05  0c  09  01  a1  01
+  85  52  15  00  25  01  75  01  95  01  09  cd  81  02  09  b3
+  81  02  09  b4  81  02  09  b5  81  02  09  b6  81  02  81  01
+  81  01  81  01  85  09  15  00  25  01  75  08  95  01  06  01
+  ff  09  0b  b1  02  75  08  95  02  b1  01  c0  06  00  ff  09
+  06  a1  01  06  00  ff  09  06  15  00  26  ff  00  75  08  95
+  40  85  3f  81  22  76  00  40  95  02  b1  01  c0
+  (189 bytes)
+
+0x05, 0x01,        // Usage Page (Generic Desktop Ctrls)
+0x09, 0x06,        // Usage (Keyboard)
+0xA1, 0x01,        // Collection (Application)
+0x85, 0x01,        //   Report ID (1)
+0x05, 0x07,        //   Usage Page (Kbrd/Keypad)
+0x19, 0xE0,        //   Usage Minimum (0xE0)
+0x29, 0xE7,        //   Usage Maximum (0xE7)
+0x15, 0x00,        //   Logical Minimum (0)
+0x25, 0x01,        //   Logical Maximum (1)
+0x75, 0x01,        //   Report Size (1)
+0x95, 0x08,        //   Report Count (8)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x95, 0x01,        //   Report Count (1)
+0x75, 0x08,        //   Report Size (8)
+0x81, 0x01,        //   Input (Const,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x95, 0x05,        //   Report Count (5)
+0x75, 0x01,        //   Report Size (1)
+0x05, 0x08,        //   Usage Page (LEDs)
+0x19, 0x01,        //   Usage Minimum (Num Lock)
+0x29, 0x05,        //   Usage Maximum (Kana)
+0x91, 0x02,        //   Output (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+0x95, 0x01,        //   Report Count (1)
+0x75, 0x03,        //   Report Size (3)
+0x91, 0x01,        //   Output (Const,Array,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+0x95, 0x06,        //   Report Count (6)
+0x75, 0x08,        //   Report Size (8)
+0x15, 0x00,        //   Logical Minimum (0)
+0x26, 0xFF, 0x00,  //   Logical Maximum (255)
+0x05, 0x07,        //   Usage Page (Kbrd/Keypad)
+0x19, 0x00,        //   Usage Minimum (0x00)
+0x29, 0xFF,        //   Usage Maximum (0xFF)
+0x81, 0x00,        //   Input (Data,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x05, 0x0C,        //   Usage Page (Consumer)
+0x75, 0x01,        //   Report Size (1)
+0x95, 0x01,        //   Report Count (1)
+0x09, 0xB8,        //   Usage (Eject)
+0x15, 0x00,        //   Logical Minimum (0)
+0x25, 0x01,        //   Logical Maximum (1)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x05, 0xFF,        //   Usage Page (Reserved 0xFF)
+0x09, 0x03,        //   Usage (0x03)
+0x75, 0x07,        //   Report Size (7)
+0x95, 0x01,        //   Report Count (1)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0xC0,              // End Collection
+0x05, 0x0C,        // Usage Page (Consumer)
+0x09, 0x01,        // Usage (Consumer Control)
+0xA1, 0x01,        // Collection (Application)
+0x85, 0x52,        //   Report ID (82)
+0x15, 0x00,        //   Logical Minimum (0)
+0x25, 0x01,        //   Logical Maximum (1)
+0x75, 0x01,        //   Report Size (1)
+0x95, 0x01,        //   Report Count (1)
+0x09, 0xCD,        //   Usage (Play/Pause)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x09, 0xB3,        //   Usage (Fast Forward)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x09, 0xB4,        //   Usage (Rewind)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x09, 0xB5,        //   Usage (Scan Next Track)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x09, 0xB6,        //   Usage (Scan Previous Track)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x81, 0x01,        //   Input (Const,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x81, 0x01,        //   Input (Const,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x81, 0x01,        //   Input (Const,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x85, 0x09,        //   Report ID (9)
+0x15, 0x00,        //   Logical Minimum (0)
+0x25, 0x01,        //   Logical Maximum (1)
+0x75, 0x08,        //   Report Size (8)
+0x95, 0x01,        //   Report Count (1)
+0x06, 0x01, 0xFF,  //   Usage Page (Vendor Defined 0xFF01)
+0x09, 0x0B,        //   Usage (0x0B)
+0xB1, 0x02,        //   Feature (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+0x75, 0x08,        //   Report Size (8)
+0x95, 0x02,        //   Report Count (2)
+0xB1, 0x01,        //   Feature (Const,Array,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+0xC0,              // End Collection
+0x06, 0x00, 0xFF,  // Usage Page (Vendor Defined 0xFF00)
+0x09, 0x06,        // Usage (0x06)
+0xA1, 0x01,        // Collection (Application)
+0x06, 0x00, 0xFF,  //   Usage Page (Vendor Defined 0xFF00)
+0x09, 0x06,        //   Usage (0x06)
+0x15, 0x00,        //   Logical Minimum (0)
+0x26, 0xFF, 0x00,  //   Logical Maximum (255)
+0x75, 0x08,        //   Report Size (8)
+0x95, 0x40,        //   Report Count (64)
+0x85, 0x3F,        //   Report ID (63)
+0x81, 0x22,        //   Input (Data,Var,Abs,No Wrap,Linear,No Preferred State,No Null Position)
+0x76, 0x00, 0x40,  //   Report Size (16384)
+0x95, 0x02,        //   Report Count (2)
+0xB1, 0x01,        //   Feature (Const,Array,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+0xC0,              // End Collection
+
+0000 0000: Apple - Headset
+DESCRIPTOR:
+  05  0c  09  01  a1  01  05  0c  09  cd  09  ea  09  e9  15  00
+  25  01  95  03  75  01  81  02  95  05  81  05  c0
+  (29 bytes)
+
+0x05, 0x0C,        // Usage Page (Consumer)
+0x09, 0x01,        // Usage (Consumer Control)
+0xA1, 0x01,        // Collection (Application)
+0x05, 0x0C,        //   Usage Page (Consumer)
+0x09, 0xCD,        //   Usage (Play/Pause)
+0x09, 0xEA,        //   Usage (Volume Decrement)
+0x09, 0xE9,        //   Usage (Volume Increment)
+0x15, 0x00,        //   Logical Minimum (0)
+0x25, 0x01,        //   Logical Maximum (1)
+0x95, 0x03,        //   Report Count (3)
+0x75, 0x01,        //   Report Size (1)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x95, 0x05,        //   Report Count (5)
+0x81, 0x05,        //   Input (Const,Array,Rel,No Wrap,Linear,Preferred State,No Null Position)
+0xC0,              // End Collection
+
+
+0000 0000: Apple -
+DESCRIPTOR:
+  06  00  ff  09  0b  a1  01  06  00  ff  09  0b  15  00  26  ff
+  00  75  08  96  04  00  85  e0  81  22  76  00  40  95  02  b1
+  01  c0
+  (34 bytes)
+
+0x06, 0x00, 0xFF,  // Usage Page (Vendor Defined 0xFF00)
+0x09, 0x0B,        // Usage (0x0B)
+0xA1, 0x01,        // Collection (Application)
+0x06, 0x00, 0xFF,  //   Usage Page (Vendor Defined 0xFF00)
+0x09, 0x0B,        //   Usage (0x0B)
+0x15, 0x00,        //   Logical Minimum (0)
+0x26, 0xFF, 0x00,  //   Logical Maximum (255)
+0x75, 0x08,        //   Report Size (8)
+0x96, 0x04, 0x00,  //   Report Count (4)
+0x85, 0xE0,        //   Report ID (-32)
+0x81, 0x22,        //   Input (Data,Var,Abs,No Wrap,Linear,No Preferred State,No Null Position)
+0x76, 0x00, 0x40,  //   Report Size (16384)
+0x95, 0x02,        //   Report Count (2)
+0xB1, 0x01,        //   Feature (Const,Array,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+0xC0,              // End Collection
+
+05AC 8104: Apple -
+DESCRIPTOR:
+  06  00  ff  0a  09  00  a1  01  15  00  26  ff  00  75  08  95
+  16  81  02  c0
+  (20 bytes)
+
+0x06, 0x00, 0xFF,  // Usage Page (Vendor Defined 0xFF00)
+0x0A, 0x09, 0x00,  // Usage (0x09)
+0xA1, 0x01,        // Collection (Application)
+0x15, 0x00,        //   Logical Minimum (0)
+0x26, 0xFF, 0x00,  //   Logical Maximum (255)
+0x75, 0x08,        //   Report Size (8)
+0x95, 0x16,        //   Report Count (22)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0xC0,              // End Collection
+
+
+05AC 8104: Apple -
+DESCRIPTOR:
+  05  20  09  8a  a1  01  85  01  0a  7f  04  46  68  01  34  26
+  68  01  14  75  09  95  01  81  02  65  14  85  02  0a  0b  03
+  45  ff  34  25  ff  14  75  08  95  01  81  02  85  03  0a  07
+  03  47  ff  ff  ff  7f  34  27  ff  ff  ff  7f  14  75  20  95
+  01  81  02  47  01  00  00  00  34  27  01  00  00  00  14  75
+  08  95  01  81  02  85  04  0a  03  03  45  03  34  25  03  14
+  75  08  95  01  81  02  85  05  0a  84  04  45  02  34  25  02
+  14  75  08  95  01  81  02  85  06  0a  44  05  45  01  34  25
+  01  14  75  08  95  01  91  02  85  07  0a  45  05  47  a0  8c
+  00  00  34  27  a0  8c  00  00  14  75  32  95  01  55  0e  81
+  02  85  08  0a  46  05  45  02  34  25  02  14  75  08  95  01
+  81  02  c0
+  (179 bytes)
+
+0x05, 0x20,        // Usage Page (0x20)
+0x09, 0x8A,        // Usage (0x8A)
+0xA1, 0x01,        // Collection (Application)
+0x85, 0x01,        //   Report ID (1)
+0x0A, 0x7F, 0x04,  //   Usage (0x047F)
+0x46, 0x68, 0x01,  //   Physical Maximum (360)
+0x34,              //   Physical Minimum
+0x26, 0x68, 0x01,  //   Logical Maximum (360)
+0x14,              //   Logical Minimum
+0x75, 0x09,        //   Report Size (9)
+0x95, 0x01,        //   Report Count (1)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x65, 0x14,        //   Unit (System: English Rotation, Length: Centimeter)
+0x85, 0x02,        //   Report ID (2)
+0x0A, 0x0B, 0x03,  //   Usage (0x030B)
+0x45, 0xFF,        //   Physical Maximum (-1)
+0x34,              //   Physical Minimum
+0x25, 0xFF,        //   Logical Maximum (-1)
+0x14,              //   Logical Minimum
+0x75, 0x08,        //   Report Size (8)
+0x95, 0x01,        //   Report Count (1)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x85, 0x03,        //   Report ID (3)
+0x0A, 0x07, 0x03,  //   Usage (0x0307)
+0x47, 0xFF, 0xFF, 0xFF, 0x7F,  //   Physical Maximum (2147483646)
+0x34,              //   Physical Minimum
+0x27, 0xFF, 0xFF, 0xFF, 0x7F,  //   Logical Maximum (2147483646)
+0x14,              //   Logical Minimum
+0x75, 0x20,        //   Report Size (32)
+0x95, 0x01,        //   Report Count (1)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x47, 0x01, 0x00, 0x00, 0x00,  //   Physical Maximum (0)
+0x34,              //   Physical Minimum
+0x27, 0x01, 0x00, 0x00, 0x00,  //   Logical Maximum (0)
+0x14,              //   Logical Minimum
+0x75, 0x08,        //   Report Size (8)
+0x95, 0x01,        //   Report Count (1)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x85, 0x04,        //   Report ID (4)
+0x0A, 0x03, 0x03,  //   Usage (0x0303)
+0x45, 0x03,        //   Physical Maximum (3)
+0x34,              //   Physical Minimum
+0x25, 0x03,        //   Logical Maximum (3)
+0x14,              //   Logical Minimum
+0x75, 0x08,        //   Report Size (8)
+0x95, 0x01,        //   Report Count (1)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x85, 0x05,        //   Report ID (5)
+0x0A, 0x84, 0x04,  //   Usage (0x0484)
+0x45, 0x02,        //   Physical Maximum (2)
+0x34,              //   Physical Minimum
+0x25, 0x02,        //   Logical Maximum (2)
+0x14,              //   Logical Minimum
+0x75, 0x08,        //   Report Size (8)
+0x95, 0x01,        //   Report Count (1)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x85, 0x06,        //   Report ID (6)
+0x0A, 0x44, 0x05,  //   Usage (0x0544)
+0x45, 0x01,        //   Physical Maximum (1)
+0x34,              //   Physical Minimum
+0x25, 0x01,        //   Logical Maximum (1)
+0x14,              //   Logical Minimum
+0x75, 0x08,        //   Report Size (8)
+0x95, 0x01,        //   Report Count (1)
+0x91, 0x02,        //   Output (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+0x85, 0x07,        //   Report ID (7)
+0x0A, 0x45, 0x05,  //   Usage (0x0545)
+0x47, 0xA0, 0x8C, 0x00, 0x00,  //   Physical Maximum (35999)
+0x34,              //   Physical Minimum
+0x27, 0xA0, 0x8C, 0x00, 0x00,  //   Logical Maximum (35999)
+0x14,              //   Logical Minimum
+0x75, 0x32,        //   Report Size (50)
+0x95, 0x01,        //   Report Count (1)
+0x55, 0x0E,        //   Unit Exponent (-2)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x85, 0x08,        //   Report ID (8)
+0x0A, 0x46, 0x05,  //   Usage (0x0546)
+0x45, 0x02,        //   Physical Maximum (2)
+0x34,              //   Physical Minimum
+0x25, 0x02,        //   Logical Maximum (2)
+0x14,              //   Logical Minimum
+0x75, 0x08,        //   Report Size (8)
+0x95, 0x01,        //   Report Count (1)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0xC0,              // End Collection
+
+
+0000 0000: Apple -
+DESCRIPTOR:
+  06  0c  ff  09  01  a1  01  85  00  15  00  26  ff  00  75  08
+  95  05  81  02  c0
+  (21 bytes)
+
+0x06, 0x0C, 0xFF,  // Usage Page (Vendor Defined 0xFF0C)
+0x09, 0x01,        // Usage (0x01)
+0xA1, 0x01,        // Collection (Application)
+0x85, 0x00,        //   Report ID (0)
+0x15, 0x00,        //   Logical Minimum (0)
+0x26, 0xFF, 0x00,  //   Logical Maximum (255)
+0x75, 0x08,        //   Report Size (8)
+0x95, 0x05,        //   Report Count (5)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0xC0,              // End Collection
+
+
+0000 0000: Apple -
+DESCRIPTOR:
+  06  00  ff  09  0d  a1  01  06  00  ff  09  0d  15  00  26  ff
+  00  75  08  85  3f  96  0f  00  81  02  09  0d  85  53  96  3f
+  00  91  02  76  00  40  95  02  b1  01  c0
+  (43 bytes)
+
+0x06, 0x00, 0xFF,  // Usage Page (Vendor Defined 0xFF00)
+0x09, 0x0D,        // Usage (0x0D)
+0xA1, 0x01,        // Collection (Application)
+0x06, 0x00, 0xFF,  //   Usage Page (Vendor Defined 0xFF00)
+0x09, 0x0D,        //   Usage (0x0D)
+0x15, 0x00,        //   Logical Minimum (0)
+0x26, 0xFF, 0x00,  //   Logical Maximum (255)
+0x75, 0x08,        //   Report Size (8)
+0x85, 0x3F,        //   Report ID (63)
+0x96, 0x0F, 0x00,  //   Report Count (15)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x09, 0x0D,        //   Usage (0x0D)
+0x85, 0x53,        //   Report ID (83)
+0x96, 0x3F, 0x00,  //   Report Count (63)
+0x91, 0x02,        //   Output (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+0x76, 0x00, 0x40,  //   Report Size (16384)
+0x95, 0x02,        //   Report Count (2)
+0xB1, 0x01,        //   Feature (Const,Array,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+0xC0,              // End Collection
+
+
+0000 0000: Apple -
+DESCRIPTOR:
+  06  00  ff  0a  ff  00  a1  01  15  00  26  ff  00  75  08  95
+  01  81  02  c0
+  (20 bytes)
+
+0x06, 0x00, 0xFF,  // Usage Page (Vendor Defined 0xFF00)
+0x0A, 0xFF, 0x00,  // Usage (0xFF)
+0xA1, 0x01,        // Collection (Application)
+0x15, 0x00,        //   Logical Minimum (0)
+0x26, 0xFF, 0x00,  //   Logical Maximum (255)
+0x75, 0x08,        //   Report Size (8)
+0x95, 0x01,        //   Report Count (1)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0xC0,              // End Collection
+
+
+05AC 0000:  - Keyboard Backlight
+DESCRIPTOR:
+  06  00  ff  0a  0f  00  a1  01  85  01  67  e1  00  00  01  55
+  0d  06  70  ff  09  01  16  64  00  26  44  39  75  20  95  01
+  b1  42  09  02  66  01  10  55  0d  15  00  27  ff  ff  00  00
+  75  20  95  01  b1  42  85  03  09  03  15  00  25  01  75  08
+  95  01  b1  42  09  04  66  01  10  55  0d  15  00  27  ff  ff
+  00  00  75  20  95  01  b1  42  c0
+  (89 bytes)
+
+0x06, 0x00, 0xFF,  // Usage Page (Vendor Defined 0xFF00)
+0x0A, 0x0F, 0x00,  // Usage (0x0F)
+0xA1, 0x01,        // Collection (Application)
+0x85, 0x01,        //   Report ID (1)
+0x67, 0xE1, 0x00, 0x00, 0x01,  //   Unit (System: SI Linear, Luminous Intensity: Candela)
+0x55, 0x0D,        //   Unit Exponent (-3)
+0x06, 0x70, 0xFF,  //   Usage Page (Vendor Defined 0xFF70)
+0x09, 0x01,        //   Usage (0x01)
+0x16, 0x64, 0x00,  //   Logical Minimum (100)
+0x26, 0x44, 0x39,  //   Logical Maximum (14660)
+0x75, 0x20,        //   Report Size (32)
+0x95, 0x01,        //   Report Count (1)
+0xB1, 0x42,        //   Feature (Data,Var,Abs,No Wrap,Linear,Preferred State,Null State,Non-volatile)
+0x09, 0x02,        //   Usage (0x02)
+0x66, 0x01, 0x10,  //   Unit (System: SI Linear, Time: Seconds)
+0x55, 0x0D,        //   Unit Exponent (-3)
+0x15, 0x00,        //   Logical Minimum (0)
+0x27, 0xFF, 0xFF, 0x00, 0x00,  //   Logical Maximum (65534)
+0x75, 0x20,        //   Report Size (32)
+0x95, 0x01,        //   Report Count (1)
+0xB1, 0x42,        //   Feature (Data,Var,Abs,No Wrap,Linear,Preferred State,Null State,Non-volatile)
+0x85, 0x03,        //   Report ID (3)
+0x09, 0x03,        //   Usage (0x03)
+0x15, 0x00,        //   Logical Minimum (0)
+0x25, 0x01,        //   Logical Maximum (1)
+0x75, 0x08,        //   Report Size (8)
+0x95, 0x01,        //   Report Count (1)
+0xB1, 0x42,        //   Feature (Data,Var,Abs,No Wrap,Linear,Preferred State,Null State,Non-volatile)
+0x09, 0x04,        //   Usage (0x04)
+0x66, 0x01, 0x10,  //   Unit (System: SI Linear, Time: Seconds)
+0x55, 0x0D,        //   Unit Exponent (-3)
+0x15, 0x00,        //   Logical Minimum (0)
+0x27, 0xFF, 0xFF, 0x00, 0x00,  //   Logical Maximum (65534)
+0x75, 0x20,        //   Report Size (32)
+0x95, 0x01,        //   Report Count (1)
+0xB1, 0x42,        //   Feature (Data,Var,Abs,No Wrap,Linear,Preferred State,Null State,Non-volatile)
+0xC0,              // End Collection
+
+
+05AC 8104: Apple -
+DESCRIPTOR:
+  06  00  ff  0a  03  00  a1  01  15  00  26  ff  00  75  08  95
+  16  81  02  c0
+  (20 bytes)
+
+0x06, 0x00, 0xFF,  // Usage Page (Vendor Defined 0xFF00)
+0x0A, 0x03, 0x00,  // Usage (0x03)
+0xA1, 0x01,        // Collection (Application)
+0x15, 0x00,        //   Logical Minimum (0)
+0x26, 0xFF, 0x00,  //   Logical Maximum (255)
+0x75, 0x08,        //   Report Size (8)
+0x95, 0x16,        //   Report Count (22)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0xC0,              // End Collection
+
+
+0000 0000: Apple -
+DESCRIPTOR:
+  06  0c  ff  09  05  a1  01  85  00  15  00  26  ff  00  75  08
+  95  58  81  02  c0
+  (21 bytes)
+
+0x06, 0x0C, 0xFF,  // Usage Page (Vendor Defined 0xFF0C)
+0x09, 0x05,        // Usage (0x05)
+0xA1, 0x01,        // Collection (Application)
+0x85, 0x00,        //   Report ID (0)
+0x15, 0x00,        //   Logical Minimum (0)
+0x26, 0xFF, 0x00,  //   Logical Maximum (255)
+0x75, 0x08,        //   Report Size (8)
+0x95, 0x58,        //   Report Count (88)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0xC0,              // End Collection
+
+
+0000 0000: Apple -
+DESCRIPTOR:
+  06  00  ff  09  03  a1  01  06  00  ff  09  03  15  00  26  ff
+  00  85  c0  96  6b  00  75  08  81  02  76  00  40  95  02  b1
+  01  c0
+  (34 bytes)
+
+0x06, 0x00, 0xFF,  // Usage Page (Vendor Defined 0xFF00)
+0x09, 0x03,        // Usage (0x03)
+0xA1, 0x01,        // Collection (Application)
+0x06, 0x00, 0xFF,  //   Usage Page (Vendor Defined 0xFF00)
+0x09, 0x03,        //   Usage (0x03)
+0x15, 0x00,        //   Logical Minimum (0)
+0x26, 0xFF, 0x00,  //   Logical Maximum (255)
+0x85, 0xC0,        //   Report ID (-64)
+0x96, 0x6B, 0x00,  //   Report Count (107)
+0x75, 0x08,        //   Report Size (8)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x76, 0x00, 0x40,  //   Report Size (16384)
+0x95, 0x02,        //   Report Count (2)
+0xB1, 0x01,        //   Feature (Const,Array,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+0xC0,              // End Collection
+
+
+0000 0000: APPL - BTM
+DESCRIPTOR:
+  06  00  ff  0a  48  00  a1  01  06  29  ff  85  01  25  7f  95
+  01  75  08  09  01  b1  02  09  02  b1  02  09  25  a1  03  85
+  02  24  76  98  3e  09  03  81  22  09  04  76  b8  03  b1  02
+  c0  c0
+  (50 bytes)
+
+0x06, 0x00, 0xFF,  // Usage Page (Vendor Defined 0xFF00)
+0x0A, 0x48, 0x00,  // Usage (0x48)
+0xA1, 0x01,        // Collection (Application)
+0x06, 0x29, 0xFF,  //   Usage Page (Vendor Defined 0xFF29)
+0x85, 0x01,        //   Report ID (1)
+0x25, 0x7F,        //   Logical Maximum (127)
+0x95, 0x01,        //   Report Count (1)
+0x75, 0x08,        //   Report Size (8)
+0x09, 0x01,        //   Usage (0x01)
+0xB1, 0x02,        //   Feature (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+0x09, 0x02,        //   Usage (0x02)
+0xB1, 0x02,        //   Feature (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+0x09, 0x25,        //   Usage (0x25)
+0xA1, 0x03,        //   Collection (Report)
+0x85, 0x02,        //     Report ID (2)
+0x24,              //     Logical Maximum
+0x76, 0x98, 0x3E,  //     Report Size (16024)
+0x09, 0x03,        //     Usage (0x03)
+0x81, 0x22,        //     Input (Data,Var,Abs,No Wrap,Linear,No Preferred State,No Null Position)
+0x09, 0x04,        //     Usage (0x04)
+0x76, 0xB8, 0x03,  //     Report Size (952)
+0xB1, 0x02,        //     Feature (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+0xC0,              //   End Collection
+0xC0,              // End Collection
+
+
+0000 0000: Apple -
+DESCRIPTOR:
+  05  01  09  02  a1  01  09  01  a1  00  05  09  19  01  29  03
+  15  00  25  01  85  02  95  03  75  01  81  02  95  01  75  05
+  81  01  05  01  09  30  09  31  15  81  25  7f  75  08  95  02
+  81  06  95  04  75  08  81  01  76  00  40  95  02  b1  01  c0
+  c0  05  0d  09  05  a1  01  06  00  ff  09  0c  15  00  26  ff
+  00  75  08  95  10  85  3f  81  22  c0  06  00  ff  09  0c  a1
+  01  06  00  ff  09  0c  15  00  26  ff  00  85  44  75  08  96
+  d7  06  81  00  c0
+  (117 bytes)
+
+0x05, 0x01,        // Usage Page (Generic Desktop Ctrls)
+0x09, 0x02,        // Usage (Mouse)
+0xA1, 0x01,        // Collection (Application)
+0x09, 0x01,        //   Usage (Pointer)
+0xA1, 0x00,        //   Collection (Physical)
+0x05, 0x09,        //     Usage Page (Button)
+0x19, 0x01,        //     Usage Minimum (0x01)
+0x29, 0x03,        //     Usage Maximum (0x03)
+0x15, 0x00,        //     Logical Minimum (0)
+0x25, 0x01,        //     Logical Maximum (1)
+0x85, 0x02,        //     Report ID (2)
+0x95, 0x03,        //     Report Count (3)
+0x75, 0x01,        //     Report Size (1)
+0x81, 0x02,        //     Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x95, 0x01,        //     Report Count (1)
+0x75, 0x05,        //     Report Size (5)
+0x81, 0x01,        //     Input (Const,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x05, 0x01,        //     Usage Page (Generic Desktop Ctrls)
+0x09, 0x30,        //     Usage (X)
+0x09, 0x31,        //     Usage (Y)
+0x15, 0x81,        //     Logical Minimum (-127)
+0x25, 0x7F,        //     Logical Maximum (127)
+0x75, 0x08,        //     Report Size (8)
+0x95, 0x02,        //     Report Count (2)
+0x81, 0x06,        //     Input (Data,Var,Rel,No Wrap,Linear,Preferred State,No Null Position)
+0x95, 0x04,        //     Report Count (4)
+0x75, 0x08,        //     Report Size (8)
+0x81, 0x01,        //     Input (Const,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x76, 0x00, 0x40,  //     Report Size (16384)
+0x95, 0x02,        //     Report Count (2)
+0xB1, 0x01,        //     Feature (Const,Array,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+0xC0,              //   End Collection
+0xC0,              // End Collection
+0x05, 0x0D,        // Usage Page (Digitizer)
+0x09, 0x05,        // Usage (Touch Pad)
+0xA1, 0x01,        // Collection (Application)
+0x06, 0x00, 0xFF,  //   Usage Page (Vendor Defined 0xFF00)
+0x09, 0x0C,        //   Usage (0x0C)
+0x15, 0x00,        //   Logical Minimum (0)
+0x26, 0xFF, 0x00,  //   Logical Maximum (255)
+0x75, 0x08,        //   Report Size (8)
+0x95, 0x10,        //   Report Count (16)
+0x85, 0x3F,        //   Report ID (63)
+0x81, 0x22,        //   Input (Data,Var,Abs,No Wrap,Linear,No Preferred State,No Null Position)
+0xC0,              // End Collection
+0x06, 0x00, 0xFF,  // Usage Page (Vendor Defined 0xFF00)
+0x09, 0x0C,        // Usage (0x0C)
+0xA1, 0x01,        // Collection (Application)
+0x06, 0x00, 0xFF,  //   Usage Page (Vendor Defined 0xFF00)
+0x09, 0x0C,        //   Usage (0x0C)
+0x15, 0x00,        //   Logical Minimum (0)
+0x26, 0xFF, 0x00,  //   Logical Maximum (255)
+0x85, 0x44,        //   Report ID (68)
+0x75, 0x08,        //   Report Size (8)
+0x96, 0xD7, 0x06,  //   Report Count (1751)
+0x81, 0x00,        //   Input (Data,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0xC0,              // End Collection
+
+
+05AC 8104: Apple -
+DESCRIPTOR:
+  06  00  ff  0a  05  00  a1  01  15  00  26  ff  00  75  08  95
+  0e  81  02  c0
+  (20 bytes)
+
+0x06, 0x00, 0xFF,  // Usage Page (Vendor Defined 0xFF00)
+0x0A, 0x05, 0x00,  // Usage (0x05)
+0xA1, 0x01,        // Collection (Application)
+0x15, 0x00,        //   Logical Minimum (0)
+0x26, 0xFF, 0x00,  //   Logical Maximum (255)
+0x75, 0x08,        //   Report Size (8)
+0x95, 0x0E,        //   Report Count (14)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0xC0,              // End Collection
+
+
+0000 0000: Apple -
+DESCRIPTOR:
+  06  00  ff  0a  04  00  a1  01  15  00  26  ff  00  75  08  95
+  7a  81  00  c0
+  (20 bytes)
+
+0x06, 0x00, 0xFF,  // Usage Page (Vendor Defined 0xFF00)
+0x0A, 0x04, 0x00,  // Usage (0x04)
+0xA1, 0x01,        // Collection (Application)
+0x15, 0x00,        //   Logical Minimum (0)
+0x26, 0xFF, 0x00,  //   Logical Maximum (255)
+0x75, 0x08,        //   Report Size (8)
+0x95, 0x7A,        //   Report Count (122)
+0x81, 0x00,        //   Input (Data,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0xC0,              // End Collection

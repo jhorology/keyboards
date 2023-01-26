@@ -249,12 +249,9 @@ void via_custom_td_get_value(uint8_t td_index, uint8_t value_id, uint8_t *value_
       value = dynamic_tap_dance_tapping_term(td_index);
       break;
   }
-  // LE
-  value_data[0] = value & 0xff;
-  value_data[1] = value >> 8;
-  // BE
-  // value_data[0] = value >> 8;
-  // value_data[1] = value & 0xff;
+  // 16 bit BigEndian
+  value_data[0] = value >> 8;
+  value_data[1] = value & 0xff;
 #ifdef CONSOLE_ENABLE
   uprintf("via_custom_td_get_value:td_index:%d value_id:%d value:%02X %02X\n", td_index, value_id, value_data[0],
           value_data[1]);
@@ -270,13 +267,13 @@ void via_custom_td_set_value(uint8_t td_index, uint8_t value_id, uint8_t *value_
   if (td_index < TAP_DANCE_ENTRIES) {
     switch (value_id) {
       case id_custom_td_single_tap ... id_custom_td_tap_hold:
-        // LE
-        eeprom_update_word(adrs, ((uint16_t)value_data[1] << 8) + value_data[0]);
+        // 18bit BigEndian
+        eeprom_update_word(adrs, ((uint16_t)value_data[0] << 8) + value_data[1]);
         break;
       case id_custom_td_tapping_term:
-        // LE
+        // 16bit BigEndian
         defer_eeprom_update(((id_custom_td_channel_start + td_index) << 8) + value_id, WORD, adrs,
-                            ((uint16_t)value_data[1] << 8) + value_data[0]);
+                            ((uint16_t)value_data[0] << 8) + value_data[1]);
         break;
     }
   }
@@ -300,9 +297,9 @@ void via_custom_non_mac_fn_get_value(uint8_t value_id, uint8_t *value_data) {
       break;
     case id_custom_non_mac_fn_f1 ... id_custom_non_mac_fn_m: {
       uint16_t keycode = dynamic_non_mac_fn_keycode(FN_F1 + (value_id - id_custom_non_mac_fn_f1));
-      // LE
-      value_data[0] = keycode & 0xff;
-      value_data[1] = keycode >> 8;
+      // 16bit BigEndian
+      value_data[0] = keycode >> 8;
+      value_data[1] = keycode & 0xff;
       break;
     }
   }
@@ -323,9 +320,9 @@ void via_custom_non_mac_fn_set_value(uint8_t value_id, uint8_t *value_data) {
       custom_config_non_mac_fn_set_mode(value_data[0]);
       break;
     case id_custom_non_mac_fn_f1 ... id_custom_non_mac_fn_m:
-      // LE
+      // 16bit BigEndian
       eeprom_update_word((uint16_t *)(DYNAMIC_NON_MAC_FN_EEPROM_ADDR + (value_id - id_custom_non_mac_fn_f1) * 2),
-                         ((uint16_t)value_data[1] << 8) + value_data[0]);
+                         ((uint16_t)value_data[0] << 8) + value_data[1]);
       break;
   }
 }
