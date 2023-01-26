@@ -23,15 +23,26 @@
 enum custom_user_keycodes {
   RHID_TOGG = USER00,  // Toggle allow or deny accaess to RAW HID
   RHID_ON,             // allow accaess to RAW HID
+                       // +Shift: same as RHID_OFF
   RHID_OFF,            // deny accaess to RAW HID
+                       // +Shift: same as RHID_ON
 #ifndef DIP_SWITCH_ENABLE
-  MAC_TOGG,  // Toggle enabling fake apple mode with switching base layer 0(apple mode) or 1.
+  MAC_TOGG,  // Toggle enabling or disabling mac mode with switching base layer 0(mac mode) or 1.
   MAC_ON,    // Enable true apple mode with switching base layer 0.
+             // +Shfit: same as MAC_OFF
   MAC_OFF,   // Disable true apple mode with switching base layer 1.
+             // +Shift: same as MAC_ON
 #endif
-  USJ_TOGG,   // Tooggle enabling key overrides for ANSI layout on JIS
+  AUT_TOGG,   // Toggle enabling or disabling auto detection of mac mode.
+  AUT_ON,     // Enable auto detection of mac mode
+              // +Shift: same as MAC_AUT_OFF
+  AUT_OFF,    // Disable auto detection of mac mode.
+              // +Shift: same as MAC_AUT_ON
+  USJ_TOGG,   // Tooggle enabling or disabling key overrides for ANSI layout on JIS
   USJ_ON,     // Enable key overrides for ANSI layout on JIS.
+              // +Shift: same as USJ_OFF
   USJ_OFF,    // Disable key overrides for ANSI layout on JIS.
+              // +Shift: same as USJ_ON
   APPLE_FN,   // Apple fn/globe key
   APPLE_FF,   // Apple fn/globe with remapping F1-12
   EISU_KANA,  // Toggle send 英数(KC_LNG2) and かな(KC_LNG1)

@@ -20,7 +20,9 @@
 
 static bool process_fkey_override(uint16_t keycode, keyrecord_t *record);
 static bool process_non_mac_fn(uint16_t keycode, keyrecord_t *record);
-
+#ifdef APPLE_FN_OVERRIDE_F456
+static bool process_override_f456(uint8_t keycode, keyrecord_t *record);
+#endif
 static uint8_t apple_ff_cnt;
 
 bool process_apple_fn(uint16_t keycode, keyrecord_t *record) {
@@ -34,18 +36,20 @@ bool process_apple_fn(uint16_t keycode, keyrecord_t *record) {
       if (!host_apple_fn_is_pressed()) apple_ff_cnt = 0;
       return false;
     default:
-      return process_fkey_override(keycode, record) && process_non_mac_fn(keycode, record);
+      return (
+#ifdef APPLE_FN_OVERRIDE_F456
+        process_override_f456(keycode, record) &&
+#endif
+        process_fkey_override(keycode, record) && process_non_mac_fn(keycode, record));
   }
 }
 
 static bool process_fkey_override(uint16_t keycode, keyrecord_t *record) {
   static uint16_t fkey_override_flags;
-
   // ignore generated key
-  if (record->keycode) return true;
-
-  if (apple_ff_cnt == 0 && record->event.pressed) return true;
-  if (!fkey_override_flags && !record->event.pressed) return true;
+  if (record->keycode || (apple_ff_cnt == 0 && record->event.pressed)) {
+    return true;
+  }
 
   uint8_t fkey_index;
   switch (keycode) {
@@ -62,23 +66,30 @@ static bool process_fkey_override(uint16_t keycode, keyrecord_t *record) {
       return true;
   }
   uint16_t flag = (1 << fkey_index);
-  uint16_t fkey = KC_F1 + fkey_index;
-  if (record->event.pressed && !(fkey_override_flags & flag)) {
+  uint8_t fkey = KC_F1 + fkey_index;
+  if (record->event.pressed) {
+    if (fkey_override_flags & flag) {
+      return true;
+    }
     fkey_override_flags |= flag;
-    if (!custom_config_mac_is_enable() && !process_non_mac_fn(fkey, record)) {
-      return false;
+  } else {
+    if (!(fkey_override_flags & flag)) {
+      return true;
     }
-    register_code(fkey);
-    return false;
-  } else if (!record->event.pressed && (fkey_override_flags & flag)) {
     fkey_override_flags &= ~flag;
-    if (!custom_config_mac_is_enable() && !process_non_mac_fn(fkey, record)) {
-      return false;
-    }
-    unregister_code(fkey);
-    return false;
   }
-  return true;
+  if (process_non_mac_fn(fkey, record)
+#ifdef APPLE_FN_OVERRIDE_F456
+      && process_override_f456(fkey, record)
+#endif
+  ) {
+    if (record->event.pressed) {
+      register_code(fkey);
+    } else {
+      unregister_code(fkey);
+    }
+  }
+  return false;
 }
 
 static bool process_non_mac_fn(uint16_t keycode, keyrecord_t *record) {
@@ -152,3 +163,23 @@ static bool process_non_mac_fn(uint16_t keycode, keyrecord_t *record) {
   }
   return true;
 }
+
+// TODO dosen't work
+#ifdef APPLE_FN_OVERRIDE_F456
+static bool process_override_f456(uint8_t keycode, keyrecord_t *record) {
+  if (custom_config_mac_is_enable() && host_apple_fn_is_pressed()) {
+    switch (keycode) {
+      case KC_F4:  // F4 Spotlight
+        host_consumer_send(record->event.pressed ? 0x221 : 0);
+        return false;
+      case KC_F5:  // F5 Dictation
+        host_consumer_send(record->event.pressed ? 0xCF : 0);
+        return false;
+      case KC_F6:  // F6 Do Not Disturb
+        host_system_send(record->event.pressed ? 0x9B : 0);
+        return false;
+    }
+  }
+  return true;
+}
+#endif

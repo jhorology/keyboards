@@ -26,11 +26,14 @@
 #ifndef CUSTOM_CONFIG_MAC_DEFAULT
 #  define CUSTOM_CONFIG_MAC_DEFAULT true
 #endif
+#ifndef CUSTOM_CONFIG_AUTO_DETECT_DEFAULT
+#  define CUSTOM_CONFIG_AUTO_DETECT_DEFAULT true
+#endif
 #ifndef CUSTOM_CONFIG_USJ_DEFAULT
 #  define CUSTOM_CONFIG_USJ_DEFAULT false
 #endif
 #ifndef CUSTOM_CONFIG_NON_MAC_FN_MODE_DEFAULT
-#  define CUSTOM_CONFIG_NON_MAC_FN_MODE_DEFAULT 1
+#  define CUSTOM_CONFIG_NON_MAC_FN_MODE_DEFAULT 3
 #endif
 
 #ifdef RADIAL_CONTROLLER_ENABLE
@@ -66,6 +69,7 @@ void custom_config_reset() {
   kb_config.raw = 0;
   kb_config.raw_hid = CUSTOM_CONFIG_RHID_DEFAULT;
   kb_config.mac = CUSTOM_CONFIG_MAC_DEFAULT;
+  kb_config.auto_detect = CUSTOM_CONFIG_AUTO_DETECT_DEFAULT;
   kb_config.usj = CUSTOM_CONFIG_USJ_DEFAULT;
   kb_config.non_mac_fn_mode = CUSTOM_CONFIG_NON_MAC_FN_MODE_DEFAULT;
 
@@ -133,6 +137,17 @@ bool process_record_custom_config(uint16_t keycode, keyrecord_t *record) {
         custom_config_mac_set_enable(normal_false);
         return false;
 #endif
+      case AUT_TOGG:
+        // *keyboard may restart
+        custom_config_auto_detect_toggle_enable();
+        return false;
+      case AUT_ON:
+        // *keyboard may restart
+        custom_config_auto_detect_set_enable(normal_true);
+        return false;
+      case AUT_OFF:
+        custom_config_auto_detect_set_enable(normal_false);
+        return false;
       case USJ_TOGG:
         custom_config_usj_toggle_enable();
         return false;
@@ -216,6 +231,9 @@ void custom_config_auto_detect_set_enable(bool enable) {
   if (enable != kb_config.auto_detect) {
     kb_config.auto_detect = enable;
     eeconfig_update_kb(kb_config.raw);
+    if (enable) {
+      soft_reset_keyboard();
+    }
   }
 }
 

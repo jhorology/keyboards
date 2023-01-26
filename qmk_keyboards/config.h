@@ -1,7 +1,7 @@
 /*
-   qmk config options
-   see https://github.com/qmk/qmk_firmware/blob/master/docs/config_options.md
- */
+  qmk config options
+  see https://github.com/qmk/qmk_firmware/blob/master/docs/config_options.md
+*/
 #define DEBOUNCE 5
 #define LOCKING_SUPPORT_ENABLE
 #define LOCKING_RESYNC_ENABLE
@@ -12,14 +12,23 @@
 
 /* custom options */
 
+// Apple Aluminium Keyboard (ANSI)
 #define ALTERNATE_VENDOR_ID 0x05Ac   // Apple
 #define ALTERNATE_PRODUCT_ID 0x024f  // ANSI
+
+// Magic Keyboard with touch id
+// #define ALTERNATE_VENDOR_ID 0x004c   // Apple
+// #define ALTERNATE_PRODUCT_ID 0x029a  // ANSI
+
 #define TAP_DANCE_ENTRIES 8
 // #define CUSTOM_CONFIG_FORCE_RHID false
 // #define CUSTOM_CONFIG_FORCE_USJ false
 
 #define MAC_BASE_LAYER 0
 #define NON_MAC_BASE_LAYER 1
+
+// this option currently dosen't work
+// #define APPLE_FN_OVERRIDE_F456
 
 /* eeprom address */
 

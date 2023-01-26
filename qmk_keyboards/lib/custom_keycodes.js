@@ -25,22 +25,40 @@ module.exports = function (options, defines) {
             code: 'MAC_TOGG',
             name: 'Mac🔁\nTOGG',
             title:
-              'Toggle true apple mode with switching base layer 0(mac) or 1',
+              'Toggle enabling or disabling mac mode with switching base layer 0(mac) or 1',
             shortName: 'Mac🔁'
           },
           {
             code: 'MAC_ON',
             name: 'Mac🗹\nON',
-            title: 'Enable true apple mode with switching base layer 0',
+            title: 'Enable mac mode with switching base layer 0',
             shortName: 'Mac🗹'
           },
           {
             code: 'MAC_OFF',
             name: 'Mac☐\nOFF',
-            title: 'Disable true apple mode with switching base layer 1',
+            title: 'Disable mac mode with switching base layer 1',
             shortName: 'Mac☐'
           }
         ]),
+    {
+      code: 'AUT_TOGG',
+      name: 'AUT🔁\nTOGG',
+      title: 'Toggle enabling or disabling auto detection of mac mode',
+      shortName: 'AUT🔁'
+    },
+    {
+      code: 'AUT_ON',
+      name: 'AUT🗹\nON',
+      title: 'Enable auto detection of mac mode',
+      shortName: 'AUT🗹'
+    },
+    {
+      code: 'AUT_OFF',
+      name: 'AUT☐\nOFF',
+      title: 'Disable auto detection of mac mode',
+      shortName: 'AUT☐'
+    },
     {
       code: 'USJ_TOGG',
       name: '社畜🔁\nTOGG',
