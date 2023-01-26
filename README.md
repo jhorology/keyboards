@@ -7,9 +7,12 @@ This is a personal project for my own keyboards.
 | RHID_TOGG | Toggle allow or deny the access of RAW HID. | - Non-volatile setting<br/> - When using VIA, it should be on.|
 | RHID_ON | Allow the access of RAW HID. |"|
 | RHID_OFF | Deny the access of RAW HID. |"|
-| MAC_TOGG | Toggle enabling or disabling true apple mode with switching base layer 0(apple mode) or 1. | - Non-volatile setting<br/> - When using VIA, it should be off.|
-| MAC_ON | Enablle true apple mode with switching base layer 0(apple mode) |"|
-| MAC_OFF | Disable true apple mode with switching base layer 1 |"|
+| MAC_TOGG | Toggle enabling or disabling mac mode with switching base layer 0(apple mode) or 1. | - Non-volatile setting<br/> - When using VIA, it should be off.|
+| MAC_ON | Enablle mac mode with switching base layer 0(apple mode) |"|
+| MAC_OFF | Disable mac mode with switching base layer 1 |"|
+| AUT_TOGG | Toggle enabling or disabling auto detection of mac mode. | Non-volatile setting |
+| AUT_ON | Enablle auto detection of mac mode |"|
+| AUT_OFF | Disable auto detection of mac mode |"|
 | APPLE_FN | Apple fn/🌐 key. |When NKRO is disabled, the key combinations of fn + F1-12 dosen't work as expected.|
 | APPLE_FF | Apple fn/🌐 key for the keyboard that dosen't have F1-12 keys. F1-12 keys can be mapped on top row. When mac mode is off, It simulates mac fn functions. |"|
 | EISU_KANA | Toggle send KC_LANG2(英数) or KC_LNG1(かな) ||
