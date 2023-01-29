@@ -1,0 +1,193 @@
+004C 0267: Apple - Magic Keyboard
+DESCRIPTOR:
+  06  00  ff  09  03  a1  01  06  00  ff  09  03  15  00  26  ff
+  00  85  c0  96  6b  00  75  08  81  02  c0
+  (27 bytes)
+
+0x06, 0x00, 0xFF,  // Usage Page (Vendor Defined 0xFF00)
+0x09, 0x03,        // Usage (0x03)
+0xA1, 0x01,        // Collection (Application)
+0x06, 0x00, 0xFF,  //   Usage Page (Vendor Defined 0xFF00)
+0x09, 0x03,        //   Usage (0x03)
+0x15, 0x00,        //   Logical Minimum (0)
+0x26, 0xFF, 0x00,  //   Logical Maximum (255)
+0x85, 0xC0,        //   Report ID (-64)
+0x96, 0x6B, 0x00,  //   Report Count (107)
+0x75, 0x08,        //   Report Size (8)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0xC0,              // End Collection
+
+
+004C 0267: Apple - Magic Keyboard
+DESCRIPTOR:
+  05  01  09  06  a1  01  85  01  05  07  19  e0  29  e7  15  00
+  25  01  75  01  95  08  81  02  95  01  75  08  81  01  95  05
+  75  01  05  08  19  01  29  05  91  02  95  01  75  03  91  01
+  95  06  75  08  15  00  26  ff  00  05  07  19  00  29  ff  81
+  00  05  0c  75  01  95  01  09  b8  15  00  25  01  81  02  05
+  ff  09  03  75  07  95  01  81  02  c0  05  0c  09  01  a1  01
+  85  52  15  00  25  01  75  01  95  01  09  cd  81  02  09  b3
+  81  02  09  b4  81  02  09  b5  81  02  09  b6  81  02  81  01
+  81  01  81  01  85  09  15  00  25  01  75  08  95  01  06  01
+  ff  09  0b  b1  02  75  08  95  02  b1  01  c0  06  00  ff  09
+  06  a1  01  06  00  ff  09  06  15  00  26  ff  00  75  08  95
+  40  85  3f  81  22  c0
+  (182 bytes)
+
+0x05, 0x01,        // Usage Page (Generic Desktop Ctrls)
+0x09, 0x06,        // Usage (Keyboard)
+0xA1, 0x01,        // Collection (Application)
+0x85, 0x01,        //   Report ID (1)
+0x05, 0x07,        //   Usage Page (Kbrd/Keypad)
+0x19, 0xE0,        //   Usage Minimum (0xE0)
+0x29, 0xE7,        //   Usage Maximum (0xE7)
+0x15, 0x00,        //   Logical Minimum (0)
+0x25, 0x01,        //   Logical Maximum (1)
+0x75, 0x01,        //   Report Size (1)
+0x95, 0x08,        //   Report Count (8)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x95, 0x01,        //   Report Count (1)
+0x75, 0x08,        //   Report Size (8)
+0x81, 0x01,        //   Input (Const,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x95, 0x05,        //   Report Count (5)
+0x75, 0x01,        //   Report Size (1)
+0x05, 0x08,        //   Usage Page (LEDs)
+0x19, 0x01,        //   Usage Minimum (Num Lock)
+0x29, 0x05,        //   Usage Maximum (Kana)
+0x91, 0x02,        //   Output (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+0x95, 0x01,        //   Report Count (1)
+0x75, 0x03,        //   Report Size (3)
+0x91, 0x01,        //   Output (Const,Array,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+0x95, 0x06,        //   Report Count (6)
+0x75, 0x08,        //   Report Size (8)
+0x15, 0x00,        //   Logical Minimum (0)
+0x26, 0xFF, 0x00,  //   Logical Maximum (255)
+0x05, 0x07,        //   Usage Page (Kbrd/Keypad)
+0x19, 0x00,        //   Usage Minimum (0x00)
+0x29, 0xFF,        //   Usage Maximum (0xFF)
+0x81, 0x00,        //   Input (Data,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x05, 0x0C,        //   Usage Page (Consumer)
+0x75, 0x01,        //   Report Size (1)
+0x95, 0x01,        //   Report Count (1)
+0x09, 0xB8,        //   Usage (Eject)
+0x15, 0x00,        //   Logical Minimum (0)
+0x25, 0x01,        //   Logical Maximum (1)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x05, 0xFF,        //   Usage Page (Reserved 0xFF)
+0x09, 0x03,        //   Usage (0x03)
+0x75, 0x07,        //   Report Size (7)
+0x95, 0x01,        //   Report Count (1)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0xC0,              // End Collection
+0x05, 0x0C,        // Usage Page (Consumer)
+0x09, 0x01,        // Usage (Consumer Control)
+0xA1, 0x01,        // Collection (Application)
+0x85, 0x52,        //   Report ID (82)
+0x15, 0x00,        //   Logical Minimum (0)
+0x25, 0x01,        //   Logical Maximum (1)
+0x75, 0x01,        //   Report Size (1)
+0x95, 0x01,        //   Report Count (1)
+0x09, 0xCD,        //   Usage (Play/Pause)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x09, 0xB3,        //   Usage (Fast Forward)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x09, 0xB4,        //   Usage (Rewind)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x09, 0xB5,        //   Usage (Scan Next Track)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x09, 0xB6,        //   Usage (Scan Previous Track)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x81, 0x01,        //   Input (Const,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x81, 0x01,        //   Input (Const,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x81, 0x01,        //   Input (Const,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x85, 0x09,        //   Report ID (9)
+0x15, 0x00,        //   Logical Minimum (0)
+0x25, 0x01,        //   Logical Maximum (1)
+0x75, 0x08,        //   Report Size (8)
+0x95, 0x01,        //   Report Count (1)
+0x06, 0x01, 0xFF,  //   Usage Page (Vendor Defined 0xFF01)
+0x09, 0x0B,        //   Usage (0x0B)
+0xB1, 0x02,        //   Feature (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+0x75, 0x08,        //   Report Size (8)
+0x95, 0x02,        //   Report Count (2)
+0xB1, 0x01,        //   Feature (Const,Array,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+0xC0,              // End Collection
+0x06, 0x00, 0xFF,  // Usage Page (Vendor Defined 0xFF00)
+0x09, 0x06,        // Usage (0x06)
+0xA1, 0x01,        // Collection (Application)
+0x06, 0x00, 0xFF,  //   Usage Page (Vendor Defined 0xFF00)
+0x09, 0x06,        //   Usage (0x06)
+0x15, 0x00,        //   Logical Minimum (0)
+0x26, 0xFF, 0x00,  //   Logical Maximum (255)
+0x75, 0x08,        //   Report Size (8)
+0x95, 0x40,        //   Report Count (64)
+0x85, 0x3F,        //   Report ID (63)
+0x81, 0x22,        //   Input (Data,Var,Abs,No Wrap,Linear,No Preferred State,No Null Position)
+0xC0,              // End Collection
+
+
+004C 0267: Apple - Magic Keyboard
+DESCRIPTOR:
+  06  00  ff  09  0b  a1  01  06  00  ff  09  0b  15  00  26  ff
+  00  75  08  96  04  00  85  e0  81  22  09  0b  96  01  00  85
+  9a  81  22  c0  06  00  ff  09  14  a1  01  85  90  05  84  75
+  01  95  03  15  00  25  01  09  61  05  85  09  44  09  46  81
+  02  95  05  81  01  75  08  95  01  15  00  26  ff  00  09  65
+  81  02  c0
+  (83 bytes)
+
+0x06, 0x00, 0xFF,  // Usage Page (Vendor Defined 0xFF00)
+0x09, 0x0B,        // Usage (0x0B)
+0xA1, 0x01,        // Collection (Application)
+0x06, 0x00, 0xFF,  //   Usage Page (Vendor Defined 0xFF00)
+0x09, 0x0B,        //   Usage (0x0B)
+0x15, 0x00,        //   Logical Minimum (0)
+0x26, 0xFF, 0x00,  //   Logical Maximum (255)
+0x75, 0x08,        //   Report Size (8)
+0x96, 0x04, 0x00,  //   Report Count (4)
+0x85, 0xE0,        //   Report ID (-32)
+0x81, 0x22,        //   Input (Data,Var,Abs,No Wrap,Linear,No Preferred State,No Null Position)
+0x09, 0x0B,        //   Usage (0x0B)
+0x96, 0x01, 0x00,  //   Report Count (1)
+0x85, 0x9A,        //   Report ID (-102)
+0x81, 0x22,        //   Input (Data,Var,Abs,No Wrap,Linear,No Preferred State,No Null Position)
+0xC0,              // End Collection
+0x06, 0x00, 0xFF,  // Usage Page (Vendor Defined 0xFF00)
+0x09, 0x14,        // Usage (0x14)
+0xA1, 0x01,        // Collection (Application)
+0x85, 0x90,        //   Report ID (-112)
+0x05, 0x84,        //   Usage Page (Power Pages)
+0x75, 0x01,        //   Report Size (1)
+0x95, 0x03,        //   Report Count (3)
+0x15, 0x00,        //   Logical Minimum (0)
+0x25, 0x01,        //   Logical Maximum (1)
+0x09, 0x61,        //   Usage (0x61)
+0x05, 0x85,        //   Usage Page (Power Pages)
+0x09, 0x44,        //   Usage (0x44)
+0x09, 0x46,        //   Usage (0x46)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x95, 0x05,        //   Report Count (5)
+0x81, 0x01,        //   Input (Const,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x75, 0x08,        //   Report Size (8)
+0x95, 0x01,        //   Report Count (1)
+0x15, 0x00,        //   Logical Minimum (0)
+0x26, 0xFF, 0x00,  //   Logical Maximum (255)
+0x09, 0x65,        //   Usage (0x65)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0xC0,              // End Collection
+
+
+004C 0267: Apple - Magic Keyboard
+DESCRIPTOR:
+  05  01  09  06  a1  01  85  01  05  07  15  00  25  01  19  e0
+  29  e7  75  01  95  08  81  02  95  05  75  01  05  08  19  01
+  29  05  91  02  95  01  75  03  91  03  95  08  75  01  15  00
+  25  01  06  00  ff  09  03  81  03  95  06  75  08  15  00  25
+  65  05  07  19  00  29  65  81  00  95  01  75  01  15  00  25
+  01  05  0c  09  b8  81  02  95  01  75  01  06  01  ff  09  03
+  81  02  95  01  75  06  81  03  06  02  ff  09  55  85  55  15
+  00  26  ff  00  75  08  95  40  b1  a2  c0  06  00  ff  09  14
+  a1  01  85  90  05  84  75  01  95  03  15  00  25  01  09  61
+  05  85  09  44  09  46  81  02  95  05  81  01  75  08  95  01
+  15  00  26  ff  00  09  65  81  02  c0
+  (170 bytes)
