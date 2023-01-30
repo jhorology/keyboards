@@ -89,7 +89,7 @@ module.exports = function (options, defines) {
     },
     {
       name: 'Apple\nSpotlight',
-      title: 'for experimental purpose.',
+      title: 'Open Spotlight',
       shortName: 'Spot\nLight'
     },
     {
@@ -104,12 +104,12 @@ module.exports = function (options, defines) {
     },
     {
       name: 'Apple\nLaunch\nPad',
-      title: 'for experimental purpose.',
+      title: 'Open LaunchPad',
       shortName: 'Launch\nPad'
     },
     {
       name: 'Apple\nExpose\nAll',
-      title: 'for experimental purpose.',
+      title: 'Mission Control',
       shortName: 'Expose\nAll'
     },
     {
@@ -121,6 +121,16 @@ module.exports = function (options, defines) {
       name: 'Apple\nLanguage',
       title: 'for experimental purpose.',
       shortName: 'Language'
+    },
+    {
+      name: 'Apple\nDictation',
+      title: 'Activate dictation / Siri(Long press)',
+      shortName: '🎤'
+    },
+    {
+      name: 'Apple\nDnD',
+      title: 'Turn Do Not Disturb on or off',
+      shortName: 'DnD'
     },
     {
       name: '英数\nかな',

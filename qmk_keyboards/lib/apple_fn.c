@@ -23,6 +23,8 @@ static bool process_non_mac_fn(uint16_t keycode, keyrecord_t *record);
 #ifdef APPLE_FN_OVERRIDE_F456
 static bool process_override_f456(uint8_t keycode, keyrecord_t *record);
 #endif
+static void send_dictation(bool pressed);
+static void send_do_not_disturb(bool pressed);
 static uint8_t apple_ff_cnt;
 
 bool process_apple_fn(uint16_t keycode, keyrecord_t *record) {
@@ -37,6 +39,13 @@ bool process_apple_fn(uint16_t keycode, keyrecord_t *record) {
       return false;
     case APPLE_VIDEO_MIRROR ... APPLE_LANGUAGE:
       host_apple_send(record->event.pressed, USAGE_INDEX_APPLE_VIDEO_MIRROR + (keycode - APPLE_VIDEO_MIRROR));
+      return false;
+    case APPLE_DICTATION:
+      send_dictation(record->event.pressed);
+      return false;
+    case APPLE_DO_NOT_DISTURB:
+      send_do_not_disturb(record->event.pressed);
+      return false;
     default:
       return (
 #ifdef APPLE_FN_OVERRIDE_F456
@@ -166,7 +175,6 @@ static bool process_non_mac_fn(uint16_t keycode, keyrecord_t *record) {
   return true;
 }
 
-// TODO dosen't work
 #ifdef APPLE_FN_OVERRIDE_F456
 static bool process_override_f456(uint8_t keycode, keyrecord_t *record) {
   if (custom_config_mac_is_enable() && host_apple_is_pressed(REPORT_MASK_APPLE_KEYBOARD_FN)) {
@@ -175,19 +183,28 @@ static bool process_override_f456(uint8_t keycode, keyrecord_t *record) {
         host_apple_send(record->event.pressed, USAGE_INDEX_APPLE_SPOTLIGHT);
         return false;
       case KC_F5:  // F5 Dictation
-        // TODO don't use Fn key Twice in shortcut setting
-        host_apple_send(false, USAGE_INDEX_APPLE_KEYBOARD_FN);
-        host_consumer_send(record->event.pressed ? 0x00cf : 0);
-        host_apple_send(true, USAGE_INDEX_APPLE_KEYBOARD_FN);
+        send_dictation(record->event.pressed);
         return false;
       case KC_F6:  // F6 Do Not Disturb
-        // TODO don't use Fn key Twice in shortcut setting
-        host_apple_send(false, USAGE_INDEX_APPLE_KEYBOARD_FN);
-        host_system_send(record->event.pressed ? 0x009b : 0);
-        host_apple_send(true, USAGE_INDEX_APPLE_KEYBOARD_FN);
+        send_do_not_disturb(record->event.pressed);
         return false;
     }
   }
   return true;
 }
 #endif
+
+static void send_dictation(bool pressed) {
+  bool apple_fn_pressed = host_apple_is_pressed(REPORT_MASK_APPLE_KEYBOARD_FN);
+  // TODO don't use Fn key Twice in shortcut setting
+  if (apple_fn_pressed) host_apple_send(false, USAGE_INDEX_APPLE_KEYBOARD_FN);
+  host_consumer_send(pressed ? 0x00cf : 0);
+  if (apple_fn_pressed) host_apple_send(true, USAGE_INDEX_APPLE_KEYBOARD_FN);
+}
+static void send_do_not_disturb(bool pressed) {
+  bool apple_fn_pressed = host_apple_is_pressed(REPORT_MASK_APPLE_KEYBOARD_FN);
+  // TODO don't use Fn key Twice in shortcut setting
+  if (apple_fn_pressed) host_apple_send(false, USAGE_INDEX_APPLE_KEYBOARD_FN);
+  host_system_send(pressed ? 0x009b : 0);
+  if (apple_fn_pressed) host_apple_send(true, USAGE_INDEX_APPLE_KEYBOARD_FN);
+}

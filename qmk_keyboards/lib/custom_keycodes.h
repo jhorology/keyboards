@@ -47,13 +47,15 @@ enum custom_user_keycodes {
   APPLE_FF,                 // Apple fn/globe with remapping F1-12
   APPLE_VIDEO_MIRROR,       // for exprimental purpose
   APPLE_CRAMSHELL_LATCHED,  // for exprimental purpose
-  APPLE_SPOTLIGHT,          // for exprimental purpose
+  APPLE_SPOTLIGHT,          // Open Spotlight
   APPLE_DASHBOARD,          // for exprimental purpose
   APPLE_FUNCTION,           // for exprimental purpose
-  APPLE_LAUNCHPAD,          // for exprimental purpose
-  APPLE_EXPOSE_ALL,         // for exprimental purpose
+  APPLE_LAUNCHPAD,          // Open LaunchPad
+  APPLE_EXPOSE_ALL,         // Missin Control
   APPLE_EXPOSE_DESKTOP,     // for exprimental purpose
   APPLE_LANGUAGE,           // for exprimental purpose
+  APPLE_DICTATION,          // Activate dictation / Siri(long press)
+  APPLE_DO_NOT_DISTURB,     // Turn Do Not Disturb on or off
   EISU_KANA,                // Toggle send 英数(KC_LNG2) and かな(KC_LNG1)
   TERM_LCK,                 // Terminal Lock
 #ifdef RADIAL_CONTROLLER_ENABLE
