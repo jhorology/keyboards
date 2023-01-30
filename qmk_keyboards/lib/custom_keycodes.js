@@ -78,6 +78,51 @@ module.exports = function (options, defines) {
       shortName: '🌐+Fn'
     },
     {
+      name: 'Apple\nVideo\nMirror',
+      title: 'for experimental purpose.',
+      shortName: 'V.MIRR'
+    },
+    {
+      name: 'Apple\nCramshell\nLatched',
+      title: 'for experimental purpose.',
+      shortName: 'Crams\nhell'
+    },
+    {
+      name: 'Apple\nSpotlight',
+      title: 'for experimental purpose.',
+      shortName: 'Spot\nLight'
+    },
+    {
+      name: 'Apple\nDashboard',
+      title: 'for experimental purpose.',
+      shortName: 'Dashboard'
+    },
+    {
+      name: 'Apple\nFunction',
+      title: 'for experimental purpose.',
+      shortName: 'Function'
+    },
+    {
+      name: 'Apple\nLaunch\nPad',
+      title: 'for experimental purpose.',
+      shortName: 'Launch\nPad'
+    },
+    {
+      name: 'Apple\nExpose\nAll',
+      title: 'for experimental purpose.',
+      shortName: 'Expose\nAll'
+    },
+    {
+      name: 'Apple\nExpose\nDesktop',
+      title: 'for experimental purpose.',
+      shortName: 'Expose\nDesktop'
+    },
+    {
+      name: 'Apple\nLanguage',
+      title: 'for experimental purpose.',
+      shortName: 'Language'
+    },
+    {
       name: '英数\nかな',
       title: 'Toggle send かな(KC_LNG1) and 英数(KC_LNG2)',
       shortName: '英か'

@@ -17,7 +17,7 @@ index d9130b5338..e756fc5bb9 100644
  VALID_USBPD_DRIVER_TYPES = custom vendor
  USBPD_DRIVER ?= vendor
 diff --git a/drivers/bluetooth/bluetooth.c b/drivers/bluetooth/bluetooth.c
-index d5382401e7..4aba29967f 100644
+index d5382401e7..96e854ad5e 100644
 --- a/drivers/bluetooth/bluetooth.c
 +++ b/drivers/bluetooth/bluetooth.c
 @@ -60,3 +60,7 @@ void bluetooth_send_consumer(uint16_t usage) {
@@ -25,53 +25,44 @@ index d5382401e7..4aba29967f 100644
  #endif
  }
 +
-+void bluetooth_send_apple_fn(bool pressed) {
-+     // TODO not implemented yet
++void bluetooth_send_apple(bool pressed, uint8_t usageIndex);
++// TODO not implemented yet
 +}
 diff --git a/drivers/bluetooth/bluetooth.h b/drivers/bluetooth/bluetooth.h
-index 2e4d0df538..deafd2253c 100644
+index 2e4d0df538..fa95a758f8 100644
 --- a/drivers/bluetooth/bluetooth.h
 +++ b/drivers/bluetooth/bluetooth.h
-@@ -50,3 +50,10 @@ void bluetooth_send_mouse(report_mouse_t *report);
+@@ -50,3 +50,5 @@ void bluetooth_send_mouse(report_mouse_t *report);
   * \param usage The consumer usage to send.
   */
  void bluetooth_send_consumer(uint16_t usage);
 +
-+/**
-+ * \brief Send a apple fn.
-+ *
-+ * \param pressed The pressd state to send.
-+ */
-+void bluetooth_send_apple_fn(bool pressed);
++void bluetooth_send_apple(bool pressed, uint8_t usageIndex);
 diff --git a/tmk_core/protocol/host.c b/tmk_core/protocol/host.c
-index 2c6654e9a6..c41cacb9fa 100644
+index 2c6654e9a6..c0e0f35c1e 100644
 --- a/tmk_core/protocol/host.c
 +++ b/tmk_core/protocol/host.c
 @@ -43,6 +43,7 @@ extern keymap_config_t keymap_config;
  static host_driver_t *driver;
  static uint16_t       last_system_usage   = 0;
  static uint16_t       last_consumer_usage = 0;
-+static uint8_t        apple_fn_cnt        = 0;
++static uint16_t       last_apple_usages   = 0;
  
  void host_set_driver(host_driver_t *d) {
      driver = d;
-@@ -159,6 +160,33 @@ void host_consumer_send(uint16_t usage) {
+@@ -159,6 +160,28 @@ void host_consumer_send(uint16_t usage) {
      (*driver->send_extra)(&report);
  }
  
-+void host_apple_fn_send(bool pressed) {
-+     uint8_t prev_cnt = apple_fn_cnt;
-+     if (pressed) {
-+         apple_fn_cnt++;
-+     } else if (apple_fn_cnt) {
-+         apple_fn_cnt--;
-+     }
-+     if ((prev_cnt == 0 && apple_fn_cnt == 0) || (prev_cnt > 0 && apple_fn_cnt > 0)) {
-+         return;
-+     }
++void host_apple_send(bool pressed, uint8_t usageIndex) {
++    uint16_t usage_mask = 1 << usageIndex;
++    uint16_t usages   = pressed ? (last_apple_usages | usage_mask) : (last_apple_usages & ~usage_mask);
++    if (usages == last_apple_usages) return;
++    last_apple_usages = usages;
++
 +#ifdef BLUETOOTH_ENABLE
 +    if (where_to_send() == OUTPUT_BLUETOOTH) {
-+        bluetooth_send_apple_fn(pressed);
++        bluetooth_send_apple_fn(pressed, usageIndex);
 +        return;
 +    }
 +#endif
@@ -80,37 +71,36 @@ index 2c6654e9a6..c41cacb9fa 100644
 +
 +    report_extra_t report = {
 +        .report_id = REPORT_ID_APPLE,
-+        .usage     = pressed ? 1 : 0,
++        .usage = usages
 +    };
 +    (*driver->send_extra)(&report);
 +}
 +
-+
  #ifdef JOYSTICK_ENABLE
  void host_joystick_send(joystick_t *joystick) {
      if (!driver) return;
-@@ -253,3 +281,7 @@ uint16_t host_last_system_usage(void) {
+@@ -253,3 +276,7 @@ uint16_t host_last_system_usage(void) {
  uint16_t host_last_consumer_usage(void) {
      return last_consumer_usage;
  }
 +
-+bool host_apple_fn_is_pressed(void) {
-+    return apple_fn_cnt != 0;
++bool host_apple_is_pressed(uint16_t usage_mask) {
++    return (last_apple_usages & usage_mask) != 0;
 +}
 diff --git a/tmk_core/protocol/host.h b/tmk_core/protocol/host.h
-index dfa86cd7b5..1a8d1939a2 100644
+index dfa86cd7b5..75e11400b4 100644
 --- a/tmk_core/protocol/host.h
 +++ b/tmk_core/protocol/host.h
 @@ -47,10 +47,12 @@ void    host_keyboard_send(report_keyboard_t *report);
  void    host_mouse_send(report_mouse_t *report);
  void    host_system_send(uint16_t usage);
  void    host_consumer_send(uint16_t usage);
-+void    host_apple_fn_send(bool pressed);
++void    host_apple_send(bool pressed, uint8_t usageIndex);
  void    host_programmable_button_send(uint32_t data);
  
  uint16_t host_last_system_usage(void);
  uint16_t host_last_consumer_usage(void);
-+bool host_apple_fn_is_pressed(void);
++bool     host_apple_is_pressed(uint16_t usage_mask);
  
  #ifdef __cplusplus
  }
@@ -127,27 +117,69 @@ index e4526e4ee6..ed4dd78810 100644
      REPORT_ID_NKRO,
      REPORT_ID_JOYSTICK,
 diff --git a/tmk_core/protocol/usb_descriptor.c b/tmk_core/protocol/usb_descriptor.c
-index 99c52952a0..48839bd1ed 100644
+index 99c52952a0..5089c7f74d 100644
 --- a/tmk_core/protocol/usb_descriptor.c
 +++ b/tmk_core/protocol/usb_descriptor.c
-@@ -318,6 +318,24 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
+@@ -318,6 +318,66 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
          HID_RI_REPORT_SIZE(8, 16),
          HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_ARRAY | HID_IOF_ABSOLUTE),
      HID_RI_END_COLLECTION(0),
 +
 +#    ifdef APPLE_FN_ENABLE
-+    // see https://github.com/pqrs-org/Karabiner-VirtualHIDDevice/blob/master/src/VirtualHIDKeyboard/VirtualHIDKeyboard.cpp
++    // see
++    // https://github.com/apple-oss-distributions/IOHIDFamily/blob/1ca71a23b43de09cb3968515586840eacf817445/IOHIDFamily/IOHIDEventDriver.cpp#L2342
++    // https://mybyways.com/blog/script-to-re-map-macbook-pro-function-keys
++    // https://github.com/pqrs-org/Karabiner-VirtualHIDDevice/blob/master/src/VirtualHIDKeyboard/VirtualHIDKeyboard.cpp
 +    HID_RI_USAGE_PAGE(16, 0xff00),     // Usage Page kHIDPage_AppleVendor)
-+    HID_RI_USAGE(8, 0x01),             // Usage 1 (kHIDUsage_AppleVendor_TopCase)
++    HID_RI_USAGE(8, 0x01),             // Usage 1
 +    HID_RI_COLLECTION(8, 0x01),        // Application
 +        HID_RI_REPORT_ID(8, REPORT_ID_APPLE),
++        // AppleVebdorTopCasePage
 +        HID_RI_USAGE_PAGE(8, 0xFF),    // AppleVendor Top Case
-+        HID_RI_USAGE(8, 0x03),         // KeyboardFn
++        HID_RI_USAGE(8, 0x03),         // 0 kHIDUsage_AV_TopCase_KeyboardFn
 +        HID_RI_REPORT_COUNT(8, 0x01),
 +        HID_RI_REPORT_SIZE(8, 0x01),
 +        HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_VARIABLE | HID_IOF_ABSOLUTE),
-+        // Reserved (15bits)
-+        HID_RI_REPORT_COUNT(8, 0x0F),
++        HID_RI_USAGE(8, 0x06),         // 1 kHIDUsage_AV_TopCase_VideoMirror
++        HID_RI_REPORT_COUNT(8, 0x01),
++        HID_RI_REPORT_SIZE(8, 0x01),
++        HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_VARIABLE | HID_IOF_ABSOLUTE),
++        HID_RI_USAGE(8, 0x0A),         // 2 kHIDUsage_AV_TopCase_ClamshellLatched
++        HID_RI_REPORT_COUNT(8, 0x01),
++        HID_RI_REPORT_SIZE(8, 0x01),
++        HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_VARIABLE | HID_IOF_ABSOLUTE),
++        // AppleVebdorKeyboardPage
++        HID_RI_USAGE_PAGE(16, 0xFF01),  // kHIDPage_AppleVendorKeyboard
++        HID_RI_USAGE(8, 0x01),          // 3 kHIDUsage_AppleVendorKeyboard_Spotlight
++        HID_RI_REPORT_COUNT(8, 0x01),
++        HID_RI_REPORT_SIZE(8, 0x01),
++        HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_VARIABLE | HID_IOF_ABSOLUTE),
++        HID_RI_USAGE(8, 0x02),          // 4 kHIDUsage_AppleVendorKeyboard_Dashboard
++        HID_RI_REPORT_COUNT(8, 0x01),
++        HID_RI_REPORT_SIZE(8, 0x01),
++        HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_VARIABLE | HID_IOF_ABSOLUTE),
++        HID_RI_USAGE(8, 0x03),          // 5 kHIDUsage_AppleVendorKeyboard_Function
++        HID_RI_REPORT_COUNT(8, 0x01),
++        HID_RI_REPORT_SIZE(8, 0x01),
++        HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_VARIABLE | HID_IOF_ABSOLUTE),
++        HID_RI_USAGE(8, 0x04),          // 6 kHIDUsage_AppleVendorKeyboard_Launchpad
++        HID_RI_REPORT_COUNT(8, 0x01),
++        HID_RI_REPORT_SIZE(8, 0x01),
++        HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_VARIABLE | HID_IOF_ABSOLUTE),
++        HID_RI_USAGE(8, 0x10),          // 7 kHIDUsage_AppleVendorKeyboard_Expose_All
++        HID_RI_REPORT_COUNT(8, 0x01),
++        HID_RI_REPORT_SIZE(8, 0x01),
++        HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_VARIABLE | HID_IOF_ABSOLUTE),
++        HID_RI_USAGE(8, 0x11),          // 8 kHIDUsage_AppleVendorKeyboard_Expose_Desktop
++        HID_RI_REPORT_COUNT(8, 0x01),
++        HID_RI_REPORT_SIZE(8, 0x01),
++        HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_VARIABLE | HID_IOF_ABSOLUTE),
++        HID_RI_USAGE(8, 0x30),          // 9 kHIDUsage_AppleVendorKeyboard_Language
++        HID_RI_REPORT_COUNT(8, 0x01),
++        HID_RI_REPORT_SIZE(8, 0x01),
++        HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_VARIABLE | HID_IOF_ABSOLUTE),
++        // Reserved (6bits)
++        HID_RI_REPORT_COUNT(8, 0x06),
 +        HID_RI_REPORT_SIZE(8, 0x01),
 +        HID_RI_INPUT(8, HID_IOF_CONSTANT),
 +    HID_RI_END_COLLECTION(0),
@@ -156,26 +188,69 @@ index 99c52952a0..48839bd1ed 100644
  
  #ifdef PROGRAMMABLE_BUTTON_ENABLE
 diff --git a/tmk_core/protocol/vusb/vusb.c b/tmk_core/protocol/vusb/vusb.c
-index 2d17761978..23f4e40ce9 100644
+index 2d17761978..813ba20950 100644
 --- a/tmk_core/protocol/vusb/vusb.c
 +++ b/tmk_core/protocol/vusb/vusb.c
-@@ -536,6 +536,23 @@ const PROGMEM uchar shared_hid_report[] = {
+@@ -536,6 +536,66 @@ const PROGMEM uchar shared_hid_report[] = {
      0x75, 0x10,               //   Report Size (16)
      0x81, 0x00,               //   Input (Data, Array, Absolute)
      0xC0,                     // End Collection
 +
 +#    ifdef APPLE_FN_ENABLE
-+    // see https://github.com/pqrs-org/Karabiner-VirtualHIDDevice/blob/master/src/VirtualHIDKeyboard/VirtualHIDKeyboard.cpp
++    // see
++    // https://github.com/apple-oss-distributions/IOHIDFamily/blob/1ca71a23b43de09cb3968515586840eacf817445/IOHIDFamily/IOHIDEventDriver.cpp#L2342
++    // https://mybyways.com/blog/script-to-re-map-macbook-pro-function-keys
++    // https://github.com/pqrs-org/Karabiner-VirtualHIDDevice/blob/master/src/VirtualHIDKeyboard/VirtualHIDKeyboard.cpp
 +    0x06, 0x00, 0xFF,      // Usage Page (kHIDPage_AppleVendor)
-+    0x09, 0x01,            // Usage 1 (kHIDUsage_AppleVendor_TopCase)
++    0x09, 0x01,            // Usage 1
 +    0xA1, 0x01,            // Collection (Application)
 +    0x85, REPORT_ID_APPLE, //   Report ID
++    // Apple Vendor Top Case Page
 +    0x05, 0xFF,            //   Usage Page (AppleVendor Top Case)
-+    0x09, 0x03,            //   Usage (KeyboardFn)
++    0x09, 0x03,            //   Usage (KeyboardFn) index 0
 +    0x95, 0x01,            //   Report Count (1)
 +    0x75, 0x01,            //   Report Size (1)
 +    0x81, 0x02,            //   Input (Data, Variable, Absolute)
-+    0x95, 0x0F,            //   Report Count (15)
++    0x09, 0x06,            //   Usage (VideoMirror) index 1
++    0x95, 0x01,            //   Report Count (1)
++    0x75, 0x01,            //   Report Size (1)
++    0x81, 0x02,            //   Input (Data, Variable, Absolute)
++    0x09, 0x0A,            //   Usage (ClamshellLatched) index 2
++    0x95, 0x01,            //   Report Count (1)
++    0x75, 0x01,            //   Report Size (1)
++    0x81, 0x02,            //   Input (Data, Variable, Absolute)
++    // Apple Vendor Keyboard Page
++    0x06, 0x01, 0xFF,      //   Usage Page (kHIDPage_AppleVendorKeyboard)
++    0x09, 0x01,            //   Usage (kHIDUsage_AppleVendorKeyboard_Spotlight) index 3
++    0x95, 0x01,            //   Report Count (1)
++    0x75, 0x01,            //   Report Size (1)
++    0x81, 0x02,            //   Input (Data, Variable, Absolute)
++    0x09, 0x02,            //   Usage (kHIDUsage_AppleVendorKeyboard_Dashboard) index 4
++    0x95, 0x01,            //   Report Count (1)
++    0x75, 0x01,            //   Report Size (1)
++    0x81, 0x02,            //   Input (Data, Variable, Absolute)
++    0x09, 0x03,            //   Usage (kHIDUsage_AppleVendorKeyboard_Function) index 5
++    0x95, 0x01,            //   Report Count (1)
++    0x75, 0x01,            //   Report Size (1)
++    0x81, 0x02,            //   Input (Data, Variable, Absolute)
++    0x09, 0x04,            //   Usage (kHIDUsage_AppleVendorKeyboard_Launchpad) index 6
++    0x95, 0x01,            //   Report Count (1)
++    0x75, 0x01,            //   Report Size (1)
++    0x81, 0x02,            //   Input (Data, Variable, Absolute)
++    0x09, 0x10,            //   Usage (kHIDUsage_AppleVendorKeyboard_Expose_All) index 7
++    0x95, 0x01,            //   Report Count (1)
++    0x75, 0x01,            //   Report Size (1)
++    0x81, 0x02,            //   Input (Data, Variable, Absolute)
++    0x09, 0x11,            //   Usage (kHIDUsage_AppleVendorKeyboard_Expose_Desktop) index 8
++    0x95, 0x01,            //   Report Count (1)
++    0x75, 0x01,            //   Report Size (1)
++    0x81, 0x02,            //   Input (Data, Variable, Absolute)
++    0x09, 0x30,            //   Usage (kHIDUsage_AppleVendorKeyboard_Expose_Language) index 9
++    0x95, 0x01,            //   Report Count (1)
++    0x75, 0x01,            //   Report Size (1)
++    0x81, 0x02,            //   Input (Data, Variable, Absolute)
++    // Reserved (6bits)
++    0x95, 0x06,            //   Report Count (6)
 +    0x75, 0x01,            //   Report Size (1)
 +    0x81, 0x03,            //   Input (Constant)
 +    0xC0,                  // End Collection

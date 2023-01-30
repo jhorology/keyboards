@@ -33,20 +33,29 @@ enum custom_user_keycodes {
   MAC_OFF,   // Disable true apple mode with switching base layer 1.
              // +Shift: same as MAC_ON
 #endif
-  AUT_TOGG,   // Toggle enabling or disabling auto detection of mac mode.
-  AUT_ON,     // Enable auto detection of mac mode
-              // +Shift: same as MAC_AUT_OFF
-  AUT_OFF,    // Disable auto detection of mac mode.
-              // +Shift: same as MAC_AUT_ON
-  USJ_TOGG,   // Tooggle enabling or disabling key overrides for ANSI layout on JIS
-  USJ_ON,     // Enable key overrides for ANSI layout on JIS.
-              // +Shift: same as USJ_OFF
-  USJ_OFF,    // Disable key overrides for ANSI layout on JIS.
-              // +Shift: same as USJ_ON
-  APPLE_FN,   // Apple fn/globe key
-  APPLE_FF,   // Apple fn/globe with remapping F1-12
-  EISU_KANA,  // Toggle send 英数(KC_LNG2) and かな(KC_LNG1)
-  TERM_LCK,   // Terminal Lock
+  AUT_TOGG,                 // Toggle enabling or disabling auto detection of mac mode.
+  AUT_ON,                   // Enable auto detection of mac mode
+                            // +Shift: same as MAC_AUT_OFF
+  AUT_OFF,                  // Disable auto detection of mac mode.
+                            // +Shift: same as MAC_AUT_ON
+  USJ_TOGG,                 // Tooggle enabling or disabling key overrides for ANSI layout on JIS
+  USJ_ON,                   // Enable key overrides for ANSI layout on JIS.
+                            // +Shift: same as USJ_OFF
+  USJ_OFF,                  // Disable key overrides for ANSI layout on JIS.
+                            // +Shift: same as USJ_ON
+  APPLE_FN,                 // Apple fn/globe key
+  APPLE_FF,                 // Apple fn/globe with remapping F1-12
+  APPLE_VIDEO_MIRROR,       // for exprimental purpose
+  APPLE_CRAMSHELL_LATCHED,  // for exprimental purpose
+  APPLE_SPOTLIGHT,          // for exprimental purpose
+  APPLE_DASHBOARD,          // for exprimental purpose
+  APPLE_FUNCTION,           // for exprimental purpose
+  APPLE_LAUNCHPAD,          // for exprimental purpose
+  APPLE_EXPOSE_ALL,         // for exprimental purpose
+  APPLE_EXPOSE_DESKTOP,     // for exprimental purpose
+  APPLE_LANGUAGE,           // for exprimental purpose
+  EISU_KANA,                // Toggle send 英数(KC_LNG2) and かな(KC_LNG1)
+  TERM_LCK,                 // Terminal Lock
 #ifdef RADIAL_CONTROLLER_ENABLE
   RC_BTN,   // State of the button located on radial controller
   RC_CCW,   // counter clock wise rotation of the radial controller

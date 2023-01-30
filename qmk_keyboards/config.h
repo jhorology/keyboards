@@ -28,7 +28,7 @@
 #define NON_MAC_BASE_LAYER 1
 
 // this option currently dosen't work
-// #define APPLE_FN_OVERRIDE_F456
+#define APPLE_FN_OVERRIDE_F456
 
 /* eeprom address */
 
