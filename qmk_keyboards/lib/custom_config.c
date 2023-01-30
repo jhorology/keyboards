@@ -265,7 +265,7 @@ bool custom_config_rc_is_fine_tune_mods_now() {
   if (rc_config.fine_tune_ratio && rc_config.fine_tune_mods) {
     uint8_t cur_mods = (mods & MOD_MASK_CTRL ? 1 : 0) + (mods & MOD_MASK_SHIFT ? 2 : 0) +
                        (mods & MOD_MASK_ALT ? 4 : 0) + (mods & MOD_MASK_GUI ? 8 : 0) +
-                       (host_apple_fn_is_pressed() ? 16 : 0);
+                       (host_apple_is_pressed(REPORT_MASK_APPLE_KEYBOARD_FN) ? 16 : 0);
     return (cur_mods & rc_config.fine_tune_mods) == rc_config.fine_tune_mods;
   }
   return false;
