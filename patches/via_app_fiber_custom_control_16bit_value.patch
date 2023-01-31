@@ -1,0 +1,26 @@
+diff --git a/src/components/panes/configure-panes/custom/custom-control.tsx b/src/components/panes/configure-panes/custom/custom-control.tsx
+index e48b3d4..f6f797c 100644
+--- a/src/components/panes/configure-panes/custom/custom-control.tsx
++++ b/src/components/panes/configure-panes/custom/custom-control.tsx
+@@ -73,17 +73,17 @@ export const VIACustomControl = (props: VIACustomControlProps) => {
+         <AccentRange
+           min={options[0]}
+           max={options[1]}
+-          defaultValue={props.value[0]}
+-          onChange={(val: number) => props.updateValue(name, ...command, val)}
++          defaultValue={options[1] > 255 ? ((props.value[0] << 8) + props.value[1]) : props.value[0]}
++            onChange = {(val: number) => props.updateValue(name, ...command, options[1] > 255 ? (val >> 8) : val, options[1] > 255 ? (val & 0xff) : 0)}
+         />
+       );
+     }
+     case 'keycode': {
+       return (
+         <PelpiKeycodeInput
+-          value={props.value[0]}
++          value={(props.value[0] << 8) + props.value[1]}
+           meta={{}}
+-          setValue={(val: number) => props.updateValue(name, ...command, val)}
++          setValue={(val: number) => props.updateValue(name, ...command, val >> 8, val & 0xff)}
+         />
+       );
+     }
