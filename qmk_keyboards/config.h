@@ -13,12 +13,12 @@
 /* custom options */
 
 // Apple Aluminium Keyboard (ANSI)
-// #define ALTERNATE_VENDOR_ID 0x05Ac   // Apple
-// #define ALTERNATE_PRODUCT_ID 0x024f  // ANSI
+#define ALTERNATE_VENDOR_ID 0x05Ac   // Apple
+#define ALTERNATE_PRODUCT_ID 0x024f  // ANSI
 
 // Magic Keyboard with touch id
-#define ALTERNATE_VENDOR_ID 0x004c   // Apple
-#define ALTERNATE_PRODUCT_ID 0x029a  // ANSI
+// #define ALTERNATE_VENDOR_ID 0x004c   // Apple
+// #define ALTERNATE_PRODUCT_ID 0x029a  // ANSI
 
 #define TAP_DANCE_ENTRIES 8
 // #define CUSTOM_CONFIG_FORCE_RHID false

@@ -33,11 +33,11 @@ typedef enum {
   TD_MULTI_TAP,
   TD_TAP_HOLD,
   TD_UNKNOWN,
-} tap_dance_state_t;
+} tap_dance_event_t;
 
 typedef struct {
   uint16_t index;
-  tap_dance_state_t state;
+  tap_dance_event_t event;
   keyrecord_t record;
 } tap_dance_data_t;
 

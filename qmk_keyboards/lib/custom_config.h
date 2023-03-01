@@ -87,7 +87,7 @@ bool custom_config_rc_is_fine_tune_mods_now(void);
 #endif
 
 void dynamic_tap_dance_reset(void);
-uint16_t dynamic_tap_dance_keycode(uint8_t index, tap_dance_state_t state);
+uint16_t dynamic_tap_dance_keycode(uint8_t index, tap_dance_event_t event);
 uint16_t dynamic_tap_dance_tapping_term(uint8_t index);
 
 void dynamic_non_mac_fn_reset(const uint16_t *keycodes, uint8_t len);

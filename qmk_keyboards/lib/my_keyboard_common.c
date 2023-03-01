@@ -16,7 +16,7 @@
 #include "my_keyboard_common.h"
 
 #include "custom_config.h"
-#include "os_detection.h"
+#include "os_fingerprint.h"
 
 /*
  * pre-defined apple fn functions for non-mac mode.
@@ -105,7 +105,7 @@ void keyboard_post_init_kb(void) {
 #endif
 }
 
-void os_detection_update_kb(os_variant_t os) {
+void os_fingerprint_update_kb(os_variant_t os) {
   if (custom_config_auto_detect_is_enable()) {
     custom_config_mac_set_enable(os == DARWIN);
   }
@@ -162,7 +162,7 @@ static bool proces_extra_keys(uint16_t keycode, keyrecord_t *record) {
     case TERM_LCK:
       host_consumer_send(record->event.pressed ? AL_LOCK : 0);
       return false;
-#ifdef OS_DETECTION_DEBUG_ENABLE
+#ifdef OS_FINGERPRINT_DEBUG_ENABLE
     case TEST_OS:
       if (record->event.pressed) {
         send_os_fingerprint();

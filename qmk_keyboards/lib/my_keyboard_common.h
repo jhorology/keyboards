@@ -23,6 +23,6 @@
 #ifdef RADIAL_CONTROLLER_ENABLE
 #  include "radial_controller.h"
 #endif
-#include "os_detection.h"
+#include "os_fingerprint.h"
 #include "tap_dance.h"
 #include "via_custom_menus.h"

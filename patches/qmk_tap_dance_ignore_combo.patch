@@ -1,13 +1,12 @@
 diff --git a/quantum/process_keycode/process_tap_dance.c b/quantum/process_keycode/process_tap_dance.c
-index 6e8e596673..4c507153b2 100644
+index 706f5cddbb..029a9bd23a 100644
 --- a/quantum/process_keycode/process_tap_dance.c
 +++ b/quantum/process_keycode/process_tap_dance.c
-@@ -120,6 +120,11 @@ bool preprocess_tap_dance(uint16_t keycode, keyrecord_t *record) {
+@@ -120,6 +120,10 @@ bool preprocess_tap_dance(uint16_t keycode, keyrecord_t *record) {
  
      if (!record->event.pressed) return false;
  
 +#ifdef COMBO_ENABLE
-+    // TAP_DANCE_IGNORE_COMBO
 +    if (record->keycode) return false;
 +#endif
 +

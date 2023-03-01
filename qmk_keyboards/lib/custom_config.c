@@ -289,19 +289,19 @@ void dynamic_tap_dance_reset() {
   }
 }
 
-uint16_t dynamic_tap_dance_keycode(uint8_t index, tap_dance_state_t state) {
+uint16_t dynamic_tap_dance_keycode(uint8_t index, tap_dance_event_t event) {
   uint16_t keycode = KC_NO;
   if (index < TAP_DANCE_ENTRIES) {
-    switch (state) {
+    switch (event) {
       case TD_SINGLE_TAP ... TD_TAP_HOLD:
         keycode = eeprom_read_word((uint16_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + sizeof(tap_dance_entry_t) * index +
-                                                (state - TD_SINGLE_TAP) * 2));
+                                                (event - TD_SINGLE_TAP) * 2));
       default:
         break;
     }
   }
 #ifdef CONSOLE_ENABLE
-  uprintf("dynamic_tap_dance_keycode:td_index:%d state:%d keycode:%04X\n", index, state, keycode);
+  uprintf("dynamic_tap_dance_keycode:td_index:%d event:%d keycode:%04X\n", index, event, keycode);
 #endif
   return keycode;
 }

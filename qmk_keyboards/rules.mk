@@ -15,9 +15,9 @@ SECURE_ENABLE = yes
 TAP_DANCE_ENABLE = yes
 COMBO_ENABLE = yes
 DEFERRED_EXEC_ENABLE = yes
-OS_DETECTION_ENABLE = yes
+OS_FINGERPRINT_ENABLE = yes
 
-OPT_DEFS += -DOS_DETECTION_ENABLE
+OPT_DEFS += -DOS_FINGERPRINT_ENABLE
 
 SRC += lib/my_keyboard_common.c
 SRC += lib/custom_config.c
@@ -26,7 +26,7 @@ SRC += lib/jis_util.c
 SRC += lib/alternate_device_descriptor.c
 SRC += lib/tap_dance.c
 SRC += lib/via_custom_menus.c
-SRC += lib/os_detection.c
+SRC += lib/qk/os_fingerprint.c
 
-MY_COMMON_LIB_DIR := $(dir $(lastword $(MAKEFILE_LIST)))lib
-VPATH += $(MY_COMMON_LIB_DIR)
+QK_EXTEND_DIR := $(dir $(lastword $(MAKEFILE_LIST)))lib/qk
+VPATH += $(QK_EXTEND_DIR)

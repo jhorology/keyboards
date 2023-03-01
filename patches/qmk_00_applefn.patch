@@ -1,8 +1,8 @@
 diff --git a/builddefs/common_features.mk b/builddefs/common_features.mk
-index d9130b5338..e756fc5bb9 100644
+index 0880934e95..e2ab76ecf3 100644
 --- a/builddefs/common_features.mk
 +++ b/builddefs/common_features.mk
-@@ -851,6 +851,13 @@ ifeq ($(strip $(JOYSTICK_ENABLE)), yes)
+@@ -859,6 +859,13 @@ ifeq ($(strip $(JOYSTICK_ENABLE)), yes)
      endif
  endif
  
@@ -88,10 +88,10 @@ index 2c6654e9a6..c0e0f35c1e 100644
 +    return (last_apple_usages & usage_mask) != 0;
 +}
 diff --git a/tmk_core/protocol/host.h b/tmk_core/protocol/host.h
-index dfa86cd7b5..75e11400b4 100644
+index add408caf6..1cca92b2eb 100644
 --- a/tmk_core/protocol/host.h
 +++ b/tmk_core/protocol/host.h
-@@ -47,10 +47,12 @@ void    host_keyboard_send(report_keyboard_t *report);
+@@ -44,10 +44,12 @@ void    host_keyboard_send(report_keyboard_t *report);
  void    host_mouse_send(report_mouse_t *report);
  void    host_system_send(uint16_t usage);
  void    host_consumer_send(uint16_t usage);
@@ -105,7 +105,7 @@ index dfa86cd7b5..75e11400b4 100644
  #ifdef __cplusplus
  }
 diff --git a/tmk_core/protocol/report.h b/tmk_core/protocol/report.h
-index e4526e4ee6..ed4dd78810 100644
+index 9d415a3bfd..3bf3bdff37 100644
 --- a/tmk_core/protocol/report.h
 +++ b/tmk_core/protocol/report.h
 @@ -29,6 +29,7 @@ enum hid_report_ids {
@@ -117,10 +117,10 @@ index e4526e4ee6..ed4dd78810 100644
      REPORT_ID_NKRO,
      REPORT_ID_JOYSTICK,
 diff --git a/tmk_core/protocol/usb_descriptor.c b/tmk_core/protocol/usb_descriptor.c
-index 99c52952a0..2cba5bb595 100644
+index 5ab9e3ff4f..7b0ce20535 100644
 --- a/tmk_core/protocol/usb_descriptor.c
 +++ b/tmk_core/protocol/usb_descriptor.c
-@@ -318,6 +318,46 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
+@@ -319,6 +319,46 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
          HID_RI_REPORT_SIZE(8, 16),
          HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_ARRAY | HID_IOF_ABSOLUTE),
      HID_RI_END_COLLECTION(0),
@@ -168,10 +168,10 @@ index 99c52952a0..2cba5bb595 100644
  
  #ifdef PROGRAMMABLE_BUTTON_ENABLE
 diff --git a/tmk_core/protocol/vusb/vusb.c b/tmk_core/protocol/vusb/vusb.c
-index 2d17761978..5bfbcc6299 100644
+index b3eeff9e01..743912bef2 100644
 --- a/tmk_core/protocol/vusb/vusb.c
 +++ b/tmk_core/protocol/vusb/vusb.c
-@@ -536,6 +536,46 @@ const PROGMEM uchar shared_hid_report[] = {
+@@ -540,6 +540,46 @@ const PROGMEM uchar shared_hid_report[] = {
      0x75, 0x10,               //   Report Size (16)
      0x81, 0x00,               //   Input (Data, Array, Absolute)
      0xC0,                     // End Collection

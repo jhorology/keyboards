@@ -20,10 +20,9 @@
 
 typedef enum { UNSURE, DARWIN, NOT_DARWIN } os_variant_t;
 
-void os_detection_update_kb(os_variant_t);
-void process_os_detection(const uint8_t dtype, const uint16_t w_length);
-os_variant_t detected_host_os(void);
+void os_fingerprint_update_kb(os_variant_t);
+void process_os_fingerprint(const uint8_t dtype, const uint16_t w_length);
 
-#ifdef OS_DETECTION_DEBUG_ENABLE
+#ifdef OS_FINGERPRINT_DEBUG_ENABLE
 void send_os_fingerprint(void);
 #endif

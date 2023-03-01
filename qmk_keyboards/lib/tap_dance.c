@@ -17,11 +17,11 @@
 
 #include "custom_config.h"
 
-static void on_tap_dance_finished(qk_tap_dance_state_t *state, tap_dance_data_t *data);
-static void on_tap_dance_reset(qk_tap_dance_state_t *state, tap_dance_data_t *data);
+static void on_tap_dance_finished(tap_dance_state_t *state, tap_dance_data_t *data);
+static void on_tap_dance_reset(tap_dance_state_t *state, tap_dance_data_t *data);
 
 tap_dance_data_t tap_dance_datas[TAP_DANCE_ENTRIES];
-qk_tap_dance_action_t tap_dance_actions[TAP_DANCE_ENTRIES];
+tap_dance_action_t tap_dance_actions[TAP_DANCE_ENTRIES];
 
 uint16_t tap_dance_get_tapping_term(uint16_t keycode, keyrecord_t *record) {
   uint16_t index = keycode - QK_TAP_DANCE;
@@ -34,8 +34,8 @@ uint16_t tap_dance_get_tapping_term(uint16_t keycode, keyrecord_t *record) {
 void tap_dance_actions_init() {
   for (uint8_t i = 0; i < TAP_DANCE_ENTRIES; i++) {
     tap_dance_datas[i].index = i;
-    tap_dance_actions[i].fn.on_dance_finished = (void (*)(qk_tap_dance_state_t *, void *))on_tap_dance_finished;
-    tap_dance_actions[i].fn.on_reset = (void (*)(qk_tap_dance_state_t *, void *))on_tap_dance_reset;
+    tap_dance_actions[i].fn.on_dance_finished = (void (*)(tap_dance_state_t *, void *))on_tap_dance_finished;
+    tap_dance_actions[i].fn.on_reset = (void (*)(tap_dance_state_t *, void *))on_tap_dance_reset;
     tap_dance_actions[i].user_data = &tap_dance_datas[i];
   }
 }
@@ -48,15 +48,15 @@ bool process_tap_dance_store_event(uint16_t keycode, keyrecord_t *record) {
   return true;
 }
 
-static void on_tap_dance_finished(qk_tap_dance_state_t *state, tap_dance_data_t *data) {
+static void on_tap_dance_finished(tap_dance_state_t *state, tap_dance_data_t *data) {
   if (state->count == 1) {
-    data->state = state->pressed ? TD_SINGLE_HOLD : TD_SINGLE_TAP;
+    data->event = state->pressed ? TD_SINGLE_HOLD : TD_SINGLE_TAP;
   } else if (state->count >= 2) {
-    data->state = state->pressed ? TD_TAP_HOLD : TD_MULTI_TAP;
+    data->event = state->pressed ? TD_TAP_HOLD : TD_MULTI_TAP;
   } else {
-    data->state = TD_UNKNOWN;
+    data->event = TD_UNKNOWN;
   }
-  uint16_t keycode = dynamic_tap_dance_keycode(data->index, data->state);
+  uint16_t keycode = dynamic_tap_dance_keycode(data->index, data->event);
   if (keycode) {
     data->record.keycode = keycode;
     data->record.event.pressed = true;
@@ -65,12 +65,12 @@ static void on_tap_dance_finished(qk_tap_dance_state_t *state, tap_dance_data_t 
   }
 }
 
-static void on_tap_dance_reset(qk_tap_dance_state_t *state, tap_dance_data_t *data) {
+static void on_tap_dance_reset(tap_dance_state_t *state, tap_dance_data_t *data) {
   if (data->record.keycode) {
     data->record.event.pressed = false;
     data->record.event.time = timer_read();
     process_record(&data->record);
   }
-  data->state = TD_NONE;
+  data->event = TD_NONE;
   data->record.keycode = KC_NO;
 }

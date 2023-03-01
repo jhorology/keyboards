@@ -14,10 +14,10 @@ index c2bbae1..9f180ba 100644
    KC_LANG4: true,
    KC_LANG5: true,
 diff --git a/src/utils/key-to-byte/default.ts b/src/utils/key-to-byte/default.ts
-index c34c54d..4b2a6e2 100644
+index 65493d0..68db3ea 100644
 --- a/src/utils/key-to-byte/default.ts
 +++ b/src/utils/key-to-byte/default.ts
-@@ -167,8 +167,8 @@ export default {
+@@ -168,8 +168,8 @@ export default {
    KC_INT7: 0x008d,
    KC_INT8: 0x008e,
    KC_INT9: 0x008f,
@@ -29,10 +29,10 @@ index c34c54d..4b2a6e2 100644
    KC_LANG4: 0x0093,
    KC_LANG5: 0x0094,
 diff --git a/src/utils/key-to-byte/v10.ts b/src/utils/key-to-byte/v10.ts
-index cc5da2c..27ba6d7 100644
+index bea80db..9af97b4 100644
 --- a/src/utils/key-to-byte/v10.ts
 +++ b/src/utils/key-to-byte/v10.ts
-@@ -167,8 +167,8 @@ export default {
+@@ -168,8 +168,8 @@ export default {
    KC_INT7: 0x008d,
    KC_INT8: 0x008e,
    KC_INT9: 0x008f,
@@ -44,10 +44,25 @@ index cc5da2c..27ba6d7 100644
    KC_LANG4: 0x0093,
    KC_LANG5: 0x0094,
 diff --git a/src/utils/key-to-byte/v11.ts b/src/utils/key-to-byte/v11.ts
-index dba42fc..f624a95 100644
+index 10c4164..3abf308 100644
 --- a/src/utils/key-to-byte/v11.ts
 +++ b/src/utils/key-to-byte/v11.ts
-@@ -166,8 +166,8 @@ export default {
+@@ -168,8 +168,8 @@ export default {
+   KC_INT7: 0x008d,
+   KC_INT8: 0x008e,
+   KC_INT9: 0x008f,
+-  KC_HAEN: 0x0090,
+-  KC_HANJ: 0x0091,
++  KC_LANG1: 0x0090,
++  KC_LANG2: 0x0091,
+   KC_LANG3: 0x0092,
+   KC_LANG4: 0x0093,
+   KC_LANG5: 0x0094,
+diff --git a/src/utils/key-to-byte/v12.ts b/src/utils/key-to-byte/v12.ts
+index d487dd0..48c5e56 100644
+--- a/src/utils/key-to-byte/v12.ts
++++ b/src/utils/key-to-byte/v12.ts
+@@ -168,8 +168,8 @@ export default {
    KC_INT7: 0x008d,
    KC_INT8: 0x008e,
    KC_INT9: 0x008f,
@@ -59,10 +74,10 @@ index dba42fc..f624a95 100644
    KC_LANG4: 0x0093,
    KC_LANG5: 0x0094,
 diff --git a/src/utils/key.ts b/src/utils/key.ts
-index f6743f4..22f0f45 100644
+index 2c4d28c..e307945 100644
 --- a/src/utils/key.ts
 +++ b/src/utils/key.ts
-@@ -1189,8 +1189,8 @@ export function getKeycodes(): IKeycodeMenu[] {
+@@ -1217,8 +1217,8 @@ export function getKeycodes(): IKeycodeMenu[] {
          {name: 'Ro', code: 'KC_RO', title: 'JIS \\ and |'},
          {name: '¥', code: 'KC_JYEN', title: 'JPN Yen'},
          {name: '無変換', code: 'KC_MHEN', title: 'JIS Muhenkan'},

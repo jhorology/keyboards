@@ -1,4 +1,5 @@
 /* Copyright 2022 Ruslan Sayfutdinov (@KapJI)
+ * Modfiied 2022 Masafumi
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,19 +15,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "os_detection.h"
+#include "os_fingerprint.h"
 
 #include <deferred_exec.h>
 #include <send_string.h>
 
-#ifndef OS_DETECTION_TIMEOUT_MILLIS
-#  define OS_DETECTION_TIMEOUT_MILLIS 500
+#ifndef OS_FINGERPRINT_TIMEOUT_MILLIS
+#  define OS_FINGERPRINT_TIMEOUT_MILLIS 500
 #endif
 
 #define DTYPE_STRING 0x03
 #define DTYPE_CONFIG 0x02
 
-#ifdef OS_DETECTION_DEBUG_ENABLE
+#ifdef OS_FINGERPRINT_DEBUG_ENABLE
 #  define NUM_DESCRIPTOR_REQUESTS 24
 static uint8_t fingerprint[NUM_DESCRIPTOR_REQUESTS][2];
 static uint8_t descriptor_request_count;
@@ -41,14 +42,14 @@ static bool end_detection;
 static deferred_token timeout_token;
 static os_variant_t detected_os;
 
-static uint32_t os_detection_timeout_callback(uint32_t trigger_time, void* cb_arg);
+static uint32_t os_fingerprint_timeout_callback(uint32_t trigger_time, void* cb_arg);
 
-__attribute__((weak)) void os_detection_update_kb(os_variant_t os) {}
+__attribute__((weak)) void os_fingerprint_update_kb(os_variant_t os) {}
 
-void process_os_detection(const uint8_t dtype, const uint16_t w_length) {
+void process_os_fingerprint(const uint8_t dtype, const uint16_t w_length) {
   // don't need hi-byte
   uint8_t wlength = (uint8_t)(w_length > 0xff ? 0 : w_length);
-#ifdef OS_DETECTION_DEBUG_ENABLE
+#ifdef OS_FINGERPRINT_DEBUG_ENABLE
   if (descriptor_request_count < NUM_DESCRIPTOR_REQUESTS) {
     fingerprint[descriptor_request_count][0] = dtype;
     fingerprint[descriptor_request_count][1] = wlength;
@@ -61,24 +62,24 @@ void process_os_detection(const uint8_t dtype, const uint16_t w_length) {
       wlengths += wlength;
       string_count++;
       if (string_count == 3 && (wlengths & 0xff00ffUL) != 0x020002) {
-#ifdef OS_DETECTION_DEBUG_ENABLE
+#ifdef OS_FINGERPRINT_DEBUG_ENABLE
         test1 = wlengths;
 #endif
         detected_os = NOT_DARWIN;
-#ifdef OS_DETECTION_NOTIFY_IMMEDIATELY
-        os_detection_update_kb(detected_os);
+#ifdef OS_FINGERPRINT_NOTIFY_IMMEDIATELY
+        os_fingerprint_update_kb(detected_os);
 #endif
         end_detection = true;
       }
     } else {
       if (dtype == DTYPE_CONFIG && string_count == 4 && (wlengths & 0xff00ff00UL) == 0x02000200UL) {
-#ifdef OS_DETECTION_DEBUG_ENABLE
+#ifdef OS_FINGERPRINT_DEBUG_ENABLE
         test2 = wlengths;
 #endif
         detected_os = DARWIN;
-#ifdef OS_DETECTION_NOTIFY_IMMEDIATELY
+#ifdef OS_FINGERPRINT_NOTIFY_IMMEDIATELY
         // TODO resting inside hook causes freez
-        os_detection_update_kb(detected_os);
+        os_fingerprint_update_kb(detected_os);
 #endif
         end_detection = true;
       }
@@ -86,15 +87,13 @@ void process_os_detection(const uint8_t dtype, const uint16_t w_length) {
     }
   }
   if (timeout_token) {
-    extend_deferred_exec(timeout_token, OS_DETECTION_TIMEOUT_MILLIS);
+    extend_deferred_exec(timeout_token, OS_FINGERPRINT_TIMEOUT_MILLIS);
   } else {
-    timeout_token = defer_exec(OS_DETECTION_TIMEOUT_MILLIS, os_detection_timeout_callback, NULL);
+    timeout_token = defer_exec(OS_FINGERPRINT_TIMEOUT_MILLIS, os_fingerprint_timeout_callback, NULL);
   }
 }
 
-os_variant_t detected_host_os(void) { return detected_os; }
-
-#ifdef OS_DETECTION_DEBUG_ENABLE
+#ifdef OS_FINGERPRINT_DEBUG_ENABLE
 void send_os_fingerprint() {
   send_string("wlengths: 0x");
   send_dword(wlengths);
@@ -137,8 +136,8 @@ void send_os_fingerprint() {
 }
 #endif
 
-static uint32_t os_detection_timeout_callback(uint32_t trigger_time, void* cb_arg) {
-#ifdef OS_DETECTION_DEBUG_ENABLE
+static uint32_t os_fingerprint_timeout_callback(uint32_t trigger_time, void* cb_arg) {
+#ifdef OS_FINGERPRINT_DEBUG_ENABLE
   if (descriptor_request_count < NUM_DESCRIPTOR_REQUESTS) {
     // end of request sequence
     fingerprint[descriptor_request_count][0] = 0;
@@ -147,18 +146,18 @@ static uint32_t os_detection_timeout_callback(uint32_t trigger_time, void* cb_ar
   }
 #endif
   if (!end_detection && string_count >= 3) {
-#ifdef OS_DETECTION_DEBUG_ENABLE
+#ifdef OS_FINGERPRINT_DEBUG_ENABLE
     test3 = wlengths;
 #endif
     detected_os = NOT_DARWIN;
-#ifdef OS_DETECTION_NOTIFY_IMMEDIATELY
-    os_detection_update_kb(detected_os);
+#ifdef OS_FINGERPRINT_NOTIFY_IMMEDIATELY
+    os_fingerprint_update_kb(detected_os);
 #endif
     end_detection = true;
   }
-#ifndef OS_DETECTION_NOTIFY_IMMEDIATELY
+#ifndef OS_FINGERPRINT_NOTIFY_IMMEDIATELY
   if (end_detection) {
-    os_detection_update_kb(detected_os);
+    os_fingerprint_update_kb(detected_os);
   }
 #endif
   string_count = 0;

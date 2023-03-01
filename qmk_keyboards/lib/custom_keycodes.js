@@ -166,7 +166,7 @@ module.exports = function (options, defines) {
           }
         ]
       : []),
-    ...(options.OS_DETECTION_DEBUG_ENABLE === 'yes'
+    ...(options.OS_FINGERPRINT_DEBUG_ENABLE === 'yes'
       ? [
           {
             name: 'TEST\nOS',

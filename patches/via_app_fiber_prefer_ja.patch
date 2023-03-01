@@ -1,8 +1,8 @@
 diff --git a/src/utils/autocomplete-keycodes.ts b/src/utils/autocomplete-keycodes.ts
-index c2bbae1..9f180ba 100644
+index 21f1a07..6e698a8 100644
 --- a/src/utils/autocomplete-keycodes.ts
 +++ b/src/utils/autocomplete-keycodes.ts
-@@ -139,8 +139,8 @@ export const autocompleteKeycodes = {
+@@ -139,8 +139,8 @@ const autocompleteKeycodes = {
    KC_INT7: true,
    KC_INT8: true,
    KC_INT9: true,
@@ -14,10 +14,10 @@ index c2bbae1..9f180ba 100644
    KC_LANG4: true,
    KC_LANG5: true,
 diff --git a/src/utils/key-to-byte/default.ts b/src/utils/key-to-byte/default.ts
-index 9b97430..9cf3fb5 100644
+index 65493d0..68db3ea 100644
 --- a/src/utils/key-to-byte/default.ts
 +++ b/src/utils/key-to-byte/default.ts
-@@ -162,8 +162,8 @@ export default {
+@@ -168,8 +168,8 @@ export default {
    KC_INT7: 0x008d,
    KC_INT8: 0x008e,
    KC_INT9: 0x008f,
@@ -29,10 +29,10 @@ index 9b97430..9cf3fb5 100644
    KC_LANG4: 0x0093,
    KC_LANG5: 0x0094,
 diff --git a/src/utils/key-to-byte/v10.ts b/src/utils/key-to-byte/v10.ts
-index c831217..cb643b3 100644
+index bea80db..6e59b0e 100644
 --- a/src/utils/key-to-byte/v10.ts
 +++ b/src/utils/key-to-byte/v10.ts
-@@ -162,8 +162,8 @@ export default {
+@@ -168,8 +168,8 @@ export default {
    KC_INT7: 0x008d,
    KC_INT8: 0x008e,
    KC_INT9: 0x008f,
@@ -44,10 +44,25 @@ index c831217..cb643b3 100644
    KC_LANG4: 0x0093,
    KC_LANG5: 0x0094,
 diff --git a/src/utils/key-to-byte/v11.ts b/src/utils/key-to-byte/v11.ts
-index a056a3a..7906070 100644
+index 10c4164..3abf308 100644
 --- a/src/utils/key-to-byte/v11.ts
 +++ b/src/utils/key-to-byte/v11.ts
-@@ -161,8 +161,8 @@ export default {
+@@ -168,8 +168,8 @@ export default {
+   KC_INT7: 0x008d,
+   KC_INT8: 0x008e,
+   KC_INT9: 0x008f,
+-  KC_HAEN: 0x0090,
+-  KC_HANJ: 0x0091,
++  KC_LANG1: 0x0090,
++  KC_LANG2: 0x0091,
+   KC_LANG3: 0x0092,
+   KC_LANG4: 0x0093,
+   KC_LANG5: 0x0094,
+diff --git a/src/utils/key-to-byte/v12.ts b/src/utils/key-to-byte/v12.ts
+index d487dd0..48c5e56 100644
+--- a/src/utils/key-to-byte/v12.ts
++++ b/src/utils/key-to-byte/v12.ts
+@@ -168,8 +168,8 @@ export default {
    KC_INT7: 0x008d,
    KC_INT8: 0x008e,
    KC_INT9: 0x008f,
@@ -59,20 +74,17 @@ index a056a3a..7906070 100644
    KC_LANG4: 0x0093,
    KC_LANG5: 0x0094,
 diff --git a/src/utils/key.ts b/src/utils/key.ts
-index 7b6fe64..61d30fe 100644
+index df6a477..3ab36ad 100644
 --- a/src/utils/key.ts
 +++ b/src/utils/key.ts
-@@ -817,10 +817,10 @@ export function getKeycodes(): IKeycodeMenu[] {
+@@ -843,8 +843,8 @@ export function getKeycodes(): IKeycodeMenu[] {
          {name: 'Ro', code: 'KC_RO', title: 'JIS \\ and |'},
          {name: '¥', code: 'KC_JYEN', title: 'JPN Yen'},
          {name: '無変換', code: 'KC_MHEN', title: 'JIS Muhenkan'},
 -        {name: '漢字', code: 'KC_HANJ', title: 'Hanja'},
 -        {name: '한영', code: 'KC_HAEN', title: 'HanYeong'},
-+        {name: 'かな', code: 'KC_LANG1', title: 'Mac JIS IME On'},
-+        {name: '英数', code: 'KC_LANG2', title: 'Mac JIS IME Off'},
++        {name: 'かな', code: 'KC_LANG1', title: 'Mac JIS IME on'},
++        {name: '英数', code: 'KC_LANG2', title: 'Mac JIS IME off'},
          {name: '変換', code: 'KC_HENK', title: 'JIS Henkan'},
--        {name: 'かな', code: 'KC_KANA', title: 'JIS Katakana/Hiragana'},
-+        {name: 'カナ', code: 'KC_KANA', title: 'JIS Katakana/Hiragana'},
+         {name: 'かな', code: 'KC_KANA', title: 'JIS Katakana/Hiragana'},
          {
-           name: 'Esc `',
-           code: 'KC_GESC',
