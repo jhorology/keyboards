@@ -16,16 +16,6 @@
 
 #pragma once
 
-#define MATRIX_ROWS 5
-#define MATRIX_COLS 15
-
-#define MATRIX_ROW_PINS \
-  { B3, B4, B5, B6, B7 }
-#define MATRIX_COL_PINS \
-  { A4, A5, A6, A7, B0, B1, B10, B11, B12, B13, B14, B15, A8, A9, A10 }
-
-#define DIODE_DIRECTION COL2ROW
-
 // TIM2_CH1 is remmaped PA15 by board_init()
 #define RGB_DI_PIN A15
 #define RGBLED_NUM 110  //  matrix 70 + underglow 40

@@ -1,9 +1,3 @@
-# MCU name
-MCU = atmega32u4
-
-# Bootloader selection
-BOOTLOADER = atmel-dfu
-
 ENCODER_ENABLE = yes        # Enable Encoder
 ENCODER_MAP_ENABLE = yes
 

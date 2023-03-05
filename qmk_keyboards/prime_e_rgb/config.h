@@ -1,18 +1,5 @@
 #pragma once
 
-/* key matrix size */
-#define MATRIX_ROWS 4
-#define MATRIX_COLS 13
-
-/* Keyboard Matrix Assignments */
-#define MATRIX_ROW_PINS \
-  { E6, C7, B5, B4 }
-#define MATRIX_COL_PINS \
-  { F0, F1, F4, F5, F6, F7, D6, D4, D5, D3, D2, D1, D0 }
-
-/* COL2ROW, ROW2COL */
-#define DIODE_DIRECTION COL2ROW
-
 #define RGB_DI_PIN B7
 #define RGBLED_NUM 8
 #define RGBLIGHT_SLEEP
@@ -28,7 +15,6 @@
 #define RGBLIGHT_EFFECT_STATIC_GRADIENT  // Enable static gradient mode.
 #define RGBLIGHT_EFFECT_TWINKLE          // Enable twinkle animation mode.
 
-#define LED_CAPS_LOCK_PIN B1
 #define CUSTOM_CONFIG_MAC_MODE_PIN B2
 #define CUSTOM_CONFIG_USJ_MODE_PIN B3
 

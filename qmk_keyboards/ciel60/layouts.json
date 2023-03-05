@@ -1,5 +1,9 @@
 {
-  "labels": ["Split Backspace", "Split Right Shift", ["Bottom Row", "ANSI", "Tsangan"]],
+  "labels": [
+    "Split Backspace",
+    "Split Right Shift",
+    ["Bottom Row", "ANSI", "Tsangan"]
+  ],
   "keymap": [
     [{ "x": 13 }, "0,13\n\n\n0,1", "0,14\n\n\n0,1"],
     [

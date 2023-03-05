@@ -1,8 +1,5 @@
 {
-  "labels": [
-    "Split Backspace",
-    "Joystick"
-  ],
+  "labels": ["Split Backspace", "Joystick"],
   "keymap": [
     [
       {

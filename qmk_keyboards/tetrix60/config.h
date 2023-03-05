@@ -1,17 +1,5 @@
 #pragma once
 
-#define MATRIX_ROWS 5
-#define MATRIX_COLS 14
-
-#define MATRIX_ROW_PINS \
-  { F6, F5, F4, F1, F0 }
-#define MATRIX_COL_PINS \
-  { D0, D1, D2, D3, D5, D4, D6, D7, B4, B5, B6, C6, C7, F7 }
-#define DIODE_DIRECTION COL2ROW
-
-#define LED_CAPS_LOCK_PIN B7
-#define LED_PIN_ON_STATE 0
-
 /* ViA layout options */
 
 // option 0: 5 bit

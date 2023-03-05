@@ -1,14 +1,5 @@
 #pragma once
 
-#define MATRIX_ROWS 5
-#define MATRIX_COLS 15
-
-#define MATRIX_ROW_PINS \
-  { C5, C4, B0, C7, B7 }
-#define MATRIX_COL_PINS \
-  { C6, B6, B5, B4, B3, B2, B1, D6, D5, D4, D3, D2, D1, D0, C2 }
-#define DIODE_DIRECTION COL2ROW
-
 /* ViA layout options */
 #define LAYOUT_OPTION_SPLIT_BS 0x4
 #define LAYOUT_OPTION_SPLIT_RIGHT_SHIFT 0x2

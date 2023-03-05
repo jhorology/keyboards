@@ -1,24 +1,5 @@
 #pragma once
 
-/* key matrix size */
-#define MATRIX_ROWS 5
-#define MATRIX_COLS 15
-
-#define MATRIX_ROW_PINS \
-  { F0, E6, D5, F1, F4 }
-#define MATRIX_COL_PINS \
-  { C7, D3, D2, D1, D0, B7, B3, B2, C6, B6, B5, B4, D7, D6, D4 }
-
-#define DIODE_DIRECTION COL2ROW
-
-/* Enable encoder */
-#define ENCODERS_PAD_A \
-  { B1 }
-#define ENCODERS_PAD_B \
-  { B0 }
-
-#define ENCODERS 1
-#define ENCODER_RESOLUTION 1
 /*
   encoder lookup table
 
@@ -33,9 +14,6 @@
 */
 #define ENCODER_LOOKUP_TABLE \
   { 0, 0, 0, 1, 1, 0, 0, -1, 0, 0, 0, 0, -1, 0, 0, 0 }
-
-#define LED_CAPS_LOCK_PIN F7
-#define LED_PIN_ON_STATE 0
 
 /* ViA layout options */
 #define LAYOUT_OPTION_SPLIT_BS 0x8

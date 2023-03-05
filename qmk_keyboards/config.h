@@ -10,6 +10,9 @@
 #define COMBO_COUNT 0
 #define TAPPING_TERM_PER_KEY
 
+// The default behavior of mod-taps will change to mimic IGNORE_MOD_TAP_INTERRUPT in the future.
+#define HOLD_ON_OTHER_KEY_PRESS
+
 /* custom options */
 
 // Apple Aluminium Keyboard (ANSI)

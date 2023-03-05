@@ -1,17 +1,5 @@
 #pragma once
 
-/* key matrix size */
-#define MATRIX_ROWS 5
-#define MATRIX_COLS 15
-
-/* Keyboard Matrix Assignments */
-#define MATRIX_ROW_PINS \
-  { B0, B7, D0, D1, D2 }
-#define MATRIX_COL_PINS \
-  { D5, D4, D6, D7, B4, B5, B6, C6, C7, F7, F6, F5, F4, F1, F0 }
-/* COL2ROW, ROW2COL */
-#define DIODE_DIRECTION COL2ROW
-
 /* ViA layout options */
 #define LAYOUT_OPTION_SPLIT_BS 0x8
 #define LAYOUT_OPTION_ISO_ENTER 0x4

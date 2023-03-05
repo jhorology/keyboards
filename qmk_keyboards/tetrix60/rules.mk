@@ -1,14 +1,3 @@
-# MCU name
-MCU = atmega32u4
-
-# Bootloader selection
-BOOTLOADER = atmel-dfu
-
-
-OS_FINGERPRINT_DEBUG_ENABLE = yes
-OPT_DEFS += -DOS_FINGERPRINT_DEBUG_ENABLE
-SEND_STRING_ENABLE = yes
-
 # os detection debug
 OS_FINGERPRINT_DEBUG_ENABLE = yes
 OPT_DEFS += -DOS_FINGERPRINT_DEBUG_ENABLE
