@@ -28,7 +28,7 @@ const tap_dance_entry_t PROGMEM tap_dance_predefined_entries[NUM_TAP_DANCE_PREDE
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   // mac base layer
-  [0] = LAYOUT
+  [0] = LAYOUT_ansi_68
   (
    KC_GRV,  KC_1,    KC_2,    KC_3,    KC_4,    KC_5,    KC_6,    KC_7,    KC_8,    KC_9,    KC_0,    KC_MINS, KC_EQL,  KC_BSLS, RC_BTN,
    KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_LBRC, KC_RBRC, KC_BSPC, RC_CW,
@@ -37,7 +37,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
    TD(0),   KC_LALT, KC_LGUI,                   KC_SPC,                             KC_RGUI, KC_RALT, TD(1),   KC_MPRV, KC_MPLY, KC_MNXT
   ),
   // standard base layer
-  [1] = LAYOUT
+  [1] = LAYOUT_ansi_68
   (
    KC_GRV,  KC_1,    KC_2,    KC_3,    KC_4,    KC_5,    KC_6,    KC_7,    KC_8,    KC_9,    KC_0,    KC_MINS, KC_EQL,  KC_BSLS, RC_BTN,
    KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_LBRC, KC_RBRC, KC_BSPC, RC_CW,
@@ -47,7 +47,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   ),
   // HHKB-like fn layer
   // +Shift key for RGB decrement functions
-  [2] = LAYOUT
+  [2] = LAYOUT_ansi_68
   (
    _______, KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,  KC_F12,  KC_INS,  KC_ESC,
    KC_CAPS, KC_F16,  KC_F17,  KC_F18,  _______, _______, _______, _______, KC_PSCR, KC_SCRL, KC_PAUS, KC_UP,   _______, KC_DEL,  _______,
@@ -58,7 +58,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   // settings, application-specific keys
   // row 3: normal settings, +shift key for unusual reversed setting
   // mac mode on/off -> dip switch
-  [3] = LAYOUT
+  [3] = LAYOUT_ansi_68
   (
    QK_BOOT, KC_F13,  KC_F14,  KC_F15,  KC_F16,  KC_F17,  KC_F18,  KC_F19,  KC_F20,  KC_F21,  KC_F22,  KC_F23,  KC_F24,  _______, TERM_LCK,
    _______, BT_HST1, BT_HST2, BT_HST3, BAT_LVL, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,

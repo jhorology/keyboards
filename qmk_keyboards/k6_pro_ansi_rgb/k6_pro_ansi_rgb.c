@@ -23,6 +23,7 @@
 #include "eeprom.h"
 #include "indicator.h"
 #include "lpm.h"
+#include "print.h"
 #include "raw_hid.h"
 #include "transport.h"
 
@@ -199,6 +200,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 }
 
 void keyboard_post_init_user(void) {
+  print("start keyboard_post_init_user");
   /* Currently we don't use this reset pin */
   palSetLineMode(CKBT51_RESET_PIN, PAL_MODE_UNCONNECTED);
 
@@ -212,6 +214,7 @@ void keyboard_post_init_user(void) {
 
   power_on_indicator_timer_buffer = sync_timer_read32() | 1;
   writePin(BAT_LOW_LED_PIN, BAT_LOW_LED_PIN_ON_STATE);
+  print("end   keyboard_post_init_user");
 }
 
 void matrix_scan_user(void) {
@@ -235,11 +238,9 @@ static void ckbt51_param_init(void) {
                           .pairing_mode = 0,
                           .reconnect_timeout = 5,
                           .report_rate = 90,
-                          .rsvd1 = 0xff,
-                          .rsvd2 = 0xff,
-                          .vendor_id_source = 0xff,
-                          .verndor_id = ALTERNATE_VENDOR_ID,  // Must be 0x3434
-                          .product_id = ALTERNATE_PRODUCT_ID};
+                          .vendor_id_source = 1,
+                          .verndor_id = 0,  // Must be 0x3434
+                          .product_id = PRODUCT_ID};
   ckbt51_set_param(&param);
 }
 

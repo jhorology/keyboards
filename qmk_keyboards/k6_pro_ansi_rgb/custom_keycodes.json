@@ -1,24 +1,20 @@
 [
   {
-    "code": "BT_HST1",
     "name": "Bluetooth Host 1",
     "title": "Bluetooth Host 1",
     "shortName": "BTH1"
   },
   {
-    "code": "BT_HST2",
     "name": "Bluetooth Host 2",
     "title": "Bluetooth Host 2",
     "shortName": "BTH2"
   },
   {
-    "code": "BT_HST3",
     "name": "Bluetooth Host 3",
     "title": "Bluetooth Host 3",
     "shortName": "BTH3"
   },
   {
-    "code": "BAT_LVL",
     "name": "Battery Level",
     "title": "Show battery level",
     "shortName": "Battery Level"

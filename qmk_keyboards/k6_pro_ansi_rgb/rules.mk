@@ -1,12 +1,9 @@
-# MCU name
-MCU = STM32L432
-
-# Bootloader selection
-BOOTLOADER = stm32-dfu
-
 # Build Options
 #   change yes to no to disable
 #
+
+CONSOLE_ENABLE = yes
+
 # Do not enable SLEEP_LED_ENABLE. it uses the same timer as BACKLIGHT_ENABLE
 SLEEP_LED_ENABLE = no       # Breathing sleep LED during USB suspend
 # if this doesn't work, see here: https://github.com/tmk/tmk_keyboard/wiki/FAQ#nkro-doesnt-work
