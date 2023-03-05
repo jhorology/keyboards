@@ -21,11 +21,11 @@
 //------------------------------------------
 
 enum custom_user_keycodes {
-  RHID_TOGG = QK_USER_0,  // Toggle allow or deny accaess to RAW HID
-  RHID_ON,                // allow accaess to RAW HID
-                          // +Shift: same as RHID_OFF
-  RHID_OFF,               // deny accaess to RAW HID
-                          // +Shift: same as RHID_ON
+  RHID_TOGG = QK_KB_0,  // Toggle allow or deny accaess to RAW HID
+  RHID_ON,              // allow accaess to RAW HID
+                        // +Shift: same as RHID_OFF
+  RHID_OFF,             // deny accaess to RAW HID
+                        // +Shift: same as RHID_ON
 #ifndef DIP_SWITCH_ENABLE
   MAC_TOGG,  // Toggle enabling or disabling mac mode with switching base layer 0(mac mode) or 1.
   MAC_ON,    // Enable true apple mode with switching base layer 0.
