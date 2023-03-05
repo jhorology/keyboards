@@ -15,12 +15,12 @@ zparseopts -D -E -F -- \
 
 # configuration
 # -----------------------------------
-# <make target name>:<keymap>:<extension of firmware file>
+# <make target name>:<keymap>:<extension of firmware file>:DFU Storage Volume
 local -A KEYBOARDS=(
   neko60     bakeneko60:default:hex
   ciel60     ciel60:default:hex
   d60        dz60rgb_wkl_v2_1_atmel_dfu:hhkb:hex
-  fk680      fk680pro_v2:default:uf2
+  fk680      fk680pro_v2:default:uf2:"/Volumes/ZhaQian DFU"
   ikki68     ikki68_aurora:default:hex
   k6         k6_pro_ansi_rgb:default:bin
   libra      libra_mini:default:hex
@@ -36,7 +36,8 @@ TARGETS=(neko60 ciel60 d60 fk680 ikki68 libra prime_e q60 qk60 qk65 t60 wood60 z
 QMK_HOME="$HOME/Documents/Sources/qmk_firmware"
 UPDATE_QMK=true
 MAKE_JOBS=8
-[ $(uname) = "Darwin" ] && MAKE_JOBS=$(sysctl -n hw.ncpu)
+[[ $(uname) = "Darwin" ]] && IS_MAC=true || IS_MAC=false
+$IS_MAC && MAKE_JOBS=$(sysctl -n hw.ncpu)
 
 # .config
 #  override configuration
@@ -86,11 +87,21 @@ if (( $#flash )); then
 fi
 
 KEYCHRON_BT=false
+UF2_FLASH_VOLUME=""
 for target in $TARGETS; do
   kbd=(${(@s/:/)KEYBOARDS[$target]})
   MAKE_TARGET="my_keyboards/${kbd[1]}:${kbd[2]}"
   if (( $#flash )); then
-    MAKE_TARGET="${MAKE_TARGET}:flash"
+    if [[ ${kbd[3]} == "uf2" ]]; then
+      if $IS_MAC; then
+        $IS_MAC && UF2_FLASH_VOLUME=${kbd[4]}
+      else
+        print -r "Error: uf2 flash not supported on this system." >&2
+        exit 1
+      fi
+    else
+      MAKE_TARGET="${MAKE_TARGET}:flash"
+    fi
   fi
   MAKE_TARGETS=($MAKE_TARGETS $MAKE_TARGET)
   VIA_JSON_TARGETS[$kbd[1]]=$kbd[1]
@@ -102,8 +113,6 @@ for target in $TARGETS; do
     KEYCHRON_BT=true
   fi
 done
-
-
 
 # option parameters
 # -----------------------------------
@@ -184,7 +193,7 @@ QMK_HOME="$QMK_HOME" \
 cd "$PROJECT/dist"
 
 for target in $TARGETS; do
-  # split ":" [1]=make target [2]=keymap [3]=extension
+  # split ":" [1]=make target [2]=keymap [3]=extension [4]=DFU Volume
   kbd=(${(@s/:/)KEYBOARDS[$target]})
   board=${kbd[1]//\//_}
   firmware_name=$board
@@ -192,6 +201,20 @@ for target in $TARGETS; do
     firmware_name=${firmware_name}_${kbd[2]}
   fi
   mv "$QMK_HOME/my_keyboards_${board}_${kbd[2]}.${kbd[3]}" ${firmware_name}_$VERSION.$kbd[3]
+  if [[ ! -z "$UF2_FLASH_VOLUME" ]]; then
+    echo -n "Waiting for DFU volume [$UF2_FLASH_VOLUME] to be mounted"
+    for ((i=0; i < 20; i+=1)); do
+      echo -n "."
+      if [[ -d "${UF2_FLASH_VOLUME}" ]]; then
+        echo ""
+        echo "copying file [${firmware_name}_$VERSION.$kbd[3]] to $UF2_FLASH_VOLUME..."
+        cp ${firmware_name}_$VERSION.$kbd[3] "$UF2_FLASH_VOLUME"
+        echo "flashing firmware finished successfully."
+        break
+      fi
+      sleep 1
+    done
+  fi
 done
 
 # formatter
