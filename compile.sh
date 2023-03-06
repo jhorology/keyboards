@@ -17,11 +17,11 @@ zparseopts -D -E -F -- \
 # -----------------------------------
 # <make target name>:<keymap>:<extension of firmware file>:DFU Storage Volume
 local -A KEYBOARDS=(
-  neko60     bakeneko60:default:hex
-  ciel60     ciel60:default:hex
+  n60        bakeneko60:default:hex
+  c60        ciel60:default:hex
   d60        dz60rgb_wkl_v2_1_atmel_dfu:hhkb:hex
-  fk680      fk680pro_v2:default:uf2:"/Volumes/ZhaQian DFU"
-  ikki68     ikki68_aurora:default:hex
+  fk68       fk680pro_v2:default:uf2:"/Volumes/ZhaQian DFU"
+  i68        ikki68_aurora:default:hex
   k6         k6_pro_ansi_rgb:default:bin
   libra      libra_mini:default:hex
   prime_e    prime_e_rgb:default:hex
@@ -29,10 +29,10 @@ local -A KEYBOARDS=(
   qk60       qk60:default:bin
   qk65       qk65_solder:default:hex
   t60        tetrix60:default:hex
-  wood60     dz60rgb_wkl_v2_1_atmel_dfu:tsangan:hex
-  zoom65     zoom65:default:hex
+  w60        dz60rgb_wkl_v2_1_atmel_dfu:tsangan:hex
+  z65        zoom65:default:hex
 )
-TARGETS=(neko60 ciel60 d60 fk680 ikki68 libra prime_e q60 qk60 qk65 t60 wood60 zoom65)
+TARGETS=(n60 c60 d60 fk68 i68 libra prime_e q60 qk60 qk65 t60 w60 z65)
 QMK_HOME="$HOME/Documents/Sources/qmk_firmware"
 UPDATE_QMK=true
 MAKE_JOBS=8

@@ -16,20 +16,20 @@ zparseopts -D -E -F -- \
 
 
 local -A KEYBOARDS=(
-  neko60     bakeneko60
-  ciel60     ciel60
-  d60        dz60rgb_wkl_v2_1_atmel_dfu
-  fk680      fk680pro_v2
-  ikki68     ikki68_aurora
-  k6         k6_pro_ansi_rgb
-  libra      libra_mini
-  prime_e    prime_e_rgb
-  q60        q60_ansi
-  qk60       qk60
-  qk65       qk65_solder
-  t60        tetrix60
-  wood60     dz60rgb_wkl_v2_1_atmel_dfu
-  zoom65     zoom65
+  n60      bakeneko60
+  c60      ciel60
+  d60      dz60rgb_wkl_v2_1_atmel_dfu
+  fk68     fk680pro_v2
+  i68      ikki68_aurora
+  k6       k6_pro_ansi_rgb
+  libra    libra_mini
+  prime_e  prime_e_rgb
+  q60      q60_ansi
+  qk60     qk60
+  qk65     qk65_solder
+  t60      tetrix60
+  w60      dz60rgb_wkl_v2_1_atmel_dfu
+  z65      zoom65
 )
 
 # configuration
