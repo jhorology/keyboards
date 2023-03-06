@@ -60,7 +60,7 @@ if (( $#help )); then
         "  -w,--without-update-qmk             don't sync remote repository" \
         "" \
         "available targets:"
-  for target in $TARGETS; do
+  for target in ${(k)KEYBOARDS}; do
     print -rC2 -- "   ${target}:"  "${KEYBOARDS[$target]}"
   done
   return
