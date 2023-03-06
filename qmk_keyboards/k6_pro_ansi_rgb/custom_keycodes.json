@@ -17,6 +17,6 @@
   {
     "name": "Battery Level",
     "title": "Show battery level",
-    "shortName": "Battery Level"
+    "shortName": "BAT.L"
   }
 ]

@@ -1,8 +1,8 @@
 diff --git a/quantum/via.c b/quantum/via.c
-index 12ef6c6b2f..0e566eefd3 100644
+index c54e37a175..3f6aea79be 100644
 --- a/quantum/via.c
 +++ b/quantum/via.c
-@@ -268,7 +268,7 @@ __attribute__((weak)) bool via_command_kb(uint8_t *data, uint8_t length) {
+@@ -243,7 +243,7 @@ __attribute__((weak)) bool via_command_kb(uint8_t *data, uint8_t length) {
      return false;
  }
  
@@ -12,10 +12,10 @@ index 12ef6c6b2f..0e566eefd3 100644
      uint8_t *command_data = &(data[1]);
  
 diff --git a/quantum/via.h b/quantum/via.h
-index eca0733525..0b3158bd74 100644
+index ab4eb05028..c87b279f74 100644
 --- a/quantum/via.h
 +++ b/quantum/via.h
-@@ -199,6 +199,7 @@ void via_set_device_indication(uint8_t value);
+@@ -159,6 +159,7 @@ void via_set_device_indication(uint8_t value);
  
  // Called by QMK core to process VIA-specific keycodes.
  bool process_record_via(uint16_t keycode, keyrecord_t *record);

@@ -64,6 +64,8 @@ enum custom_user_keycodes {
   RC_CW,    // clock wise rotation of the radial controller
   RC_FINE,  // Dial rotation speed becomes slow
 #endif
+#ifdef OS_FINGERPRINT_DEBUG_ENABLE
   TEST_OS,  // SEND_STRING deteced os variant
+#endif
   CUSTOM_KEYCODES_SAFE_RANGE
 };
