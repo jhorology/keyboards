@@ -70,36 +70,35 @@ fi
 (( $#via_app_home )) && VIA_APP_HOME=${via_app_home[-1]##=}
 (( $#without_generate )) && BUILD_JSON=false
 
+cd "$VIA_APP_HOME"
+CURRENT_APP_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+LOCAL_APP_REV=$(git rev-parse $CURRENT_APP_BRANCH)
+REMOTE_APP_REV=$(git ls-remote --heads origin $CURRENT_APP_BRANCH | awk '{print $1}')
+
 # update via/app
 #______________________________________
 if (( $#update_via_app )); then
-  cd "$VIA_APP_HOME"
-
   git reset --hard HEAD
   git clean -dfx
-  CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-  if (( $#fiber )) && [[ "$CURRENT_BRANCH" != "fiber" ]]; then
+  CURRENT_APP_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+  if (( $#fiber )) && [[ "$CURRENT_APP_BRANCH" != "fiber" ]]; then
     echo "main to fiber"
     git checkout fiber
     git pull --rebase
-  elif ! (( $#fiber )) && [[ "$CURRENT_BRANCH" != "main" ]]; then
+    CURRENT_APP_BRANCH="fiber"
+  elif ! (( $#fiber )) && [[ "$CURRENT_APP_BRANCH" != "main" ]]; then
     echo "fiber to main"
     git checkout main
     git pull --rebase
+    CURRENT_APP_BRANCH="main"
   else
     echo "normal"
     git pull
   fi
 
-  if (( $#fiber )); then
-    for patch in $(ls -v "${PROJECT}/patches/"via_app_fiber*.patch); do
-      patch --verbose -p1 < $patch
-    done
-  else
-    for patch in $(ls -v "${PROJECT}/patches/"via_app_main*.patch); do
-      patch --verbose -p1 < $patch
-    done
-  fi
+  for patch in $(ls -v "${PROJECT}/patches/via_app_%{CURRENT_APP_BRANCH}_"*.patch); do
+    patch --verbose -p1 < $patch
+  done
   yarn install
   if (( $#fiber )); then
     yarn add @fortawesome/fontawesome-svg-core
@@ -117,12 +116,29 @@ if [[ $# != 1 ]]; then
   print -r "Error: Only one target is allowed." >&2
   exit 1
 fi
-TARGET=$@
-MAKE_TARGET=$KEYBOARDS[$TARGET]
 
+# update via/app
+#______________________________________
+if [[ $LOCAL_APP_REV != $REMOTE_APP_REV ]]; then
+  git reset --hard HEAD
+  cp package.json package.json.old
+  git pull
+  for patch in $(ls -v "${PROJECT}/patches/via_app_${CURRENT_APP_BRANCH}_"*.patch); do
+    patch --verbose -p1 < $patch
+  done
+  if [[ ! -z $(diff package.json package.json.old) ]]; then
+    yarn install
+  fi
+  rm package.json.old
+fi
 
 # generate JSON
 #______________________________________
+cd "$PROJECT"
+
+TARGET=$@
+MAKE_TARGET=$KEYBOARDS[$TARGET]
+
 if $BUILD_JSON; then
   mkdir -p dist
   # generate via json file
@@ -139,8 +155,7 @@ mkdir node_modules/via-keyboards/v3
 
 # copy JSON files into via-keyboards
 #______________________________________
-OUTPUT_DIR=node_modules/via-keyboards/v3
-cp "dist/${MAKE_TARGET//\//_}_via"*.json "$OUTPUT_DIR"
+cp "dist/${MAKE_TARGET//\//_}_via"*.json node_modules/via-keyboards/v3
 
 # convert JSON to via/app definition
 #______________________________________
