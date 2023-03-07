@@ -96,7 +96,7 @@ if (( $#update_via_app )); then
     git pull
   fi
 
-  for patch in $(ls -v "${PROJECT}/patches/via_app_%{CURRENT_APP_BRANCH}_"*.patch); do
+  for patch in $(ls -v "${PROJECT}/patches/via_app_${CURRENT_APP_BRANCH}_"*.patch); do
     patch --verbose -p1 < $patch
   done
   yarn install
