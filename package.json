@@ -2,9 +2,7 @@
   "name": "keyboards",
   "version": "1.0.0",
   "description": "",
-  "scripts": {
-    "update": "npm rm via-keyboards && npm i github:the-via/keyboards.git --save-dev"
-  },
+  "scripts": {},
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -17,7 +15,6 @@
     "eslint-plugin-node": "^11.1.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.8.4",
-    "underscore": "^1.13.6",
-    "via-keyboards": "github:the-via/keyboards"
+    "underscore": "^1.13.6"
   }
 }

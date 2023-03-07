@@ -148,6 +148,9 @@ fi
 
 # clean JSON files in via-keyboards
 #______________________________________
+cd "$VIA_APP_HOME"
+
+rm -rf public/definitions
 rm -rf node_modules/via-keyboards/src
 rm -rf node_modules/via-keyboards/v3
 mkdir node_modules/via-keyboards/src
@@ -155,19 +158,8 @@ mkdir node_modules/via-keyboards/v3
 
 # copy JSON files into via-keyboards
 #______________________________________
-cp "dist/${MAKE_TARGET//\//_}_via"*.json node_modules/via-keyboards/v3
-
-# convert JSON to via/app definition
-#______________________________________
-rm -rf "${VIA_APP_HOME}/public/definitions"
-
-# TODO via-keybopards command rimraf dist folder
-mv dist evacuate_dist
-npx via-keyboards "${VIA_APP_HOME}/public/definitions"
-mv evacuate_dist dist
+cp "${PROJECT}/dist/${MAKE_TARGET//\//_}_via"*.json node_modules/via-keyboards/v3
 
 # start VIA
 #______________________________________
-cd "$VIA_APP_HOME"
-
-yarn start
+yarn dev
