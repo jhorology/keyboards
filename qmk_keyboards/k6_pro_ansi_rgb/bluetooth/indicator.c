@@ -435,7 +435,7 @@ static void os_state_indicate(void) {
 #endif
 }
 
-bool rgb_matrix_indicator_user(void) {
+bool rgb_matrix_indicators_user(void) {
   if (get_transport() == TRANSPORT_BLUETOOTH) {
     /* Prevent backlight flash caused by key activities */
     if (battery_is_critical_low()) {

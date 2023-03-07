@@ -16,6 +16,8 @@
  */
 #include "k6_pro_ansi_rgb.h"
 
+#include <stdint.h>
+
 #include "bat_level_animation.h"
 #include "battery.h"
 #include "bluetooth.h"
@@ -159,41 +161,36 @@ bool dip_switch_update_user(uint8_t index, bool active) {
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-  static uint8_t host_idx = 0;
+  if (get_transport() != TRANSPORT_BLUETOOTH) return true;
 
-  if (get_transport() == TRANSPORT_BLUETOOTH) {
-    lpm_timer_reset();
+  lpm_timer_reset();
 
 #if defined(BAT_LOW_LED_PIN) || defined(LOW_BAT_IND_INDEX)
-    if (battery_is_empty() && bluetooth_get_state() == BLUETOOTH_CONNECTED && record->event.pressed) {
+  if (battery_is_empty() && bluetooth_get_state() == BLUETOOTH_CONNECTED && record->event.pressed) {
 #  if defined(BAT_LOW_LED_PIN)
-      indicator_battery_low_enable(true);
+    indicator_battery_low_enable(true);
 #  endif
 #  if defined(LOW_BAT_IND_INDEX)
-      indicator_battery_low_backlit_enable(true);
+    indicator_battery_low_backlit_enable(true);
 #  endif
-    }
+  }
 #endif
 
-    switch (keycode) {
-      case BT_HST1 ... BT_HST3:
-        if (get_transport() == TRANSPORT_BLUETOOTH) {
-          if (record->event.pressed) {
-            host_idx = keycode - BT_HST1 + 1;
-            chVTSet(&pairing_key_timer, TIME_MS2I(2000), (vtfunc_t)pairing_key_timer_cb, &host_idx);
-            bluetooth_connect_ex(host_idx, 0);
-          } else {
-            host_idx = 0;
-            chVTReset(&pairing_key_timer);
-          }
-        }
-        return false;
-      case BAT_LVL:
-        if (get_transport() == TRANSPORT_BLUETOOTH && !usb_power_connected()) {
-          bat_level_animiation_start(battery_get_percentage());
-        }
-        return false;
-    }
+  switch (keycode) {
+    case BT_HST1 ... BT_HST3:
+      if (record->event.pressed) {
+        uint8_t host_idx = keycode - BT_HST1 + 1;
+        chVTSet(&pairing_key_timer, TIME_MS2I(2000), (vtfunc_t)pairing_key_timer_cb, &host_idx);
+        bluetooth_connect_ex(host_idx, 0);
+      } else {
+        chVTReset(&pairing_key_timer);
+      }
+      return false;
+    case BAT_LVL:
+      if (record->event.pressed && !usb_power_connected()) {
+        bat_level_animiation_start(battery_get_percentage());
+      }
+      return false;
   }
   return true;
 }

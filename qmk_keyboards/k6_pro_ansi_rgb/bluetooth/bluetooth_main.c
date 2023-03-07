@@ -32,4 +32,4 @@ void bluetooth_tasks(void) {
   if (get_transport() == TRANSPORT_USB) usb_remote_wakeup();
 }
 
-void housekeeping_task_kb(void) { bluetooth_tasks(); }
+void housekeeping_task_user(void) { bluetooth_tasks(); }
