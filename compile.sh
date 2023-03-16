@@ -19,6 +19,7 @@ zparseopts -D -E -F -- \
 local -A KEYBOARDS=(
   n60        bakeneko60:default:hex
   c60        ciel60:default:hex
+  b60        dropbear60:default:hex
   d60        dz60rgb_wkl_v2_1_atmel_dfu:hhkb:hex
   fk68       fk680pro_v2:default:uf2:"/Volumes/ZhaQian DFU"
   i68        ikki68_aurora:default:hex

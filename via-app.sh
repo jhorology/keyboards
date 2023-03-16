@@ -18,6 +18,7 @@ zparseopts -D -E -F -- \
 local -A KEYBOARDS=(
   n60      bakeneko60
   c60      ciel60
+  b60      dropbear60
   d60      dz60rgb_wkl_v2_1_atmel_dfu
   fk68     fk680pro_v2
   i68      ikki68_aurora

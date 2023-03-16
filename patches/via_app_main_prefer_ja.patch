@@ -83,8 +83,8 @@ index 2c4d28c..e307945 100644
          {name: '無変換', code: 'KC_MHEN', title: 'JIS Muhenkan'},
 -        {name: '漢字', code: 'KC_HANJ', title: 'Hanja'},
 -        {name: '한영', code: 'KC_HAEN', title: 'HanYeong'},
-+        {name: 'かな', code: 'KC_LANG1', title: 'Mac JIS IME On'},
-+        {name: '英数', code: 'KC_LANG2', title: 'Mac JIS IME Off'},
++        {name: 'LANG1\nかな', code: 'KC_LANG1', title: 'Mac JIS IME On'},
++        {name: 'LANG2\n英数', code: 'KC_LANG2', title: 'Mac JIS IME Off'},
          {name: '変換', code: 'KC_HENK', title: 'JIS Henkan'},
          {name: 'かな', code: 'KC_KANA', title: 'JIS Katakana/Hiragana'},
          {
