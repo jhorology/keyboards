@@ -323,7 +323,7 @@ void ckbt51_set_param(module_param_t* param) {
   memcpy(payload + i, param, sizeof(module_param_t));
   i += sizeof(module_param_t);
 
-  ckbt51_send_cmd(payload, i, false, false);
+  ckbt51_send_cmd(payload, i, true, false);
 }
 
 void ckbt51_get_param(module_param_t* param) {
@@ -332,7 +332,7 @@ void ckbt51_get_param(module_param_t* param) {
 
   payload[i++] = CKBT51_CMD_GET_CONFIG;
 
-  ckbt51_send_cmd(payload, i, false, false);
+  ckbt51_send_cmd(payload, i, true, false);
 }
 
 void ckbt51_set_local_name(const char* name) {
@@ -442,6 +442,8 @@ void ckbt51_dfu_rx(uint8_t* data, uint8_t length) {
   }
 }
 
+__attribute__((weak)) void ckbt51_default_ack_handler(uint8_t* data, uint8_t len){};
+
 static void ack_handler(uint8_t* data, uint8_t len) {
   switch (data[1]) {
     case CKBT51_CMD_SEND_KB:
@@ -464,6 +466,7 @@ static void ack_handler(uint8_t* data, uint8_t len) {
       }
       break;
     default:
+      ckbt51_default_ack_handler(data, len);
       break;
   }
 }

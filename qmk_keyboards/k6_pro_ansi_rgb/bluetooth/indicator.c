@@ -336,7 +336,7 @@ void indicator_battery_low_backlit_enable(bool enable) {
     }
     /* Indicating at first time or after the interval */
     if ((rtc_time == 0 || t - rtc_time > LOW_BAT_LED_TRIG_INTERVAL) && bat_low_ind_state == 0) {
-      bat_low_backlit_indicator = enable ? (timer_read32() | 1) : 0;
+      bat_low_backlit_indicator = enable ? (timer_read32() == 0 ? 1 : timer_read32()) : 0;
       rtc_time = rtc_timer_read_ms();
       bat_low_ind_state = 1;
 
@@ -375,7 +375,7 @@ void indicator_battery_low(void) {
         bat_low_ind_state |= 0x80;
       }
 
-      bat_low_backlit_indicator = sync_timer_read32() | 1;
+      bat_low_backlit_indicator = sync_timer_read32() == 0 ? 1 : sync_timer_read32();
 
       /*  Restore backligth state */
       if ((bat_low_ind_state & 0x0F) > (LOW_BAT_LED_BLINK_TIMES)) {

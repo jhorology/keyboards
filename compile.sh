@@ -33,7 +33,7 @@ local -A KEYBOARDS=(
   w60        dz60rgb_wkl_v2_1_atmel_dfu:tsangan:hex
   z65        zoom65:default:hex
 )
-TARGETS=(n60 c60 d60 fk68 i68 libra prime_e q60 qk60 qk65 t60 w60 z65)
+TARGETS=(n60 c60 b60 d60 fk68 i68 libra prime_e q60 qk60 qk65 t60 w60 z65)
 QMK_HOME="$HOME/Documents/Sources/qmk_firmware"
 UPDATE_QMK=true
 MAKE_JOBS=8
