@@ -163,7 +163,7 @@ fi
 # -----------------------------------
 if $KEYCHRON_BT; then
   if [[ ! -f keychron_bluetooth_playground ]]; then
-    patch --verbose -p1 < "${PROJECT}/patches/keychron_bluetooth_playground.patch"
+    git apply -3 --verbose "${PROJECT}/patches/keychron_bluetooth_playground.patch"
     touch keychron_bluetooth_playground
   fi
 fi
@@ -171,7 +171,7 @@ fi
 for patch in $(ls -v "${PROJECT}/patches/"qmk_*.patch); do
   patched=${${patch##*/}%.*}
   if [[ ! -f "${patched}" ]]; then
-    patch --verbose -p1 < "${patch}"
+    git apply -3 --verbose "${patch}"
     touch "${patched}"
   fi
 done

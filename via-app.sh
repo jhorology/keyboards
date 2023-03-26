@@ -98,7 +98,7 @@ if (( $#update_via_app )); then
   fi
 
   for patch in $(ls -v "${PROJECT}/patches/via_app_${CURRENT_APP_BRANCH}_"*.patch); do
-    patch --verbose -p1 < $patch
+    git apply -3 --verbose $patch
   done
   yarn install
   if (( $#fiber )); then
@@ -125,7 +125,7 @@ if [[ $LOCAL_APP_REV != $REMOTE_APP_REV ]]; then
   cp package.json package.json.old
   git pull
   for patch in $(ls -v "${PROJECT}/patches/via_app_${CURRENT_APP_BRANCH}_"*.patch); do
-    patch --verbose -p1 < $patch
+    git apply -3 --verbose $patch
   done
   if [[ ! -z $(diff package.json package.json.old) ]]; then
     yarn install
