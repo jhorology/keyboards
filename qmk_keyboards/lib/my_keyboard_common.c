@@ -146,16 +146,7 @@ bool rgb_matrix_indicators_kb(void) {
   return rgb_matrix_indicators_user();
 }
 
-void suspend_power_down_kb(void) {
-  rgb_matrix_set_suspend_state(true);
-  suspend_power_down_user();
-}
-
-void suspend_wakeup_init_kb(void) {
-  suspend_wakeup_init_user();
-  rgb_matrix_set_suspend_state(false);
-}
-#endif
+#endif  // RGB_MATRIX_ENABLE
 
 static bool proces_extra_keys(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
