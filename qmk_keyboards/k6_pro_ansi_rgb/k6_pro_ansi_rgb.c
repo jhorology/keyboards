@@ -165,16 +165,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
   lpm_timer_reset();
 
-#if defined(BAT_LOW_LED_PIN) || defined(LOW_BAT_IND_INDEX)
   if (battery_is_empty() && bluetooth_get_state() == BLUETOOTH_CONNECTED && record->event.pressed) {
-#  if defined(BAT_LOW_LED_PIN)
     indicator_battery_low_enable(true);
-#  endif
-#  if defined(LOW_BAT_IND_INDEX)
     indicator_battery_low_backlit_enable(true);
-#  endif
   }
-#endif
 
   switch (keycode) {
     case BT_HST1 ... BT_HST3:

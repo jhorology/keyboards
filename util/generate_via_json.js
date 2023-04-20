@@ -328,12 +328,15 @@ async function find_all_with_reduce(
 }
 
 Promise.all(
-  TARGETS.map((target) =>
+  TARGETS.map((target) => {
+    let kb_km = target.split(':')
     build(
-      target.replace(/^my_keyboards\//, '').replaceAll('/', '_'),
-      path.join(KEYBOARDS_DIR, target)
+      (kb_km.length == 2 && kb_km[1] === 'default' ? kb_km[0] : target)
+        .replace(/^my_keyboards\//, '')
+        .replaceAll(/[/:]/g, '_'),
+      path.join(KEYBOARDS_DIR, kb_km[0].replace(/^my_keyboards\//, ''))
     )
-  )
+  })
 ).catch((err) => {
   console.error(err)
   process.exit(1)

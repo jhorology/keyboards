@@ -239,12 +239,8 @@ static void bluetooth_enter_disconnected(uint8_t host_idx) {
 #endif
   retry = 0;
   bluetooth_enter_disconnected_kb(host_idx);
-#ifdef BAT_LOW_LED_PIN
   indicator_battery_low_enable(false);
-#endif
-#if defined(LOW_BAT_IND_INDEX)
   indicator_battery_low_backlit_enable(false);
-#endif
 }
 
 /* Enter pin code entry state. */
@@ -384,12 +380,8 @@ void bluetooth_send_extra(report_extra_t *report) {
 }
 
 void bluetooth_low_battery_shutdown(void) {
-#ifdef BAT_LOW_LED_PIN
   indicator_battery_low_enable(false);
-#endif
-#if defined(LOW_BAT_IND_INDEX)
   indicator_battery_low_backlit_enable(false);
-#endif
   bluetooth_disconnect();
 }
 

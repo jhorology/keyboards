@@ -47,16 +47,12 @@ static uint16_t next_period;
 static indicator_type_t type;
 static uint32_t indicator_timer_buffer = 0;
 
-#if defined(BAT_LOW_LED_PIN)
 static uint32_t bat_low_pin_indicator = 0;
 static uint32_t bat_low_blink_duration = 0;
-#endif
 
-#if defined(LOW_BAT_IND_INDEX)
 static uint32_t bat_low_backlit_indicator = 0;
 static uint8_t bat_low_ind_state = 0;
 static uint32_t rtc_time = 0;
-#endif
 
 backlight_state_t original_backlight_state;
 
@@ -110,16 +106,7 @@ bool indicator_is_enabled(void) { return rgb_matrix_is_enabled(); }
 
 void indicator_eeconfig_reload(void) { LED_DRIVER_EECONFIG_RELOAD(); }
 
-bool indicator_is_running(void) {
-  return
-#if defined(BAT_LOW_LED_PIN)
-    bat_low_blink_duration ||
-#endif
-#if defined(LOW_BAT_IND_INDEX)
-    bat_low_ind_state ||
-#endif
-    !!indicator_config.value;
-}
+bool indicator_is_running(void) { return bat_low_blink_duration || bat_low_ind_state || !!indicator_config.value; }
 
 static void indicator_timer_cb(void *arg) {
   if (*(indicator_type_t *)arg != INDICATOR_LAST) type = *(indicator_type_t *)arg;
@@ -310,7 +297,6 @@ void indicator_stop(void) {
   }
 }
 
-#ifdef BAT_LOW_LED_PIN
 void indicator_battery_low_enable(bool enable) {
   if (enable) {
     if (bat_low_blink_duration == 0) {
@@ -320,9 +306,7 @@ void indicator_battery_low_enable(bool enable) {
   } else
     writePin(BAT_LOW_LED_PIN, !BAT_LOW_LED_PIN_ON_STATE);
 }
-#endif
 
-#if defined(LOW_BAT_IND_INDEX)
 void indicator_battery_low_backlit_enable(bool enable) {
   if (enable) {
     uint32_t t = rtc_timer_read_ms();
@@ -350,10 +334,8 @@ void indicator_battery_low_backlit_enable(bool enable) {
     if (!rgb_matrix_is_enabled()) indicator_disable();
   }
 }
-#endif
 
 void indicator_battery_low(void) {
-#ifdef BAT_LOW_LED_PIN
   if (bat_low_pin_indicator && sync_timer_elapsed32(bat_low_pin_indicator) > (LOW_BAT_LED_BLINK_PERIOD)) {
     togglePin(BAT_LOW_LED_PIN);
     bat_low_pin_indicator = sync_timer_read32() | 1;
@@ -363,8 +345,6 @@ void indicator_battery_low(void) {
       bat_low_blink_duration = bat_low_pin_indicator = 0;
     }
   }
-#endif
-#if defined(LOW_BAT_IND_INDEX)
   if (bat_low_ind_state) {
     if ((bat_low_ind_state & 0x0F) <= (LOW_BAT_LED_BLINK_TIMES) &&
         sync_timer_elapsed32(bat_low_backlit_indicator) > (LOW_BAT_LED_BLINK_PERIOD)) {
@@ -379,17 +359,16 @@ void indicator_battery_low(void) {
 
       /*  Restore backligth state */
       if ((bat_low_ind_state & 0x0F) > (LOW_BAT_LED_BLINK_TIMES)) {
-#  if defined(NUM_LOCK_INDEX) || defined(CAPS_LOCK_INDEX) || defined(SCROLL_LOCK_INDEX) || \
-    defined(COMPOSE_LOCK_INDEX) || defined(KANA_LOCK_INDEX)
+#if defined(NUM_LOCK_INDEX) || defined(CAPS_LOCK_INDEX) || defined(SCROLL_LOCK_INDEX) || \
+  defined(COMPOSE_LOCK_INDEX) || defined(KANA_LOCK_INDEX)
         if (rgb_matrix_driver_allow_shutdown())
-#  endif
+#endif
           indicator_disable();
       }
     } else if ((bat_low_ind_state & 0x0F) > (LOW_BAT_LED_BLINK_TIMES)) {
       bat_low_ind_state = 0;
     }
   }
-#endif
 }
 
 void indicator_task(void) {
@@ -443,7 +422,6 @@ bool rgb_matrix_indicators_user(void) {
       return false;
     }
 
-#if (defined(LED_MATRIX_ENABLE) || defined(RGB_MATRIX_ENABLE)) && defined(LOW_BAT_IND_INDEX)
     if (battery_is_empty()) SET_ALL_LED_OFF();
     if (bat_low_ind_state && (bat_low_ind_state & 0x0F) <= LOW_BAT_LED_BLINK_TIMES) {
       if (bat_low_ind_state & 0x80)
@@ -451,7 +429,6 @@ bool rgb_matrix_indicators_user(void) {
       else
         SET_LED_OFF(LOW_BAT_IND_INDEX);
     }
-#endif
     if (bat_level_animiation_actived()) {
       bat_level_animiation_indicate();
     }

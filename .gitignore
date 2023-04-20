@@ -18,3 +18,10 @@ node_modules/
 .venv
 .vscode
 .dir-locals.el
+.ccls
+.clangd
+compile_commands.json
+.cache/
+.ccls-cache/
+qmk_firmware/
+via_app/
