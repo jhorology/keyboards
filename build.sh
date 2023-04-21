@@ -317,11 +317,11 @@ build_firmware() {
   target=$1
 
   kbd=(${(@s/:/)KEYBOARDS[$target]})
-  qmk_kb=$kbd[1]
-  keymap=$kbd[2]
+  kb=$kbd[1]
+  km=$kbd[2]
   ext=$kbd[3]
-  make_target="my_keyboards/${qmk_kb}:${keymap}"
-  [[ ext != "uf2" ]] && (( $#with_flash )) && \
+  make_target="my_keyboards/${kb}:${km}"
+  [[ $ext != "uf2" ]] && (( $#with_flash )) && \
     make_target="${make_target}:flash"
 
   cd "${PROJECT}/qmk_firmware"
@@ -331,26 +331,26 @@ build_firmware() {
   # version="$(date +"%Y%m%d")_qmk_$(git describe --abbrev=0 --tags)_$(git rev-parse --short HEAD)"
   # <build date>_qmk_<qnk revision>
   version="$(date +"%Y%m%d")_qmk_$(git rev-parse --short HEAD)"
-  src="my_keyboards_${qmk_kb//\//_}_${keymap}.${ext}"
-  firmware="${PROJECT}/dist/${qmk_kb//\//_}"
-  if [ $keymap != "default" ]; then
-    firmware="${firmware}_${keymap}"
+  src="my_keyboards_${kb//\//_}_${km}.${ext}"
+  firmware="${PROJECT}/dist/${kb//\//_}"
+  if [ $km != "default" ]; then
+    firmware="${firmware}_${km}"
   fi
 
   firmware="${firmware}_${version}.${ext}"
   mkdir -p "${PROJECT}/dist"
   cp $src "$firmware"
 
-  if (( $#with_flash )) && [[ ext == "uf2" ]]; then
+  if (( $#with_flash )) && [[ $ext == "uf2" ]]; then
     volume_name=$kbd[4]
-    dfu_dir="$(${os}_uf2_flash_dir)"
-    echo -n "Waiting for DFU volume [$UF2_FLASH_VOLUME] to be mounted"
+    dfu_dir="$(${os}_uf2_flash_dir $volume_name)"
+    echo -n "Waiting for DFU volume [${dfu_dir}] to be mounted"
     for ((i=0; i < 20; i+=1)); do
       echo -n "."
       if [[ -d "$dfu_dir" ]]; then
         echo ""
         echo "copying file [${firmware}] to ${dfu_dir}..."
-        cp "$firmware" "$fu_dir"
+        cp "$firmware" "$dfu_dir"
         echo "flashing firmware finished successfully."
         break
       fi
@@ -371,7 +371,7 @@ compile_db() {
   sed -i -e "s|keyboards/my_keyboards|${PROJECT}/qmk_keyboards|g" compile_commands.json
   npx prettier --write compile_commands.json
 
-  # make_target="my_keyboards/${qmk_kb}:${keymap}"
+  # make_target="my_keyboards/${kb}:${km}"
   # cd "${PROJECT}/qmk_firmware"
   # compile_commands=$(make -j --dry-run $make_target | sed -n -r 's/^LOG=\$\(([a-z\-]+gcc .* -o [^ ]*).*$/\1/p')
   # echo "["
