@@ -370,7 +370,6 @@ compile_db() {
   compile_commands=$(make -j --dry-run $make_target | sed -n -r 's/^LOG=\$\(([a-z\-]+gcc .* -o [^ ]*).*$/\1/p')
   echo "["
   for c in ${(f)compile_commands}; do
-    c=$(echo $c)
     c=$(echo $c | sed -r "s| -Ikeyboards/my_keyboards| -I/${PROJECT}/qmk_keyboards|g")
     f=$(echo $c | sed -r 's/.* ([^ ]*\.[cS]) -o .*$/\1/' | sed -r "s|keyboards/my_keyboards|${PROJECT}/qmk_keyboards|")
     o=$(echo $c | sed -n -r 's/.* -o (.*)$/\1/p')
