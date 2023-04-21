@@ -23,7 +23,7 @@ zparseopts -D -E -F -- \
            {w,-without-update}=without_update \
            {p,-without-patch}=without_patch \
            {-without-via-json}=without_via_json \
-           -with-compile-db=with_compile_db \
+           {d,-with-compile-db}=with_compile_db \
            {f,-with-flash}=with_flash \
   || return
 
@@ -124,7 +124,7 @@ help_usage() {
         "  -w,--without-update             don't sync remote repository" \
         "  -p,--without-patch              don't apply patches" \
         "  --without-via_json              don't generate via JSON, use JSON file in dist folder" \
-        "  -g,--with-compile-db            generate compile_command.json" \
+        "  -d,--with-compile-db            generate compile_command.json" \
         "  -f,--with-flash                 post build flash firmware" \
         "" \
         "available targets:"
@@ -367,8 +367,8 @@ compile_db() {
   cd "$PROJECT"
   qmk config user.qmk_home=${PROJECT}/qmk_firmware
   qmk generate-compilation-database -kb my_keyboards/$kb -km $km
-  mv qmk_firmware/compile_commands.json .
-  sed -i -e "s|keyboards/my_keyboards|${PROJECT}/qmk_keyboards|g" compile_commands.json
+  cat qmk_firmware/compile_commands.json | sed -e "s|keyboards/my_keyboards|${PROJECT}/qmk_keyboards|g" > compile_commands.json
+  rm -f qmk_firmware/compile_commands.json
   npx prettier --write compile_commands.json
 
   # make_target="my_keyboards/${kb}:${km}"
@@ -569,10 +569,10 @@ rm -f "${PROJECT}/qmk_firmware/keyboards/my_keyboards"
 ln -s "${PROJECT}/qmk_keyboards" "${PROJECT}/qmk_firmware/keyboards/my_keyboards"
 
 for target in $TARGETS; do
-  build_firmware $target
   if (( $#with_compile_db )); then
     compile_db $target
   fi
+  build_firmware $target
 done
 
 $WITH_VIA_JSON && build_via_json_files
