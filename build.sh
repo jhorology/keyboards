@@ -371,8 +371,8 @@ compile_db() {
   echo "["
   for c in ${(f)compile_commands}; do
     c=$(eval print $c)
-    c=$(echo $c | sed -r "s| -Ikeyboards/my_keyboards| -I${PROJECT}/qmk_keyboards|g")
-    f=$(echo $c | sed -r 's/.* ([^ ]*\.[cS]) -o .*$/\1/' | sed -r "s|keyboards/my_keyboards|${PROJECT}/qmk_keyboards|")
+    c=$(echo $c | sed -r "s|keyboards/my_keyboards|${PROJECT}/qmk_keyboards|g")
+    f=$(echo $c | sed -r 's/.* ([^ ]*\.[cS]) -o .*$/\1/')
     o=$(echo $c | sed -n -r 's/.* -o (.*)$/\1/p')
     node -e "let v=process.argv;console.log(JSON.stringify({directory:v[1],command:v[2],file:v[3],output:v[4]}, null, 2)+',')" \
          "${PROJECT}/qmk_firmware" $c $f $o
