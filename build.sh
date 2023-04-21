@@ -23,7 +23,7 @@ zparseopts -D -E -F -- \
            {w,-without-update}=without_update \
            {p,-without-patch}=without_patch \
            {-without-via-json}=without_via_json \
-           -with-cmpile-db=with_compile_db \
+           -with-compile-db=with_compile_db \
            {f,-with-flash}=with_flash \
   || return
 
@@ -211,7 +211,7 @@ pip_upgrade() {
 
 revert_qmk_changes() {
   cd "${PROJECT}/qmk_firmware"
-  rm -f keyboards/my_keyboards
+  rm -rf keyboards
   make clean
   git reset --hard HEAD
   git clean -dfx
@@ -359,6 +359,27 @@ build_firmware() {
   fi
 }
 
+compile_db() {
+  target=$1
+  kbd=(${(@s/:/)KEYBOARDS[$target]})
+  qmk_kb=$kbd[1]
+  keymap=$kbd[2]
+
+  make_target="my_keyboards/${qmk_kb}:${keymap}"
+  cd "${PROJECT}/qmk_firmware"
+  compile_commands=$(make -j --dry-run $make_target | sed -n -r 's/^LOG=\$\(([a-z\-]+gcc .* -o [^ ]*).*$/\1/p')
+  echo "["
+  for c in ${(f)compile_commands}; do
+    c=$(echo $c)
+    c=$(echo $c | sed -r "s| -Ikeyboards/my_keyboards| -I/${PROJECT}/qmk_keyboards|g")
+    f=$(echo $c | sed -r 's/.* ([^ ]*\.[cS]) -o .*$/\1/' | sed -r "s|keyboards/my_keyboards|${PROJECT}/qmk_keyboards|")
+    o=$(echo $c | sed -n -r 's/.* -o (.*)$/\1/p')
+    node -e "let v=process.argv;console.log(JSON.stringify({directory:v[1],command:v[2],file:v[3],output:v[4]}, null, 2)+',')" \
+         "${PROJECT}/qmk_firmware" $c $f $o
+  done
+  echo "]"
+}
+
 scp_secure_config() {
   cd "$PROJECT"
   project=$(realpath --relative-to="$HOME" .)
@@ -401,11 +422,6 @@ build_via_json() {
   # generate via json file
   QMK_HOME="${PROJECT}/qmk_firmware" \
           "$PROJECT/util/generate_via_json.js" "$qmk_kb:$keymap"
-}
-
-
-build_compile_db() {
-  #TODO fedora on WSL2
 }
 
 run_via_app() {
@@ -458,7 +474,7 @@ run_via_app() {
 
   # start VIA
   #______________________________________
-  yarn dev
+  npx yarn dev
 }
 
 sub_commands() {
@@ -525,10 +541,6 @@ if [[ ! -d "${PROJECT}/qmk_firmware" ]]; then
   WITH_UPDATE=true
 fi
 
-if [[ ! -d "${PROJECT}/via_app" ]]; then
-  setup_via
-fi
-
 if [[ ! -d "${PROJECT}/node_modules" ]]; then
   setup_project
 fi
@@ -552,6 +564,11 @@ ln -s "${PROJECT}/qmk_keyboards" "${PROJECT}/qmk_firmware/keyboards/my_keyboards
 
 for target in $TARGETS; do
   build_firmware $target
-  (( $#with_compile_db )) && WITH_PATCH=false
+  if (( $#with_compile_db )); then
+    compile_db $target > "${PROJECT}/compile_commands.json"
+    cd "$PROJECT"
+    npx prettier --write "${PROJECT}/compile_commands.json"
+  fi
 done
+
 $WITH_VIA_JSON && build_via_json_files
