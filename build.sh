@@ -362,22 +362,28 @@ build_firmware() {
 compile_db() {
   target=$1
   kbd=(${(@s/:/)KEYBOARDS[$target]})
-  qmk_kb=$kbd[1]
-  keymap=$kbd[2]
+  kb=$kbd[1]
+  km=$kbd[2]
+  cd "$PROJECT"
+  qmk config user.qmk_home=${PROJECT}/qmk_firmware
+  qmk generate-compilation-database -kb my_keyboards/$kb -km $km
+  mv qmk_firmware/compile_commands.json .
+  sed -i -e "s|keyboards/my_keyboards|${PROJECT}/qmk_keyboards|g" compile_commands.json
+  npx prettier --write compile_commands.json
 
-  make_target="my_keyboards/${qmk_kb}:${keymap}"
-  cd "${PROJECT}/qmk_firmware"
-  compile_commands=$(make -j --dry-run $make_target | sed -n -r 's/^LOG=\$\(([a-z\-]+gcc .* -o [^ ]*).*$/\1/p')
-  echo "["
-  for c in ${(f)compile_commands}; do
-    c=$(eval print $c)
-    c=$(echo $c | sed -r "s|keyboards/my_keyboards|${PROJECT}/qmk_keyboards|g")
-    f=$(echo $c | sed -r 's/.* ([^ ]*\.[cS]) -o .*$/\1/')
-    o=$(echo $c | sed -n -r 's/.* -o (.*)$/\1/p')
-    node -e "let v=process.argv;console.log(JSON.stringify({directory:v[1],command:v[2],file:v[3],output:v[4]}, null, 2)+',')" \
-         "${PROJECT}/qmk_firmware" $c $f $o
-  done
-  echo "]"
+  # make_target="my_keyboards/${qmk_kb}:${keymap}"
+  # cd "${PROJECT}/qmk_firmware"
+  # compile_commands=$(make -j --dry-run $make_target | sed -n -r 's/^LOG=\$\(([a-z\-]+gcc .* -o [^ ]*).*$/\1/p')
+  # echo "["
+  # for c in ${(f)compile_commands}; do
+  #   # c=$(eval print $c)
+  #   c=$(echo $c | sed -r "s|keyboards/my_keyboards|${PROJECT}/qmk_keyboards|g")
+  #   f=$(echo $c | sed -r 's/.* ([^ ]*\.[cS]) -o .*$/\1/')
+  #   o=$(echo $c | sed -n -r 's/.* -o (.*)$/\1/p')
+  #   node -e "let v=process.argv;console.log(JSON.stringify({directory:v[1],command:v[2],file:v[3],output:v[4]}, null, 2)+',')" \
+  #        "${PROJECT}/qmk_firmware" $c $f $o
+  # done
+  # echo "]"
 }
 
 scp_secure_config() {
@@ -565,9 +571,7 @@ ln -s "${PROJECT}/qmk_keyboards" "${PROJECT}/qmk_firmware/keyboards/my_keyboards
 for target in $TARGETS; do
   build_firmware $target
   if (( $#with_compile_db )); then
-    compile_db $target > "${PROJECT}/compile_commands.json"
-    cd "$PROJECT"
-    npx prettier --write "${PROJECT}/compile_commands.json"
+    compile_db $target
   fi
 done
 
