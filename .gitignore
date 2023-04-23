@@ -23,3 +23,4 @@ compile_commands.json
 .ccls-cache/
 qmk_firmware/
 via_app/
+.build/
