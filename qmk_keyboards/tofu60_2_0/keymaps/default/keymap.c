@@ -37,7 +37,6 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   ),
   // settings, application-specific keys
   // row 3: normal settings, +shift key for unusual reversed setting
-  // QK_BOOT dosen't work. To enter DFU mode, press-hold 'b' + QK_RBT
   [3] = LAYOUT_60_hhkb(
     QK_BOOT, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, TERM_LCK,
     _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
