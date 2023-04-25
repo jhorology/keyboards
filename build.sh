@@ -46,11 +46,12 @@ local -A KEYBOARDS=(
   q60        q60_ansi:default:bin
   qk60       qk60:default:bin
   qk65       qk65_solder:default:hex
-  t60        tetrix60:default:hex
+  tx60       tetrix60:default:hex
+  tf60       tofu60_2_0:default:uf2:"RPI-RP2"
   w60        dz60rgb_wkl_v2_1_atmel_dfu:tsangan:hex
   z65        zoom65:default:hex
 )
-TARGETS=(n60 c60 b60 d60 fk68 i68 libra prime_e q60 qk60 qk65 t60 w60 z65)
+TARGETS=(n60 c60 b60 d60 fk68 i68 libra prime_e q60 qk60 qk65 t60 tf60 w60 z65)
 WITH_UPDATE=true
 WITH_PATCH=true
 WITH_VIA_JSON=true
