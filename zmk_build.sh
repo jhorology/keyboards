@@ -53,7 +53,7 @@ CONTAINER_WORKSPACE_DIR=/workspace
 
 # key: target name [1]=board:[2]=firmwre_name:[3]=DFU volume name
 local -A KEYBOARDS=(
-    bt60       bt60:bt60_hhkb_ec11:CKP
+  bt60       bt60:bt60_hhkb_ec11:CKP
 )
 TARGETS=(bt60)
 
@@ -81,264 +81,250 @@ zparseopts -D -E -F -- \
            {d,-with-docker}=with_docker \
            -with-setup=with_setup \
            {c,-with-clean}=with_clean \
+           -with-compile-db=with_compile_db \
            {w,-without-update}=without_update \
            {p,-without-patch}=without_patch \
            {f,-with-flash}=with_flash \
-    || return
+  || return
 
 
 # functions
 # -----------------------------------
 help_usage() {
-    print -rC1 -- \
-          "" \
-          "Usage:" \
-          "    $THIS_SCRIPT:t <-h|--help>                     help" \
-          "    $THIS_SCRIPT:t --clean                         clean build folder" \
-          "    $THIS_SCRIPT:t --clean-modules                 clean source moudules & build files" \
-          "    $THIS_SCRIPT:t --clean-tools                   clean zephyr sdk & project build tools" \
-          "    $THIS_SCRIPT:t --clean-all                     clean build environment" \
-          "    $THIS_SCRIPT:t --setup                         setup zephyr sdk & projtect build tools" \
-          "    $THIS_SCRIPT:t --setup-docker                  create docker image" \
-          "    $THIS_SCRIPT:t --pip-upgrade                   upgrade python packages" \
-          "    $THIS_SCRIPT:t <-s|--docker-shell>             enter docker container shell" \
-          "    $THIS_SCRIPT:t [build options...] [TARGETS..]  build firmwares" \
-          "" \
-          "build options:" \
-          "    -c,--with-clean                  pre build clean up build & temporary files" \
-          "    -d,--with-docker                 build with docker" \
-          "    --with-setup                     pre build automatic setup" \
-          "    -w,--without-update              don't sync remote repository" \
-          "    -p,--without-patch               don't apply patches" \
-          "    -f,--with-flash                  post build copy firmware to DFU drive" \
-          "" \
-          "available targets:"
-    for target in ${(k)KEYBOARDS}; do
-        print -rC2 -- "   ${target}:"  "${KEYBOARDS[$target]}"
-    done
+  print -rC1 -- \
+        "" \
+        "Usage:" \
+        "    $THIS_SCRIPT:t <-h|--help>                     help" \
+        "    $THIS_SCRIPT:t --clean                         clean build folder" \
+        "    $THIS_SCRIPT:t --clean-modules                 clean source moudules & build files" \
+        "    $THIS_SCRIPT:t --clean-tools                   clean zephyr sdk & project build tools" \
+        "    $THIS_SCRIPT:t --clean-all                     clean build environment" \
+        "    $THIS_SCRIPT:t --setup                         setup zephyr sdk & projtect build tools" \
+        "    $THIS_SCRIPT:t --setup-docker                  create docker image" \
+        "    $THIS_SCRIPT:t --pip-upgrade                   upgrade python packages" \
+        "    $THIS_SCRIPT:t <-s|--docker-shell>             enter docker container shell" \
+        "    $THIS_SCRIPT:t [build options...] [TARGETS..]  build firmwares" \
+        "" \
+        "build options:" \
+        "    -c,--with-clean                  pre build clean up build & temporary files" \
+        "    -d,--with-docker                 build with docker" \
+        "    --with-compile-db             copy compile_command.json" \
+        "    --with-setup                     pre build automatic setup" \
+        "    -w,--without-update              don't sync remote repository" \
+        "    -p,--without-patch               don't apply patches" \
+        "    -f,--with-flash                  post build copy firmware to DFU drive" \
+        "" \
+        "available targets:"
+  for target in ${(k)KEYBOARDS}; do
+    print -rC2 -- "   ${target}:"  "${KEYBOARDS[$target]}"
+  done
 }
 
 error_exit() {
-    print -r "Error: $2" >&2
-    exit $1
+  print -r "Error: $2" >&2
+  exit $1
 }
 
 
 # prefix for platform spcific functions
 case $HOST_OS in
-    macos )
-        os=macos
-        ;;
-    linux )
-        if [[ -f /etc/fedora-release ]]; then
-            os=fedora
-        else
-            # TODO
-            error_exit 1 'unsupported platform.'
-        fi
-        ;;
-    * )
-        error_exit 1 'unsupported platform.'
-        ;;
+  macos )
+    os=macos
+    ;;
+  linux )
+    if [[ -f /etc/fedora-release ]]; then
+      os=fedora
+    else
+      # TODO
+      error_exit 1 'unsupported platform.'
+    fi
+    ;;
+  * )
+    error_exit 1 'unsupported platform.'
+    ;;
 esac
 
 
 
 clean() {
-    cd "$PROJECT"
-    rm -rf build
-    find . -name "*~" -exec rm -f {} \;
-    find . -name ".DS_Store" -exec rm -f {} \;
+  cd "$PROJECT"
+  rm -rf build
+  find . -name "*~" -exec rm -f {} \;
+  find . -name ".DS_Store" -exec rm -f {} \;
 }
 
 clean_modules() {
-    cd "$PROJECT"
-    clean()
-    rm -rf dist
-    rm -rf build
-    rm -rf modules
-    rm -rf zmk
-    rm -rf zephyr
-    rm -rf .west
+  cd "$PROJECT"
+  clean()
+  rm -rf dist
+  rm -rf build
+  rm -rf modules
+  rm -rf zmk
+  rm -rf zephyr
+  rm -rf .west
 }
 
 clean_tools() {
-    cd "$PROJECT"
-    rm -rf .venv
-    rm -rf "${ZEPHYR_SDK_VERSION}"
-    rm -rf "${ZEPHYR_SDK_INSTALL_DIR}/${ZEPHYR_SDK_VERSION}"
-    if [ ! -z "$(docker ps -q -a -f name=$CONTAINER_NAME)" ]; then
-        docker rm -f  $CONTAINER_NAME $(docker ps -q -a -f name=$CONTAINER_NAME)
-        sleep 5
-    fi
-    if [ ! -z "$(docker images -q $DOCKER_IMAGE)" ]; then
-        docker rmi $DOCKER_IMAGE
-    fi
+  cd "$PROJECT"
+  rm -rf .venv
+  rm -rf "${ZEPHYR_SDK_VERSION}"
+  rm -rf "${ZEPHYR_SDK_INSTALL_DIR}/${ZEPHYR_SDK_VERSION}"
+  if [ ! -z "$(docker ps -q -a -f name=$CONTAINER_NAME)" ]; then
+    docker rm -f  $CONTAINER_NAME $(docker ps -q -a -f name=$CONTAINER_NAME)
+    sleep 5
+  fi
+  if [ ! -z "$(docker images -q $DOCKER_IMAGE)" ]; then
+    docker rmi $DOCKER_IMAGE
+  fi
 }
 
 clean_all() {
-    cd "$PROJECT"
-    clean_modules
-    clean_tools
+  cd "$PROJECT"
+  clean_modules
+  clean_tools
 }
 
 fedora_setup_docker() {
-    # TODO
-    echo "see https://learn.microsoft.com/en-us/windows/wsl/tutorials/wsl-containers"
+  # TODO
+  echo "see https://learn.microsoft.com/en-us/windows/wsl/tutorials/wsl-containers"
 }
 
 macos_setup_docker() {
-    brew update
-    brew install --cask docker
-    brew cleanup
+  brew update
+  brew install --cask docker
+  brew cleanup
 }
 
 setup_docker() {
-    if ! which docker &> /dev/null; then
-        ${os}_setup_docker
-        which docker &> /dev/null || \
-            error_exit 1 "'docker' command not found. Check Docker.app cli setting."
-    fi
+  if ! which docker &> /dev/null; then
+    ${os}_setup_docker
+    which docker &> /dev/null || \
+      error_exit 1 "'docker' command not found. Check Docker.app cli setting."
+  fi
 
-    if [ -z "$(docker images -q $DOCKER_IMAGE)" ]; then
-        docker build \
-               --build-arg HOST_UID=$(id -u) \
-               --build-arg HOST_GID=$(id -g) \
-               --build-arg WORKSPACE_DIR=$CONTAINER_WORKSPACE_DIR \
-               -t my/zmk-dev-arm:stable -f $DOCKERFILE .
-    fi
+  if [ -z "$(docker images -q $DOCKER_IMAGE)" ]; then
+    docker build \
+           --build-arg HOST_UID=$(id -u) \
+           --build-arg HOST_GID=$(id -g) \
+           --build-arg WORKSPACE_DIR=$CONTAINER_WORKSPACE_DIR \
+           -t my/zmk-dev-arm:stable -f $DOCKERFILE .
+  fi
 }
 
 docker_exec() {
 
-    container_id_state=$(docker ps -q -a -f name=$CONTAINER_NAME --format "{{.ID}}:{{.State}}")
-    # create container
-    if [[ -z $container_id_state ]]; then
-        docker run -dit --init \
-               -v $PROJECT:$CONTAINER_WORKSPACE_DIR \
-               --name $CONTAINER_NAME \
-               -w $CONTAINER_WORKSPACE_DIR \
-               $DOCKER_IMAGE
-    else
-        array_id_state=(${(@s/:/)container_id_state})
-        container_id=$array_id_state[1]
-        container_state=$array_id_state[2]
-        if [[ $container_state != "running" ]]; then
-            docker start $container_id
-        fi
-    fi
-    # exec
-    docker exec $1 \
+  container_id_state=$(docker ps -q -a -f name=$CONTAINER_NAME --format "{{.ID}}:{{.State}}")
+  # create container
+  if [[ -z $container_id_state ]]; then
+    docker run -dit --init \
+           -v $PROJECT:$CONTAINER_WORKSPACE_DIR \
+           --name $CONTAINER_NAME \
            -w $CONTAINER_WORKSPACE_DIR \
-           $CONTAINER_NAME \
-           bash
+           $DOCKER_IMAGE
+  else
+    array_id_state=(${(@s/:/)container_id_state})
+    container_id=$array_id_state[1]
+    container_state=$array_id_state[2]
+    if [[ $container_state != "running" ]]; then
+      docker start $container_id
+    fi
+  fi
+  # exec
+  docker exec $1 \
+         -w $CONTAINER_WORKSPACE_DIR \
+         $CONTAINER_NAME \
+         bash
 }
 
 fedora_setup() {
-    # https://docs.zephyrproject.org/3.2.0/develop/getting_started/index.html#select-and-update-os
-    sudo dnf update
-    sudo dnf install wget git cmake ninja-build gperf python3 ccache dtc wget xz file \
-         make gcc SDL2-devel file-libs
-    # gcc-multilib g++-multilib
-    sudo dnf autoremove
-    sudo dnf clean all
+  # https://docs.zephyrproject.org/3.2.0/develop/getting_started/index.html#select-and-update-os
+  sudo dnf update
+  sudo dnf install wget git cmake ninja-build gperf python3 ccache dtc wget xz file \
+       make gcc SDL2-devel file-libs
+  # gcc-multilib g++-multilib
+  sudo dnf autoremove
+  sudo dnf clean all
 }
 
 macos_setup() {
-    # https://docs.zephyrproject.org/3.2.0/develop/getting_started/index.html#select-and-update-os
-    brew update
-    brew install wget git cmake ninja gperf python3 ccache qemu dtc libmagic ccls
-    brew cleanup
+  # https://docs.zephyrproject.org/3.2.0/develop/getting_started/index.html#select-and-update-os
+  brew update
+  brew install wget git cmake ninja gperf python3 ccache qemu dtc libmagic ccls
+  brew cleanup
 }
 
 setup() {
-    cd "$PROJECT"
-    ${os}_setup
-    if [[ ! -d "${ZEPHYR_SDK_INSTALL_DIR}/zephyr-sdk-${ZEPHYR_SDK_VERSION}" ]]; then
-        mkdir -p "$ZEPHYR_SDK_INSTALL_DIR"
-        cd "$ZEPHYR_SDK_INSTALL_DIR"
-        sdk_minimal_file_name="zephyr-sdk-${ZEPHYR_SDK_VERSION}_${HOST_OS}-${HOST_ARCHITECTURE}_minimal.tar.gz"
-        wget "https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v${ZEPHYR_SDK_VERSION}/${sdk_minimal_file_name}"
-        tar xvf ${sdk_minimal_file_name}
-        rm ${sdk_minimal_file_name}
+  cd "$PROJECT"
+  ${os}_setup
+  if [[ ! -d "${ZEPHYR_SDK_INSTALL_DIR}/zephyr-sdk-${ZEPHYR_SDK_VERSION}" ]]; then
+    mkdir -p "$ZEPHYR_SDK_INSTALL_DIR"
+    cd "$ZEPHYR_SDK_INSTALL_DIR"
+    sdk_minimal_file_name="zephyr-sdk-${ZEPHYR_SDK_VERSION}_${HOST_OS}-${HOST_ARCHITECTURE}_minimal.tar.gz"
+    wget "https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v${ZEPHYR_SDK_VERSION}/${sdk_minimal_file_name}"
+    tar xvf ${sdk_minimal_file_name}
+    rm ${sdk_minimal_file_name}
+  fi
+  cd "${ZEPHYR_SDK_INSTALL_DIR}/zephyr-sdk-${ZEPHYR_SDK_VERSION}"
+  for toolchain in $TARGET_TOOLCHAINS; do
+    if [[ ! -d $toolchain ]]; then
+      ./setup.sh -h -c -t $toolchain
     fi
-    cd "${ZEPHYR_SDK_INSTALL_DIR}/zephyr-sdk-${ZEPHYR_SDK_VERSION}"
-    for toolchain in $TARGET_TOOLCHAINS; do
-        if [[ ! -d $toolchain ]]; then
-            ./setup.sh -h -c -t $toolchain
-        fi
-    done
-    cd "$PROJECT"
+  done
+  cd "$PROJECT"
 
-    # zinit setting
-    #
-    # https://github.com/MichaelAquilina/zsh-autoswitch-virtualenv
-    # export AUTOSWITCH_DEFAULT_PYTHON=python3
-    # zinit load MichaelAquilina/zsh-autoswitch-virtualenv
+  # zinit setting
+  #
+  # https://github.com/MichaelAquilina/zsh-autoswitch-virtualenv
+  # export AUTOSWITCH_DEFAULT_PYTHON=python3
+  # zinit load MichaelAquilina/zsh-autoswitch-virtualenv
 
-    python3 -m venv .venv
-    source .venv/bin/activate
-    pip3 install west
-    pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v${ZEPHYR_VERSION}/scripts/requirements-base.txt
-    pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v${ZEPHYR_VERSION}/scripts/requirements-build-test.txt
-    pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v${ZEPHYR_VERSION}/scripts/requirements-run-test.txt
-    pip3 cache purge
+  python3 -m venv .venv
+  source .venv/bin/activate
+  pip3 install west
+  pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v${ZEPHYR_VERSION}/scripts/requirements-base.txt
+  pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v${ZEPHYR_VERSION}/scripts/requirements-build-test.txt
+  pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v${ZEPHYR_VERSION}/scripts/requirements-run-test.txt
+  pip3 cache purge
 }
 
 pip_upgrade() {
-    cd "$PROJECT"
-    source .venv/bin/activate
-    pip3 --disable-pip-version-check list --outdated --format=json | \
-        python3 -c "import json, sys; print('\n'.join([x['name'] for x in json.load(sys.stdin)]))" | \
-        xargs -n1 pip install -U
+  cd "$PROJECT"
+  source .venv/bin/activate
+  pip3 --disable-pip-version-check list --outdated --format=json | \
+    python3 -c "import json, sys; print('\n'.join([x['name'] for x in json.load(sys.stdin)]))" | \
+    xargs -n1 pip install -U
 }
 
-clangd_setting() {
-}
-
-ccls_setting() {
-    cat <<EOS > "${PROJECT}/.ccls"
-{
-  "clang": {
-     "resourceDir": "${ZEPHYR_SDK_INSTALL_DIR}/zephyr-sdk-${ZEPHYR_SDK_VERSION}/${TARGET_TOOLCHAIN}/${TARGET_TOOLCHAIN}",
-     "clang.extraArgs": [
-       "-gcc-toolchain=${ZEPHYR_SDK_INSTALL_DIR}/zephyr-sdk-${ZEPHYR_SDK_VERSION}/${TARGET_TOOLCHAIN}"
-     ]
-  },
-  "compilationDatabaseDirectory": "${PROJECT}"
-}
-EOS
-}
 
 
 update() {
-    cd "$PROJECT"
-    if [ ! -d .west/ ]; then
-        west init -l zmk_keyboards
-        west config build.cmake-args -- -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-    fi
+  cd "$PROJECT"
+  if [ ! -d .west/ ]; then
+    west init -l zmk_keyboards
+    west config build.cmake-args -- -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+  fi
 
-    if $UPDATE_BUILD; then
-        rm -rf build
-        if [ -d zmk ]; then
-            # revert changes
-            cd zmk
-            git reset --hard HEAD
-            git clean -dfx
-            cd ..
-        fi
-        west update -n
-        if $APPLY_PATCHES; then
-            cd zmk
-            git apply -3 --verbose ../patches/zmk_*.patch
-            cd ..
-        fi
-        west zephyr-export
+  if $UPDATE_BUILD; then
+    rm -rf build
+    if [ -d zmk ]; then
+      # revert changes
+      cd zmk
+      git reset --hard HEAD
+      git clean -dfx
+      cd ..
     fi
+    west update -n
+    if $APPLY_PATCHES; then
+      cd zmk
+      git apply -3 --verbose ../patches/zmk_*.patch
+      cd ..
+    fi
+    west zephyr-export
+  fi
 }
 
 update_with_docker() {
-    docker_exec -i <<-EOF
+  docker_exec -i <<-EOF
     if [ ! -d .west/ ]; then
         west init -l zmk_keyboards
         west config build.cmake-args -- -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
@@ -365,20 +351,40 @@ EOF
 
 # $1 board
 build() {
-    board=$1
+  board=$1
 
-    west build --pristine --board $board --build-dir build/$board zmk/app -- -DZMK_CONFIG="${PROJECT}/zmk_keyboards"
+  west build --pristine --board $board --build-dir build/$board zmk/app -- -DZMK_CONFIG="${PROJECT}/zmk_keyboards"
 }
 
 # $1 board
 build_with_docker() {
-    board=$1
+  board=$1
 
-    docker_exec -i <<-EOF
+  docker_exec -i <<-EOF
     west build --pristine --board $board --build-dir build/$board zmk/app -- -DZMK_CONFIG="${CONTAINER_WORKSPACE_DIR}/zmk_keyboards"
 EOF
 }
 
+clangd_setting() {
+  cat <<EOS > "${PROJECT}/.clangd"
+CompileFlags:
+  Remove: [-mfp16-format*, -fno-reorder-functions]
+EOS
+}
+
+ccls_setting() {
+  cat <<EOS > "${PROJECT}/.ccls"
+{
+  "clang": {
+     "resourceDir": "${ZEPHYR_SDK_INSTALL_DIR}/zephyr-sdk-${ZEPHYR_SDK_VERSION}/${TARGET_TOOLCHAIN}/${TARGET_TOOLCHAIN}",
+     "clang.extraArgs": [
+       "-gcc-toolchain=${ZEPHYR_SDK_INSTALL_DIR}/zephyr-sdk-${ZEPHYR_SDK_VERSION}/${TARGET_TOOLCHAIN}"
+     ]
+  },
+  "compilationDatabaseDirectory": "${PROJECT}"
+}
+EOS
+}
 
 # copy & rename firmware
 # $1 board
@@ -386,53 +392,53 @@ EOF
 # return echo path or firmware
 # -----------------------------------
 dist_firmware() {
-    board=$1
-    firmware_name=$2
+  board=$1
+  firmware_name=$2
 
-    cd "$PROJECT"
-    cd zmk
-    version="$(date +"%Y%m%d")_zmk_$(git rev-parse --short HEAD)"
-    cd ..
-    mkdir -p dist
-    src=build/${board}/zephyr/zmk.uf2
-    dst=dist/${firmware_name}_${version}.uf2
-    cp $src $dst
-    echo $dst
+  cd "$PROJECT"
+  cd zmk
+  version="$(date +"%Y%m%d")_zmk_$(git rev-parse --short HEAD)"
+  cd ..
+  mkdir -p dist
+  src=build/${board}/zephyr/zmk.uf2
+  dst=dist/${firmware_name}_${version}.uf2
+  cp $src $dst
+  echo $dst
 }
 
 
 # $1 volume name
 macos_dfu_volume() {
-    volume_name=$1
+  volume_name=$1
 
-    echo /Volumes/${volume_name}
+  echo /Volumes/${volume_name}
 }
 
 fedora_dfu_volume() {
-    # TODO fedora on WSL2
-    error_exit 1 "flashing firmware is not supported"
+  # TODO fedora on WSL2
+  error_exit 1 "flashing firmware is not supported"
 }
 
 # $1 firmware file
 # $2 volume name
 flash_firmware() {
-    src=$1
-    volume_name=$2
+  src=$1
+  volume_name=$2
 
-    dst_dir=$(${os}_dfu_volume "$volume_name")
-    echo -n "Waiting for DFU volume:[$dst_dir] to be mounted"
-    for ((i=0; i < 20; i+=1)); do
-        echo -n "."
-        if [[ -d "$dst_dir" ]]; then
-            echo ""
-            echo "copying file [$src] to ${dst_dir}..."
-            sleep 1
-            cp $src "$dst_dir"
-            echo "flashing firmware finished successfully."
-            break
-        fi
-        sleep 1
-    done
+  dst_dir=$(${os}_dfu_volume "$volume_name")
+  echo -n "Waiting for DFU volume:[$dst_dir] to be mounted"
+  for ((i=0; i < 20; i+=1)); do
+    echo -n "."
+    if [[ -d "$dst_dir" ]]; then
+      echo ""
+      echo "copying file [$src] to ${dst_dir}..."
+      sleep 1
+      cp $src "$dst_dir"
+      echo "flashing firmware finished successfully."
+      break
+    fi
+    sleep 1
+  done
 }
 
 cd "$PROJECT"
@@ -441,33 +447,33 @@ cd "$PROJECT"
 #  sub commands
 # -----------------------------------
 if (( $#help )); then
-    help_usage
-    return
+  help_usage
+  return
 elif (( $#clean )); then
-    clean
-    return
+  clean
+  return
 elif (( $#clean_all )); then
-    clean_all
-    return
+  clean_all
+  return
 elif (( $#clean_tools )); then
-    clean_tools
-    return
+  clean_tools
+  return
 elif (( $#clean_modules )); then
-    clean_modules
-    return
+  clean_modules
+  return
 elif (( $#docker_shell )); then
-    setup_docker
-    docker_exec -it
-    return
+  setup_docker
+  docker_exec -it
+  return
 elif (( $#setup )); then
-    setup
-    return
+  setup
+  return
 elif (( $#setup_docker )); then
-    setup_docker
-    return
+  setup_docker
+  return
 elif (( $#pip_upgrade )); then
-    pip_upgrade
-    return
+  pip_upgrade
+  return
 fi
 
 # build option parameters
@@ -484,42 +490,46 @@ fi
 #  clean build
 # -----------------------------------
 if $UPDATE_BUILD || (( $#with_clean )); then
-    clean
+  clean
 fi
 
 # pre build setup
 # -----------------------------------
 if (( $#with_setup )); then
-    if (( $#with_docker )); then
-        setup_docker
-    else
-        setup
-    fi
+  if (( $#with_docker )); then
+    setup_docker
+  else
+    setup
+  fi
 fi
 
 
 # build
 # -----------------------------------
 if (( $#with_docker )); then
-    update_with_docker
+  update_with_docker
 else
-    if [[ $(which python3) != "${PROJECT}/.venv/bin/python3" ]]; then
-        source .venv/bin/activate
-    fi
-    update
+  if [[ $(which python3) != "${PROJECT}/.venv/bin/python3" ]]; then
+    source .venv/bin/activate
+  fi
+  update
 fi
 for target in $TARGETS; do
-    kbd=(${(@s/:/)KEYBOARDS[$target]})
-    board=$kbd[1]
-    firmware_name=$kbd[2]
-    dfu_volume_name=$kbd[3]
-    if (( $#with_docker )); then
-        build_with_docker $board
-    else
-        build $board
+  kbd=(${(@s/:/)KEYBOARDS[$target]})
+  board=$kbd[1]
+  firmware_name=$kbd[2]
+  dfu_volume_name=$kbd[3]
+  if (( $#with_docker )); then
+    build_with_docker $board
+  else
+    build $board
+    if (( $#with_compile_db )); then
+      cp "${PROJECT}/build/${board}/compile_commands.json" "${PROJECT}"
+      clangd_setting
     fi
-    firmware_file=$(dist_firmware $board $firmware_name)
-    if (( $#with_flash )); then
-        flash_firmware $firmware_file $dfu_volume_name
-    fi
+  fi
+  firmware_file=$(dist_firmware $board $firmware_name)
+  if (( $#with_flash )); then
+    flash_firmware $firmware_file $dfu_volume_name
+  fi
 done

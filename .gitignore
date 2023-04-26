@@ -18,6 +18,8 @@ node_modules/
 .vscode
 .dir-locals.el
 compile_commands.json
+.clangd
+.ccls
 .cache/
 .ccls-cache/
 

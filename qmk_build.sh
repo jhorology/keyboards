@@ -360,6 +360,13 @@ build_firmware() {
   fi
 }
 
+clangd_setting() {
+  cat <<EOS > "${PROJECT}/.clangd"
+CompileFlags:
+  Remove: [-mcall-prologues]
+EOS
+}
+
 compile_db() {
   target=$1
   kbd=(${(@s/:/)KEYBOARDS[$target]})
@@ -572,6 +579,7 @@ ln -s "${PROJECT}/qmk_keyboards" "${PROJECT}/qmk_firmware/keyboards/my_keyboards
 for target in $TARGETS; do
   if (( $#with_compile_db )); then
     compile_db $target
+    clangd_setting
   fi
   build_firmware $target
 done
