@@ -1,0 +1,11 @@
+FROM zmkfirmware/zmk-dev-arm:stable
+ARG HOST_GID=1000
+ARG HOST_UID=1000
+ARG WORKSPACE_DIR=/workspace
+
+RUN groupadd -f -g $HOST_GID user \
+  && useradd -m -s /bin/bash -u $HOST_UID -g $HOST_GID user \
+  && mkdir $WORKSPACE_DIR \
+  && chown -R $HOST_UID:$HOST_GID $WORKSPACE_DIR \
+  && echo "[ -f $WORKSPACE_DIR/zephyr/zephyr-env.sh ] && source $WORKSPACE_DIR/zephyr/zephyr-env.sh" >> /home/user/.bashrc
+USER user

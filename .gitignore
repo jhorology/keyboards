@@ -3,7 +3,6 @@ dist/
 *.bin
 *.uf2
 .config
-vial.json
 secure_config.h
 
 node_modules/
@@ -21,6 +20,19 @@ node_modules/
 compile_commands.json
 .cache/
 .ccls-cache/
-qmk_firmware/
+
+# VIA
 via_app/
+
+# qmk
+vial.json
+.qmk_config
+qmk_firmware/
 .build/
+
+# zmk
+.zmk_config
+zephyr/
+zmk/
+modules/
+build/

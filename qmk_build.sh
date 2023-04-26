@@ -63,7 +63,7 @@ MAIN_DEV_HOST=$(uname -n)
 # .config
 #  override configuration
 # -----------------------------------
-[ -s .config ] &&  source .config
+[ -s .qmk_config ] &&  source .qmk_config
 
 
 QMK_DIR="qmk_firmware"

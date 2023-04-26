@@ -1,0 +1,10 @@
+[manifest]
+path = zmk_keyboards
+file = west.yml
+
+[build]
+cmake-args = -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+[zephyr]
+base = zephyr
+

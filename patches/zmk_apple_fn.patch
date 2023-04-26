@@ -1,0 +1,202 @@
+diff --git a/app/include/dt-bindings/zmk/hid_usage.h b/app/include/dt-bindings/zmk/hid_usage.h
+index 0555f004..793d2785 100644
+--- a/app/include/dt-bindings/zmk/hid_usage.h
++++ b/app/include/dt-bindings/zmk/hid_usage.h
+@@ -2559,8 +2559,11 @@
+ #define HID_USAGE_CAMERA_CAMERA_AUTO_FOCUS (0x20) // OSC
+ #define HID_USAGE_CAMERA_CAMERA_SHUTTER (0x21)    // OSC
+ 
++/* Page 0xFF: Apple Vendor Top Case */
++#define HID_USAGE_AV_TOP_CASE_KEYBOARD_FN (0x03) // Apple fn/globe
++
+ /* Page 0xF1D0: FIDO Alliance */
+ #define HID_USAGE_FIDO_UNDEFINED (0x00)
+ #define HID_USAGE_FIDO_U2F_AUTHENTICATOR_DEVICE (0x01) // CA
+ #define HID_USAGE_FIDO_INPUT_REPORT_DATA (0x20)        // DV
+-#define HID_USAGE_FIDO_OUTPUT_REPORT_DATA (0x21)       // DV
+\ No newline at end of file
++#define HID_USAGE_FIDO_OUTPUT_REPORT_DATA (0x21)       // DV
+diff --git a/app/include/dt-bindings/zmk/hid_usage_pages.h b/app/include/dt-bindings/zmk/hid_usage_pages.h
+index 2ccdba55..62fe3b41 100644
+--- a/app/include/dt-bindings/zmk/hid_usage_pages.h
++++ b/app/include/dt-bindings/zmk/hid_usage_pages.h
+@@ -48,4 +48,5 @@
+ #define HID_USAGE_CAMERA (0x90)         // Camera Control
+ #define HID_USAGE_ARCADE (0x91)         // Arcade
+ #define HID_USAGE_GAMING (0x92)         // Gaming Device
+-#define HID_USAGE_FIDO (0xF1D0)         // FIDO Alliance
+\ No newline at end of file
++#define HID_USAGE_AV_TOP_CASE (0xFF)    // Apple Vendor Top Case
++#define HID_USAGE_FIDO (0xF1D0)         // FIDO Alliance
+diff --git a/app/include/dt-bindings/zmk/keys.h b/app/include/dt-bindings/zmk/keys.h
+index 3e67c402..04516046 100644
+--- a/app/include/dt-bindings/zmk/keys.h
++++ b/app/include/dt-bindings/zmk/keys.h
+@@ -1439,3 +1439,8 @@
+ #define C_KEYBOARD_INPUT_ASSIST_CANCEL                                                             \
+     (ZMK_HID_USAGE(HID_USAGE_CONSUMER, HID_USAGE_CONSUMER_KEYBOARD_INPUT_ASSIST_CANCEL))
+ #define C_KBIA_CANCEL (C_KEYBOARD_INPUT_ASSIST_CANCEL)
++
++/* Apple Vendor Top Case Fn/Globe Key */
++#define APPLE_KEYBOAD_FN (ZMK_HID_USAGE(HID_USAGE_AV_TOP_CASE, HID_USAGE_AV_TOP_CASE_KEYBOARD_FN))
++#define APPLE_FN (APPLE_KEYBOAD_FN)
++#define A_FN (APPLE_KEYBOAD_FN)
+diff --git a/app/include/zmk/hid.h b/app/include/zmk/hid.h
+index ab42adaa..95927e04 100644
+--- a/app/include/zmk/hid.h
++++ b/app/include/zmk/hid.h
+@@ -33,10 +33,15 @@ static const uint8_t zmk_hid_report_desc[] = {
+     /* INPUT (Data,Var,Abs) */
+     HID_INPUT(0x02),
+ 
+-    HID_USAGE_PAGE(HID_USAGE_KEY),
+-    HID_REPORT_SIZE(0x08),
++    HID_USAGE_PAGE(HID_USAGE_AV_TOP_CASE),        // AppleVendor Top Case
++    HID_USAGE(HID_USAGE_AV_TOP_CASE_KEYBOARD_FN), // KeyboardFn
++    HID_REPORT_SIZE(0x01),
++    HID_REPORT_COUNT(0x01),
++    /* INPUT (Data,Ary,Abs) */
++    HID_INPUT(0x02),
++    /* Reserved 7 bits */
++    HID_REPORT_SIZE(0x07),
+     HID_REPORT_COUNT(0x01),
+-    /* INPUT (Cnst,Var,Abs) */
+     HID_INPUT(0x03),
+ 
+     HID_USAGE_PAGE(HID_USAGE_KEY),
+@@ -100,7 +105,12 @@ static const uint8_t zmk_hid_report_desc[] = {
+ 
+ struct zmk_hid_keyboard_report_body {
+     zmk_mod_flags_t modifiers;
+-    uint8_t _reserved;
++    union {
++        uint8_t raw;
++        struct {
++            bool apple_keyboard_fn : 1;
++        } __packed;
++    } extra_keys;
+ #if IS_ENABLED(CONFIG_ZMK_HID_REPORT_TYPE_NKRO)
+     uint8_t keys[(ZMK_HID_KEYBOARD_NKRO_MAX_USAGE + 1) / 8];
+ #elif IS_ENABLED(CONFIG_ZMK_HID_REPORT_TYPE_HKRO)
+@@ -148,6 +158,11 @@ int zmk_hid_consumer_release(zmk_key_t key);
+ void zmk_hid_consumer_clear();
+ bool zmk_hid_consumer_is_pressed(zmk_key_t key);
+ 
++int zmk_hid_extra_press(uint32_t usage);
++int zmk_hid_extra_release(uint32_t usage);
++void zmk_hid_extra_clear();
++bool zmk_hid_extra_is_pressed(uint32_t usage);
++
+ int zmk_hid_press(uint32_t usage);
+ int zmk_hid_release(uint32_t usage);
+ bool zmk_hid_is_pressed(uint32_t usage);
+diff --git a/app/src/endpoints.c b/app/src/endpoints.c
+index dbd1a3e6..df8fa6e8 100644
+--- a/app/src/endpoints.c
++++ b/app/src/endpoints.c
+@@ -134,6 +134,7 @@ int zmk_endpoints_send_report(uint16_t usage_page) {
+ 
+     LOG_DBG("usage page 0x%02X", usage_page);
+     switch (usage_page) {
++    case HID_USAGE_AV_TOP_CASE:
+     case HID_USAGE_KEY:
+         return send_keyboard_report();
+     case HID_USAGE_CONSUMER:
+@@ -228,6 +229,7 @@ static enum zmk_endpoint get_selected_endpoint() {
+ static void disconnect_current_endpoint() {
+     zmk_hid_keyboard_clear();
+     zmk_hid_consumer_clear();
++    zmk_hid_extra_clear();
+ 
+     zmk_endpoints_send_report(HID_USAGE_KEY);
+     zmk_endpoints_send_report(HID_USAGE_CONSUMER);
+diff --git a/app/src/hid.c b/app/src/hid.c
+index 2a6b5d39..82bc528f 100644
+--- a/app/src/hid.c
++++ b/app/src/hid.c
+@@ -12,7 +12,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
+ #include <dt-bindings/zmk/modifiers.h>
+ 
+ static struct zmk_hid_keyboard_report keyboard_report = {
+-    .report_id = 1, .body = {.modifiers = 0, ._reserved = 0, .keys = {0}}};
++    .report_id = 1, .body = {.modifiers = 0, .extra_keys = {0}, .keys = {0}}};
+ 
+ static struct zmk_hid_consumer_report consumer_report = {.report_id = 2, .body = {.keys = {0}}};
+ 
+@@ -22,7 +22,7 @@ static int explicit_modifier_counts[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+ static zmk_mod_flags_t explicit_modifiers = 0;
+ static zmk_mod_flags_t implicit_modifiers = 0;
+ static zmk_mod_flags_t masked_modifiers = 0;
+-
++static int apple_fn_count = 0;
+ #define SET_MODIFIERS(mods)                                                                        \
+     {                                                                                              \
+         keyboard_report.body.modifiers = (mods & ~masked_modifiers) | implicit_modifiers;          \
+@@ -234,6 +234,40 @@ bool zmk_hid_consumer_is_pressed(zmk_key_t key) {
+     return false;
+ }
+ 
++int zmk_hid_extra_set_state(uint32_t usage, bool pressed) {
++    bool current;
++    switch (ZMK_HID_USAGE_PAGE(usage)) {
++    case HID_USAGE_AV_TOP_CASE:
++        switch (ZMK_HID_USAGE_ID(usage)) {
++        case HID_USAGE_AV_TOP_CASE_KEYBOARD_FN:
++            apple_fn_count += pressed ? 1 : -1;
++            current = keyboard_report.body.extra_keys.apple_keyboard_fn;
++            keyboard_report.body.extra_keys.apple_keyboard_fn = apple_fn_count != 0;
++            return current == keyboard_report.body.extra_keys.apple_keyboard_fn ? 0 : 1;
++        }
++        break;
++    }
++    return -EINVAL;
++}
++
++int zmk_hid_extra_press(uint32_t usage) { return zmk_hid_extra_set_state(usage, true); }
++
++int zmk_hid_extra_release(uint32_t usage) { return zmk_hid_extra_set_state(usage, false); }
++
++void zmk_hid_extra_clear() { apple_fn_count = 0; }
++
++bool zmk_hid_extra_is_pressed(uint32_t usage) {
++    switch (ZMK_HID_USAGE_PAGE(usage)) {
++    case HID_USAGE_AV_TOP_CASE:
++        switch (ZMK_HID_USAGE_ID(usage)) {
++        case HID_USAGE_AV_TOP_CASE_KEYBOARD_FN:
++            return keyboard_report.body.extra_keys.apple_keyboard_fn;
++        }
++        break;
++    }
++    return false;
++}
++
+ int zmk_hid_press(uint32_t usage) {
+     switch (ZMK_HID_USAGE_PAGE(usage)) {
+     case HID_USAGE_KEY:
+@@ -241,7 +275,7 @@ int zmk_hid_press(uint32_t usage) {
+     case HID_USAGE_CONSUMER:
+         return zmk_hid_consumer_press(ZMK_HID_USAGE_ID(usage));
+     }
+-    return -EINVAL;
++    return zmk_hid_extra_press(usage);
+ }
+ 
+ int zmk_hid_release(uint32_t usage) {
+@@ -251,7 +285,7 @@ int zmk_hid_release(uint32_t usage) {
+     case HID_USAGE_CONSUMER:
+         return zmk_hid_consumer_release(ZMK_HID_USAGE_ID(usage));
+     }
+-    return -EINVAL;
++    return zmk_hid_extra_release(usage);
+ }
+ 
+ bool zmk_hid_is_pressed(uint32_t usage) {
+@@ -261,7 +295,7 @@ bool zmk_hid_is_pressed(uint32_t usage) {
+     case HID_USAGE_CONSUMER:
+         return zmk_hid_consumer_is_pressed(ZMK_HID_USAGE_ID(usage));
+     }
+-    return false;
++    return zmk_hid_extra_is_pressed(usage);
+ }
+ 
+ struct zmk_hid_keyboard_report *zmk_hid_get_keyboard_report() {

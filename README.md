@@ -71,6 +71,12 @@ This is a personal project for my own keyboards.
 | F16 | MO(2) + Q | Force windows to be reevaluated |
 
 ## References
+- zmk
+  - [git](https://github.com/zmkfirmware/zmk)
+  - [docs](https://zmk.dev)
+- zephyr
+  - [git](https://github.com/zephyrproject-rtos/zephyr)
+  - [docs](https://docs.zephyrproject.org/3.2.0/index.html)
 - qmk_firmware
   - [git](https://github.com/qmk/qmk_firmware)
   - [docs](https://docs.qmk.fm/#/)
