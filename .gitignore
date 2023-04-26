@@ -32,6 +32,7 @@ qmk_firmware/
 
 # zmk
 .zmk_config
+.west/
 zephyr/
 zmk/
 modules/
