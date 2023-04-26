@@ -505,14 +505,14 @@
           "y": 0
         },
         {
-          "label": "Del",
-          "matrix": [0, 13],
+          "label": "|",
+          "matrix": [2, 12],
           "x": 13,
           "y": 0
         },
         {
-          "label": "Backspace",
-          "matrix": [2, 12],
+          "label": "ESC",
+          "matrix": [0, 13],
           "x": 14,
           "y": 0
         },
@@ -596,7 +596,7 @@
           "y": 1
         },
         {
-          "label": "|",
+          "label": "Backspace",
           "matrix": [1, 13],
           "x": 13.5,
           "y": 1,
@@ -776,7 +776,7 @@
           "w": 1.5
         },
         {
-          "label": "K47",
+          "label": "Space",
           "matrix": [4, 7],
           "x": 4,
           "y": 4,
@@ -1025,7 +1025,7 @@
           "y": 2
         },
         {
-          "label": ":",
+          "label": ";",
           "matrix": [2, 10],
           "x": 10.75,
           "y": 2
@@ -1152,7 +1152,7 @@
           "w": 1.25
         },
         {
-          "label": "K47",
+          "label": "Space",
           "matrix": [4, 7],
           "x": 3.75,
           "y": 4,
@@ -1632,14 +1632,14 @@
           "y": 0
         },
         {
-          "label": "Del",
-          "matrix": [0, 13],
+          "label": "|",
+          "matrix": [2, 12],
           "x": 13,
           "y": 0
         },
         {
-          "label": "Backspace",
-          "matrix": [2, 12],
+          "label": "ESC",
+          "matrix": [0, 13],
           "x": 14,
           "y": 0
         },
@@ -1723,7 +1723,7 @@
           "y": 1
         },
         {
-          "label": "|",
+          "label": "Backspace",
           "matrix": [1, 13],
           "x": 13.5,
           "y": 1,
@@ -2304,7 +2304,7 @@
           "w": 1.25
         },
         {
-          "label": "K47",
+          "label": "Space",
           "matrix": [4, 7],
           "x": 3.75,
           "y": 4,
