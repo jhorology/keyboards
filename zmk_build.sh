@@ -370,6 +370,7 @@ clangd_setting() {
 CompileFlags:
   Remove: [-mfp16-format*, -fno-reorder-functions]
 EOS
+  rm -rf "${PROJECT}/.cache"
 }
 
 ccls_setting() {

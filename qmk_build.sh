@@ -365,6 +365,7 @@ clangd_setting() {
 CompileFlags:
   Remove: [-mcall-prologues]
 EOS
+  rm -rf "${PROJECT}/.cache"
 }
 
 compile_db() {
