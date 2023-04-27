@@ -278,7 +278,9 @@ setup() {
   # export AUTOSWITCH_DEFAULT_PYTHON=python3
   # zinit load MichaelAquilina/zsh-autoswitch-virtualenv
 
-  python3 -m venv .venv
+  if [[ ! -d .venv ]]; then
+    python3 -m venv .venv
+  fi
   source .venv/bin/activate
   pip3 install west
   pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v${ZEPHYR_VERSION}/scripts/requirements-base.txt

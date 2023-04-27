@@ -138,19 +138,30 @@ help_usage() {
 # setup build environment & qmk_firmware
 # -----------------------------------
 macos_setup_qmk() {
-  brew install qmk/qmk/qmk
+  brew update
+  brew install avrdude bootloadhid clang-format dfu-programmer dfu-util \
+       hidapi libusb make mdloader osx-cross/arm/arm-gcc-bin@8 \
+       osx-cross/avr/avr-gcc@8 pillow python teensy_loader_cli
   brew cleanup
 }
 
-fedora_setuo_qmk() {
-  # TODO fedora on WSL2
+fedora_setup_qmk() {
+  sudo dnf -y install \
+       clang diffutils git gcc glibc-headers kernel-devel kernel-headers \
+       make unzip wget zip python3 avr-binutils avr-gcc avr-gcc-c++ avr-libc \
+       arm-none-eabi-binutils-cs arm-none-eabi-gcc-cs arm-none-eabi-gcc-cs-c++ \
+       arm-none-eabi-newlib avrdude dfu-programmer dfu-util hidapi
+
+  sudo dnf -y install libusb-devel \
+    || sudo dnf -y install libusb1-devel libusb-compat-0.1-devel \
+    || sudo dnf -y install libusb0-devel
+
+  sudo dnf autoremove
+  sudo dnf clean all
 }
 
 setup_qmk() {
   cd "$PROJECT"
-  if ! which qmk &> /dev/null; then
-    ${os}_setup_qmk
-  fi
   if [[ ! -d qmk_firmware ]]; then
     git clone --depth=1 -b master --recurse-submodules --shallow-submodules --sparse https://github.com/qmk/qmk_firmware.git
     for f in $(find "${PROJECT}/qmk_firmware" -name .gitmodules); do
@@ -176,13 +187,20 @@ EOF
     git sparse-checkout reapply
     make git-submodules
   fi
+
   cd "$PROJECT"
+  if ! which qmk &> /dev/null; then
+    ${os}_setup_qmk
+  fi
+
   if [[ ! -d .venv ]]; then
     python3 -m venv .venv
-    source .venv/bin/activate
-    pip3 install -r qmk_firmware/requirements.txt
-    pip3 install -r qmk_firmware/requirements-dev.txt
   fi
+  source .venv/bin/activate
+  pip3 install qmk
+  pip3 install -r qmk_firmware/requirements.txt
+  pip3 install -r qmk_firmware/requirements-dev.txt
+  pip3 cache purge
 }
 
 setup_project() {
