@@ -34,22 +34,22 @@ zparseopts -D -E -F -- \
 
 # configurable
 local -A KEYBOARDS=(
-  n60        bakeneko60:default:hex
-  c60        ciel60:default:hex
-  b60        dropbear60_solder:default:hex
-  d60        dz60rgb_wkl_v2_1_atmel_dfu:hhkb:hex
+  n60        bakeneko60:default:hex:03eb:2ff4
+  c60        ciel60:default:hex:03eb:2ff0
+  b60        dropbear60_solder:default:hex:03eb:2ff4
+  d60        dz60rgb_wkl_v2_1_atmel_dfu:hhkb:hex:03eb:2ff4
   fk68       fk680pro_v2:default:uf2:"ZhaQian DFU"
-  i68        ikki68_aurora:default:hex
-  k6         k6_pro_ansi_rgb:default:bin
-  libra      libra_mini:default:hex
-  prime_e    prime_e_rgb:default:hex
-  q60        q60_ansi:default:bin
-  qk60       qk60:default:bin
-  qk65       qk65_solder:default:hex
-  tx60       tetrix60:default:hex
+  i68        ikki68_aurora:default:hex::03eb:2ff4
+  k6         k6_pro_ansi_rgb:default:bin:0483:df11
+  libra      libra_mini:default:hex:2341:0036
+  prime_e    prime_e_rgb:default:hex:03eb:2ff4
+  q60        q60_ansi:default:bin:0483:df11
+  qk60       qk60:default:bin:1688:2220
+  qk65       qk65_solder:default:hex:03eb:2ff4
+  tx60       tetrix60:default:hex:03eb:2ff4
   tf60       tofu60_2_0:default:uf2:"RPI-RP2"
-  w60        dz60rgb_wkl_v2_1_atmel_dfu:tsangan:hex
-  z65        zoom65:default:hex
+  w60        dz60rgb_wkl_v2_1_atmel_dfu:tsangan:hex:03eb:2ff4
+  z65        zoom65:default:hex:03eb:2ff4
 )
 TARGETS=(n60 c60 b60 d60 fk68 i68 libra prime_e q60 qk60 qk65 t60 tf60 w60 z65)
 WITH_UPDATE=true
@@ -83,7 +83,8 @@ case $PLATFORM in
     os=macos
     ;;
   Linux )
-    if [[ -f /etc/fedora-release ]]; then
+    if [[ -f /etc/fedora-release ]] && env | grep -q WSL_INTEROP; then
+      # fedora on WSL2
       os=fedora
     else
       # TODO
@@ -150,7 +151,8 @@ fedora_setup_qmk() {
        clang diffutils git gcc glibc-headers kernel-devel kernel-headers \
        make unzip wget zip python3 avr-binutils avr-gcc avr-gcc-c++ avr-libc \
        arm-none-eabi-binutils-cs arm-none-eabi-gcc-cs arm-none-eabi-gcc-cs-c++ \
-       arm-none-eabi-newlib avrdude dfu-programmer dfu-util hidapi
+       arm-none-eabi-newlib avrdude dfu-programmer dfu-util hidapi \
+       usbip hwdata
 
   sudo dnf -y install libusb-devel \
     || sudo dnf -y install libusb1-devel libusb-compat-0.1-devel \
@@ -158,6 +160,13 @@ fedora_setup_qmk() {
 
   sudo dnf autoremove
   sudo dnf clean all
+
+  sudo chmod -R 777 /dev/bus/usb
+  #
+  # on windows:
+  # see https://learn.microsoft.com/en-us/windows/wsl/connect-usb
+  # winget install dorssel.usbipd-win
+  # winget install gerardog.gsudo
 }
 
 setup_qmk() {
@@ -319,16 +328,36 @@ update_qmk() {
   make git-submodules
 }
 
-# $1 volume name
-macos_uf2_flash_dir() {
-  volume_name=$1
+macos_uf2_flash() {
+  firmware=$1
+  volume_name=$2
 
-  echo "/Volumes/${volume_name}"
+  dfu_volume="/Volumes/${volume_name}"
+  if [[ -d $dfu_volume  ]]; then
+    echo ""
+    echo "copying firmware [${firmware}] to volume [${dfu_volume}]..."
+    sleep 1
+    copy "$firmware" "$dfu_volume"
+    true
+  else
+    false
+  fi
 }
 
-fedora_uf2_flash_dir() {
-  # TODO
-  error_exit 1 "flashing uf2 firmware is not supported."
+fedora_uf2_flash() {
+  firmware=$1
+  volume_name=$2
+
+  dfu_drive=$(/mnt/c/Windows/System32/wbem/WMIC.exe logicaldisk get deviceid, volumename | grep "$volume_name" | awk '{print $1}')
+  if [[ ! -z $dfu_drive ]]; then
+    echo ""
+    echo "copying firmware [${firmware}] to drive [${dfu_drive}]..."
+    sleep 1
+    /mnt/c/Program\ Files/gsudo/Current/gsudo.exe  "c:\\Windows\\System32\\xcopy.exe" "$(wslpath -w $firmware)" "${dfu_drive}\\"
+    true
+  else
+    false
+  fi
 }
 
 # $1 target
@@ -340,11 +369,22 @@ build_firmware() {
   km=$kbd[2]
   ext=$kbd[3]
   make_target="my_keyboards/${kb}:${km}"
-  [[ $ext != "uf2" ]] && (( $#with_flash )) && \
-    make_target="${make_target}:flash"
-
   cd "${PROJECT}/qmk_firmware"
-  make -j $MAKE_JOBS $make_target
+  if [[ $ext != "uf2" ]] && (( $#with_flash )); then
+    make_target="${make_target}:flash"
+    if [[ $os = "fedora" ]]; then
+      # sudo for later use
+      sudo echo -n
+      DFU_USB_VID=$kbd[4] DFU_USB_PID=$kbd[5] \
+                      make -j $MAKE_JOBS $make_target \
+                      DFU_UTIL="${PROJECT}/util/dfu_util_wsl_helper" \
+                      DFU_PROGRAMMER="${PROJECT}/util/dfu_programmer_wsl_helper"
+    else
+      make -j $MAKE_JOBS $make_target
+    fi
+  else
+    make -j $MAKE_JOBS $make_target
+  fi
 
   # <build date>_qmk_<qmk version>_<qnk revision>
   # version="$(date +"%Y%m%d")_qmk_$(git describe --abbrev=0 --tags)_$(git rev-parse --short HEAD)"
@@ -362,18 +402,15 @@ build_firmware() {
 
   if (( $#with_flash )) && [[ $ext == "uf2" ]]; then
     volume_name=$kbd[4]
-    dfu_dir="$(${os}_uf2_flash_dir $volume_name)"
-    echo -n "Waiting for DFU volume [${dfu_dir}] to be mounted"
+    echo -n "waiting for DFU volume to be mounted..."
     for ((i=0; i < 20; i+=1)); do
-      echo -n "."
-      if [[ -d "$dfu_dir" ]]; then
-        echo ""
-        echo "copying file [${firmware}] to ${dfu_dir}..."
-        cp "$firmware" "$dfu_dir"
+      if ${os}_uf2_flash $firmware $volume_name; then
         echo "flashing firmware finished successfully."
         break
+      else
+        echo -n "."
+        sleep 1
       fi
-      sleep 1
     done
   fi
 }
@@ -408,7 +445,7 @@ compile_db() {
   #   f=$(echo $c | sed -r 's/.* ([^ ]*\.[cS]) -o .*$/\1/')
   #   o=$(echo $c | sed -n -r 's/.* -o (.*)$/\1/p')
   #   node -e "let v=process.argv;console.log(JSON.stringify({directory:v[1],command:v[2],file:v[3],output:v[4]}, null, 2)+',')" \
-  #        "${PROJECT}/qmk_firmware" $c $f $o
+    #        "${PROJECT}/qmk_firmware" $c $f $o
   # done
   # echo "]"
 }

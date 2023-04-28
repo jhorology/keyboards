@@ -410,37 +410,51 @@ dist_firmware() {
 }
 
 
-# $1 volume name
-macos_dfu_volume() {
-  volume_name=$1
-
-  echo /Volumes/${volume_name}
-}
-
-fedora_dfu_volume() {
-  # TODO fedora on WSL2
-  error_exit 1 "flashing firmware is not supported"
-}
-
-# $1 firmware file
-# $2 volume name
-flash_firmware() {
-  src=$1
+macos_uf2_flash() {
+  firmware=$1
   volume_name=$2
 
-  dst_dir=$(${os}_dfu_volume "$volume_name")
-  echo -n "Waiting for DFU volume:[$dst_dir] to be mounted"
+  dfu_volume="/Volumes/${volume_name}"
+  if [[ -d $dfu_volume  ]]; then
+    echo ""
+    echo "copying firmware [${firmware}] to volume [${dfu_volume}]..."
+    sleep 1
+    copy "$firmware" "$dfu_volume"
+    true
+  else
+    false
+  fi
+}
+
+fedora_uf2_flash() {
+  firmware=$1
+  volume_name=$2
+
+  dfu_drive=$(/mnt/c/Windows/System32/wbem/WMIC.exe logicaldisk get deviceid, volumename | grep "$volume_name" | awk '{print $1}')
+  if [[ ! -z $dfu_drive ]]; then
+    echo ""
+    echo "copying firmware [${firmware}] to drive [${dfu_drive}]..."
+    sleep 1
+    /mnt/c/Program\ Files/gsudo/Current/gsudo.exe  "c:\\Windows\\System32\\xcopy.exe" "$(wslpath -w $firmware)" "${dfu_drive}\\"
+    true
+  else
+    false
+  fi
+}
+
+flash_firmware() {
+  firmware=$1
+  volume_name=$2
+
+  echo -n "waiting for DFU volume to be mounted..."
   for ((i=0; i < 20; i+=1)); do
-    echo -n "."
-    if [[ -d "$dst_dir" ]]; then
-      echo ""
-      echo "copying file [$src] to ${dst_dir}..."
-      sleep 1
-      cp $src "$dst_dir"
+    if ${os}_uf2_flash $firmware $volume_name; then
       echo "flashing firmware finished successfully."
       break
+    else
+      echo -n "."
+      sleep 1
     fi
-    sleep 1
   done
 }
 
