@@ -161,12 +161,15 @@ fedora_setup_qmk() {
   sudo dnf autoremove
   sudo dnf clean all
 
-  sudo chmod -R 777 /dev/bus/usb
-  #
   # on windows:
   # see https://learn.microsoft.com/en-us/windows/wsl/connect-usb
-  # winget install dorssel.usbipd-win
-  # winget install gerardog.gsudo
+  winget=$(/mnt/c/Windows/System32/cmd.exe /C "where winget" 2> /dev/null || true)
+  if [[ ! -z $winget ]]; then
+    winget=${winget%$'\r'}
+    winget=$(wslpath -u $winget)
+    $winget install dorssel.usbipd-win || true
+    $winget install gerardog.gsudo || true
+  fi
 }
 
 setup_qmk() {
@@ -198,9 +201,7 @@ EOF
   fi
 
   cd "$PROJECT"
-  if ! which qmk &> /dev/null; then
-    ${os}_setup_qmk
-  fi
+  ${os}_setup_qmk
 
   if [[ ! -d .venv ]]; then
     python3 -m venv .venv
