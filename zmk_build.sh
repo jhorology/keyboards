@@ -419,7 +419,7 @@ macos_uf2_flash() {
     echo ""
     echo "copying firmware [${firmware}] to volume [${dfu_volume}]..."
     sleep 1
-    copy "$firmware" "$dfu_volume"
+    cp "$firmware" "$dfu_volume"
     true
   else
     false
