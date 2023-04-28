@@ -1,7 +1,7 @@
 #!/bin/zsh
 #
 # Usage:
-#   DFU_USB_VID=1234 DFU_USB_PID=abcd make <kb>:<km>:flash DFU_UTIL=<path to this script>
+#   DFU_HARDWARE_ID="<vid:pid>" make <kb>:<km>:flash DFU_PROGRAMMERT=<path to this script>
 #
 # Requirements:
 #    see https://learn.microsoft.com/en-us/windows/wsl/connect-usb
@@ -13,20 +13,19 @@
 #
 WIN_USBIPD="/mnt/c/Program Files/usbipd-win/usbipd.exe"
 WIN_GSUDO="/mnt/c/Program Files/gsudo/Current/gsudo.exe"
-DEVICE_ID=${DFU_USB_VID}:${DFU_USB_PID}
 
 # sudo for later use
 sudo echo -n
 
-dfu_device=$($WIN_USBIPD wsl list 2> /dev/null | grep "$DEVICE_ID")
+dfu_device=$($WIN_USBIPD wsl list 2> /dev/null | grep "$DFU_HARDWARE_ID")
 if [[ -z $dfu_device ]]; then
   false
 elif [[ $dfu_device =~ "Not attached" ]]; then
   win_usbipd_path=$(wslpath -w "$WIN_USBIPD")
-  $WIN_GSUDO $win_usbipd_path wsl attach --hardware-id $DEVICE_ID
+  $WIN_GSUDO $win_usbipd_path wsl attach --hardware-id $DFU_HARDWARE_ID
   false
 elif [[ $dfu_device =~ "Attached -" ]]; then
-  if lsusb | grep -q "$DEVICE_ID"; then
+  if lsusb | grep -q "$DFU_HARDWARE_ID"; then
     sudo chmod -R 777 /dev/bus/usb
     dfu-util "$@"
   else

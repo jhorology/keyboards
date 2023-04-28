@@ -372,14 +372,16 @@ build_firmware() {
   make_target="my_keyboards/${kb}:${km}"
   cd "${PROJECT}/qmk_firmware"
   if [[ $ext != "uf2" ]] && (( $#with_flash )); then
+    vid=$kbd[4]
+    pid=$kbd[5]
+
     make_target="${make_target}:flash"
     if [[ $os = "fedora" ]]; then
       # sudo for later use
       sudo echo -n
-      DFU_USB_VID=$kbd[4] DFU_USB_PID=$kbd[5] \
-                      make -j $MAKE_JOBS $make_target \
-                      DFU_UTIL="${PROJECT}/util/dfu_util_wsl_helper" \
-                      DFU_PROGRAMMER="${PROJECT}/util/dfu_programmer_wsl_helper"
+      DFU_HARDWARE_ID="${vid}:${pid}" make -j $MAKE_JOBS $make_target \
+                     DFU_UTIL="${PROJECT}/util/dfu_util_wsl_helper" \
+                     DFU_PROGRAMMER="${PROJECT}/util/dfu_programmer_wsl_helper"
     else
       make -j $MAKE_JOBS $make_target
     fi
