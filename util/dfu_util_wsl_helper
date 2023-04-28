@@ -1,22 +1,34 @@
 #!/bin/zsh
-
+#
+# Usage:
+#   DFU_USB_VID=1234 DFU_USB_PID=abcd make <kb>:<km>:flash DFU_UTIL=<path to this script>
+#
+# Requirements:
+#    see https://learn.microsoft.com/en-us/windows/wsl/connect-usb
+#    windows:
+#      winget install dorssel.usbipd-win
+#      winget install gerardog.gsudo
+#    fedora:
+#      sudo dnf install usbip hwdata
+#
 WIN_USBIPD="/mnt/c/Program Files/usbipd-win/usbipd.exe"
-WIN_USBIPD_PATH=$(wslpath -w "$WIN_USBIPD")
 WIN_GSUDO="/mnt/c/Program Files/gsudo/Current/gsudo.exe"
+DEVICE_ID=${DFU_USB_VID}:${DFU_USB_PID}
 
 # sudo for later use
 sudo echo -n
 
-dfu_device=$($WIN_USBIPD wsl list 2> /dev/null | grep "${DFU_USB_VID}:${DFU_USB_PID}")
+dfu_device=$($WIN_USBIPD wsl list 2> /dev/null | grep "$DEVICE_ID")
 if [[ -z $dfu_device ]]; then
   false
 elif [[ $dfu_device =~ "Not attached" ]]; then
-  $WIN_GSUDO $WIN_USBIPD_PATH wsl attach --hardware-id ${DFU_USB_VID}:${DFU_USB_PID}
+  win_usbipd_path=$(wslpath -w "$WIN_USBIPD")
+  $WIN_GSUDO $win_usbipd_path wsl attach --hardware-id $DEVICE_ID
   false
 elif [[ $dfu_device =~ "Attached -" ]]; then
-  if lsusb | grep -q "${DFU_USB_VID}:${DFU_USB_PID}"; then
+  if lsusb | grep -q "$DEVICE_ID"; then
     sudo chmod -R 777 /dev/bus/usb
-    dfu-util $@
+    dfu-util "$@"
   else
     false
   fi
