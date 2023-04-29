@@ -1,6 +1,7 @@
 #!/bin/zsh -eu
 
-PROJECT=$(realpath $0:h)
+PROJECT="$(dirname "$(realpath "$0")")"
+cd "$PROJECT"
 
 # configuration
 # -----------------------------------
@@ -244,6 +245,13 @@ fedora_setup() {
   # gcc-multilib g++-multilib
   sudo dnf autoremove
   sudo dnf clean all
+
+  winget=$(/mnt/c/Windows/System32/cmd.exe /C "where winget" 2> /dev/null || true)
+  if [[ ! -z $winget ]]; then
+    winget=${winget%$'\r'}
+    winget=$(wslpath -u $winget)
+    $winget install gerardog.gsudo || true
+  fi
 }
 
 macos_setup() {

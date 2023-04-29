@@ -2,7 +2,7 @@
 
 # PROJECT
 # -----------------------------------
-PROJECT=$(realpath $0:h)
+PROJECT=$(dirname "$(realpath "$0")")
 cd "$PROJECT"
 
 zparseopts -D -E -F -- \
@@ -66,7 +66,6 @@ MAIN_DEV_HOST=$(uname -n)
 [ -s .qmk_config ] &&  source .qmk_config
 
 
-QMK_DIR="qmk_firmware"
 KEYBOARDS_DIR="qmk_keyboards"
 VIA_APP_BRANCH="main"
 PLATFORM=$(uname)
@@ -125,7 +124,7 @@ help_usage() {
         "build options:" \
         "  -w,--without-update             don't sync remote repository" \
         "  -p,--without-patch              don't apply patches" \
-        "  --without-via_json              don't generate via JSON, use JSON file in dist folder" \
+        "  --without-via-json              don't generate via JSON, use JSON file in dist folder" \
         "  -d,--with-compile-db            generate compile_command.json" \
         "  -f,--with-flash                 post build flash firmware" \
         "" \
@@ -457,7 +456,7 @@ scp_secure_config() {
   cd "$PROJECT"
   project=$(realpath --relative-to="$HOME" .)
 
-  [[ -s .config ]] || \
+  [[ -s .qmk_config ]] || \
     error_exit 1 "Missing .config file."
 
   [[ ${MAIN_DEV_HOST-} ]] || \
