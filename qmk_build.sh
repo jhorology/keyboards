@@ -51,7 +51,7 @@ local -A KEYBOARDS=(
   w60        dz60rgb_wkl_v2_1_atmel_dfu:tsangan:hex:03eb:2ff4
   z65        zoom65:default:hex:03eb:2ff4
 )
-TARGETS=(n60 c60 b60 d60 fk68 i68 libra prime_e q60 qk60 qk65 t60 tf60 w60 z65)
+TARGETS=(n60 c60 b60 d60 fk68 i68 libra prime_e q60 qk60 qk65 tx60 tf60 w60 z65)
 WITH_UPDATE=true
 WITH_PATCH=true
 WITH_VIA_JSON=true
@@ -473,6 +473,7 @@ scp_secure_config() {
 }
 
 build_via_json_files() {
+  cd "$PROJECT"
   targets=()
   for target in $TARGETS; do
     kbd=(${(@s/:/)KEYBOARDS[$target]})
@@ -481,8 +482,8 @@ build_via_json_files() {
     targets=($targets "my_keyboards/${qmk_kb}:${keymap}")
   done
   # generate via json file
-  QMK_HOME="${PROJECT}/qmk_firmware" \
-          "$PROJECT/util/generate_via_json.js" $targets[*]
+  util/generate_via_json $targets[*]
+  npx prettier --write dist/**/*.json
 }
 
 # $1 target
@@ -492,8 +493,7 @@ build_via_json() {
   qmk_kb=$kbd[1]
   keymap=$kbd[2]
   # generate via json file
-  QMK_HOME="${PROJECT}/qmk_firmware" \
-          "$PROJECT/util/generate_via_json.js" "$qmk_kb:$keymap"
+  "$PROJECT/util/generate_via_json" "$qmk_kb:$keymap"
 }
 
 run_via_app() {
@@ -529,6 +529,7 @@ run_via_app() {
   if $WITH_VIA_JSON; then
     mkdir -p dist
     build_via_json $target
+    npx prettier --write dist/**/*.json
   fi
 
   # clean JSON files in via-keyboards

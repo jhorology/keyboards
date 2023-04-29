@@ -8,9 +8,9 @@ const path = require('path'),
     isVIADefinitionV3,
     isKeyboardDefinitionV3
   } = require('@the-via/reader'),
-  QMK_HOME = process.env['QMK_HOME'],
   TARGETS = process.argv.slice(2),
   PROJECT_DIR = path.join(__dirname, '..'),
+  QMK_HOME = process.env['QMK_HOME'] || path.join(PROJECT_DIR, 'qmk_firmware'),
   OUTPUT_DIR = process.env['OUTPUT_DIR'] || path.join(PROJECT_DIR, 'dist'),
   KEYBOARDS_DIR = path.join(PROJECT_DIR, 'qmk_keyboards'),
   LIB_DIR = path.join(KEYBOARDS_DIR, 'lib')
