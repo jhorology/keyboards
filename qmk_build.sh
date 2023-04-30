@@ -139,9 +139,11 @@ help_usage() {
 # -----------------------------------
 macos_setup_qmk() {
   brew update
-  brew install avrdude bootloadhid clang-format dfu-programmer dfu-util \
-       hidapi libusb make mdloader osx-cross/arm/arm-gcc-bin@8 \
-       osx-cross/avr/avr-gcc@8 pillow python teensy_loader_cli
+  # install 'qmk' in .venv
+  packages=$(brew info qmk/qmk/qmk | grep "Required:")
+  packages=${packages//Required: /}
+  packages=(${(s[, ])packages})
+  brew install $packages[*]
   brew cleanup
 }
 
@@ -618,11 +620,11 @@ if [[ ! -d "${PROJECT}/node_modules" ]]; then
   setup_project
 fi
 
-sub_commands
-
 if [[ $(which python3) != "${PROJECT}/.venv/bin/python3" ]]; then
   source .venv/bin/activate
 fi
+
+sub_commands
 
 $WITH_PATCH && \
   should_apply_qmk_patch && \
