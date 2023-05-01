@@ -39,7 +39,7 @@ local -A KEYBOARDS=(
   b60        dropbear60_solder:default:hex:03eb:2ff4
   d60        dz60rgb_wkl_v2_1_atmel_dfu:hhkb:hex:03eb:2ff4
   fk68       fk680pro_v2:default:uf2:"ZhaQian DFU"
-  i68        ikki68_aurora:default:hex::03eb:2ff4
+  i68        ikki68_aurora:default:hex:03eb:2ff4
   k6         k6_pro_ansi_rgb:default:bin:0483:df11
   libra      libra_mini:default:hex:2341:0036
   prime_e    prime_e_rgb:default:hex:03eb:2ff4
