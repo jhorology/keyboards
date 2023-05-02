@@ -1,15 +1,15 @@
 #!/bin/zsh -eu
 
-PROJECT="$(dirname "$(realpath "$0")")"
-cd "$PROJECT"
+PROJECT=$(dirname "$(realpath $0)")
+cd $PROJECT
 
 # configuration
 # -----------------------------------
 HOST_OS=$(uname)
-[[ $HOST_OS = "Darwin" ]] && HOST_OS=macos
-[[ $HOST_OS = "Linux" ]] && HOST_OS=linux
+[[ $HOST_OS = Darwin ]] && HOST_OS=macos
+[[ $HOST_OS = Linux ]] && HOST_OS=linux
 HOST_ARCHITECTURE=$(uname -m)
-[[ $HOST_OS = "macos" ]] && [[ $HOST_ARCHITECTURE = "arm64" ]] && HOST_ARCHITECTURE=aarch64
+[[ $HOST_OS = macos ]] && [[ $HOST_ARCHITECTURE = arm64 ]] && HOST_ARCHITECTURE=aarch64
 ZEPHYR_VERSION=3.2.0
 ZEPHYR_SDK_VERSION=0.15.2
 
@@ -45,7 +45,7 @@ ZEPHYR_SDK_INSTALL_DIR=$HOME/.local
 # xtensa-sample_controller_zephyr-elf
 TARGET_TOOLCHAINS=(arm-zephyr-eabi)
 
-DOCKERFILE="${PROJECT}/resources/Dockerfile.zmk-dev-arm.$(uname)"
+DOCKERFILE=$PROJECT/resources/Dockerfile.zmk-dev-arm.$(uname)
 DOCKER_IMAGE=my/zmk-dev-arm:stable
 CONTAINER_NAME=zmk-build
 UPDATE_BUILD=true
@@ -59,7 +59,7 @@ local -A KEYBOARDS=(
 TARGETS=(bt60)
 
 
-cd "$PROJECT"
+cd $PROJECT
 #  override configuration
 # -----------------------------------
 [ -s .zmk_config ] &&  source .zmk_config
@@ -148,14 +148,14 @@ esac
 
 
 clean() {
-  cd "$PROJECT"
+  cd $PROJECT
   rm -rf build
   find . -name "*~" -exec rm -f {} \;
   find . -name ".DS_Store" -exec rm -f {} \;
 }
 
 clean_modules() {
-  cd "$PROJECT"
+  cd $PROJECT
   clean()
   rm -rf dist
   rm -rf build
@@ -166,11 +166,10 @@ clean_modules() {
 }
 
 clean_tools() {
-  cd "$PROJECT"
-  rm -rf .venv
-  rm -rf "${ZEPHYR_SDK_VERSION}"
-  rm -rf "${ZEPHYR_SDK_INSTALL_DIR}/${ZEPHYR_SDK_VERSION}"
-  if [ ! -z "$(docker ps -q -a -f name=$CONTAINER_NAME)" ]; then
+  cd $PROJECT
+  rm -rf $PROJECT/.venv
+  rm -rf ${ZEPHYR_SDK_INSTALL_DIR}/${ZEPHYR_SDK_VERSION}
+  if [ ! -z $(docker ps -q -a -f name=$CONTAINER_NAME) ]; then
     docker rm -f  $CONTAINER_NAME $(docker ps -q -a -f name=$CONTAINER_NAME)
     sleep 5
   fi
@@ -180,7 +179,7 @@ clean_tools() {
 }
 
 clean_all() {
-  cd "$PROJECT"
+  cd $PROJECT
   clean_modules
   clean_tools
 }
@@ -262,7 +261,7 @@ macos_setup() {
 }
 
 setup() {
-  cd "$PROJECT"
+  cd $PROJECT
   ${os}_setup
   if [[ ! -d "${ZEPHYR_SDK_INSTALL_DIR}/zephyr-sdk-${ZEPHYR_SDK_VERSION}" ]]; then
     mkdir -p "$ZEPHYR_SDK_INSTALL_DIR"
@@ -278,7 +277,7 @@ setup() {
       ./setup.sh -h -c -t $toolchain
     fi
   done
-  cd "$PROJECT"
+  cd $PROJECT
 
   # zinit setting
   #
@@ -298,7 +297,7 @@ setup() {
 }
 
 pip_upgrade() {
-  cd "$PROJECT"
+  cd $PROJECT
   source .venv/bin/activate
   pip3 --disable-pip-version-check list --outdated --format=json | \
     python3 -c "import json, sys; print('\n'.join([x['name'] for x in json.load(sys.stdin)]))" | \
@@ -308,7 +307,7 @@ pip_upgrade() {
 
 
 update() {
-  cd "$PROJECT"
+  cd $PROJECT
   if [ ! -d .west/ ]; then
     west init -l zmk_keyboards
     west config build.cmake-args -- -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
@@ -363,7 +362,7 @@ EOF
 build() {
   board=$1
 
-  west build --pristine --board $board --build-dir build/$board zmk/app -- -DZMK_CONFIG="${PROJECT}/zmk_keyboards"
+  west build --pristine --board $board --build-dir build/$board zmk/app -- -DZMK_CONFIG=$PROJECT/zmk_keyboards
 }
 
 # $1 board
@@ -371,7 +370,7 @@ build_with_docker() {
   board=$1
 
   docker_exec -i <<-EOF
-    west build --pristine --board $board --build-dir build/$board zmk/app -- -DZMK_CONFIG="${CONTAINER_WORKSPACE_DIR}/zmk_keyboards"
+    west build --pristine --board $board --build-dir build/$board zmk/app -- -DZMK_CONFIG="$CONTAINER_WORKSPACE_DIR/zmk_keyboards"
 EOF
 }
 
@@ -406,13 +405,13 @@ dist_firmware() {
   board=$1
   firmware_name=$2
 
-  cd "$PROJECT"
+  cd $PROJECT
   cd zmk
-  version="$(date +"%Y%m%d")_zmk_$(git rev-parse --short HEAD)"
+  version=$(date +"%Y%m%d")_zmk_$(git rev-parse --short HEAD)
   cd ..
   mkdir -p dist
-  src=build/${board}/zephyr/zmk.uf2
-  dst=dist/${firmware_name}_${version}.uf2
+  src=build/$board/zephyr/zmk.uf2
+  dst=dist/${firmware_name}_$version.uf2
   cp $src $dst
   echo $dst
 }
@@ -422,12 +421,12 @@ macos_uf2_flash() {
   firmware=$1
   volume_name=$2
 
-  dfu_volume="/Volumes/${volume_name}"
+  dfu_volume=/Volumes/$volume_name
   if [[ -d $dfu_volume  ]]; then
     echo ""
-    echo "copying firmware [${firmware}] to volume [${dfu_volume}]..."
+    echo "copying firmware [$firmware] to volume [$dfu_volume]..."
     sleep 1
-    cp "$firmware" "$dfu_volume"
+    cp $firmware $dfu_volume
     true
   else
     false
@@ -438,12 +437,12 @@ fedora_uf2_flash() {
   firmware=$1
   volume_name=$2
 
-  dfu_drive=$(/mnt/c/Windows/System32/wbem/WMIC.exe logicaldisk get deviceid, volumename | grep "$volume_name" | awk '{print $1}')
+  dfu_drive=$(/mnt/c/Windows/System32/wbem/WMIC.exe logicaldisk get deviceid, volumename | grep $volume_name | awk '{print $1}')
   if [[ ! -z $dfu_drive ]]; then
     echo ""
-    echo "copying firmware [${firmware}] to drive [${dfu_drive}]..."
+    echo "copying firmware [$firmware] to drive [$dfu_drive]..."
     sleep 1
-    /mnt/c/Program\ Files/gsudo/Current/gsudo.exe  "c:\\Windows\\System32\\xcopy.exe" "$(wslpath -w $firmware)" "${dfu_drive}\\"
+    /mnt/c/Program\ Files/gsudo/Current/gsudo.exe  c:\\Windows\\System32\\xcopy.exe "$(wslpath -w $firmware)" $dfu_drive\\
     true
   else
     false
@@ -466,7 +465,7 @@ flash_firmware() {
   done
 }
 
-cd "$PROJECT"
+cd $PROJECT
 
 
 #  sub commands
@@ -534,7 +533,7 @@ fi
 if (( $#with_docker )); then
   update_with_docker
 else
-  if [[ $(which python3) != "${PROJECT}/.venv/bin/python3" ]]; then
+  if [[ $(which python3) != $PROJECT/.venv/bin/python3 ]]; then
     source .venv/bin/activate
   fi
   update
@@ -549,7 +548,7 @@ for target in $TARGETS; do
   else
     build $board
     if (( $#with_compile_db )); then
-      cp "${PROJECT}/build/${board}/compile_commands.json" "${PROJECT}"
+      cp $PROJECT/build/$board/compile_commands.json $PROJECT
       clangd_setting
     fi
   fi

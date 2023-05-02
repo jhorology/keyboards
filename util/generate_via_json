@@ -332,9 +332,8 @@ Promise.all(
     let kb_km = target.split(':')
     build(
       (kb_km.length == 2 && kb_km[1] === 'default' ? kb_km[0] : target)
-        .replace(/^my_keyboards\//, '')
         .replaceAll(/[/:]/g, '_'),
-      path.join(KEYBOARDS_DIR, kb_km[0].replace(/^my_keyboards\//, ''))
+      path.join(KEYBOARDS_DIR, kb_km[0])
     )
   })
 ).catch((err) => {

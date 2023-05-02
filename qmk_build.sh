@@ -2,8 +2,8 @@
 
 # PROJECT
 # -----------------------------------
-PROJECT=$(dirname "$(realpath "$0")")
-cd "$PROJECT"
+PROJECT=$(dirname "$(realpath $0)")
+cd $PROJECT
 
 zparseopts -D -E -F -- \
            {h,-help}=help  \
@@ -66,7 +66,6 @@ MAIN_DEV_HOST=$(uname -n)
 [ -s .qmk_config ] &&  source .qmk_config
 
 
-KEYBOARDS_DIR="qmk_keyboards"
 VIA_APP_BRANCH="main"
 PLATFORM=$(uname)
 ARCHITECTURE=$(uname -m)
@@ -174,17 +173,17 @@ fedora_setup_qmk() {
 }
 
 setup_qmk() {
-  cd "$PROJECT"
+  cd $PROJECT
   if [[ ! -d qmk_firmware ]]; then
     git clone --depth=1 -b master --recurse-submodules --shallow-submodules --sparse https://github.com/qmk/qmk_firmware.git
-    for f in $(find "${PROJECT}/qmk_firmware" -name .gitmodules); do
-      cd "$(dirname $f)"
+    for f in $(find $PROJECT/qmk_firmware -name .gitmodules); do
+      cd $(dirname $f)
       for m in $(grep "path = " .gitmodules | awk '{print $3}');
       do
-        git config -f .gitmodules submodule.lib/${m}.shallow true
+        git config -f .gitmodules submodule.lib/$m.shallow true
       done
     done
-    cd "${PROJECT}/qmk_firmware"
+    cd $PROJECT/qmk_firmware
     cat <<EOF >> .git/info/sparse-checkout
 /builddefs/
 /data/
@@ -201,7 +200,7 @@ EOF
     make git-submodules
   fi
 
-  cd "$PROJECT"
+  cd $PROJECT
   ${os}_setup_qmk
 
   if [[ ! -d .venv ]]; then
@@ -215,16 +214,16 @@ EOF
 }
 
 setup_project() {
-  cd "$PROJECT"
+  cd $PROJECT
   npm install
 }
 
 setup_via() {
-  cd "$PROJECT"
+  cd $PROJECT
   if [[ ! -d via_app ]]; then
     git clone --depth 1 -b $VIA_APP_BRANCH https://github.com/the-via/app.git via_app
     cd via_app
-    for patch in $(ls -v "${PROJECT}/patches/via_app_${VIA_APP_BRANCH}_"*.patch); do
+    for patch in $(ls -v $PROJECT/patches/via_app_${VIA_APP_BRANCH}_*.patch); do
       git apply -3 --verbose $patch
     done
     npx yarn install
@@ -232,7 +231,7 @@ setup_via() {
 }
 
 pip_upgrade() {
-  cd "$PROJECT"
+  cd $PROJECT
   source .venv/bin/activate
   pip3 --disable-pip-version-check list --outdated --format=json | \
     python3 -c "import json, sys; print('\n'.join([x['name'] for x in json.load(sys.stdin)]))" | \
@@ -240,7 +239,7 @@ pip_upgrade() {
 }
 
 revert_qmk_changes() {
-  cd "${PROJECT}/qmk_firmware"
+  cd $PROJECT/qmk_firmware
   rm -rf keyboards
   make clean
   git reset --hard HEAD
@@ -250,7 +249,7 @@ revert_qmk_changes() {
 }
 
 clean() {
-  cd "$PROJECT"
+  cd $PROJECT
   rm -rf dist
   find qmk_keyboards -name '*~' -exec rm -f {} \;
   find qmk_keyboards -name '.DS_Store' -exec rm -f {} \;
@@ -258,14 +257,14 @@ clean() {
 }
 
 clean_qmk() {
-  cd "$PROJECT"
+  cd $PROJECT
   rm -rf .venv
   rm -rf qmk_firmware
   # brewq uninstall qmk/qmk/qmk
 }
 
 clean_via() {
-  cd "$PROJECT"
+  cd $PROJECT
   rm -rf via_app
 }
 
@@ -276,7 +275,7 @@ clean_all() {
 }
 
 format() {
-  cd "$PROJECT"
+  cd $PROJECT
   find qmk_keyboards -name "*.h" -exec clang-format -i {} \;
   find qmk_keyboards -name "*.c" -exec clang-format -i {} \;
   npx prettier --write qmk_keyboards/**/*.{json,js} dist/**/*.json
@@ -284,7 +283,7 @@ format() {
 
 # return bool: whether should apply patches or not
 should_apply_qmk_patch() {
-  cd "${PROJECT}/qmk_firmware"
+  cd $PROJECT/qmk_firmware
   if $KEYCHRON_BT; then
     if [[ ! -f keychron_bluetooth_playground ]]; then
       true; return
@@ -294,9 +293,9 @@ should_apply_qmk_patch() {
       true; return
     fi
   fi
-  for patch in $(ls -v "${PROJECT}/patches/"qmk_*.patch); do
+  for patch in $(ls -v $PROJECT/patches/qmk_*.patch); do
     patched=${${patch##*/}%.*}
-    if [[ ! -f "${patched}" ]]; then
+    if [[ ! -f $patched ]]; then
       true; return
     fi
   done
@@ -304,28 +303,28 @@ should_apply_qmk_patch() {
 }
 
 apply_qmk_patch() {
-  cd "${PROJECT}/qmk_firmware"
+  cd $PROJECT/qmk_firmware
   if $KEYCHRON_BT; then
     if [[ ! -f keychron_bluetooth_playground ]]; then
-      git apply -3 --verbose "${PROJECT}/patches/keychron_bluetooth_playground.patch"
+      git apply -3 --verbose $PROJECT/patches/keychron_bluetooth_playground.patch
       touch keychron_bluetooth_playground
     fi
     if [[ $TARGETS[(I)$TARGETS[-1]] -ge 2 ]]; then
       error_exit 1 "Error: Can't compile k6 together with other keyboards."
     fi
   fi
-  for patch in $(ls -v "${PROJECT}/patches/"qmk_*.patch); do
+  for patch in $(ls -v $PROJECT/patches/qmk_*.patch); do
     patched=${${patch##*/}%.*}
-    if [[ ! -f "${patched}" ]]; then
-      git apply -3 --verbose "${patch}"
-      touch "${patched}"
+    if [[ ! -f $patched ]]; then
+      git apply -3 --verbose $patch
+      touch $patched
     fi
   done
 }
 
 update_qmk() {
   revert_qmk_changes
-  cd "${PROJECT}/qmk_firmware"
+  cd $PROJECT/qmk_firmware
   git pull
   make git-submodules
 }
@@ -334,12 +333,12 @@ macos_uf2_flash() {
   firmware=$1
   volume_name=$2
 
-  dfu_volume="/Volumes/${volume_name}"
+  dfu_volume=/Volumes/$volume_name
   if [[ -d $dfu_volume  ]]; then
-    echo ""
+    echo
     echo "copying firmware [${firmware}] to volume [${dfu_volume}]..."
     sleep 1
-    cp "$firmware" "$dfu_volume"
+    cp $firmware $dfu_volume
     true
   else
     false
@@ -350,12 +349,12 @@ fedora_uf2_flash() {
   firmware=$1
   volume_name=$2
 
-  dfu_drive=$(/mnt/c/Windows/System32/wbem/WMIC.exe logicaldisk get deviceid, volumename | grep "$volume_name" | awk '{print $1}')
+  dfu_drive=$(/mnt/c/Windows/System32/wbem/WMIC.exe logicaldisk get deviceid, volumename | grep $volume_name | awk '{print $1}')
   if [[ ! -z $dfu_drive ]]; then
-    echo ""
+    echo
     echo "copying firmware [${firmware}] to drive [${dfu_drive}]..."
     sleep 1
-    /mnt/c/Program\ Files/gsudo/Current/gsudo.exe  "c:\\Windows\\System32\\xcopy.exe" "$(wslpath -w $firmware)" "${dfu_drive}\\"
+    /mnt/c/Program\ Files/gsudo/Current/gsudo.exe  c:\\Windows\\System32\\xcopy.exe $(wslpath -w $firmware) $dfu_drive\\
     true
   else
     false
@@ -370,19 +369,18 @@ build_firmware() {
   kb=$kbd[1]
   km=$kbd[2]
   ext=$kbd[3]
-  make_target="my_keyboards/${kb}:${km}"
-  cd "${PROJECT}/qmk_firmware"
+  make_target=$kb:$km
+  cd $PROJECT/qmk_firmware
   if [[ $ext != "uf2" ]] && (( $#with_flash )); then
     vid=$kbd[4]
     pid=$kbd[5]
-
-    make_target="${make_target}:flash"
+    make_target=${make_target}:flash
     if [[ $os = "fedora" ]]; then
       # sudo for later use
       sudo echo -n
-      DFU_HARDWARE_ID="${vid}:${pid}" make -j $MAKE_JOBS $make_target \
-                     DFU_UTIL="${PROJECT}/util/dfu_util_wsl_helper" \
-                     DFU_PROGRAMMER="${PROJECT}/util/dfu_programmer_wsl_helper"
+      DFU_HARDWARE_ID=$vid:$pid make -j $MAKE_JOBS $make_target \
+                     DFU_UTIL=$PROJECT/util/dfu_util_wsl_helper \
+                     DFU_PROGRAMMER=$PROJECT/util/dfu_programmer_wsl_helper
     else
       make -j $MAKE_JOBS $make_target
     fi
@@ -393,16 +391,16 @@ build_firmware() {
   # <build date>_qmk_<qmk version>_<qnk revision>
   # version="$(date +"%Y%m%d")_qmk_$(git describe --abbrev=0 --tags)_$(git rev-parse --short HEAD)"
   # <build date>_qmk_<qnk revision>
-  version="$(date +"%Y%m%d")_qmk_$(git rev-parse --short HEAD)"
-  src="my_keyboards_${kb//\//_}_${km}.${ext}"
-  firmware="${PROJECT}/dist/${kb//\//_}"
+  version=$(date +"%Y%m%d")_qmk_$(git rev-parse --short HEAD)
+  src=${kb//\//_}_${km}.${ext}
+  firmware=$PROJECT/dist/${kb//\//_}
   if [ $km != "default" ]; then
-    firmware="${firmware}_${km}"
+    firmware=${firmware}_$km
   fi
 
-  firmware="${firmware}_${version}.${ext}"
-  mkdir -p "${PROJECT}/dist"
-  cp $src "$firmware"
+  firmware=${firmware}_$version.$ext
+  mkdir -p $PROJECT/dist
+  cp $src $firmware
 
   if (( $#with_flash )) && [[ $ext == "uf2" ]]; then
     volume_name=$kbd[4]
@@ -420,11 +418,11 @@ build_firmware() {
 }
 
 clangd_setting() {
-  cat <<EOS > "${PROJECT}/.clangd"
+  cat <<EOS > $PROJECT/.clangd
 CompileFlags:
   Remove: [-mcall-prologues]
 EOS
-  rm -rf "${PROJECT}/.cache"
+  rm -rf $PROJECT/.cache
 }
 
 compile_db() {
@@ -432,30 +430,30 @@ compile_db() {
   kbd=(${(@s/:/)KEYBOARDS[$target]})
   kb=$kbd[1]
   km=$kbd[2]
-  cd "$PROJECT"
+  cd $PROJECT
   qmk config user.qmk_home=${PROJECT}/qmk_firmware
-  qmk generate-compilation-database -kb my_keyboards/$kb -km $km
-  cat qmk_firmware/compile_commands.json | sed -e "s|keyboards/my_keyboards|${PROJECT}/qmk_keyboards|g" > compile_commands.json
+  qmk generate-compilation-database -kb $kb -km $km
+  cat qmk_firmware/compile_commands.json | sed -E "s|(-I\|-include )keyboards(/.)?|\1$PROJECT/qmk_keyboards|g" > compile_commands.json
   rm -f qmk_firmware/compile_commands.json
   npx prettier --write compile_commands.json
 
-  # make_target="my_keyboards/${kb}:${km}"
-  # cd "${PROJECT}/qmk_firmware"
+  # make_target=$kb:$km
+  # cd $PROJECT/qmk_firmware
   # compile_commands=$(make -j --dry-run $make_target | sed -n -r 's/^LOG=\$\(([a-z\-]+gcc .* -o [^ ]*).*$/\1/p')
   # echo "["
   # for c in ${(f)compile_commands}; do
   #   # c=$(eval print $c)
-  #   c=$(echo $c | sed -r "s|keyboards/my_keyboards|${PROJECT}/qmk_keyboards|g")
+  #   c=$(echo $c | sed -r "s|keyboards|${PROJECT}/qmk_keyboards|g")
   #   f=$(echo $c | sed -r 's/.* ([^ ]*\.[cS]) -o .*$/\1/')
   #   o=$(echo $c | sed -n -r 's/.* -o (.*)$/\1/p')
   #   node -e "let v=process.argv;console.log(JSON.stringify({directory:v[1],command:v[2],file:v[3],output:v[4]}, null, 2)+',')" \
-    #        "${PROJECT}/qmk_firmware" $c $f $o
+  #        "${PROJECT}/qmk_firmware" $c $f $o
   # done
   # echo "]"
 }
 
 scp_secure_config() {
-  cd "$PROJECT"
+  cd $PROJECT
   project=$(realpath --relative-to="$HOME" .)
 
   [[ -s .qmk_config ]] || \
@@ -475,13 +473,13 @@ scp_secure_config() {
 }
 
 build_via_json_files() {
-  cd "$PROJECT"
+  cd $PROJECT
   targets=()
   for target in $TARGETS; do
     kbd=(${(@s/:/)KEYBOARDS[$target]})
-    qmk_kb=$kbd[1]
-    keymap=$kbd[2]
-    targets=($targets "my_keyboards/${qmk_kb}:${keymap}")
+    kb=$kbd[1]
+    km=$kbd[2]
+    targets=($targets $kb:$km)
   done
   # generate via json file
   util/generate_via_json $targets[*]
@@ -492,21 +490,22 @@ build_via_json_files() {
 build_via_json() {
   target=$1
   kbd=(${(@s/:/)KEYBOARDS[$target]})
-  qmk_kb=$kbd[1]
-  keymap=$kbd[2]
+  kb=$kbd[1]
+  km=$kbd[2]
+
   # generate via json file
-  "$PROJECT/util/generate_via_json" "$qmk_kb:$keymap"
+  $PROJECT/util/generate_via_json $kb:$km
 }
 
 run_via_app() {
   target=$TARGETS[1]
   kbd=(${(@s/:/)KEYBOARDS[$target]})
-  qmk_kb=$kbd[1]
-  keymap=$kbd[2]
+  kb=$kbd[1]
+  km=$kbd[2]
 
   setup_via
 
-  cd "${PROJECT}/via_app"
+  cd $PROJECT/via_app
   local_rev=$(git rev-parse $VIA_APP_BRANCH)
   remote_rev=$(git ls-remote --heads origin $VIA_APP_BRANCH | awk '{print $1}')
 
@@ -516,7 +515,7 @@ run_via_app() {
     git reset --hard HEAD
     cp package.json package.json.old
     git pull
-    for patch in $(ls -v "${PROJECT}/patches/via_app_${VIA_APP_BRANCH}_"*.patch); do
+    for patch in $(ls -v $PROJECT/patches/via_app_${VIA_APP_BRANCH}_*.patch); do
       git apply -3 --verbose $patch
     done
     if [[ ! -z $(diff package.json package.json.old) ]]; then
@@ -527,7 +526,7 @@ run_via_app() {
 
   # generate JSON
   #______________________________________
-  cd "$PROJECT"
+  cd $PROJECT
   if $WITH_VIA_JSON; then
     mkdir -p dist
     build_via_json $target
@@ -536,7 +535,7 @@ run_via_app() {
 
   # clean JSON files in via-keyboards
   #______________________________________
-  cd "${PROJECT}/via_app"
+  cd $PROJECT/via_app
   rm -rf public/definitions
   rm -rf node_modules/via-keyboards/src
   rm -rf node_modules/via-keyboards/v3
@@ -545,7 +544,7 @@ run_via_app() {
 
   # copy JSON files into via-keyboards
   #______________________________________
-  cp "${PROJECT}/dist/${qmk_kb}_"*.json node_modules/via-keyboards/v3
+  cp $PROJECT/dist/${kb}_*.json node_modules/via-keyboards/v3
 
   # start VIA
   #______________________________________
@@ -611,16 +610,16 @@ fi
 
 # auto setup
 # -----------------------------------
-if [[ ! -d "${PROJECT}/qmk_firmware" ]]; then
+if [[ ! -d $PROJECT/qmk_firmware ]]; then
   setup_qmk
   WITH_UPDATE=true
 fi
 
-if [[ ! -d "${PROJECT}/node_modules" ]]; then
+if [[ ! -d $PROJECT/node_modules ]]; then
   setup_project
 fi
 
-if [[ $(which python3) != "${PROJECT}/.venv/bin/python3" ]]; then
+if [[ $(which python3) != $PROJECT/.venv/bin/python3 ]]; then
   source .venv/bin/activate
 fi
 
@@ -633,9 +632,8 @@ $WITH_PATCH && \
 $WITH_UPDATE && update_qmk
 $WITH_PATCH && apply_qmk_patch
 
-mkdir -p "${PROJECT}/qmk_firmware/keyboards"
-rm -f "${PROJECT}/qmk_firmware/keyboards/my_keyboards"
-ln -s "${PROJECT}/qmk_keyboards" "${PROJECT}/qmk_firmware/keyboards/my_keyboards"
+rm -f $PROJECT/qmk_firmware/keyboards
+ln -s $PROJECT/qmk_keyboards $PROJECT/qmk_firmware/keyboards
 
 for target in $TARGETS; do
   if (( $#with_compile_db )); then
