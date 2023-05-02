@@ -86,6 +86,7 @@ zparseopts -D -E -F -- \
            {w,-without-update}=without_update \
            {p,-without-patch}=without_patch \
            {f,-with-flash}=with_flash \
+           {l,-with-logging}=with_logging \
   || return
 
 
@@ -109,11 +110,12 @@ help_usage() {
         "build options:" \
         "    -c,--with-clean                  pre build clean up build & temporary files" \
         "    -d,--with-docker                 build with docker" \
-        "    --with-compile-db             copy compile_command.json" \
+        "    --with-compile-db                copy compile_command.json" \
         "    --with-setup                     pre build automatic setup" \
         "    -w,--without-update              don't sync remote repository" \
         "    -p,--without-patch               don't apply patches" \
         "    -f,--with-flash                  post build copy firmware to DFU drive" \
+        "    -l,--with-logging                Enable USB logging" \
         "" \
         "available targets:"
   for target in ${(k)KEYBOARDS}; do
@@ -256,7 +258,7 @@ fedora_setup() {
 macos_setup() {
   # https://docs.zephyrproject.org/3.2.0/develop/getting_started/index.html#select-and-update-os
   brew update
-  brew install wget git cmake ninja gperf python3 ccache qemu dtc libmagic ccls
+  brew install wget git cmake ninja gperf python3 ccache qemu dtc libmagic ccls tio
   brew cleanup
 }
 
@@ -290,9 +292,9 @@ setup() {
   fi
   source .venv/bin/activate
   pip3 install west
-  pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v${ZEPHYR_VERSION}/scripts/requirements-base.txt
-  pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v${ZEPHYR_VERSION}/scripts/requirements-build-test.txt
-  pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v${ZEPHYR_VERSION}/scripts/requirements-run-test.txt
+  pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v$ZEPHYR_VERSION/scripts/requirements-base.txt
+  pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v$ZEPHYR_VERSION/scripts/requirements-build-test.txt
+  pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v$ZEPHYR_VERSION/scripts/requirements-run-test.txt
   pip3 cache purge
 }
 
@@ -362,15 +364,19 @@ EOF
 build() {
   board=$1
 
-  west build --pristine --board $board --build-dir build/$board zmk/app -- -DZMK_CONFIG=$PROJECT/zmk_keyboards
+  (( $#with_logging )) && usb_logging=y || usb_logging=n
+  west build --pristine --board $board --build-dir build/$board zmk/app -- \
+       -DZMK_CONFIG=$PROJECT/zmk_keyboards \
+       -DCONFIG_ZMK_USB_LOGGING=$usb_logging
 }
 
 # $1 board
 build_with_docker() {
   board=$1
 
+  (( $#with_logging )) && usb_logging=y || usb_logging=n
   docker_exec -i <<-EOF
-    west build --pristine --board $board --build-dir build/$board zmk/app -- -DZMK_CONFIG="$CONTAINER_WORKSPACE_DIR/zmk_keyboards"
+    west build --pristine --board $board --build-dir build/$board zmk/app -- -DZMK_CONFIG="$CONTAINER_WORKSPACE_DIR/zmk_keyboards -DCONFIG_ZMK_USB_LOGGING=$usb_logging"
 EOF
 }
 
@@ -411,7 +417,9 @@ dist_firmware() {
   cd ..
   mkdir -p dist
   src=build/$board/zephyr/zmk.uf2
-  dst=dist/${firmware_name}_$version.uf2
+  variant=""
+  (( $#with_logging )) && variant="_logging"
+  dst=dist/${firmware_name}_${version}$variant.uf2
   cp $src $dst
   echo $dst
 }
@@ -464,6 +472,31 @@ flash_firmware() {
     fi
   done
 }
+
+macos_log_console() {
+  firmware=$1
+
+  echo -n "waiting for debug output device to be connected..."
+  connected=false
+  for ((i=0; i < 5; i+=1)); do
+    for tty_dev in /dev/tty.usbmodem*; do
+      if [[ $tty_dev -nt $firmware ]]; then
+        connected=true
+        sudo tio $tty_dev
+      fi
+      $connected && break || echo -n "."; sleep 1
+
+    done
+    $connected && break
+  done
+}
+
+fedora_log_console() {
+  firmware=$1
+
+  #TODO uidbipd-win
+}
+
 
 cd $PROJECT
 
@@ -554,6 +587,8 @@ for target in $TARGETS; do
   fi
   firmware_file=$(dist_firmware $board $firmware_name)
   if (( $#with_flash )); then
+    (( $#with_logging )) && sudo echo -n
     flash_firmware $firmware_file $dfu_volume_name
+    (( $#with_logging )) && ${os}_log_console $firmware_file
   fi
 done
