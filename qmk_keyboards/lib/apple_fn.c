@@ -153,6 +153,8 @@ static bool process_non_mac_fn(uint16_t keycode, keyrecord_t *record) {
         break;
       case KC_M:
         fn_key = FN_M;
+      case KC_BSPC:
+        fn_key = FN_BSPC;
         break;
     }
   }
@@ -201,6 +203,7 @@ static void send_dictation(bool pressed) {
   host_consumer_send(pressed ? 0x00cf : 0);
   if (pressed && apple_fn_pressed) host_apple_send(true, USAGE_INDEX_APPLE_KEYBOARD_FN);
 }
+
 static void send_do_not_disturb(bool pressed) {
   bool apple_fn_pressed = host_apple_is_pressed(REPORT_MASK_APPLE_KEYBOARD_FN);
   // TODO don't use Fn key Twice in shortcut setting

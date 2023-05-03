@@ -295,7 +295,7 @@ void via_custom_non_mac_fn_get_value(uint8_t value_id, uint8_t *value_data) {
     case id_custom_non_mac_fn_mode:
       value_data[0] = custom_config_non_mac_fn_get_mode();
       break;
-    case id_custom_non_mac_fn_f1 ... id_custom_non_mac_fn_m: {
+    case id_custom_non_mac_fn_f1 ... id_custom_non_mac_fn_bspc: {
       uint16_t keycode = dynamic_non_mac_fn_keycode(FN_F1 + (value_id - id_custom_non_mac_fn_f1));
       // 16bit BigEndian
       value_data[0] = keycode >> 8;
@@ -319,7 +319,7 @@ void via_custom_non_mac_fn_set_value(uint8_t value_id, uint8_t *value_data) {
     case id_custom_non_mac_fn_mode:
       custom_config_non_mac_fn_set_mode(value_data[0]);
       break;
-    case id_custom_non_mac_fn_f1 ... id_custom_non_mac_fn_m:
+    case id_custom_non_mac_fn_f1 ... id_custom_non_mac_fn_bspc:
       // 16bit BigEndian
       eeprom_update_word((uint16_t *)(DYNAMIC_NON_MAC_FN_EEPROM_ADDR + (value_id - id_custom_non_mac_fn_f1) * 2),
                          ((uint16_t)value_data[0] << 8) + value_data[1]);

@@ -84,7 +84,8 @@ enum via_custom_non_mac_fn_value_id {
   id_custom_non_mac_fn_h,    // Show Desktop
   id_custom_non_mac_fn_c,    // Show Control Cnecter
   id_custom_non_mac_fn_n,    // Show Notification
-  id_custom_non_mac_fn_m     // Focus Menubar
+  id_custom_non_mac_fn_m,    // Focus Menubar
+  id_custom_non_mac_fn_bspc  // Delete
 };
 
 void via_custom_magic_get_value(uint8_t value_id, uint8_t *value_data);

@@ -60,6 +60,7 @@ const uint16_t PROGMEM non_mac_fn_keys_default[] = {
   [FN_C] = G(KC_A),     // Open Control Center -> Open Action Center
   [FN_N] = G(KC_N),     // Open Notification
   [FN_M] = KC_LALT,     // Focus menubar
+  [FN_BSPC] = KC_DEL,   // Delete
 #endif  // MON_MAC_FN_KEYS_PREFER_LINUX
 };
 

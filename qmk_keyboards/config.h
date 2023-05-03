@@ -30,7 +30,10 @@
 #define MAC_BASE_LAYER 0
 #define NON_MAC_BASE_LAYER 1
 
-// this option currently dosen't work
+// use modern mac function keys
+// F4 : spotlight
+// F5 : dictation
+// F6 : Do not disturb
 #define APPLE_FN_OVERRIDE_F456
 
 /* eeprom address */
@@ -42,7 +45,7 @@
 #  define RADIAL_CONTROLLER_EEPROM_SIZE 0
 #endif
 #define DYNAMIC_NON_MAC_FN_EEPROM_ADDR (VIA_EEPROM_CUSTOM_CONFIG_ADDR + RADIAL_CONTROLLER_EEPROM_SIZE)
-#define DYNAMIC_NON_MAC_FN_EEPROM_SIZE 48  // 22 keycodes + 4 bytes reserved
+#define DYNAMIC_NON_MAC_FN_EEPROM_SIZE 48  // 23 keycodes + 2 bytes reserved
 #define DYNAMIC_TAP_DANCE_EEPROM_ADDR (DYNAMIC_NON_MAC_FN_EEPROM_ADDR + DYNAMIC_NON_MAC_FN_EEPROM_SIZE)
 #define DYNAMIC_TAP_DANCE_EEPROM_SIZE (TAP_DANCE_ENTRIES * 10)
 #define VIA_EEPROM_CUSTOM_CONFIG_SIZE \

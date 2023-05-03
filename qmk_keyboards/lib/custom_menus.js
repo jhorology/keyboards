@@ -287,7 +287,7 @@ function createNonMacFnMenu(hasDipSwitch) {
             { key: 'F10', desc: 'Mute sound' },
             { key: 'F11', desc: 'Decrease volume of sound' },
             { key: 'F12', desc: 'Increase volume of sound' },
-            { key: 'SPC', desc: 'Hey Siri' },
+            { key: 'Space', desc: 'Hey Siri' },
             { key: 'Q', desc: 'Quick Notes' },
             { key: 'E', desc: 'Emoji & Symbols' },
             { key: 'A', desc: 'Focus Dock' },
@@ -296,7 +296,8 @@ function createNonMacFnMenu(hasDipSwitch) {
             { key: 'H', desc: 'Show Desktop' },
             { key: 'C', desc: 'Open Control Center' },
             { key: 'N', desc: 'Open Notification' },
-            { key: 'M', desc: 'Focus Menubar' }
+            { key: 'M', desc: 'Focus Menubar' },
+            { key: 'Backspace', desc: 'Delete' }
           ].map((e, i) => ({
             showIf: `{id_custom_non_mac_fn_mode} == ${
               i < 12 ? '1' : '2'

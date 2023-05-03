@@ -376,12 +376,12 @@ build_with_docker() {
 
   (( $#with_logging )) && usb_logging=y || usb_logging=n
   docker_exec -i <<-EOF
-    west build --pristine --board $board --build-dir build/$board zmk/app -- -DZMK_CONFIG="$CONTAINER_WORKSPACE_DIR/zmk_keyboards -DCONFIG_ZMK_USB_LOGGING=$usb_logging"
+    west build --pristine --board $board --build-dir build/$board zmk/app -- -DZMK_CONFIG="$CONTAINER_WORKSPACE_DIR/zmk_keyboards" -DCONFIG_ZMK_USB_LOGGING=$usb_logging
 EOF
 }
 
 clangd_setting() {
-  cat <<EOS > "${PROJECT}/.clangd"
+  cat <<EOS > $PROJECT/.clangd
 CompileFlags:
   Remove: [-mfp16-format*, -fno-reorder-functions]
 EOS
@@ -389,7 +389,7 @@ EOS
 }
 
 ccls_setting() {
-  cat <<EOS > "${PROJECT}/.ccls"
+  cat <<EOS > $PROJECT/.ccls
 {
   "clang": {
      "resourceDir": "${ZEPHYR_SDK_INSTALL_DIR}/zephyr-sdk-${ZEPHYR_SDK_VERSION}/${TARGET_TOOLCHAIN}/${TARGET_TOOLCHAIN}",

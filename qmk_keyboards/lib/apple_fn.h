@@ -89,6 +89,7 @@ typedef enum non_mac_fn_key {
   FN_C,                    // Show Control Cnecter
   FN_N,                    // Show Notification
   FN_M,                    // Focus Menubar
+  FN_BSPC,                 // Delete
   NON_MAC_FN_KEY_ENTRIES,  // num of total keys
   FN_UNKNOWN = 0xfff
   // TOTAL 22 keys
