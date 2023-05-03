@@ -52,6 +52,7 @@ local -A KEYBOARDS=(
   z65        zoom65:default:hex:03eb:2ff4
 )
 TARGETS=(n60 c60 b60 d60 fk68 i68 libra prime_e q60 qk60 qk65 tx60 tf60 w60 z65)
+
 WITH_UPDATE=true
 WITH_PATCH=true
 WITH_VIA_JSON=true
@@ -200,6 +201,9 @@ EOF
     make git-submodules
   fi
 
+  # ignore aliases
+  echo "{}" > $PROJECT/qmk_firmware/data/mappings/keyboard_aliases.hjson
+
   cd $PROJECT
   ${os}_setup_qmk
 
@@ -326,6 +330,8 @@ update_qmk() {
   revert_qmk_changes
   cd $PROJECT/qmk_firmware
   git pull
+  # ignore aliases
+  echo "{}" > $PROJECT/qmk_firmware/data/mappings/keyboard_aliases.hjson
   make git-submodules
 }
 
@@ -431,7 +437,6 @@ compile_db() {
   kb=$kbd[1]
   km=$kbd[2]
   cd $PROJECT
-  qmk config user.qmk_home=${PROJECT}/qmk_firmware
   qmk generate-compilation-database -kb $kb -km $km
   cat qmk_firmware/compile_commands.json | sed -E "s|(-I\|-include )keyboards(/.)?|\1$PROJECT/qmk_keyboards|g" > compile_commands.json
   rm -f qmk_firmware/compile_commands.json
@@ -622,6 +627,9 @@ fi
 if [[ $(which python3) != $PROJECT/.venv/bin/python3 ]]; then
   source .venv/bin/activate
 fi
+
+# some qmk command are called from make process.
+qmk config user.qmk_home=${PROJECT}/qmk_firmware
 
 sub_commands
 
