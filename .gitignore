@@ -16,6 +16,7 @@ node_modules/
 
 .venv
 .vscode
+.projectile
 .dir-locals.el
 compile_commands.json
 .clangd

@@ -312,7 +312,6 @@ update() {
   cd $PROJECT
   if [ ! -d .west/ ]; then
     west init -l zmk_keyboards
-    west config build.cmake-args -- -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
   fi
 
   if $UPDATE_BUILD; then
@@ -364,23 +363,31 @@ EOF
 build() {
   board=$1
 
-  (( $#with_logging )) && usb_logging=y || usb_logging=n
+  opts=()
+  (( $#with_logging )) && opts=($opts "-DCONFIG_ZMK_USB_LOGGING=y")
+  (( $#with_compile_db )) && opts=($opts "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON")
   west build --pristine --board $board --build-dir build/$board zmk/app -- \
-       -DZMK_CONFIG=$PROJECT/zmk_keyboards \
-       -DCONFIG_ZMK_USB_LOGGING=$usb_logging
+       -DZMK_CONFIG=$PROJECT/zmk_keyboards $opts[*]
+  if (( $#with_compile_db )); then
+    mv $PROJECT/build/$board/compile_commands.json $PROJECT
+    dot_clangd
+    dot_dir_locals
+    dot_projectile
+  fi
 }
 
 # $1 board
 build_with_docker() {
   board=$1
 
-  (( $#with_logging )) && usb_logging=y || usb_logging=n
+  opts=()
+  (( $#with_logging )) && opts=($opts "-DCONFIG_ZMK_USB_LOGGING=y")
   docker_exec -i <<-EOF
-    west build --pristine --board $board --build-dir build/$board zmk/app -- -DZMK_CONFIG="$CONTAINER_WORKSPACE_DIR/zmk_keyboards" -DCONFIG_ZMK_USB_LOGGING=$usb_logging
+    west build --pristine --board $board --build-dir build/$board zmk/app -- -DZMK_CONFIG="$CONTAINER_WORKSPACE_DIR/zmk_keyboards" $opts[*]
 EOF
 }
 
-clangd_setting() {
+dot_clangd() {
   cat <<EOS > $PROJECT/.clangd
 CompileFlags:
   Remove: [-mfp16-format*, -fno-reorder-functions]
@@ -399,6 +406,25 @@ ccls_setting() {
   },
   "compilationDatabaseDirectory": "${PROJECT}"
 }
+EOS
+}
+
+dot_dir_locals() {
+  cat <<EOS > $PROJECT/.dir-locals.el
+((nil . ((projectile-git-use-fd . t)
+         (projectile-git-fd-args . "--hidden --no-ignore -0 --exclude '\.*' --type f --strip-cwd-prefix")
+         (counsel-rg-base-command . ("rg" "--no-ignore" "--max-columns" "240" "--with-filename" "--no-heading" "--line-number" "--color" "never" "%s")))))
+EOS
+}
+
+dot_projectile() {
+  cat <<EOS > $PROJECT/.projectile
+-/dist
+-/build
+-/node_modules
+-/via_app
+-/qmk_firmware
+-/qmk_keyboards
 EOS
 }
 
@@ -580,10 +606,6 @@ for target in $TARGETS; do
     build_with_docker $board
   else
     build $board
-    if (( $#with_compile_db )); then
-      cp $PROJECT/build/$board/compile_commands.json $PROJECT
-      clangd_setting
-    fi
   fi
   firmware_file=$(dist_firmware $board $firmware_name)
   if (( $#with_flash )); then

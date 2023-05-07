@@ -423,12 +423,33 @@ build_firmware() {
   fi
 }
 
-clangd_setting() {
+dot_clangd() {
   cat <<EOS > $PROJECT/.clangd
 CompileFlags:
   Remove: [-mcall-prologues]
 EOS
   rm -rf $PROJECT/.cache
+}
+
+dot_dir_locals() {
+  cat <<EOS > $PROJECT/.dir-locals.el
+((nil . ((projectile-git-use-fd . t)
+         (projectile-git-fd-args . "--hidden --no-ignore -0 --exclude '\.*' --type f --strip-cwd-prefix")
+         (counsel-rg-base-command . ("rg" "--no-ignore" "--max-columns" "240" "--with-filename" "--no-heading" "--line-number" "--color" "never" "%s")))))
+EOS
+}
+
+dot_projectile() {
+  cat <<EOS > $PROJECT/.projectile
+-/dist
+-/build
+-/modules
+-/node_modules
+-/via_app
+-/zephyr
+-/zmk
+-/zmk_keyboards
+EOS
 }
 
 compile_db() {
@@ -646,7 +667,9 @@ ln -s $PROJECT/qmk_keyboards $PROJECT/qmk_firmware/keyboards
 for target in $TARGETS; do
   if (( $#with_compile_db )); then
     compile_db $target
-    clangd_setting
+    dot_clangd
+    dot_dir_locals
+    dot_projectile
   fi
   build_firmware $target
 done
