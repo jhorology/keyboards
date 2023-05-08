@@ -210,10 +210,6 @@ EOF
   cd $PROJECT
   ${os}_setup_qmk
 
-  if [[ ! -d .venv ]]; then
-    python3 -m venv .venv
-  fi
-  source .venv/bin/activate
   pip3 install qmk
   pip3 install -r qmk_firmware/requirements.txt
   pip3 install -r qmk_firmware/requirements-dev.txt
@@ -239,7 +235,6 @@ setup_via() {
 
 pip_upgrade() {
   cd $PROJECT
-  source .venv/bin/activate
   pip3 --disable-pip-version-check list --outdated --format=json | \
     python3 -c "import json, sys; print('\n'.join([x['name'] for x in json.load(sys.stdin)]))" | \
     xargs -n1 pip install -U
@@ -645,13 +640,17 @@ if [[ ! -d $PROJECT/qmk_firmware ]]; then
   WITH_UPDATE=true
 fi
 
+if [[ $(which python3) != $PROJECT/.venv/bin/python3 ]]; then
+  if [[ ! -d .venv ]]; then
+    python3 -m venv .venv
+  fi
+  source .venv/bin/activate
+fi
+
 if [[ ! -d $PROJECT/node_modules ]]; then
   setup_project
 fi
 
-if [[ $(which python3) != $PROJECT/.venv/bin/python3 ]]; then
-  source .venv/bin/activate
-fi
 
 # some qmk command are called from make process.
 qmk config user.qmk_home=${PROJECT}/qmk_firmware

@@ -305,10 +305,6 @@ setup() {
   # export AUTOSWITCH_DEFAULT_PYTHON=python3
   # zinit load MichaelAquilina/zsh-autoswitch-virtualenv
 
-  if [[ ! -d .venv ]]; then
-    python3 -m venv .venv
-  fi
-  source .venv/bin/activate
   pip3 install west
   pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v$ZEPHYR_VERSION/scripts/requirements-base.txt
   pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v$ZEPHYR_VERSION/scripts/requirements-build-test.txt
@@ -320,7 +316,6 @@ setup() {
 
 pip_upgrade() {
   cd $PROJECT
-  source .venv/bin/activate
   pip3 --disable-pip-version-check list --outdated --format=json | \
     python3 -c "import json, sys; print('\n'.join([x['name'] for x in json.load(sys.stdin)]))" | \
     xargs -n1 pip install -U
@@ -562,6 +557,9 @@ zephyr_doc2dash() {
 cd $PROJECT
 
 if [[ $(which python3) != $PROJECT/.venv/bin/python3 ]]; then
+  if [[ ! -d .venv ]]; then
+    python3 -m venv .venv
+  fi
   source .venv/bin/activate
 fi
 
