@@ -539,16 +539,22 @@ zephyr_doc2dash() {
   if [ ! -d zephyr ]; then
     update
   fi
-  cd zephyr/doc
+  cd $PROJECT/zephyr/doc
   make html
-  mkdir -p "$DOCSETS_DIR"
-  doc2dash --name "Zephyr" \
-           --icon "$PROJECT/zephyr/doc/_static/images/kite.png" \
+  mkdir -p $DOCSETS_DIR
+  doc2dash --name Zephyr \
+           --icon $PROJECT/zephyr/doc/_static/images/kite.png \
            --index-page index.html \
-           --destination "$DOCSETS_DIR" \
+           --force \
+           --destination $DOCSETS_DIR \
            --enable-js \
-           --online-redirect-url "https://docs.zephyrproject.org/$ZEPHYR_VERSION" \
+           --online-redirect-url https://docs.zephyrproject.org/$ZEPHYR_VERSION \
            _build/html
+  # hide left sidebar
+  cat <<EOF >> $DOCSETS_DIR/Zephyr.docset/Contents/Resources/Documents/_static/css/theme.css
+.wy-nav-side{display:none}
+.wy-nav-content-wrap{margin-left:unset}
+EOF
   git clean -dfx .
 }
 
