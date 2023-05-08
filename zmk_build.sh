@@ -48,8 +48,8 @@ TARGET_TOOLCHAINS=(arm-zephyr-eabi)
 DOCKERFILE=$PROJECT/resources/Dockerfile.zmk-dev-arm.$(uname)
 DOCKER_IMAGE=my/zmk-dev-arm:stable
 CONTAINER_NAME=zmk-build
-UPDATE_BUILD=true
-APPLY_PATCHES=true
+WITH_UPDATE=true
+WITH_PATCH=true
 WITH_EMACS=true
 CONTAINER_WORKSPACE_DIR=/workspace
 DOCSETS_DIR=$HOME/.docsets
@@ -84,9 +84,8 @@ zparseopts -D -E -F -- \
            -zephyr-doc2dash=zephyr_doc2dash \
            {s,-docker-shell}=docker_shell \
            {d,-with-docker}=with_docker \
-           -with-setup=with_setup \
            {c,-with-clean}=with_clean \
-           -with-compile-db=with_compile_db \
+           {g,-with-compile-db}=with_compile_db \
            {w,-without-update}=without_update \
            {p,-without-patch}=without_patch \
            {f,-with-flash}=with_flash \
@@ -102,10 +101,10 @@ help_usage() {
         "" \
         "Usage:" \
         "    $THIS_SCRIPT:t <-h|--help>                     help" \
-        "    $THIS_SCRIPT:t --clean                         clean build folder" \
-        "    $THIS_SCRIPT:t --clean-modules                 clean source moudules & build files" \
-        "    $THIS_SCRIPT:t --clean-tools                   clean zephyr sdk & project build tools" \
-        "    $THIS_SCRIPT:t --clean-all                     clean build environment" \
+        "    $THIS_SCRIPT:t --clean                         clean generated files" \
+        "    $THIS_SCRIPT:t --clean-modules                 clean source moudules & generated files" \
+        "    $THIS_SCRIPT:t --clean-tools                   clean zephyr sdk & build tools" \
+        "    $THIS_SCRIPT:t --clean-all                     clean all" \
         "    $THIS_SCRIPT:t --setup                         setup zephyr sdk & projtect build tools" \
         "    $THIS_SCRIPT:t --setup-docker                  create docker image" \
         "    $THIS_SCRIPT:t --pip-upgrade                   upgrade python packages" \
@@ -114,10 +113,9 @@ help_usage() {
         "    $THIS_SCRIPT:t [build options...] [TARGETS..]  build firmwares" \
         "" \
         "build options:" \
-        "    -c,--with-clean                  pre build clean up build & temporary files" \
+        "    -c,--with-clean                  clean up generated files" \
         "    -d,--with-docker                 build with docker" \
-        "    --with-compile-db                copy compile_command.json" \
-        "    --with-setup                     pre build automatic setup" \
+        "    -g,--with-compile-db             generate compile_command.json" \
         "    -w,--without-update              don't sync remote repository" \
         "    -p,--without-patch               don't apply patches" \
         "    -f,--with-flash                  post build copy firmware to DFU drive" \
@@ -154,24 +152,36 @@ case $HOST_OS in
     ;;
 esac
 
-
-
 clean() {
   cd $PROJECT
   rm -rf build
-  find . -name "*~" -exec rm -f {} \;
-  find . -name ".DS_Store" -exec rm -f {} \;
+  rm -f compile_commands.json
+  rm -f .dir_loccals.el
+  rm -f .projectile
+  rm -f .clangd
+  rm -f .ccls
+  rm -rf .cache
+  rm -rf .ccls-chache
+  rm -rf dist
+  if [[ -d $PROJECT/zmk ]]; then
+    cd $PROJECT/zmk
+    git reset --hard HEAD
+    git clean -dfx
+  fi
+  if [[ -d $PROJECT/zephyr ]]; then
+    cd $PROJECT/zephyr
+    git reset --hard HEAD
+    git clean -dfx
+  fi
 }
 
 clean_modules() {
   cd $PROJECT
-  clean()
-  rm -rf dist
-  rm -rf build
   rm -rf modules
   rm -rf zmk
   rm -rf zephyr
   rm -rf .west
+  clean
 }
 
 clean_tools() {
@@ -188,17 +198,16 @@ clean_tools() {
 }
 
 clean_all() {
-  cd $PROJECT
   clean_modules
   clean_tools
 }
 
-fedora_setup_docker() {
+fedora_install_docker() {
   # TODO
   echo "see https://learn.microsoft.com/en-us/windows/wsl/tutorials/wsl-containers"
 }
 
-macos_setup_docker() {
+macos_install_docker() {
   brew update
   brew install --cask docker
   brew cleanup
@@ -206,7 +215,7 @@ macos_setup_docker() {
 
 setup_docker() {
   if ! which docker &> /dev/null; then
-    ${os}_setup_docker
+    ${os}_install_docker
     which docker &> /dev/null || \
       error_exit 1 "'docker' command not found. Check Docker.app cli setting."
   fi
@@ -221,8 +230,7 @@ setup_docker() {
 }
 
 docker_exec() {
-
-  container_id_state=$(docker ps -q -a -f name=$CONTAINER_NAME --format "{{.ID}}:{{.State}}")
+  local container_id_state=$(docker ps -q -a -f name=$CONTAINER_NAME --format "{{.ID}}:{{.State}}")
   # create container
   if [[ -z $container_id_state ]]; then
     docker run -dit --init \
@@ -231,9 +239,9 @@ docker_exec() {
            -w $CONTAINER_WORKSPACE_DIR \
            $DOCKER_IMAGE
   else
-    array_id_state=(${(@s/:/)container_id_state})
-    container_id=$array_id_state[1]
-    container_state=$array_id_state[2]
+    local array_id_state=(${(@s/:/)container_id_state})
+    local container_id=$array_id_state[1]
+    local container_state=$array_id_state[2]
     if [[ $container_state != "running" ]]; then
       docker start $container_id
     fi
@@ -245,11 +253,12 @@ docker_exec() {
          bash
 }
 
-fedora_setup() {
+fedora_install_packages() {
   # https://docs.zephyrproject.org/3.2.0/develop/getting_started/index.html#select-and-update-os
   sudo dnf update
   sudo dnf install wget git cmake ninja-build gperf python3 ccache dtc wget xz file \
-       make gcc SDL2-devel file-libs
+       make gcc SDL2-devel file-libs \
+       tio fd-find ripgrep
   # gcc-multilib g++-multilib
   sudo dnf autoremove
   sudo dnf clean all
@@ -262,13 +271,13 @@ fedora_setup() {
   fi
 }
 
-macos_setup() {
+macos_install_packages() {
   # https://docs.zephyrproject.org/3.2.0/develop/getting_started/index.html#select-and-update-os
   # https://docs.zephyrproject.org/3.2.0/contribute/documentation/generation.html
   brew update
   brew install wget git cmake ninja gperf python3 ccache qemu dtc libmagic \
        doxygen graphviz librsvg \
-       ccls tio fd rg
+       tio fd rg
 
   # if PDF is needed
   # brew install mactex
@@ -280,9 +289,33 @@ macos_setup() {
   brew cleanup
 }
 
+pip_install() {
+  cd $PROJECT
+  if [[ ! -d .venv ]]; then
+    python3 -m venv .venv
+  fi
+  source .venv/bin/activate
+  pip3 install west
+  pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v$ZEPHYR_VERSION/scripts/requirements-base.txt
+  pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v$ZEPHYR_VERSION/scripts/requirements-build-test.txt
+  pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v$ZEPHYR_VERSION/scripts/requirements-run-test.txt
+  pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v$ZEPHYR_VERSION/scripts/requirements-doc.txt
+  pip3 install doc2dash
+  pip3 cache purge
+}
+
+pip_upgrade() {
+  pip_install
+  cd $PROJECT
+  pip3 --disable-pip-version-check list --outdated --format=json | \
+    python3 -c "import json, sys; print('\n'.join([x['name'] for x in json.load(sys.stdin)]))" | \
+    xargs -n1 pip install -U
+  pip3 cache purge
+}
+
 setup() {
   cd $PROJECT
-  ${os}_setup
+  ${os}_install_packages
   if [[ ! -d "${ZEPHYR_SDK_INSTALL_DIR}/zephyr-sdk-${ZEPHYR_SDK_VERSION}" ]]; then
     mkdir -p "$ZEPHYR_SDK_INSTALL_DIR"
     cd "$ZEPHYR_SDK_INSTALL_DIR"
@@ -299,26 +332,7 @@ setup() {
   done
   cd $PROJECT
 
-  # zinit setting
-  #
-  # https://github.com/MichaelAquilina/zsh-autoswitch-virtualenv
-  # export AUTOSWITCH_DEFAULT_PYTHON=python3
-  # zinit load MichaelAquilina/zsh-autoswitch-virtualenv
-
-  pip3 install west
-  pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v$ZEPHYR_VERSION/scripts/requirements-base.txt
-  pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v$ZEPHYR_VERSION/scripts/requirements-build-test.txt
-  pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v$ZEPHYR_VERSION/scripts/requirements-run-test.txt
-  pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v$ZEPHYR_VERSION/scripts/requirements-doc.txt
-  pip3 install doc2dash
-  pip3 cache purge
-}
-
-pip_upgrade() {
-  cd $PROJECT
-  pip3 --disable-pip-version-check list --outdated --format=json | \
-    python3 -c "import json, sys; print('\n'.join([x['name'] for x in json.load(sys.stdin)]))" | \
-    xargs -n1 pip install -U
+  pip_install
 }
 
 update() {
@@ -327,7 +341,7 @@ update() {
     west init -l zmk_keyboards
   fi
 
-  if $UPDATE_BUILD; then
+  if $WITH_UPDATE; then
     rm -rf build
     if [ -d zmk ]; then
       # revert changes
@@ -337,7 +351,7 @@ update() {
       cd ..
     fi
     west update -n
-    if $APPLY_PATCHES; then
+    if $WITH_PATCH; then
       cd zmk
       git apply -3 --verbose ../patches/zmk_*.patch
       cd ..
@@ -352,7 +366,7 @@ update_with_docker() {
         west init -l zmk_keyboards
         west config build.cmake-args -- -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
     fi
-    if $UPDATE_BUILD; then
+    if $WITH_UPDATE; then
         rm -rf build
         if [ -d zmk ]; then
             # revert changes
@@ -362,7 +376,7 @@ update_with_docker() {
             cd ..
         fi
         west update -n
-        if $APPLY_PATCHES; then
+        if $WITH_PPATCH; then
             cd zmk
             git apply -3 --verbose ../patches/zmk_*.patch
             cd ..
@@ -374,9 +388,8 @@ EOF
 
 # $1 board
 build() {
-  board=$1
-
-  opts=()
+  local board=$1
+  local opts=()
   (( $#with_logging )) && opts=($opts "-DCONFIG_ZMK_USB_LOGGING=y")
   (( $#with_compile_db )) && opts=($opts "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON")
   west build --pristine --board $board --build-dir build/$board zmk/app -- \
@@ -393,9 +406,8 @@ build() {
 
 # $1 board
 build_with_docker() {
-  board=$1
-
-  opts=()
+  local board=$1
+  local opts=()
   (( $#with_logging )) && opts=($opts "-DCONFIG_ZMK_USB_LOGGING=y")
   docker_exec -i <<-EOF
     west build --pristine --board $board --build-dir build/$board zmk/app -- -DZMK_CONFIG="$CONTAINER_WORKSPACE_DIR/zmk_keyboards" $opts[*]
@@ -408,20 +420,6 @@ CompileFlags:
   Remove: [-mfp16-format*, -fno-reorder-functions]
 EOS
   rm -rf "${PROJECT}/.cache"
-}
-
-ccls_setting() {
-  cat <<EOS > $PROJECT/.ccls
-{
-  "clang": {
-     "resourceDir": "${ZEPHYR_SDK_INSTALL_DIR}/zephyr-sdk-${ZEPHYR_SDK_VERSION}/${TARGET_TOOLCHAIN}/${TARGET_TOOLCHAIN}",
-     "clang.extraArgs": [
-       "-gcc-toolchain=${ZEPHYR_SDK_INSTALL_DIR}/zephyr-sdk-${ZEPHYR_SDK_VERSION}/${TARGET_TOOLCHAIN}"
-     ]
-  },
-  "compilationDatabaseDirectory": "${PROJECT}"
-}
-EOS
 }
 
 dot_dir_locals() {
@@ -554,15 +552,6 @@ zephyr_doc2dash() {
   git clean -dfx .
 }
 
-cd $PROJECT
-
-if [[ $(which python3) != $PROJECT/.venv/bin/python3 ]]; then
-  if [[ ! -d .venv ]]; then
-    python3 -m venv .venv
-  fi
-  source .venv/bin/activate
-fi
-
 #  sub commands
 # -----------------------------------
 if (( $#help )); then
@@ -590,42 +579,64 @@ elif (( $#setup )); then
 elif (( $#setup_docker )); then
   setup_docker
   return
-elif (( $#pip_upgrade )); then
-  pip_upgrade
+elif (( $#docker_shell )); then
+  setup_docker
+  docker_exec -it
   return
-elif (( $#zephyr_doc2dash )); then
-  zephyr_doc2dash
-  return
+fi
+
+if (( $#with_docker )); then
+  #  sub commands
+  # -----------------------------------
+  if (( $#pip_upgrade )); then
+    error_exit 1 "Unsupported operation."
+  elif (( $#zephyr_doc2dash )); then
+    error_exit 1 "Unsupported operation."
+  fi
+else
+  if [[ ! -d .venv ]]; then
+    error_exit 1 "Not found .venv, execute the --setup command."
+  fi
+  if [[ $(which west) != $PROJECT/.venv/bin/west ]]; then
+    error_exit 1 "Not found west command, execute the --setup command"
+  fi
+
+  #  activate virtual env
+  # -----------------------------------
+  if [[ $(which python3) != $PROJECT/.venv/bin/python3 ]]; then
+    source .venv/bin/activate
+  fi
+
+  #  sub commands
+  # -----------------------------------
+  if (( $#pip_upgrade )); then
+    pip_upgrade
+    return
+  elif (( $#zephyr_doc2dash )); then
+    zephyr_doc2dash
+    return
+  fi
 fi
 
 # build option parameters
 # -----------------------------------
-(( $#without_update )) && UPDATE_BUILD=false
-(( $#without_patch )) && APPLY_PATCHES=false
+(( $#without_update )) && WITH_UPDATE=false
+(( $#without_patch )) && WITH_PATCH=false
 (( $#without_emacs )) && WITH_EMACS=false
 (( $#@ )) && TARGETS=("$@")
 
-[[ -d modules ]] || UPDATE_BUILD=true
-[[ -d zephyr ]] || UPDATE_BUILD=true
-[[ -d zmk ]] || UPDATE_BUILD=true
-[[ -d .west ]] || UPDATE_BUILD=true
+[[ -d modules ]] || WITH_UPDATE=true
+[[ -d zephyr ]] || WITH_UPDATE=true
+[[ -d zmk ]] || WITH_UPDATE=true
+[[ -d .west ]] || WITH_UPDATE=true
 
 #  clean build
 # -----------------------------------
-if $UPDATE_BUILD || (( $#with_clean )); then
+if $WITH_UPDATE || (( $#with_clean )); then
   clean
 fi
 
-# pre build setup
-# -----------------------------------
-if (( $#with_setup )); then
-  if (( $#with_docker )); then
-    setup_docker
-  else
-    setup
-  fi
-fi
-
+cd $PROJECT
 
 # build
 # -----------------------------------

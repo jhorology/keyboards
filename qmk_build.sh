@@ -7,9 +7,6 @@ cd $PROJECT
 
 zparseopts -D -E -F -- \
            {h,-help}=help  \
-           -setup-qmk=setup_qmk  \
-           -setup-via=setup_via  \
-           -setup-project=setup_project  \
            -setup=setup \
            -pip-upgrade=pip_upgrade \
            -clean=clean \
@@ -18,7 +15,7 @@ zparseopts -D -E -F -- \
            -clean-all=clean_all \
            -format=format \
            -scp-secure-config=scp_secure_config \
-           -via_json=via_json \
+           -via-json=via_json \
            -via-app=via_app \
            {w,-without-update}=without_update \
            {p,-without-patch}=without_patch \
@@ -60,6 +57,7 @@ WITH_VIA_JSON=true
 WITH_EMACS=true
 VIA_APP_BRANCH=main
 MAKE_JOBS=$(nproc)
+VIA_APP_BRANCH="main"
 
 MAIN_DEV_HOST=$(uname -n)
 
@@ -69,7 +67,6 @@ MAIN_DEV_HOST=$(uname -n)
 [ -s .qmk_config ] &&  source .qmk_config
 
 
-VIA_APP_BRANCH="main"
 PLATFORM=$(uname)
 ARCHITECTURE=$(uname -m)
 
@@ -103,17 +100,12 @@ help_usage() {
         "" \
         "usage:" \
         "   $_this_script:t <-h|--help>                       show this help" \
-        "   $_this_script:t --setup-qmk                       setup qmk_firmware & build tools" \
-        "   $_this_script:t --setup-via                       setup via/app" \
-        "   $_this_script:t --setup-project                   setup project node_modules" \
-        "   $_this_script:t --setup                           setup all of above" \
-        "   $_this_script:t --pip-upgrade                     update python packages" \
+        "   $_this_script:t --setup                           setup buld environment" \
         "   $_this_script:t --clean                           clean generated files and temporary files" \
-        "   $_this_script:t --clean-qmk                       clean qmk_firmware and build tools" \
-        "   $_this_script:t --clean-via                       clean via/app" \
-        "   $_this_script:t --clean-all                       clean all of abopve" \
+        "   $_this_script:t --clean-all                       clean all files not contained in repository" \
         "   $_this_script:t --format                          apply formatter" \
         "   $_this_script:t --scp-secure-config               copy secure_config.h from MAIN_DEV_HOST" \
+        "   $_this_script:t --pip-upgrade                     update python packages" \
         "   $_this_script:t --via-json                        generate VIA JSON files" \
         "   $_this_script:t --via-app [options...] TARGET     launch via/app" \
         "   $_this_script:t [options...] [<TARGET...>]        build firmwares" \
@@ -140,7 +132,7 @@ help_usage() {
 
 # setup build environment & qmk_firmware
 # -----------------------------------
-macos_setup_qmk() {
+macos_install_packages() {
   brew update
   # install 'qmk' in .venv
   packages=$(brew info qmk/qmk/qmk | grep "Required:")
@@ -150,7 +142,7 @@ macos_setup_qmk() {
   brew cleanup
 }
 
-fedora_setup_qmk() {
+fedora_install_packages() {
   sudo dnf -y install \
        clang diffutils git gcc glibc-headers kernel-devel kernel-headers \
        make unzip wget zip python3 avr-binutils avr-gcc avr-gcc-c++ avr-libc \
@@ -201,29 +193,34 @@ setup_qmk() {
 /util/
 EOF
     git sparse-checkout reapply
-    make git-submodules
+    # make git-submodules
   fi
 
   # ignore aliases
   echo "{}" > $PROJECT/qmk_firmware/data/mappings/keyboard_aliases.hjson
 
   cd $PROJECT
-  ${os}_setup_qmk
-
-  pip3 install qmk
-  pip3 install -r qmk_firmware/requirements.txt
-  pip3 install -r qmk_firmware/requirements-dev.txt
-  pip3 cache purge
-}
-
-setup_project() {
-  cd $PROJECT
-  npm install
 }
 
 setup_via() {
-  cd $PROJECT
-  if [[ ! -d via_app ]]; then
+  if [[ -d $PROJECT/via_app ]]; then
+    cd $PROJECT/via_app
+    local local_rev=$(git rev-parse $VIA_APP_BRANCH)
+    local remote_rev=$(git ls-remote --heads origin $VIA_APP_BRANCH | awk '{print $1}')
+    if [[ $local_rev != $remote_rev ]]; then
+      git reset --hard HEAD
+      cp package.json package.json.old
+      git pull
+      for patch in $(ls -v $PROJECT/patches/via_app_${VIA_APP_BRANCH}_*.patch); do
+        git apply -3 --verbose $patch
+      done
+      if [[ ! -z $(diff package.json package.json.old) ]]; then
+        npx yarn install
+      fi
+      rm package.json.old
+    fi
+  else
+    cd $PROJECT
     git clone --depth 1 -b $VIA_APP_BRANCH https://github.com/the-via/app.git via_app
     cd via_app
     for patch in $(ls -v $PROJECT/patches/via_app_${VIA_APP_BRANCH}_*.patch); do
@@ -233,11 +230,25 @@ setup_via() {
   fi
 }
 
+pip_install() {
+  cd $PROJECT
+  if [[ ! -d .venv ]]; then
+    python3 -m venv .venv
+  fi
+  source .venv/bin/activate
+  pip3 install qmk
+  pip3 install -r https://raw.githubusercontent.com/qmk/qmk_firmware/master/requirements.txt
+  pip3 install -r https://raw.githubusercontent.com/qmk/qmk_firmware/master/requirements-dev.txt
+  pip3 cache purge
+}
+
 pip_upgrade() {
+  pip_install
   cd $PROJECT
   pip3 --disable-pip-version-check list --outdated --format=json | \
     python3 -c "import json, sys; print('\n'.join([x['name'] for x in json.load(sys.stdin)]))" | \
     xargs -n1 pip install -U
+  pip3 cache purge
 }
 
 revert_qmk_changes() {
@@ -253,27 +264,25 @@ revert_qmk_changes() {
 clean() {
   cd $PROJECT
   rm -rf dist
-  find qmk_keyboards -name '*~' -exec rm -f {} \;
-  find qmk_keyboards -name '.DS_Store' -exec rm -f {} \;
-  revert_qmk_changes
+  rm -f compile_commands.json
+  rm -f .dir_loccals.el
+  rm -f .projectile
+  rm -f .clangd
+  rm -f .ccls
+  rm -rf .cache
+  rm -rf .ccls-chache
+  if [[ -d qmk_firmware ]]; then
+    revert_qmk_changes
+  fi
 }
 
-clean_qmk() {
+clean_all() {
   cd $PROJECT
   rm -rf .venv
   rm -rf qmk_firmware
   # brewq uninstall qmk/qmk/qmk
-}
-
-clean_via() {
-  cd $PROJECT
   rm -rf via_app
-}
-
-clean_all() {
   clean
-  clean_qmk
-  clean_via
 }
 
 format() {
@@ -327,17 +336,16 @@ apply_qmk_patch() {
 update_qmk() {
   revert_qmk_changes
   cd $PROJECT/qmk_firmware
-  git pull
+  git pull --recurse-submodules
   # ignore aliases
   echo "{}" > $PROJECT/qmk_firmware/data/mappings/keyboard_aliases.hjson
-  make git-submodules
+  # make git-submodules
 }
 
 macos_uf2_flash() {
-  firmware=$1
-  volume_name=$2
-
-  dfu_volume=/Volumes/$volume_name
+  local firmware=$1
+  local volume_name=$2
+  local dfu_volume=/Volumes/$volume_name
   if [[ -d $dfu_volume  ]]; then
     echo
     echo "copying firmware [${firmware}] to volume [${dfu_volume}]..."
@@ -350,10 +358,9 @@ macos_uf2_flash() {
 }
 
 fedora_uf2_flash() {
-  firmware=$1
-  volume_name=$2
-
-  dfu_drive=$(/mnt/c/Windows/System32/wbem/WMIC.exe logicaldisk get deviceid, volumename | grep $volume_name | awk '{print $1}')
+  local firmware=$1
+  local volume_name=$2
+  local dfu_drive=$(/mnt/c/Windows/System32/wbem/WMIC.exe logicaldisk get deviceid, volumename | grep $volume_name | awk '{print $1}')
   if [[ ! -z $dfu_drive ]]; then
     echo
     echo "copying firmware [${firmware}] to drive [${dfu_drive}]..."
@@ -367,17 +374,16 @@ fedora_uf2_flash() {
 
 # $1 target
 build_firmware() {
-  target=$1
-
-  kbd=(${(@s/:/)KEYBOARDS[$target]})
-  kb=$kbd[1]
-  km=$kbd[2]
-  ext=$kbd[3]
+  local target=$1
+  local kbd=(${(@s/:/)KEYBOARDS[$target]})
+  local kb=$kbd[1]
+  local km=$kbd[2]
+  local ext=$kbd[3]
   make_target=$kb:$km
   cd $PROJECT/qmk_firmware
   if [[ $ext != "uf2" ]] && (( $#with_flash )); then
-    vid=$kbd[4]
-    pid=$kbd[5]
+    local vid=$kbd[4]
+    local pid=$kbd[5]
     make_target=${make_target}:flash
     if [[ $os = "fedora" ]]; then
       # sudo for later use
@@ -395,7 +401,7 @@ build_firmware() {
   # <build date>_qmk_<qmk version>_<qnk revision>
   # version="$(date +"%Y%m%d")_qmk_$(git describe --abbrev=0 --tags)_$(git rev-parse --short HEAD)"
   # <build date>_qmk_<qnk revision>
-  version=$(date +"%Y%m%d")_qmk_$(git rev-parse --short HEAD)
+  local version=$(date +"%Y%m%d")_qmk_$(git rev-parse --short HEAD)
   src=${kb//\//_}_${km}.${ext}
   firmware=$PROJECT/dist/${kb//\//_}
   if [ $km != "default" ]; then
@@ -451,10 +457,10 @@ EOS
 }
 
 compile_db() {
-  target=$1
-  kbd=(${(@s/:/)KEYBOARDS[$target]})
-  kb=$kbd[1]
-  km=$kbd[2]
+  local target=$1
+  local kbd=(${(@s/:/)KEYBOARDS[$target]})
+  local kb=$kbd[1]
+  local km=$kbd[2]
   cd $PROJECT
   qmk generate-compilation-database -kb $kb -km $km
   cat qmk_firmware/compile_commands.json | sed -E "s|(-I\|-include )keyboards(/.)?|\1$PROJECT/qmk_keyboards|g" > compile_commands.json
@@ -478,10 +484,9 @@ compile_db() {
 
 scp_secure_config() {
   cd $PROJECT
-  project=$(realpath --relative-to="$HOME" .)
 
   [[ -s .qmk_config ]] || \
-    error_exit 1 "Missing .config file."
+    error_exit 1 "Missing .qmk_config file."
 
   [[ ${MAIN_DEV_HOST-} ]] || \
     error_exit 1 "MAIN_DEV_HOST is not defined."
@@ -498,11 +503,11 @@ scp_secure_config() {
 
 build_via_json_files() {
   cd $PROJECT
-  targets=()
+  local targets=()
   for target in $TARGETS; do
-    kbd=(${(@s/:/)KEYBOARDS[$target]})
-    kb=$kbd[1]
-    km=$kbd[2]
+    local kbd=(${(@s/:/)KEYBOARDS[$target]})
+    local kb=$kbd[1]
+    local km=$kbd[2]
     targets=($targets $kb:$km)
   done
   # generate via json file
@@ -512,41 +517,22 @@ build_via_json_files() {
 
 # $1 target
 build_via_json() {
-  target=$1
-  kbd=(${(@s/:/)KEYBOARDS[$target]})
-  kb=$kbd[1]
-  km=$kbd[2]
+  local target=$1
+  local kbd=(${(@s/:/)KEYBOARDS[$target]})
+  local kb=$kbd[1]
+  local km=$kbd[2]
 
   # generate via json file
   $PROJECT/util/generate_via_json $kb:$km
 }
 
 run_via_app() {
-  target=$TARGETS[1]
-  kbd=(${(@s/:/)KEYBOARDS[$target]})
-  kb=$kbd[1]
-  km=$kbd[2]
+  local target=$TARGETS[1]
+  local kbd=(${(@s/:/)KEYBOARDS[$target]})
+  local kb=$kbd[1]
+  local km=$kbd[2]
 
   setup_via
-
-  cd $PROJECT/via_app
-  local_rev=$(git rev-parse $VIA_APP_BRANCH)
-  remote_rev=$(git ls-remote --heads origin $VIA_APP_BRANCH | awk '{print $1}')
-
-  # update via/app
-  #______________________________________
-  if [[ $local_rev != $remote_rev ]]; then
-    git reset --hard HEAD
-    cp package.json package.json.old
-    git pull
-    for patch in $(ls -v $PROJECT/patches/via_app_${VIA_APP_BRANCH}_*.patch); do
-      git apply -3 --verbose $patch
-    done
-    if [[ ! -z $(diff package.json package.json.old) ]]; then
-      npx yarn install
-    fi
-    rm package.json.old
-  fi
 
   # generate JSON
   #______________________________________
@@ -575,43 +561,68 @@ run_via_app() {
   npx yarn dev
 }
 
-sub_commands() {
-  if (( $#help )); then
-    help_usage; exit 0
-  elif (( $#setup_qmk )); then
-    setup_qmk; exit 0
-  elif (( $#setup_via )); then
-    setup_via; exit 0
-  elif (( $#setup_project )); then
-    setup_project; exit 0
-  elif (( $#setup )); then
-    setup_qmk
-    setup_via
-    setup_project
-    exit 0
-  elif (( $#pip_upgrade )); then
-    pip_upgrade; exit 0
-  elif (( $#clean )); then
-    clean; exit 0
-  elif (( $#clean_qmk )); then
-    clean_qmk; exit 0
-  elif (( $#clean_via )); then
-    clean_via; exit 0
-  elif (( $#clean_all )); then
-    clean
-    clean_via
-    clean_qmk
-    exit 0
-  elif (( $#format )); then
-    format; exit 0
-  elif (( $#scp_secure_config )); then
-    scp_secure_config; exit 0
-  elif (( $#via_json )); then
-    build_via_json_files; exit 0
-  elif (( $#via_app )); then
-    run_via_app; exit 0
-  fi
-}
+# setup & clean
+# -----------------------------------
+if (( $#help )); then
+  help_usage
+  return
+elif (( $#setup )); then
+  ${os}_install_packages
+  setup_qmk
+  pip_install
+  setup_via
+  cd $PROJECT
+  npm install
+  return
+elif (( $#clean )); then
+  clean
+  return
+elif (( $#clean_all )); then
+  clean_all
+  return
+fi
+
+# check environment
+# -----------------------------------
+if [[ ! -d $PROJECT/qmk_firmware ]]; then
+  error_exit 1 "Not found qmnk_firmware, execute the --setup command."
+fi
+if [[ ! -d .venv ]]; then
+  error_exit 1 "Not found .venv, execute the--setup command."
+fi
+if [[ ! -d node_modules ]]; then
+  error_exit 1 "Not found node_modules, execute the --setup command"
+fi
+if [[ ! -d via_app ]]; then
+  error_exit 1 "Not found via_app, execute the --setup command"
+fi
+if [[ $(which qmk) != $PROJECT/.venv/bin/qmk ]]; then
+  error_exit 1 "Not found qmk command, execute the --setup command"
+fi
+if [[ $(which python3) != $PROJECT/.venv/bin/python3 ]]; then
+  source .venv/bin/activate
+fi
+
+# sub commands
+# -----------------------------------
+if (( $#pip_upgrade )); then
+  pip_upgrade
+  return
+elif (( $#clean )); then
+  clean
+elif (( $#clean_all )); then
+  clean_all
+  return
+elif (( $#format )); then
+  format
+  return
+elif (( $#scp_secure_config )); then
+  scp_secure_config
+  return
+elif (( $#via_json )); then
+  build_via_json_files
+  return
+fi
 
 # check & apply arguments
 # -----------------------------------
@@ -633,29 +644,16 @@ fi
 (( $#without_via_json )) && WITH_VIA_JSON=false
 (( $#without_emacs )) && WITH_EMACS=false
 
-# auto setup
+# via/app
 # -----------------------------------
-if [[ ! -d $PROJECT/qmk_firmware ]]; then
-  setup_qmk
-  WITH_UPDATE=true
+if (( $#via_app )); then
+  run_via_app
+  return
 fi
 
-if [[ $(which python3) != $PROJECT/.venv/bin/python3 ]]; then
-  if [[ ! -d .venv ]]; then
-    python3 -m venv .venv
-  fi
-  source .venv/bin/activate
-fi
-
-if [[ ! -d $PROJECT/node_modules ]]; then
-  setup_project
-fi
-
-
-# some qmk command are called from make process.
+# build
+# -----------------------------------
 qmk config user.qmk_home=${PROJECT}/qmk_firmware
-
-sub_commands
 
 $WITH_PATCH && \
   should_apply_qmk_patch && \
