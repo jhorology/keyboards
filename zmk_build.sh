@@ -267,7 +267,7 @@ macos_setup() {
   # https://docs.zephyrproject.org/3.2.0/contribute/documentation/generation.html
   brew update
   brew install wget git cmake ninja gperf python3 ccache qemu dtc libmagic \
-       doxygen graphviz mactex librsvg \
+       doxygen graphviz librsvg \
        ccls tio fd rg
 
   # if PDF is needed
