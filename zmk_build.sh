@@ -597,14 +597,15 @@ else
   if [[ ! -d .venv ]]; then
     error_exit 1 "Not found .venv, execute the --setup command."
   fi
-  if [[ $(which west) != $PROJECT/.venv/bin/west ]]; then
-    error_exit 1 "Not found west command, execute the --setup command"
-  fi
 
   #  activate virtual env
   # -----------------------------------
   if [[ $(which python3) != $PROJECT/.venv/bin/python3 ]]; then
     source .venv/bin/activate
+  fi
+
+  if [[ $(which west) != $PROJECT/.venv/bin/west ]]; then
+    error_exit 1 "Not found west command, execute the --setup command"
   fi
 
   #  sub commands

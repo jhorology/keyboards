@@ -596,11 +596,11 @@ fi
 if [[ ! -d via_app ]]; then
   error_exit 1 "Not found via_app, execute the --setup command"
 fi
-if [[ $(which qmk) != $PROJECT/.venv/bin/qmk ]]; then
-  error_exit 1 "Not found qmk command, execute the --setup command"
-fi
 if [[ $(which python3) != $PROJECT/.venv/bin/python3 ]]; then
   source .venv/bin/activate
+fi
+if [[ $(which qmk) != $PROJECT/.venv/bin/qmk ]]; then
+  error_exit 1 "Not found qmk command, execute the --setup command"
 fi
 
 # sub commands
