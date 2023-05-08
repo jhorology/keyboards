@@ -50,7 +50,10 @@ DOCKER_IMAGE=my/zmk-dev-arm:stable
 CONTAINER_NAME=zmk-build
 UPDATE_BUILD=true
 APPLY_PATCHES=true
+WITH_EMACS=true
 CONTAINER_WORKSPACE_DIR=/workspace
+DOCSETS_DIR=$HOME/.docsets
+# DOCSETS_DIR="$HOME/Library/Application Support/Dash/DockSets"
 
 # key: target name [1]=board:[2]=firmwre_name:[3]=DFU volume name
 local -A KEYBOARDS=(
@@ -78,6 +81,7 @@ zparseopts -D -E -F -- \
            -setup=setup \
            -setup-docker=setup_docker \
            -pip-upgrade=pip_upgrade \
+           -zephyr-doc2dash=zephyr_doc2dash \
            {s,-docker-shell}=docker_shell \
            {d,-with-docker}=with_docker \
            -with-setup=with_setup \
@@ -87,6 +91,7 @@ zparseopts -D -E -F -- \
            {p,-without-patch}=without_patch \
            {f,-with-flash}=with_flash \
            {l,-with-logging}=with_logging \
+           -without-emacs=without_emacs \
   || return
 
 
@@ -104,6 +109,7 @@ help_usage() {
         "    $THIS_SCRIPT:t --setup                         setup zephyr sdk & projtect build tools" \
         "    $THIS_SCRIPT:t --setup-docker                  create docker image" \
         "    $THIS_SCRIPT:t --pip-upgrade                   upgrade python packages" \
+        "    $THIS_SCRIPT:t --zephyr-doc2dash               generate zephyr docsets" \
         "    $THIS_SCRIPT:t <-s|--docker-shell>             enter docker container shell" \
         "    $THIS_SCRIPT:t [build options...] [TARGETS..]  build firmwares" \
         "" \
@@ -116,7 +122,8 @@ help_usage() {
         "    -p,--without-patch               don't apply patches" \
         "    -f,--with-flash                  post build copy firmware to DFU drive" \
         "    -l,--with-logging                Enable USB logging" \
-        "" \
+        "    --without-emacs                  don't generate emacs settings when --with-comile-db" \
+       "" \
         "available targets:"
   for target in ${(k)KEYBOARDS}; do
     print -rC2 -- "   ${target}:"  "${KEYBOARDS[$target]}"
@@ -257,8 +264,19 @@ fedora_setup() {
 
 macos_setup() {
   # https://docs.zephyrproject.org/3.2.0/develop/getting_started/index.html#select-and-update-os
+  # https://docs.zephyrproject.org/3.2.0/contribute/documentation/generation.html
   brew update
-  brew install wget git cmake ninja gperf python3 ccache qemu dtc libmagic ccls tio
+  brew install wget git cmake ninja gperf python3 ccache qemu dtc libmagic \
+       doxygen graphviz mactex librsvg \
+       ccls tio fd rg
+
+  # if PDF is needed
+  # brew install mactex
+  # eval "$(/usr/libexec/path_helper)"
+  # sudo tlmgr update --self --all
+  # sudo tlmgr install latexmk
+  # sudo tlmgr install collection-fontsrecommended
+
   brew cleanup
 }
 
@@ -295,6 +313,8 @@ setup() {
   pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v$ZEPHYR_VERSION/scripts/requirements-base.txt
   pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v$ZEPHYR_VERSION/scripts/requirements-build-test.txt
   pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v$ZEPHYR_VERSION/scripts/requirements-run-test.txt
+  pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v$ZEPHYR_VERSION/scripts/requirements-doc.txt
+  pip3 install doc2dash
   pip3 cache purge
 }
 
@@ -305,8 +325,6 @@ pip_upgrade() {
     python3 -c "import json, sys; print('\n'.join([x['name'] for x in json.load(sys.stdin)]))" | \
     xargs -n1 pip install -U
 }
-
-
 
 update() {
   cd $PROJECT
@@ -371,8 +389,10 @@ build() {
   if (( $#with_compile_db )); then
     mv $PROJECT/build/$board/compile_commands.json $PROJECT
     dot_clangd
-    dot_dir_locals
-    dot_projectile
+    if $WITH_EMACS; then
+      dot_dir_locals
+      dot_projectile
+    fi
   fi
 }
 
@@ -434,12 +454,12 @@ EOS
 # return echo path or firmware
 # -----------------------------------
 dist_firmware() {
-  board=$1
-  firmware_name=$2
+  local board=$1
+  local firmware_name=$2
 
   cd $PROJECT
   cd zmk
-  version=$(date +"%Y%m%d")_zmk_$(git rev-parse --short HEAD)
+  local version=$(date +"%Y%m%d")_zmk_$(git rev-parse --short HEAD)
   cd ..
   mkdir -p dist
   src=build/$board/zephyr/zmk.uf2
@@ -452,10 +472,10 @@ dist_firmware() {
 
 
 macos_uf2_flash() {
-  firmware=$1
-  volume_name=$2
+  local firmware=$1
+  local volume_name=$2
 
-  dfu_volume=/Volumes/$volume_name
+  local dfu_volume=/Volumes/$volume_name
   if [[ -d $dfu_volume  ]]; then
     echo ""
     echo "copying firmware [$firmware] to volume [$dfu_volume]..."
@@ -468,8 +488,8 @@ macos_uf2_flash() {
 }
 
 fedora_uf2_flash() {
-  firmware=$1
-  volume_name=$2
+  local firmware=$1
+  local volume_name=$2
 
   dfu_drive=$(/mnt/c/Windows/System32/wbem/WMIC.exe logicaldisk get deviceid, volumename | grep $volume_name | awk '{print $1}')
   if [[ ! -z $dfu_drive ]]; then
@@ -484,8 +504,8 @@ fedora_uf2_flash() {
 }
 
 flash_firmware() {
-  firmware=$1
-  volume_name=$2
+  local firmware=$1
+  local volume_name=$2
 
   echo -n "waiting for DFU volume to be mounted..."
   for ((i=0; i < 20; i+=1)); do
@@ -500,32 +520,50 @@ flash_firmware() {
 }
 
 macos_log_console() {
-  firmware=$1
+  local firmware=$1
 
   echo -n "waiting for debug output device to be connected..."
-  connected=false
   for ((i=0; i < 5; i+=1)); do
     for tty_dev in /dev/tty.usbmodem*; do
       if [[ $tty_dev -nt $firmware ]]; then
-        connected=true
         sudo tio $tty_dev
+        return
       fi
-      $connected && break || echo -n "."; sleep 1
-
+      echo -n "."
+      sleep 1
     done
-    $connected && break
   done
 }
 
 fedora_log_console() {
-  firmware=$1
+  local firmware=$1
 
   #TODO uidbipd-win
 }
 
+zephyr_doc2dash() {
+  cd $PROJECT
+  if [ ! -d zephyr ]; then
+    update
+  fi
+  cd zephyr/doc
+  make html
+  mkdir -p "$DOCSETS_DIR"
+  doc2dash --name "Zephyr" \
+           --icon "$PROJECT/zephyr/doc/_static/images/kite.png" \
+           --index-page index.html \
+           --destination "$DOCSETS_DIR" \
+           --enable-js \
+           --online-redirect-url "https://docs.zephyrproject.org/$ZEPHYR_VERSION" \
+           _build/html
+  git clean -dfx .
+}
 
 cd $PROJECT
 
+if [[ $(which python3) != $PROJECT/.venv/bin/python3 ]]; then
+  source .venv/bin/activate
+fi
 
 #  sub commands
 # -----------------------------------
@@ -557,12 +595,16 @@ elif (( $#setup_docker )); then
 elif (( $#pip_upgrade )); then
   pip_upgrade
   return
+elif (( $#zephyr_doc2dash )); then
+  zephyr_doc2dash
+  return
 fi
 
 # build option parameters
 # -----------------------------------
 (( $#without_update )) && UPDATE_BUILD=false
 (( $#without_patch )) && APPLY_PATCHES=false
+(( $#without_emacs )) && WITH_EMACS=false
 (( $#@ )) && TARGETS=("$@")
 
 [[ -d modules ]] || UPDATE_BUILD=true
@@ -592,9 +634,6 @@ fi
 if (( $#with_docker )); then
   update_with_docker
 else
-  if [[ $(which python3) != $PROJECT/.venv/bin/python3 ]]; then
-    source .venv/bin/activate
-  fi
   update
 fi
 for target in $TARGETS; do

@@ -23,6 +23,7 @@ compile_commands.json
 .ccls
 .cache/
 .ccls-cache/
+.docsets/
 
 # VIA
 via_app/

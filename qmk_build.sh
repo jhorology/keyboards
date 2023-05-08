@@ -25,6 +25,7 @@ zparseopts -D -E -F -- \
            {-without-via-json}=without_via_json \
            {d,-with-compile-db}=with_compile_db \
            {f,-with-flash}=with_flash \
+           -without-emacs=without_emacs \
   || return
 
 
@@ -56,6 +57,7 @@ TARGETS=(n60 c60 b60 d60 fk68 i68 libra prime_e q60 qk60 qk65 tx60 tf60 w60 z65)
 WITH_UPDATE=true
 WITH_PATCH=true
 WITH_VIA_JSON=true
+WITH_EMACS=true
 VIA_APP_BRANCH=main
 MAKE_JOBS=$(nproc)
 
@@ -127,6 +129,7 @@ help_usage() {
         "  --without-via-json              don't generate via JSON, use JSON file in dist folder" \
         "  -d,--with-compile-db            generate compile_command.json" \
         "  -f,--with-flash                 post build flash firmware" \
+        "  --without-emacs                 don't generate emacs settings when --with-comile-db" \
         "" \
         "available targets:"
   for target in ${(k)KEYBOARDS}; do
@@ -633,6 +636,7 @@ fi
 (( $#without_update )) && WITH_UPDATE=false
 (( $#without_patch )) && WITH_PATCH=false
 (( $#without_via_json )) && WITH_VIA_JSON=false
+(( $#without_emacs )) && WITH_EMACS=false
 
 # auto setup
 # -----------------------------------
@@ -668,8 +672,10 @@ for target in $TARGETS; do
   if (( $#with_compile_db )); then
     compile_db $target
     dot_clangd
-    dot_dir_locals
-    dot_projectile
+    if $WITH_EMACS; then
+      dot_dir_locals
+      dot_projectile
+    fi
   fi
   build_firmware $target
 done
