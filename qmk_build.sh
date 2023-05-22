@@ -580,6 +580,9 @@ elif (( $#clean )); then
 elif (( $#clean_all )); then
   clean_all
   return
+elif (( $#scp_secure_config )); then
+  scp_secure_config
+  return
 fi
 
 # check environment
@@ -608,16 +611,8 @@ fi
 if (( $#pip_upgrade )); then
   pip_upgrade
   return
-elif (( $#clean )); then
-  clean
-elif (( $#clean_all )); then
-  clean_all
-  return
 elif (( $#format )); then
   format
-  return
-elif (( $#scp_secure_config )); then
-  scp_secure_config
   return
 elif (( $#via_json )); then
   build_via_json_files

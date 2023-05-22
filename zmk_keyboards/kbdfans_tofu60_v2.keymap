@@ -1,0 +1,122 @@
+// Copyright (c) 2023 The ZMK Contributors
+// SPDX-License-Identifier: MIT
+
+#include <behaviors.dtsi>
+#include <dt-bindings/zmk/keys.h>
+
+/ {
+  behaviors {
+    // single -> LALT
+    // double -> APPLE_FNn + MO(1)
+    td_lalt_apple_ff: td_lalt_apple_ff {
+      compatible = "zmk,behavior-tap-dance";
+      label = "td_lalt_apple_ff";
+      #binding-cells = <0>;
+      tapping-term-ms = <200>;
+      bindings = <&kp LALT>, <&apple_ff>;
+    };
+    // single -> RALT
+    // double -> MO(3)
+    td_ralt_mo3: td_ralt_mo3 {
+      compatible = "zmk,behavior-tap-dance";
+      label = "td_ralt_mo3";
+      #binding-cells = <0>;
+      tapping-term-ms = <200>;
+      bindings = <&kp RALT>, <&mo 3>;
+    };
+    mod_tap: mod_tap {
+      compatible = "zmk,behavior-hold-tap";
+      label = "mod_tap";
+      #binding-cells = <2>;
+      flavor = "hold-preferred";
+      tapping-term-ms = <200>;
+      bindings = <&kp>, <&kp>;
+    };
+  };
+  macros {
+    apple_ff: apple_ff {
+      label = "apple_ff";
+      compatible = "zmk,behavior-macro";
+      #binding-cells = <0>;
+      bindings
+      = <&macro_press &mo 2 &kp APPLE_FN>
+      , <&macro_pause_for_release>
+      , <&macro_release &mo 2 &kp APPLE_FN>
+      ;
+    };
+    fn_spotlight: fn_spotlight {
+      label = "fn_spotlight";
+      compatible = "zmk,behavior-macro";
+      #binding-cells = <0>;
+      bindings
+      = <&macro_release &kp APPLE_FN>
+      , <&macro_press &kp C_AC_SEARCH>
+      , <&macro_press &kp APPLE_FN>
+      , <&macro_pause_for_release>
+      , <&macro_release &kp C_AC_SEARCH>
+      ;
+    };
+    fn_dictation: fn_dictation {
+      label = "fn_dictation";
+      compatible = "zmk,behavior-macro";
+      #binding-cells = <0>;
+      bindings
+      = <&macro_release &kp APPLE_FN>
+      , <&macro_press &kp C_VOICE_COMMAND>
+      , <&macro_press &kp APPLE_FN>
+      , <&macro_pause_for_release>
+      , <&macro_release &kp C_VOICE_COMMAND>
+      ;
+    };
+  };
+  keymap {
+    compatible = "zmk,keymap";
+    default_layer {
+        // -------------------------------------------------------------------------------------------
+        // |  `  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  0  |  -  |  =  |  \  | ESC |
+        // -------------------------------------------------------------------------------------------
+        // | TAB    |  Q  |  W  |  E  |  R  |  T  |  Y  |  U  |  I  |  O  |  P  |  [  |  ]  | Bkspc  |
+        // -------------------------------------------------------------------------------------------
+        // | Ctrl     |  A  |  S  |  D  |  F  |  G  |  H  |  J  |  K  |  L  |  ;  |  '  |     ENTER  |
+        // -------------------------------------------------------------------------------------------
+        // |  SHIFT     |  Z  |  X  |  C  |  V  |  B  |  N  |  M  |  ,  |  .  |  /  |  SHIFT   | MO1 |
+        // ------------------------------------------------------------------------------------------
+        //          | Opt |  Cmd  |            SPACE                         |  Cmd   | Opt |
+        //          -------------------------------------------------------------------------
+      bindings = <
+        &kp GRAVE  &kp N1             &kp N2    &kp N3  &kp N4  &kp N5  &kp N6  &kp N7  &kp N8   &kp N9     &kp N0    &kp MINUS            &kp EQUAL  &kp BSLH  &kp ESC
+        &kp TAB    &kp Q              &kp W     &kp E   &kp R   &kp T   &kp Y   &kp U   &kp I    &kp O      &kp P     &kp LBKT             &kp RBKT   &kp BSPC
+        &kp LCTRL  &kp A              &kp S     &kp D   &kp F   &kp G   &kp H   &kp J   &kp K    &kp L      &kp SEMI  &kp SQT                         &kp RET
+        &kp LSHFT                     &kp Z     &kp X   &kp C   &kp V   &kp B   &kp N   &kp M    &kp COMMA  &kp DOT   &kp FSLH             &kp RSHIFT           &mo 1
+                   &td_lalt_apple_ff  &mod_tap LCMD LANG2               &kp SPACE                                     &mod_tap RCMD LANG1  &td_ralt_mo3
+      >;
+    };
+    hhkb_like_fn_layer {
+      bindings = <
+        &kp ESC   &kp F1     &kp F2     &kp F3   &kp F4  &kp F5   &kp F6           &kp F7         &kp F8        &kp F9     &kp F10          &kp F11   &kp F12  &kp INS  &kp C_PP
+        &kp CAPS  &kp F16    &kp F17    &kp F18  &trans  &trans   &trans           &trans         &kp PSCRN     &kp SLCK   &kp PAUSE_BREAK  &kp UP    &trans   &kp DEL
+        &trans    &trans     &trans     &trans   &trans  &trans   &kp KP_MULTIPLY  &kp KP_DIVIDE  &kp HOME      &kp PG_UP  &kp LEFT         &kp RIGHT          &kp KP_ENTER
+        &trans               &trans     &trans   &trans  &trans   &trans           &kp KP_PLUS    &kp KP_MINUS  &kp END    &kp PG_DN        &kp DOWN  &trans            &trans
+                  &trans     &trans                                                &trans                                                   &trans    &trans
+      >;
+    };
+    apple_fn_layer {
+      bindings = <
+        &trans  &kp F1  &kp F2  &kp F3  &fn_spotlight  &fn_dictation  &kp F6  &kp F7  &kp F8  &kp F9  &kp F10  &kp F11  &kp F12  &trans  &trans
+        &trans  &trans  &trans  &trans  &trans         &trans         &trans  &trans  &trans  &trans  &trans   &trans   &trans   &trans
+        &trans  &trans  &trans  &trans  &trans         &trans         &trans  &trans  &trans  &trans  &trans   &trans            &trans
+        &trans          &trans  &trans  &trans         &trans         &trans  &trans  &trans  &trans  &trans   &trans   &trans           &trans
+                &trans  &trans                                        &trans                                   &trans   &trans
+      >;
+    };
+    misc_settings {
+      bindings = <
+        &bootloader  &kp F13 &kp F14  &kp F15  &kp F16  &kp F17  &kp F18  &kp F19  &kp F20  &kp F21  &kp F22  &kp F23  &kp F24  &sys_reset  &kp C_AL_LOCK
+        &trans       &trans  &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans
+        &trans       &trans  &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans            &trans
+        &trans               &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans               &trans
+                     &trans  &trans                              &trans                                       &trans   &trans
+        >;
+    };
+  };
+};
