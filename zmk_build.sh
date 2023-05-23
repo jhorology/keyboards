@@ -60,7 +60,7 @@ local -A KEYBOARDS=(
   bt60       bt60:bt60_hhkb_ec11:CKP
   tf60       kbdfans_tofu60_v2:tofu60_hhkb:"RPI-RP2"
 )
-TARGETS=(bt60)
+TARGETS=(bt60 tf60)
 
 
 cd $PROJECT
