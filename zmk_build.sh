@@ -88,9 +88,10 @@ zparseopts -D -E -F -- \
            {c,-with-clean}=with_clean \
            {g,-with-compile-db}=with_compile_db \
            {w,-without-update}=without_update \
-           {p,-without-patch}=without_patch \
+           {n,-without-patch}=without_patch \
            {f,-with-flash}=with_flash \
            {l,-with-logging}=with_logging \
+           {p,-with-pp}=with_pp \
            -without-emacs=without_emacs \
   || return
 
@@ -118,9 +119,10 @@ help_usage() {
         "    -d,--with-docker                 build with docker" \
         "    -g,--with-compile-db             generate compile_command.json" \
         "    -w,--without-update              don't sync remote repository" \
-        "    -p,--without-patch               don't apply patches" \
+        "    -n,--without-patch               don't apply patches" \
         "    -f,--with-flash                  post build copy firmware to DFU drive" \
         "    -l,--with-logging                Enable USB logging" \
+        "    -p,--with-pp                     Save preprocessor output" \
         "    --without-emacs                  don't generate emacs settings when --with-comile-db" \
        "" \
         "available targets:"
@@ -393,6 +395,7 @@ build() {
   local opts=()
   (( $#with_logging )) && opts=($opts "-DCONFIG_ZMK_USB_LOGGING=y")
   (( $#with_compile_db )) && opts=($opts "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON")
+  (( $#with_pp )) && opts=($opts "-DEXTRA_CFLAGS=-save-temps=obj")
   west build --pristine --board $board --build-dir build/$board zmk/app -- \
        -DZMK_CONFIG=$PROJECT/zmk_keyboards $opts[*]
   if (( $#with_compile_db )); then
@@ -410,6 +413,7 @@ build_with_docker() {
   local board=$1
   local opts=()
   (( $#with_logging )) && opts=($opts "-DCONFIG_ZMK_USB_LOGGING=y")
+  (( $#with_pp )) && opts=($opts "-DEXTRA_CFLAGS=-save-temps=obj")
   docker_exec -i <<-EOF
     west build --pristine --board $board --build-dir build/$board zmk/app -- -DZMK_CONFIG="$CONTAINER_WORKSPACE_DIR/zmk_keyboards" $opts[*]
 EOF
