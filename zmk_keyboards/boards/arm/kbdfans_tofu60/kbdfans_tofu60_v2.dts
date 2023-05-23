@@ -120,7 +120,16 @@
     , <&gpio0 23 GPIO_ACTIVE_HIGH>
     ;
   };
+
+  leds {
+	  compatible = "gpio-leds";
+	  caps_lock_led: caps_lock_led {
+		  gpios = <&gpio0 28 GPIO_ACTIVE_LOW>;
+		  label = "CAPS_LOCK_LED";
+	  };
+  };
 };
+
 
 &flash0 {
   reg = <0x10000000 DT_SIZE_M(16)>;

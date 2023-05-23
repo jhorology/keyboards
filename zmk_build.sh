@@ -520,15 +520,15 @@ flash_firmware() {
 macos_log_console() {
   local firmware=$1
 
-  echo -n "waiting for debug output device to be connected..."
+  echo -n "waiting for debug output device to be connected.."
   for ((i=0; i < 5; i+=1)); do
-    for tty_dev in /dev/tty.usbmodem*; do
+    echo -n "."
+    sleep 1
+    for tty_dev in /dev/tty.usbmodem*(N); do
       if [[ $tty_dev -nt $firmware ]]; then
         sudo tio $tty_dev
         return
       fi
-      echo -n "."
-      sleep 1
     done
   done
 }
