@@ -379,7 +379,7 @@ update_with_docker() {
             cd ..
         fi
         west update -n
-        if $WITH_PPATCH; then
+        if $WITH_PATCH; then
             cd zmk
             git apply -3 --verbose ../patches/zmk_*.patch
             cd ..
