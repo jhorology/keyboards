@@ -53,6 +53,8 @@ WITH_PATCH=true
 WITH_EMACS=true
 CONTAINER_WORKSPACE_DIR=/workspace
 DOCSETS_DIR=$HOME/.docsets
+WIN_USBIPD="/mnt/c/Program Files/usbipd-win/usbipd.exe"
+WIN_GSUDO="/mnt/c/Program Files/gsudo/Current/gsudo.exe"
 # DOCSETS_DIR="$HOME/Library/Application Support/Dash/DockSets"
 
 # key: target
@@ -277,6 +279,7 @@ fedora_install_packages() {
   if [[ ! -z $winget ]]; then
     winget=${winget%$'\r'}
     winget=$(wslpath -u $winget)
+    $winget install dorssel.usbipd-win || true
     $winget install gerardog.gsudo || true
   fi
 }
@@ -477,7 +480,6 @@ dist_firmware() {
   echo $dst
 }
 
-
 macos_uf2_flash() {
   local firmware=$1
   local volume_name=$2
@@ -503,7 +505,7 @@ fedora_uf2_flash() {
     echo ""
     echo "copying firmware [$firmware] to drive [$dfu_drive]..."
     sleep 1
-    /mnt/c/Program\ Files/gsudo/Current/gsudo.exe  c:\\Windows\\System32\\xcopy.exe "$(wslpath -w $firmware)" $dfu_drive\\
+    $WIN_GSUDO c:\\Windows\\System32\\xcopy.exe "$(wslpath -w $firmware)" $dfu_drive\\
     true
   else
     false
@@ -529,10 +531,28 @@ flash_uf2_firmware() {
 
 flash_bin_firmware() {
   local board=$2
-  local vid=$5
-  local pid=$6
-  #TODO WSL usbpid-win
-  west flash --build-dir build/$board
+  local hardware_id="$5:$6"
+  sudo echo -n
+  if [[ $os == "fedora" ]]; then
+    echo -n "waiting for target DFU device to be connected.."
+    for ((i=0; i < 20; i+=1)); do
+      dfu_device=$($WIN_USBIPD wsl list 2> /dev/null | grep "$hardware_id" || echo -n "")
+      if [[ ! -z $dfu_device ]]; then
+        if [[ $dfu_device =~ "Not attached" ]]; then
+          win_usbipd_path=$(wslpath -w "$WIN_USBIPD")
+          $WIN_GSUDO $win_usbipd_path wsl attach --hardware-id $hardware_id
+        elif [[ $dfu_device =~ "Attached -" ]]; then
+          sudo chmod -R 777 /dev/bus/usb
+          west flash --build-dir build/$board || true
+          return
+        fi
+      fi
+      sleep 1
+      echo -n "."
+    done
+  else
+    west flash --build-dir build/$board || true
+  fi
 }
 
 macos_log_console() {
