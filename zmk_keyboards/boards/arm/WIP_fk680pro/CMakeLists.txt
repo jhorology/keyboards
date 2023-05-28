@@ -1,0 +1,1 @@
+zephyr_library_sources_ifdef(CONFIG_BOARD_FK680PRO_V2 uf2_reboot.c)

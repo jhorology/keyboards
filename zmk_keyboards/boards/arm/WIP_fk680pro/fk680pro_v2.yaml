@@ -1,0 +1,14 @@
+identifier: fk680pro_v2
+name: FK680 Pro V2
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+  - xtools
+ram: 20
+supported:
+  - i2c
+  - pwm
+  - spi
+  - adc

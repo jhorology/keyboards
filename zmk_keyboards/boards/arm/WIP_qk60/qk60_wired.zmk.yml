@@ -1,0 +1,9 @@
+file_format: "1"
+id: qk60_wired
+name: QK60 Wired
+type: board
+arch: arm
+features:
+  - keys
+outputs:
+  - usb

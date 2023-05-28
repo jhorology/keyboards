@@ -1,0 +1,6 @@
+# Copyright (c) 2023 The ZMK Contributors
+# SPDX-License-Identifier: Apache-2.0
+
+config BOARD_FK680PRO_V2
+    bool "FK680 Pro V2"
+ 	  depends on SOC_STM32F103XB

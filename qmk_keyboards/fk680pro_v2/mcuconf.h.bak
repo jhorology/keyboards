@@ -16,6 +16,7 @@
 
 #pragma once
 
-#define CORTEX_ENABLE_WFI_IDLE TRUE
+#include_next <mcuconf.h>
 
-#include_next <chconf.h>
+#undef STM32_PWM_USE_TIM2
+#define STM32_PWM_USE_TIM2 TRUE

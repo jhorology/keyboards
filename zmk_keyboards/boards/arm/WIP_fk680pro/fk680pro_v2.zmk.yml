@@ -1,0 +1,9 @@
+file_format: "1"
+id: fk680pro_v2
+name: FK680 Pro V2
+type: board
+arch: arm
+features:
+  - keys
+outputs:
+  - usb

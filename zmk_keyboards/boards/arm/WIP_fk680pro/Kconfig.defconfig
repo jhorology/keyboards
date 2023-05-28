@@ -1,0 +1,26 @@
+# Copyright (c) 2023 The ZMK Contributors
+# SPDX-License-Identifier: MIT
+
+if BOARD_FK680PRO_V2
+
+config ZMK_KEYBOARD_NAME
+    default "FK680 Pro V2"
+
+config ZMK_USB
+    default y
+
+if BUILD_OUTPUT_UF2
+
+config BUILD_OUTPUT_UF2_USE_FLASH_BASE
+    default y
+
+config BUILD_OUTPUT_UF2_USE_FLASH_OFFSET
+    default y
+
+# See https://github.com/microsoft/uf2/blob/master/utils/uf2families.json
+config BUILD_OUTPUT_UF2_FAMILY_ID
+    default "0x5ee21072"
+
+endif
+
+endif # BOARD_FK680PRO_V2

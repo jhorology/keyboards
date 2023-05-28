@@ -1,0 +1,1 @@
+target_sources_ifdef(CONFIG_BOARD_FK680PRO_VS app PRIVATE src/battery_status.c)

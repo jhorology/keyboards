@@ -1,0 +1,14 @@
+identifier: qk60_wired
+name: QK60 Wired
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+  - xtools
+ram: 20
+supported:
+  - i2c
+  - pwm
+  - spi
+  - adc

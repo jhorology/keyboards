@@ -1,0 +1,31 @@
+# Copyright (c) 2023 The ZMK Contributors
+# SPDX-License-Identifier: MIT
+
+CONFIG_SOC_SERIES_STM32F1X=y
+CONFIG_SOC_STM32F103XB=y
+CONFIG_BOARD_FK680PRO_V2=y
+
+# enable GPIO
+CONFIG_GPIO=y
+
+# enable clock control
+CONFIG_CLOCK_CONTROL=y
+
+# enable pin controller
+CONFIG_PINCTRL=y
+
+# Code partition needed to target the correct flash range
+CONFIG_USE_DT_CODE_PARTITION=y
+
+# Output UF2
+CONFIG_BUILD_OUTPUT_UF2=y
+
+# reduce SRAM usage
+# default: 8192
+CONFIG_HEAP_MEM_POOL_SIZE=7168
+
+CONFIG_USB_SELF_POWERED=n
+
+# Enable USB CDC ACM logging for debugging
+# Can't usable beacuase memory usage exceed.
+# CONFIG_ZMK_USB_LOGGING=y

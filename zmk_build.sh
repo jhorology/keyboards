@@ -55,12 +55,19 @@ CONTAINER_WORKSPACE_DIR=/workspace
 DOCSETS_DIR=$HOME/.docsets
 # DOCSETS_DIR="$HOME/Library/Application Support/Dash/DockSets"
 
-# key: target name [1]=board:[2]=firmwre_name:[3]=DFU volume name
+# key: target
+#   [1]=board
+#   [2]=firmwre_name
+#   [3]=firmware file type
+#   [4]=DFU volume name or device vid
+#   [5]=DFU device pid
 local -A KEYBOARDS=(
-  bt60       bt60:bt60_hhkb_ec11:CKP
-  tf60       kbdfans_tofu60_v2:tofu60_hhkb:"RPI-RP2"
+  bt60       bt60:bt60_hhkb_ec11:uf2:CKP:none
+  tf60       kbdfans_tofu60_v2:tofu60_hhkb:uf2:RPI-RP2:none
+  fk68       fk680pro_v2:fk680pro_v2:uf2:"ZhaQian DFU":none
+  qk60       qk60_wired:qk60_wired_hhkb:bin:1688:2220
 )
-TARGETS=(bt60 tf60)
+TARGETS=(bt60 tf60 fk68 qk60)
 
 
 cd $PROJECT
@@ -449,21 +456,23 @@ EOS
 # copy & rename firmware
 # $1 board
 # $2 firmware name
+# $3 firmware typee
 # return echo path or firmware
 # -----------------------------------
 dist_firmware() {
   local board=$1
   local firmware_name=$2
+  local firmware_ext=$3
 
   cd $PROJECT
   cd zmk
   local version=$(date +"%Y%m%d")_zmk_$(git rev-parse --short HEAD)
   cd ..
   mkdir -p dist
-  src=build/$board/zephyr/zmk.uf2
-  variant=""
+  local src=build/$board/zephyr/zmk.$firmware_ext
+  local variant=""
   (( $#with_logging )) && variant="_logging"
-  dst=dist/${firmware_name}_${version}$variant.uf2
+  local dst=dist/${firmware_name}_${version}$variant.$firmware_ext
   cp $src $dst
   echo $dst
 }
@@ -487,7 +496,7 @@ macos_uf2_flash() {
 
 fedora_uf2_flash() {
   local firmware=$1
-  local volume_name=$2
+  local volume_name=$5
 
   dfu_drive=$(/mnt/c/Windows/System32/wbem/WMIC.exe logicaldisk get deviceid, volumename | grep $volume_name | awk '{print $1}')
   if [[ ! -z $dfu_drive ]]; then
@@ -501,9 +510,10 @@ fedora_uf2_flash() {
   fi
 }
 
-flash_firmware() {
+flash_uf2_firmware() {
   local firmware=$1
-  local volume_name=$2
+  local board=$2
+  local volume_name=$5
 
   echo -n "waiting for DFU volume to be mounted..."
   for ((i=0; i < 20; i+=1)); do
@@ -515,6 +525,14 @@ flash_firmware() {
       sleep 1
     fi
   done
+}
+
+flash_bin_firmware() {
+  local board=$2
+  local vid=$5
+  local pid=$6
+  #TODO WSL usbpid-win
+  west flash --build-dir build/$board
 }
 
 macos_log_console() {
@@ -661,16 +679,17 @@ for target in $TARGETS; do
   kbd=(${(@s/:/)KEYBOARDS[$target]})
   board=$kbd[1]
   firmware_name=$kbd[2]
-  dfu_volume_name=$kbd[3]
+  firmware_ext=$kbd[3]
+
   if (( $#with_docker )); then
     build_with_docker $board
   else
     build $board
   fi
-  firmware_file=$(dist_firmware $board $firmware_name)
+  firmware_file=$(dist_firmware $board $firmware_name $firmware_ext)
   if (( $#with_flash )); then
     (( $#with_logging )) && sudo echo -n
-    flash_firmware $firmware_file $dfu_volume_name
+    flash_${firmware_ext}_firmware $firmware_file $kbd[*]
     (( $#with_logging )) && ${os}_log_console $firmware_file
   fi
 done

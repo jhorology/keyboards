@@ -1,0 +1,18 @@
+# Copyright (c) 2023 The ZMK Contributors
+# SPDX-License-Identifier: MIT
+
+if BOARD_QK60_WIRED
+
+config ZMK_KEYBOARD_NAME
+    default "QK60 Wired"
+
+config ZMK_USB
+    default y
+
+config CLOCK_CONTROL
+    default y
+
+config PINCTRL
+    default y
+
+endif # BOARD_QK60_WIRED
