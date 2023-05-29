@@ -1,6 +1,6 @@
 #pragma once
 
-#define RGB_DI_PIN F0
+#define WS2812_DI_PIN F0
 #define RGBLED_NUM 12
 #define RGBLIGHT_SLEEP
 

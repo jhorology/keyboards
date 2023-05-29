@@ -17,7 +17,7 @@
 #pragma once
 
 // TIM2_CH1 is remmaped PA15 by board_init()
-#define RGB_DI_PIN A15
+#define WS2812_DI_PIN A15
 #define RGBLED_NUM 110  //  matrix 70 + underglow 40
 #define RGB_MATRIX_LED_COUNT RGBLED_NUM
 #define WS2812_PWM_DRIVER PWMD2

@@ -64,8 +64,6 @@ const uint16_t PROGMEM non_mac_fn_keys_default[] = {
 #endif  // MON_MAC_FN_KEYS_PREFER_LINUX
 };
 
-combo_t key_combos[COMBO_COUNT] = {};
-
 static bool proces_extra_keys(uint16_t keycode, keyrecord_t *record);
 
 //  qmk custom hook functions
