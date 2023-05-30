@@ -1,0 +1,12 @@
+# Copyright (c) 2023 The ZMK Contributors
+# SPDX-License-Identifier: MIT
+
+if BOARD_KEYCHRON_Q60
+
+config ZMK_KEYBOARD_NAME
+    default "Keychron Q60"
+
+config ZMK_USB
+    default y
+
+endif # BOARD_KEYCHRON_Q60

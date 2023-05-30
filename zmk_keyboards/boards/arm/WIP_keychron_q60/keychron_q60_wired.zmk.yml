@@ -1,0 +1,10 @@
+file_format: "1"
+id: keychron_q60
+name: Keychron Q60
+type: board
+arch: arm
+features:
+  - keys
+outputs:
+  - usb
+url: https://www.keychron.com/products/keychron-q60-qmk-custom-mechanical-keyboard

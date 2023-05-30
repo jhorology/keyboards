@@ -1,0 +1,14 @@
+identifier: keychron_q60
+name: Keychron Q60
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+  - xtools
+ram: 64
+supported:
+  - i2c
+  - pwm
+  - spi
+  - adc

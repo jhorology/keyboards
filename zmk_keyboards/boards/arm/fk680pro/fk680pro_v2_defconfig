@@ -17,6 +17,9 @@ CONFIG_PINCTRL=y
 # Code partition needed to target the correct flash range
 CONFIG_USE_DT_CODE_PARTITION=y
 
+# use polling instead of interrupt
+CONFIG_ZMK_KSCAN_MATRIX_POLLING=y
+
 # Output UF2
 CONFIG_BUILD_OUTPUT_UF2=y
 
