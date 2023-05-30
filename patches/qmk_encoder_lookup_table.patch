@@ -1,5 +1,5 @@
 diff --git a/quantum/encoder.c b/quantum/encoder.c
-index 3aee340249..07cad3c7e5 100644
+index 1046fe6c..7d515029 100644
 --- a/quantum/encoder.c
 +++ b/quantum/encoder.c
 @@ -52,7 +52,10 @@ static uint8_t encoder_resolutions[NUM_ENCODERS] = ENCODER_RESOLUTIONS;

@@ -1,5 +1,5 @@
 diff --git a/quantum/process_keycode/process_magic.c b/quantum/process_keycode/process_magic.c
-index 5fafe8550f..9754dec1bb 100644
+index 5fafe855..9754dec1 100644
 --- a/quantum/process_keycode/process_magic.c
 +++ b/quantum/process_keycode/process_magic.c
 @@ -41,97 +41,99 @@ bool process_magic(uint16_t keycode, keyrecord_t *record) {
