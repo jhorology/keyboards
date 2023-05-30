@@ -3,4 +3,4 @@
 
 config BOARD_FK680PRO_V2
     bool "FK680 Pro V2"
- 	  depends on SOC_STM32F103XB
+    depends on SOC_STM32F103XB
