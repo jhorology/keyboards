@@ -5,14 +5,20 @@ CONFIG_SOC_SERIES_STM32L4X=y
 CONFIG_SOC_STM32L432XX=y
 CONFIG_BOARD_KEYCHRON_Q60=y
 
-# Code partition needed to target the correct flash range
-CONFIG_USE_DT_CODE_PARTITION=y
+# Enable MPU
+CONFIG_ARM_MPU=y
+
+# Enable HW stack protection
+CONFIG_HW_STACK_PROTECTION=y
+
+# enable GPIO
+CONFIG_GPIO=y
 
 # enable clock control
 CONFIG_CLOCK_CONTROL=y
 
 # enable pin controller
-CONFIG_PINCTRL=y
+# CONFIG_PINCTRL=y
 
 # Output .bin
 CONFIG_BUILD_OUTPUT_BIN=y

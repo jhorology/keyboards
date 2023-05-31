@@ -9,10 +9,4 @@ config ZMK_KEYBOARD_NAME
 config ZMK_USB
     default y
 
-config CLOCK_CONTROL
-    default y
-
-config PINCTRL
-    default y
-
 endif # BOARD_QK60_WIRED

@@ -68,6 +68,7 @@ local -A KEYBOARDS=(
   tf60       kbdfans_tofu60_v2:tofu60_hhkb:uf2:RPI-RP2:none
   fk68       fk680pro_v2:fk680pro_v2:uf2:"ZhaQian DFU":none
   qk60       qk60_wired:qk60_wired_hhkb:bin:1688:2220
+  q60        keychron_q60:keychron_q60:bin:0483:df11
 )
 TARGETS=(bt60 tf60 fk68 qk60)
 
@@ -532,8 +533,8 @@ flash_uf2_firmware() {
 flash_bin_firmware() {
   local board=$2
   local hardware_id="$5:$6"
-  sudo echo -n
   if [[ $os == "fedora" ]]; then
+    sudo echo -n
     echo -n "waiting for target DFU device to be connected.."
     for ((i=0; i < 20; i+=1)); do
       dfu_device=$($WIN_USBIPD wsl list 2> /dev/null | grep "$hardware_id" || echo -n "")

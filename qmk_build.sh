@@ -20,7 +20,7 @@ zparseopts -D -E -F -- \
            {w,-without-update}=without_update \
            {p,-without-patch}=without_patch \
            {-without-via-json}=without_via_json \
-           {d,-with-compile-db}=with_compile_db \
+           {g,-with-compile-db}=with_compile_db \
            {f,-with-flash}=with_flash \
            -without-emacs=without_emacs \
   || return
@@ -119,7 +119,7 @@ help_usage() {
         "  -w,--without-update             don't sync remote repository" \
         "  -p,--without-patch              don't apply patches" \
         "  --without-via-json              don't generate via JSON, use JSON file in dist folder" \
-        "  -d,--with-compile-db            generate compile_command.json" \
+        "  -g,--with-compile-db            generate compile_command.json" \
         "  -f,--with-flash                 post build flash firmware" \
         "  --without-emacs                 don't generate emacs settings when --with-comile-db" \
         "" \

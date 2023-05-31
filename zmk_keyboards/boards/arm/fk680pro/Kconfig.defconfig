@@ -17,10 +17,11 @@ config BUILD_OUTPUT_UF2_USE_FLASH_BASE
 config BUILD_OUTPUT_UF2_USE_FLASH_OFFSET
     default y
 
+
 # See https://github.com/microsoft/uf2/blob/master/utils/uf2families.json
 config BUILD_OUTPUT_UF2_FAMILY_ID
     default "0x5ee21072"
 
-endif
+endif # BUILD_OUTPUT_UF2
 
 endif # BOARD_FK680PRO_V2
