@@ -1,4 +1,5 @@
 if(CONFIG_BOARD_KBDFANS_TOFU60_V2)
+  # zephyr_library_sources(pico_bootsel_via_double_reset.c)
   zephyr_library_sources(pico_bootsel_via_double_reset.c)
   zephyr_library_sources(${ZEPHYR_HAL_RPI_PICO_MODULE_DIR}/src/rp2_common/hardware_timer/timer.c)
   zephyr_include_directories(${ZEPHYR_HAL_RPI_PICO_MODULE_DIR}/src/rp2_common/hardware_claim/include)

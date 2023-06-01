@@ -52,7 +52,8 @@ static const uint32_t magic_token[] = {
   0xd359be7a,
 };
 
-static uint32_t __uninitialized_ram(magic_location)[count_of(magic_token)];
+/* static uint32_t __uninitialized_ram(magic_location)[count_of(magic_token)]; */
+static uint32_t *magic_location = (uint32_t *)0x20040000;
 
 /* Check for double reset and enter BOOTSEL mode if detected
  *
@@ -67,7 +68,7 @@ static uint32_t __uninitialized_ram(magic_location)[count_of(magic_token)];
  *
  * Resetting the device twice quickly will interrupt step 3, leaving the token
  * in place so that the second boot will go to the bootloader.
- */
+7 */
 
 /* static void __attribute__((constructor)) boot_double_tap_check(void) { */
 static int boot_double_tap_check(const struct device *port) {
@@ -95,6 +96,6 @@ static int boot_double_tap_check(const struct device *port) {
   return 0;
 }
 
-SYS_INIT(boot_double_tap_check, APPLICATION, 0);
+SYS_INIT(boot_double_tap_check, PRE_KERNEL_2, 0);
 
 #endif
