@@ -18,12 +18,17 @@ CONFIG_GPIO=y
 CONFIG_CLOCK_CONTROL=y
 
 # enable pin controller
-# CONFIG_PINCTRL=y
+CONFIG_PINCTRL=y
+
+# Enable reset by default
+CONFIG_RESET=y
 
 # Output .bin
 CONFIG_BUILD_OUTPUT_BIN=y
 
 CONFIG_USB_SELF_POWERED=n
+
+CONFIG_ZMK_KSCAN_MATRIX_POLLING=y
 
 # Enable USB CDC ACM logging for debugging
 # CONFIG_ZMK_USB_LOGGING=y

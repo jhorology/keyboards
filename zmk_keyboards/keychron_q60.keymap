@@ -4,29 +4,38 @@
 #include <behaviors.dtsi>
 #include <dt-bindings/zmk/keys.h>
 
+#define _MAC_BASE 0
+#define _WIN_BASE 1
+#define _HHKB_FN 2
+#define _APPLE_FN 3
+#define _SETTING 4
+#define _DIP_SW &mo _WIN_BASE
+#define _LCMD &mod_tap LCMD LANG2
+#define _RCMD &mod_tap LCMD LANG1
+
 / {
   behaviors {
     // single -> LALT
     // double -> APPLE_FNn + MO(1)
-    td_lalt_apple_ff: td_lalt_apple_ff {
+    lalt_apple_fn: lalt_apple_fn {
       compatible = "zmk,behavior-tap-dance";
-      label = "td_lalt_apple_ff";
+      label = "Tap-Dance LALT(Single) fn/globe(double)";
       #binding-cells = <0>;
       tapping-term-ms = <200>;
       bindings = <&kp LALT>, <&apple_ff>;
     };
     // single -> RALT
     // double -> MO(3)
-    td_ralt_mo3: td_ralt_mo3 {
+    ralt_setting: ralt_setting {
       compatible = "zmk,behavior-tap-dance";
-      label = "td_ralt_mo3";
+      label = "Tap-Dance RALT(Single) MO(_SETTING)(Double)";
       #binding-cells = <0>;
       tapping-term-ms = <200>;
-      bindings = <&kp RALT>, <&mo 3>;
+      bindings = <&kp RALT>, <&mo _SETTING>;
     };
     mod_tap: mod_tap {
       compatible = "zmk,behavior-hold-tap";
-      label = "mod_tap";
+      label = "Mod-Tap Behavior";
       #binding-cells = <2>;
       flavor = "hold-preferred";
       tapping-term-ms = <200>;
@@ -35,17 +44,17 @@
   };
   macros {
     apple_ff: apple_ff {
-      label = "apple_ff";
+      label = "Apple fn/Globe + MO(_APPLE_FN)";
       compatible = "zmk,behavior-macro";
       #binding-cells = <0>;
       bindings
-      = <&macro_press &mo 2 &kp APPLE_FN>
+      = <&macro_press &mo _APPLE_FN &kp APPLE_FN>
       , <&macro_pause_for_release>
-      , <&macro_release &mo 2 &kp APPLE_FN>
+      , <&macro_release &mo _APPLE_FN &kp APPLE_FN>
       ;
     };
     fn_spotlight: fn_spotlight {
-      label = "fn_spotlight";
+      label = "Spotlight for Apple Fn Layer";
       compatible = "zmk,behavior-macro";
       #binding-cells = <0>;
       bindings
@@ -57,7 +66,7 @@
       ;
     };
     fn_dictation: fn_dictation {
-      label = "fn_dictation";
+      label = "Dictation for Apple Fn Layer";
       compatible = "zmk,behavior-macro";
       #binding-cells = <0>;
       bindings
@@ -71,7 +80,7 @@
   };
   keymap {
     compatible = "zmk,keymap";
-    default_layer {
+    mac_base_layer {
         // -------------------------------------------------------------------------------------------
         // |  `  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  0  |  -  |  =  |  \  | ESC |
         // -------------------------------------------------------------------------------------------
@@ -81,23 +90,32 @@
         // -------------------------------------------------------------------------------------------
         // |  SHIFT     |  Z  |  X  |  C  |  V  |  B  |  N  |  M  |  ,  |  .  |  /  |  SHIFT   | MO1 |
         // ------------------------------------------------------------------------------------------
-        //          | Opt |  Cmd  |            SPACE                         |  Cmd   | Opt |
+        //          | Opt |  Cmd  |        SPACE                             |  Cmd   | Opt |
         //          -------------------------------------------------------------------------
       bindings = <
-        &kp GRAVE  &kp N1             &kp N2    &kp N3  &kp N4  &kp N5  &kp N6  &kp N7  &kp N8   &kp N9     &kp N0    &kp MINUS            &kp EQUAL  &kp BSLH  &kp ESC
-        &kp TAB    &kp Q              &kp W     &kp E   &kp R   &kp T   &kp Y   &kp U   &kp I    &kp O      &kp P     &kp LBKT             &kp RBKT   &kp BSPC
-        &kp LCTRL  &kp A              &kp S     &kp D   &kp F   &kp G   &kp H   &kp J   &kp K    &kp L      &kp SEMI  &kp SQT                         &kp RET
-        &kp LSHFT                     &kp Z     &kp X   &kp C   &kp V   &kp B   &kp N   &kp M    &kp COMMA  &kp DOT   &kp FSLH             &kp RSHIFT           &mo 1
-                   &td_lalt_apple_ff  &mod_tap LCMD LANG2               &kp SPACE                                     &mod_tap RCMD LANG1  &td_ralt_mo3
+        &kp GRAVE  &kp N1  &kp N2    &kp N3  &kp N4  &kp N5  &kp N6  &kp N7  &kp N8   &kp N9     &kp N0    &kp MINUS  &kp EQUAL  &kp BSLH  &kp ESC
+        &kp TAB    &kp Q   &kp W     &kp E   &kp R   &kp T   &kp Y   &kp U   &kp I    &kp O      &kp P     &kp LBKT   &kp RBKT   &kp BSPC
+        &kp LCTRL  &kp A   &kp S     &kp D   &kp F   &kp G   &kp H   &kp J   &kp K    &kp L      &kp SEMI  &kp SQT               &kp RET
+        &kp LSHFT          &kp Z     &kp X   &kp C   &kp V   &kp B   &kp N   &kp M    &kp COMMA  &kp DOT   &kp FSLH   &kp RSHIFT &mo _HHKB_FN
+        &lalt_apple_fn  _LCMD                _DIP_SW         &kp SPACE                                     _RCMD     &ralt_setting
       >;
     };
-    hhkb_like_fn_layer {
+    win_base_layer {
       bindings = <
-        &kp ESC   &kp F1     &kp F2     &kp F3   &kp F4  &kp F5   &kp F6           &kp F7         &kp F8        &kp F9     &kp F10          &kp F11   &kp F12  &kp INS  &kp DEL
-        &kp CAPS  &kp F16    &kp F17    &kp F18  &trans  &trans   &trans           &trans         &kp PSCRN     &kp SLCK   &kp PAUSE_BREAK  &kp UP    &trans   &kp KP_CLEAR
-        &trans    &trans     &trans     &trans   &trans  &trans   &kp KP_MULTIPLY  &kp KP_DIVIDE  &kp HOME      &kp PG_UP  &kp LEFT         &kp RIGHT          &kp KP_ENTER
-        &trans               &trans     &trans   &trans  &trans   &trans           &kp KP_PLUS    &kp KP_MINUS  &kp END    &kp PG_DN        &kp DOWN  &trans            &trans
-                  &trans     &trans                                                &trans                                                   &trans    &trans
+        &kp GRAVE  &kp N1  &kp N2  &kp N3  &kp N4  &kp N5  &kp N6  &kp N7  &kp N8   &kp N9     &kp N0    &kp MINUS  &kp EQUAL  &kp BSLH  &kp ESC
+        &kp TAB    &kp Q   &kp W   &kp E   &kp R   &kp T   &kp Y   &kp U   &kp I    &kp O      &kp P     &kp LBKT   &kp RBKT   &kp BSPC
+        &kp LCTRL  &kp A   &kp S   &kp D   &kp F   &kp G   &kp H   &kp J   &kp K    &kp L      &kp SEMI  &kp SQT               &kp RET
+        &kp LSHFT          &kp Z   &kp X   &kp C   &kp V   &kp B   &kp N   &kp M    &kp COMMA  &kp DOT   &kp FSLH   &kp RSHIFT &mo _HHKB_FN
+        &lalt_apple_fn  _LCMD              &trans          &kp SPACE                                     _RCMD     &ralt_setting
+      >;
+    };
+    hhkb_fn_layer {
+      bindings = <
+        &kp ESC   &kp F1   &kp F2   &kp F3   &kp F4  &kp F5   &kp F6           &kp F7         &kp F8        &kp F9     &kp F10          &kp F11   &kp F12  &kp INS  &kp DEL
+        &kp CAPS  &kp F16  &kp F17  &kp F18  &trans  &trans   &trans           &trans         &kp PSCRN     &kp SLCK   &kp PAUSE_BREAK  &kp UP    &trans   &kp KP_CLEAR
+        &trans    &trans   &trans   &trans   &trans  &trans   &kp KP_MULTIPLY  &kp KP_DIVIDE  &kp HOME      &kp PG_UP  &kp LEFT         &kp RIGHT          &kp KP_ENTER
+        &trans             &trans   &trans   &trans  &trans   &trans           &kp KP_PLUS    &kp KP_MINUS  &kp END    &kp PG_DN        &kp DOWN  &trans   &trans
+        &trans    &trans                     &trans           &trans                                                   &trans           &trans
       >;
     };
     apple_fn_layer {
@@ -105,17 +123,17 @@
         &trans  &kp F1  &kp F2  &kp F3  &fn_spotlight  &fn_dictation  &kp F6  &kp F7  &kp F8  &kp F9  &kp F10  &kp F11  &kp F12  &trans  &kp C_AL_LOCK
         &trans  &trans  &trans  &trans  &trans         &trans         &trans  &trans  &trans  &trans  &trans   &trans   &trans   &trans
         &trans  &trans  &trans  &trans  &trans         &trans         &trans  &trans  &trans  &trans  &trans   &trans            &trans
-        &trans          &trans  &trans  &trans         &trans         &trans  &trans  &trans  &trans  &trans   &trans   &trans           &trans
-                &trans  &trans                                        &trans                                   &trans   &trans
+        &trans          &trans  &trans  &trans         &trans         &trans  &trans  &trans  &trans  &trans   &trans   &trans   &trans
+        &trans  &trans                  &trans                        &trans                                   &trans   &trans
       >;
     };
-    misc_settings {
+    setting_layer {
       bindings = <
         &bootloader  &kp F13 &kp F14  &kp F15  &kp F16  &kp F17  &kp F18  &kp F19  &kp F20  &kp F21  &kp F22  &kp F23  &kp F24  &trans  &sys_reset
         &trans       &trans  &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans
         &trans       &trans  &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans            &trans
-        &trans               &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans           &trans
-                     &trans  &trans                              &trans                                       &trans   &trans
+        &trans               &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans
+        &trans       &trans                    &trans            &trans                                       &trans   &trans
         >;
     };
   };

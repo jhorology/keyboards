@@ -12,20 +12,22 @@
 
 /* #include "pico/binary_info.h" */
 
-// PICO_CONFIG: PICO_BOOTSEL_VIA_DOUBLE_RESET_TIMEOUT_MS, Window of opportunity for a second press of a reset button to
-// enter BOOTSEL mode (milliseconds), type=int, default=200, group=pico_bootsel_via_double_reset
+// PICO_CONFIG: PICO_BOOTSEL_VIA_DOUBLE_RESET_TIMEOUT_MS, Window of opportunity for a second press
+// of a reset button to enter BOOTSEL mode (milliseconds), type=int, default=200,
+// group=pico_bootsel_via_double_reset
 #ifndef PICO_BOOTSEL_VIA_DOUBLE_RESET_TIMEOUT_MS
-#  define PICO_BOOTSEL_VIA_DOUBLE_RESET_TIMEOUT_MS 200
+#define PICO_BOOTSEL_VIA_DOUBLE_RESET_TIMEOUT_MS 200
 #endif
 
-// PICO_CONFIG: PICO_BOOTSEL_VIA_DOUBLE_RESET_ACTIVITY_LED, Optionally define a pin to use as bootloader activity LED
-// when BOOTSEL mode is entered via reset double tap, type=int, min=0, max=29, group=pico_bootsel_via_double_reset
+// PICO_CONFIG: PICO_BOOTSEL_VIA_DOUBLE_RESET_ACTIVITY_LED, Optionally define a pin to use as
+// bootloader activity LED when BOOTSEL mode is entered via reset double tap, type=int, min=0,
+// max=29, group=pico_bootsel_via_double_reset
 
-// PICO_CONFIG: PICO_BOOTSEL_VIA_DOUBLE_RESET_INTERFACE_DISABLE_MASK, Optionally disable either the mass storage
-// interface (bit 0) or the PICOBOOT interface (bit 1) when entering BOOTSEL mode via double reset, type=int, min=0,
-// max=3, default=0, group=pico_bootsel_via_double_reset
+// PICO_CONFIG: PICO_BOOTSEL_VIA_DOUBLE_RESET_INTERFACE_DISABLE_MASK, Optionally disable either the
+// mass storage interface (bit 0) or the PICOBOOT interface (bit 1) when entering BOOTSEL mode via
+// double reset, type=int, min=0, max=3, default=0, group=pico_bootsel_via_double_reset
 #ifndef PICO_BOOTSEL_VIA_DOUBLE_RESET_INTERFACE_DISABLE_MASK
-#  define PICO_BOOTSEL_VIA_DOUBLE_RESET_INTERFACE_DISABLE_MASK 0u
+#define PICO_BOOTSEL_VIA_DOUBLE_RESET_INTERFACE_DISABLE_MASK 0u
 #endif
 
 /** \defgroup pico_bootsel_via_double_reset pico_bootsel_via_double_reset
@@ -47,9 +49,9 @@ bi_decl(bi_program_feature("double reset -> BOOTSEL"));
 // Doesn't make any sense for a RAM only binary
 #if !PICO_NO_FLASH
 static const uint32_t magic_token[] = {
-  0xf01681de,
-  0xbd729b29,
-  0xd359be7a,
+    0xf01681de,
+    0xbd729b29,
+    0xd359be7a,
 };
 
 /* static uint32_t __uninitialized_ram(magic_location)[count_of(magic_token)]; */
@@ -72,28 +74,28 @@ static uint32_t *magic_location = (uint32_t *)0x20040000;
 
 /* static void __attribute__((constructor)) boot_double_tap_check(void) { */
 static int boot_double_tap_check(const struct device *port) {
-  ARG_UNUSED(port);
+    ARG_UNUSED(port);
 
-  for (uint i = 0; i < count_of(magic_token); i++) {
-    if (magic_location[i] != magic_token[i]) {
-      // Arm, wait, then disarm and continue booting
-      for (i = 0; i < count_of(magic_token); i++) {
-        magic_location[i] = magic_token[i];
-      }
-      busy_wait_us(PICO_BOOTSEL_VIA_DOUBLE_RESET_TIMEOUT_MS * 1000);
-      magic_location[0] = 0;
-      return 0;
+    for (uint i = 0; i < count_of(magic_token); i++) {
+        if (magic_location[i] != magic_token[i]) {
+            // Arm, wait, then disarm and continue booting
+            for (i = 0; i < count_of(magic_token); i++) {
+                magic_location[i] = magic_token[i];
+            }
+            busy_wait_us(PICO_BOOTSEL_VIA_DOUBLE_RESET_TIMEOUT_MS * 1000);
+            magic_location[0] = 0;
+            return 0;
+        }
     }
-  }
-  // Detected a double reset, so enter USB bootloader
-  magic_location[0] = 0;
-#  ifdef PICO_BOOTSEL_VIA_DOUBLE_RESET_ACTIVITY_LED
-  const uint32_t led_mask = 1u << PICO_BOOTSEL_VIA_DOUBLE_RESET_ACTIVITY_LED;
-#  else
-  const uint32_t led_mask = 0u;
-#  endif
-  reset_usb_boot(led_mask, PICO_BOOTSEL_VIA_DOUBLE_RESET_INTERFACE_DISABLE_MASK);
-  return 0;
+    // Detected a double reset, so enter USB bootloader
+    magic_location[0] = 0;
+#ifdef PICO_BOOTSEL_VIA_DOUBLE_RESET_ACTIVITY_LED
+    const uint32_t led_mask = 1u << PICO_BOOTSEL_VIA_DOUBLE_RESET_ACTIVITY_LED;
+#else
+    const uint32_t led_mask = 0u;
+#endif
+    reset_usb_boot(led_mask, PICO_BOOTSEL_VIA_DOUBLE_RESET_INTERFACE_DISABLE_MASK);
+    return 0;
 }
 
 SYS_INIT(boot_double_tap_check, PRE_KERNEL_2, 0);
