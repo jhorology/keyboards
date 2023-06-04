@@ -5,6 +5,7 @@
  */
 
 #include <zephyr/init.h>
+#include <zephyr/linker/section_tags.h>
 
 #include "pico.h"
 #include "pico/bootrom.h"
@@ -47,7 +48,6 @@ bi_decl(bi_program_feature("double reset -> BOOTSEL"));
 */
 
 // Doesn't make any sense for a RAM only binary
-#if !PICO_NO_FLASH
 static const uint32_t magic_token[] = {
     0xf01681de,
     0xbd729b29,
@@ -55,7 +55,7 @@ static const uint32_t magic_token[] = {
 };
 
 /* static uint32_t __uninitialized_ram(magic_location)[count_of(magic_token)]; */
-static uint32_t *magic_location = (uint32_t *)0x20040000;
+static __noinit uint32_t magic_location[count_of(magic_token)];
 
 /* Check for double reset and enter BOOTSEL mode if detected
  *
@@ -99,5 +99,3 @@ static int boot_double_tap_check(const struct device *port) {
 }
 
 SYS_INIT(boot_double_tap_check, PRE_KERNEL_2, 0);
-
-#endif
