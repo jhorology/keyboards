@@ -65,12 +65,12 @@ WIN_GSUDO="/mnt/c/Program Files/gsudo/Current/gsudo.exe"
 #   [5]=DFU device pid
 local -A KEYBOARDS=(
   bt60       bt60:bt60_hhkb_ec11:uf2:CKP:none
-  tf60       kbdfans_tofu60_v2:tofu60_hhkb:uf2:RPI-RP2:none
   fk68       fk680pro_v2:fk680pro_v2:uf2:"ZhaQian DFU":none
-  qk60       qk60_wired:qk60_wired_hhkb:bin:1688:2220
   q60        keychron_q60:keychron_q60:bin:0483:df11
+  qk60       qk60_wired:qk60_wired_hhkb:bin:1688:2220
+  tf60       kbdfans_tofu60_v2:tofu60_hhkb:uf2:RPI-RP2:none
 )
-TARGETS=(bt60 tf60 fk68 qk60)
+TARGETS=(bt60 fk68 q60 qk60)
 
 
 cd $PROJECT

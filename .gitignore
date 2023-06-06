@@ -30,14 +30,14 @@ via_app/
 
 # qmk
 vial.json
-.qmk_config
-qmk_firmware/
+/.qmk_config
+/qmk_firmware/
 .build/
 
 # zmk
-.zmk_config
-.west/
-zephyr/
-zmk/
-modules/
-build/
+/.zmk_config
+/.west/
+/zephyr/
+/zmk/
+/modules/
+/build/
