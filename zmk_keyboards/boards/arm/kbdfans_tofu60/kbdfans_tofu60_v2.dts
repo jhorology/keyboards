@@ -8,16 +8,34 @@
 #include <rpi_pico/rp2040.dtsi>
 #include <dt-bindings/zmk/matrix_transform.h>
 
-/* select layout options */
+#if __has_include(<transform/kbdfans_tofu60_v2-transform-option.h>)
+#include <transform/kbdfans_tofu60_v2-transform-option.h>
+#else
+
+/*
+ * selec option
+ *  0=deselect
+ *  1=select
+ */
 #define SPLIT_BS 0
 #define ISO_ENTER 0
 #define SPLIT_LEFT_SHIFT 0
 #define SPLIT_RIGHT_SHIFT 0
-#define ANSI 0
-#define TSANGAN 1
-#define HHKB 2
-#define WKL 3
-#define BOTTOM_ROW ANSI
+
+/*
+ * options for bootom row
+ */
+#define BOTTOM_ROW_ANSI 0
+#define BOTTOM_ROW_TSANGAN 1
+#define BOTTOM_ROW_HHKB 2
+#define BOTTOM_ROW_WKL 3
+
+/*
+ * choice of the options for bottom row
+ */
+#define BOTTOM_ROW BOTTOM_ROW_ANSI
+
+#endif
 
 / {
     chosen {
@@ -50,7 +68,7 @@
 
         // row 1
         RC(1,0) RC(1,1) RC(1,2) RC(1,3) RC(1,4) RC(1,5) RC(1,6) RC(1,7) RC(1,8) RC(1,9) RC(1,10) RC(1,11) RC(1,12)
-#if ! ISO_ENTER
+#if !ISO_ENTER
         RC(1,13)
 #endif
         // row 2
@@ -71,13 +89,13 @@
 #endif
 
         // row 4
-#if BOTTOM_ROW == ANSI
+#if BOTTOM_ROW == BOTTOM_ROW_ANSI
         RC(4,0) RC(4,1) RC(4,2) RC(4,7) RC(4,10) RC(4,11) RC(4,12) RC(4,13)
-#elif BOTTOM_ROW == TSANGAN
+#elif BOTTOM_ROW == BOTTOM_ROW_TSANGAN
         RC(4,0) RC(4,1) RC(4,2) RC(4,7) RC(4,11) RC(4,12) RC(4,13)
-#elif BOTTOM_ROW == HHKB
+#elif BOTTOM_ROW == BOTTOM_ROW_HHKB
         RC(4,1) RC(4,2) RC(4,7) RC(4,11) RC(4,12)
-#elif BOTTOM_ROW == WKL
+#elif BOTTOM_ROW == BOTTOM_ROW_WKL
         RC(4,0) RC(4,2) RC(4,7) RC(4,11) RC(4,13)
 #endif
         >;

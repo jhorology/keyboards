@@ -9,15 +9,32 @@
 #include <st/f1/stm32f103c(8-b)tx-pinctrl.dtsi>
 #include <dt-bindings/zmk/matrix_transform.h>
 
-/* select layout options */
+#if __has_include(<transform/qk60_wired-transform-option.h>)
+#include <transform/qk60_wired-transform-option.h>
+#else
+
+/*
+ * selec option
+ *  0=deselect
+ *  1=select
+ */
 #define SPLIT_BS 0
 #define SPLIT_RIGHT_SHIFT 0
 #define SPLIT_SPACE 0
 
-#define TSANGAN 0
-#define HHKB 1
-#define WKL 2
-#define BOTTOM_ROW TSANGAN
+/*
+ * options for bootom row
+ */
+#define BOTTOM_ROW_TSANGAN 0
+#define BOTTOM_ROW_HHKB 1
+#define BOTTOM_ROW_WKL 2
+
+/*
+ * choice of the options for bottom row
+ */
+#define BOTTOM_ROW BOTTOM_ROW_TSANGAN
+
+#endif
 
 / {
 
@@ -55,11 +72,11 @@
 #endif
 
         // row 4 left modifiers
-#if BOTTOM_ROW == TSANGAN
+#if BOTTOM_ROW == BOTTOM_ROW_TSANGAN
         RC(4,0) RC(4,1) RC(4,2)
-#elif BOTTOM_ROW == HHKB
+#elif BOTTOM_ROW == BOTTOM_ROW_HHKB
                 RC(4,1) RC(4,2)
-#elif BOTTOM_ROW == WKL
+#elif BOTTOM_ROW == BOTTOM_ROW_WKL
         RC(4,0)        RC(4,2)
 #endif
 
@@ -71,11 +88,11 @@
 #endif
 
         // row 4 right modifiers
-#if BOTTOM_ROW == TSANGAN
+#if BOTTOM_ROW == BOTTOM_ROW_TSANGAN
         RC(4,11) RC(4,12) RC(4,13)
-#elif BOTTOM_ROW == HHKB
+#elif BOTTOM_ROW == BOTTOM_ROW_HHKB
         RC(4,11) RC(4,12)
-#elif BOTTOM_ROW == WKL
+#elif BOTTOM_ROW == BOTTOM_ROW_WKL
         RC(4,11)  RC(4,13)
 #endif
         >;
