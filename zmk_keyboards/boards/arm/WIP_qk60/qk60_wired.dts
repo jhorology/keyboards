@@ -108,7 +108,7 @@
         , <&gpioa 6 GPIO_ACTIVE_HIGH>
         ;
     };
-
+    /*
     leds {
 	    compatible = "gpio-leds";
 	    caps_led: caps_led {
@@ -116,6 +116,7 @@
 		    label = "Caps Lock LED";
 	    };
     };
+    */
 };
 
 &pinctrl {
@@ -132,10 +133,7 @@
     *
     *  If absent, then Full SWJ (JTAG-DP + SW-DP) is used (reset state).
     */
-
     swj-cfg = "jtag-disable";
-    // swj-cfg = "disable";
-    // swj-cfg = "full";
 };
 
 &clk_hse {
@@ -150,6 +148,7 @@
 };
 
 &rcc {
+	status = "okay";
 	clocks = <&pll>;
 	clock-frequency = <DT_FREQ_M(72)>;
 	ahb-prescaler = <1>;

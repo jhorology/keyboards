@@ -5,6 +5,11 @@ CONFIG_SOC_SERIES_STM32F1X=y
 CONFIG_SOC_STM32F103XB=y
 CONFIG_BOARD_QK60_WIRED=y
 
+# Code partition needed to target the correct flash range
+# CONFIG_USE_DT_CODE_PARTITION=y
+# code parition is not worked for STM32
+CONFIG_FLASH_BASE_ADDRESS=0x8006000
+
 # enable GPIO
 CONFIG_GPIO=y
 
@@ -14,8 +19,6 @@ CONFIG_CLOCK_CONTROL=y
 # enable pin controller
 CONFIG_PINCTRL=y
 
-# Code partition needed to target the correct flash range
-CONFIG_USE_DT_CODE_PARTITION=y
 
 # Output .bin
 CONFIG_BUILD_OUTPUT_BIN=y
@@ -23,6 +26,8 @@ CONFIG_BUILD_OUTPUT_BIN=y
 # reduce SRAM usage
 # default: 8192
 CONFIG_HEAP_MEM_POOL_SIZE=7168
+
+CONFIG_ZMK_KSCAN_MATRIX_POLLING=y
 
 CONFIG_USB_SELF_POWERED=n
 

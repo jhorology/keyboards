@@ -28,6 +28,8 @@ CONFIG_BUILD_OUTPUT_BIN=y
 
 CONFIG_USB_SELF_POWERED=n
 
+# use polling instead of intrrupt for kscan
+# some gpio input pins are exists on same EXTI line.
 CONFIG_ZMK_KSCAN_MATRIX_POLLING=y
 
 # Enable USB CDC ACM logging for debugging

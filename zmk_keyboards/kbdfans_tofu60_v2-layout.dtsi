@@ -1,0 +1,10 @@
+/* select layout options */
+#define SPLIT_BS 0
+#define ISO_ENTER 0
+#define SPLIT_LEFT_SHIFT 0
+#define SPLIT_RIGHT_SHIFT 0
+#define ANSI 0
+#define TSANGAN 1
+#define HHKB 2
+#define WKL 3
+#define BOTTOM_ROW ANSI

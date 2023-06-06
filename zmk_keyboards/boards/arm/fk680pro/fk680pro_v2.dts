@@ -102,6 +102,10 @@
 };
 
 &pll {
+    /*
+     * TODO APM32F103 96MHz MAX
+     * dosen't work with mul = <12>
+     */
 	mul = <9>;
 	clocks = <&clk_hse>;
 	status = "okay";
@@ -109,6 +113,7 @@
 
 &rcc {
 	clocks = <&pll>;
+    /* TODO APM32F103 96MHz MAX */
 	clock-frequency = <DT_FREQ_M(72)>;
 	ahb-prescaler = <1>;
 	apb1-prescaler = <2>;
