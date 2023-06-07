@@ -8,18 +8,20 @@
 
 #define CMD_BOOT 0x544F4F42UL;
 #define CMD_APP 0x3f82722aUL;
-#define MAGIC_REG *(volatile uint32_t *)0x20004000
+#define MAGIC *(volatile uint32_t *)0x20004000
 
 void sys_arch_reboot(int type) {
-    if (type != 0) {
-        MAGIC_REG = CMD_BOOT;
-    } else {
-        MAGIC_REG = CMD_APP;
-    }
-    NVIC_SystemReset();
+  if (type != 0) {
+    MAGIC = CONFIG_BOOTSEL_UF2_STM32F103_MAGIC_UF2;
+  } else {
+    MAGIC = CONFIG_BOOTSEL_UF2_STM32F103_MAGIC_APP;
+  }
+  NVIC_SystemReset();
 }
 
+#if IS_ENABLED(CONFIG_BOOTSEL_UF2_STM32F103_ON_FATAL_ERROR)
 void k_sys_fatal_error_handler(unsigned int reason, const z_arch_esf_t *esf) {
-    MAGIC_REG = CMD_BOOT;
-    NVIC_SystemReset();
+  MAGIC = CONFIG_BOOTSEL_UF2_STM32F103_MAGIC_UF2;
+  NVIC_SystemReset();
 }
+#endif

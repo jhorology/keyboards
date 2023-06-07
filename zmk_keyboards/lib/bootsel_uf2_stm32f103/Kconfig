@@ -1,0 +1,17 @@
+config BOOTSEL_UF2_STM32F103
+    bool "Enable bootsel for uf2-stm32f103 bootlader"
+
+if BOOTSEL_UF2_STM32F103
+
+config BOOTSEL_UF2_STM32F103_MAGIC_APP
+    hex "Magic code for application"
+    default 0x3f82722a
+
+config BOOTSEL_UF2_STM32F103_MAGIC_UF2
+    hex "Magic code for uf2 bootloader"
+    default 0x544F4F42
+
+config BOOTSEL_UF2_STM32F103_ON_FATAL_ERROR
+    bool "Reset to bootlader on fatal error"
+
+endif

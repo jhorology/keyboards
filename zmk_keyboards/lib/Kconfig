@@ -2,5 +2,6 @@ menu "Libraries"
 
 rsource "bootsel_via_double_reset/Kconfig"
 rsource "bootsel_stm32/Kconfig"
+rsource "bootsel_uf2_stm32f103/Kconfig"
 
 endmenu
