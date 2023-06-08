@@ -6,7 +6,6 @@
 /dts-v1/;
 
 #include <st/f1/stm32f103Xb.dtsi>
-#include <st/f1/stm32f103c(8-b)tx-pinctrl.dtsi>
 #include <dt-bindings/zmk/matrix_transform.h>
 
 #if __has_include(<transform/qk60_wired-transform-option.h>)
@@ -125,32 +124,14 @@
         , <&gpioa 6 GPIO_ACTIVE_HIGH>
         ;
     };
-    /*
+
     leds {
 	    compatible = "gpio-leds";
 	    caps_led: caps_led {
-		    gpios = <&gpioa 0 GPIO_ACTIVE_HIGH>;
+		    gpios = <&gpioa 0 GPIO_ACTIVE_LOW>;
 		    label = "Caps Lock LED";
 	    };
     };
-    */
-};
-
-&pinctrl {
-    /*
-    * Configures number of pins assigned to the SWJ debug port.
-    *
-    *    * full         - Full SWJ (JTAG-DP + SW-DP).
-    *    * no-njtrst    - Full SWJ (JTAG-DP + SW-DP) but without NJTRST.
-    *                     Releases: PB4.
-    *    * jtag-disable - JTAG-DP Disabled and SW-DP Enabled.
-    *                     Releases: PA15 PB3 PB4.
-    *    * disable      - JTAG-DP Disabled and SW-DP Disabled.
-    *                     Releases: PA13 PA14 PA15 PB3 PB4.
-    *
-    *  If absent, then Full SWJ (JTAG-DP + SW-DP) is used (reset state).
-    */
-    swj-cfg = "jtag-disable";
 };
 
 &clk_hse {
@@ -180,8 +161,8 @@
         #size-cells = <1>;
 
         /*
-        * unknown bootloader
-        */
+         * unknown bootloader
+         */
         boot_partition: partition@0 {
             label = "bootloader";
             reg = <0x0 DT_SIZE_K(24)>;
@@ -193,21 +174,11 @@
             reg = <DT_SIZE_K(24) (DT_SIZE_K(128) - DT_SIZE_K(24))>;
             read-only;
         };
-
-        // Set 6Kb of storage at the end of the 128Kb of flash
-        /*
-        storage_partition: partition@1e800 {
-            label = "storage";
-            reg = <(DT_SIZE_K(128) - DT_SIZE_K(6)) DT_SIZE_K(6)>;
-        };
-        */
     };
 };
 
 &usb {
     status = "okay";
-    pinctrl-0 = <&usb_dm_pa11 &usb_dp_pa12>;
-    pinctrl-names = "default";
     cdc_acm_uart: cdc_acm_uart {
         compatible = "zephyr,cdc-acm-uart";
     };

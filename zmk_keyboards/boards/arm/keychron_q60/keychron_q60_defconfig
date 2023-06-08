@@ -6,13 +6,10 @@ CONFIG_SOC_STM32L432XX=y
 CONFIG_BOARD_KEYCHRON_Q60=y
 
 # Enable MPU
-CONFIG_ARM_MPU=y
+# CONFIG_ARM_MPU=y
 
 # Enable HW stack protection
 CONFIG_HW_STACK_PROTECTION=y
-
-# enable GPIO
-CONFIG_GPIO=y
 
 # enable clock control
 CONFIG_CLOCK_CONTROL=y
@@ -22,9 +19,6 @@ CONFIG_PINCTRL=y
 
 # Enable reset by default
 CONFIG_RESET=y
-
-# Output .bin
-CONFIG_BUILD_OUTPUT_BIN=y
 
 CONFIG_USB_SELF_POWERED=n
 

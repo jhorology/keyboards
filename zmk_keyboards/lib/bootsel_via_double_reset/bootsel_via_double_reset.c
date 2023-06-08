@@ -3,16 +3,13 @@
 #include <zephyr/init.h>
 #include <zephyr/sys/reboot.h>
 
-static const uint32_t magic_token = 0xf01681de;
-
 static __noinit uint32_t magic;
 
 static int boot_double_tap_check(const struct device *port) {
   ARG_UNUSED(port);
 
-  if (magic != magic_token) {
-    // Arm, wait, then disarm and continue booting
-    magic = magic_token;
+  if (magic != CONFIG_BOOTSEL_VIA_DOUBLE_RESET_MAGIC) {
+    magic = CONFIG_BOOTSEL_VIA_DOUBLE_RESET_MAGIC;
     k_msleep(CONFIG_BOOTSEL_VIA_DOUBLE_RESET_TIMEOUT_MS);
     magic = 0;
     return 0;

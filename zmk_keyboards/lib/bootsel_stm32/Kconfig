@@ -1,5 +1,7 @@
 config BOOTSEL_STM32
-bool "Enable bootsel for uf2-stm32f103 bootlader"
+    bool "Enable bootsel for stm32 SYSTEM_MEMORY bootloader"
+    help
+        see details on https://www.st.com/resource/en/application_note/an2606-stm32-microcontroller-system-memory-boot-mode-stmicroelectronics.pdf
 
 if BOOTSEL_STM32
 
@@ -14,4 +16,4 @@ config BOOTSEL_STM32_MAGIC
 config BOOTSEL_STM32_ON_FATAL_ERROR
     bool "Reset to bootlader on fatal error"
 
-endif
+endif # BOOTSEL_STM32

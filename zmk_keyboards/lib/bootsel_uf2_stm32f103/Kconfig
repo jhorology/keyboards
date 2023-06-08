@@ -1,5 +1,8 @@
 config BOOTSEL_UF2_STM32F103
     bool "Enable bootsel for uf2-stm32f103 bootlader"
+    depends on SOC_SERIES_STM32F1X
+    help
+        see details on https://github.com/mmoskal/uf2-stm32f103
 
 if BOOTSEL_UF2_STM32F103
 
@@ -14,4 +17,4 @@ config BOOTSEL_UF2_STM32F103_MAGIC_UF2
 config BOOTSEL_UF2_STM32F103_ON_FATAL_ERROR
     bool "Reset to bootlader on fatal error"
 
-endif
+endif # BOOTSEL_UF2_STM32F103
