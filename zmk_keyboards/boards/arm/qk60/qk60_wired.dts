@@ -1,7 +1,7 @@
 /*
-* Copyright (c) 2023 The ZMK Contributors
-* SPDX-License-Identifier: MIT
-*/
+ * Copyright (c) 2023 The ZMK Contributors
+ * SPDX-License-Identifier: MIT
+ */
 
 /dts-v1/;
 
@@ -13,7 +13,7 @@
 #else
 
 /*
- * selec option
+ * select option
  *  0=deselect
  *  1=select
  */

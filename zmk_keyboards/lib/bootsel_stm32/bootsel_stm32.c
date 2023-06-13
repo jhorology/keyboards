@@ -12,7 +12,7 @@ extern void arm_core_mpu_disable(void);
 #endif  // CONFIG_ARM_MPU
 
 void sys_arch_reboot(int type) {
-  magic = type != 0 ? CONFIG_BOOTSEL_STM32_MAGIC : 0;
+  magic = (type & CONFIG_BOOTSEL_STM32_REBOOT_TYPE_MASK) ? CONFIG_BOOTSEL_STM32_MAGIC : 0;
   NVIC_SystemReset();
 }
 

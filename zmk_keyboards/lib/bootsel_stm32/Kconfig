@@ -13,6 +13,10 @@ config BOOTSEL_STM32_MAGIC
     hex "Magic code for bootloader"
     default 0xDEADBEAF
 
+config BOOTSEL_STM32_REBOOT_TYPE_MASK
+    hex "mask bits for sys_reboot type"
+    default 0xFFFFFFFF
+
 config BOOTSEL_STM32_ON_FATAL_ERROR
     bool "Reset to bootlader on fatal error"
 

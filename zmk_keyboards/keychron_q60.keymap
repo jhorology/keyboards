@@ -81,60 +81,71 @@
   keymap {
     compatible = "zmk,keymap";
     mac_base_layer {
-        // -------------------------------------------------------------------------------------------
-        // |  `  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  0  |  -  |  =  |  \  | ESC |
-        // -------------------------------------------------------------------------------------------
-        // | TAB    |  Q  |  W  |  E  |  R  |  T  |  Y  |  U  |  I  |  O  |  P  |  [  |  ]  | Bkspc  |
-        // -------------------------------------------------------------------------------------------
-        // | Ctrl     |  A  |  S  |  D  |  F  |  G  |  H  |  J  |  K  |  L  |  ;  |  '  |     ENTER  |
-        // -------------------------------------------------------------------------------------------
-        // |  SHIFT     |  Z  |  X  |  C  |  V  |  B  |  N  |  M  |  ,  |  .  |  /  |  SHIFT   | MO1 |
-        // ------------------------------------------------------------------------------------------
-        //          | Opt |  Cmd  |        SPACE                             |  Cmd   | Opt |
-        //          -------------------------------------------------------------------------
+      //        [DIP-SW]
+      // -------------------------------------------------------------------------------------------
+      // |  `  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  0  |  -  |  =  |  \  | ESC |
+      // -------------------------------------------------------------------------------------------
+      // | TAB    |  Q  |  W  |  E  |  R  |  T  |  Y  |  U  |  I  |  O  |  P  |  [  |  ]  | Bkspc  |
+      // -------------------------------------------------------------------------------------------
+      // | Ctrl     |  A  |  S  |  D  |  F  |  G  |  H  |  J  |  K  |  L  |  ;  |  '  |     ENTER  |
+      // -------------------------------------------------------------------------------------------
+      // |  SHIFT     |  Z  |  X  |  C  |  V  |  B  |  N  |  M  |  ,  |  .  |  /  |  SHIFT   | MO1 |
+      // ------------------------------------------------------------------------------------------
+      //          | Opt |  Cmd  |        SPACE                             |  Cmd   | Opt |
+      //          -------------------------------------------------------------------------
       bindings = <
-        &kp GRAVE  &kp N1  &kp N2    &kp N3  &kp N4  &kp N5  &kp N6  &kp N7  &kp N8   &kp N9     &kp N0    &kp MINUS  &kp EQUAL  &kp BSLH  &kp ESC
-        &kp TAB    &kp Q   &kp W     &kp E   &kp R   &kp T   &kp Y   &kp U   &kp I    &kp O      &kp P     &kp LBKT   &kp RBKT   &kp BSPC
-        &kp LCTRL  &kp A   &kp S     &kp D   &kp F   &kp G   &kp H   &kp J   &kp K    &kp L      &kp SEMI  &kp SQT               &kp RET
-        &kp LSHFT          &kp Z     &kp X   &kp C   &kp V   &kp B   &kp N   &kp M    &kp COMMA  &kp DOT   &kp FSLH   &kp RSHIFT &mo _HHKB_FN
-        &lalt_apple_fn  _LCMD                _DIP_SW         &kp SPACE                                     _RCMD     &ralt_setting
+      _DIP_SW
+
+      &kp GRAVE  &kp N1  &kp N2    &kp N3  &kp N4  &kp N5  &kp N6  &kp N7  &kp N8   &kp N9     &kp N0    &kp MINUS  &kp EQUAL  &kp BSLH  &kp ESC
+      &kp TAB    &kp Q   &kp W     &kp E   &kp R   &kp T   &kp Y   &kp U   &kp I    &kp O      &kp P     &kp LBKT   &kp RBKT   &kp BSPC
+      &kp LCTRL  &kp A   &kp S     &kp D   &kp F   &kp G   &kp H   &kp J   &kp K    &kp L      &kp SEMI  &kp SQT               &kp RET
+      &kp LSHFT          &kp Z     &kp X   &kp C   &kp V   &kp B   &kp N   &kp M    &kp COMMA  &kp DOT   &kp FSLH   &kp RSHIFT &mo _HHKB_FN
+      &lalt_apple_fn  _LCMD                                &kp SPACE                                     _RCMD     &ralt_setting
       >;
     };
     win_base_layer {
       bindings = <
-        &kp GRAVE  &kp N1  &kp N2  &kp N3  &kp N4  &kp N5  &kp N6  &kp N7  &kp N8   &kp N9     &kp N0    &kp MINUS  &kp EQUAL  &kp BSLH  &kp ESC
-        &kp TAB    &kp Q   &kp W   &kp E   &kp R   &kp T   &kp Y   &kp U   &kp I    &kp O      &kp P     &kp LBKT   &kp RBKT   &kp BSPC
-        &kp LCTRL  &kp A   &kp S   &kp D   &kp F   &kp G   &kp H   &kp J   &kp K    &kp L      &kp SEMI  &kp SQT               &kp RET
-        &kp LSHFT          &kp Z   &kp X   &kp C   &kp V   &kp B   &kp N   &kp M    &kp COMMA  &kp DOT   &kp FSLH   &kp RSHIFT &mo _HHKB_FN
-        &lalt_apple_fn  _LCMD              &trans          &kp SPACE                                     _RCMD     &ralt_setting
+      &trans
+
+      &kp GRAVE  &kp N1  &kp N2  &kp N3  &kp N4  &kp N5  &kp N6  &kp N7  &kp N8   &kp N9     &kp N0    &kp MINUS  &kp EQUAL  &kp BSLH  &kp ESC
+      &kp TAB    &kp Q   &kp W   &kp E   &kp R   &kp T   &kp Y   &kp U   &kp I    &kp O      &kp P     &kp LBKT   &kp RBKT   &kp BSPC
+      &kp LCTRL  &kp A   &kp S   &kp D   &kp F   &kp G   &kp H   &kp J   &kp K    &kp L      &kp SEMI  &kp SQT               &kp RET
+      &kp LSHFT          &kp Z   &kp X   &kp C   &kp V   &kp B   &kp N   &kp M    &kp COMMA  &kp DOT   &kp FSLH   &kp RSHIFT &mo _HHKB_FN
+      &lalt_apple_fn  _LCMD                              &kp SPACE                                     _RCMD     &ralt_setting
       >;
     };
     hhkb_fn_layer {
       bindings = <
-        &kp ESC   &kp F1   &kp F2   &kp F3   &kp F4  &kp F5   &kp F6           &kp F7         &kp F8        &kp F9     &kp F10          &kp F11   &kp F12  &kp INS  &kp DEL
-        &kp CAPS  &kp F16  &kp F17  &kp F18  &trans  &trans   &trans           &trans         &kp PSCRN     &kp SLCK   &kp PAUSE_BREAK  &kp UP    &trans   &kp KP_CLEAR
-        &trans    &trans   &trans   &trans   &trans  &trans   &kp KP_MULTIPLY  &kp KP_DIVIDE  &kp HOME      &kp PG_UP  &kp LEFT         &kp RIGHT          &kp KP_ENTER
-        &trans             &trans   &trans   &trans  &trans   &trans           &kp KP_PLUS    &kp KP_MINUS  &kp END    &kp PG_DN        &kp DOWN  &trans   &trans
-        &trans    &trans                     &trans           &trans                                                   &trans           &trans
+      &trans
+
+      &kp ESC   &kp F1   &kp F2   &kp F3   &kp F4  &kp F5   &kp F6           &kp F7         &kp F8        &kp F9     &kp F10          &kp F11   &kp F12  &kp INS  &kp DEL
+      &kp CAPS  &kp F16  &kp F17  &kp F18  &trans  &trans   &trans           &trans         &kp PSCRN     &kp SLCK   &kp PAUSE_BREAK  &kp UP    &trans   &kp KP_CLEAR
+      &trans    &trans   &trans   &trans   &trans  &trans   &kp KP_MULTIPLY  &kp KP_DIVIDE  &kp HOME      &kp PG_UP  &kp LEFT         &kp RIGHT          &kp KP_ENTER
+      &trans             &trans   &trans   &trans  &trans   &trans           &kp KP_PLUS    &kp KP_MINUS  &kp END    &kp PG_DN        &kp DOWN  &trans   &trans
+      &trans    &trans                                      &trans                                                   &trans           &trans
       >;
     };
     apple_fn_layer {
       bindings = <
-        &trans  &kp F1  &kp F2  &kp F3  &fn_spotlight  &fn_dictation  &kp F6  &kp F7  &kp F8  &kp F9  &kp F10  &kp F11  &kp F12  &trans  &kp C_AL_LOCK
-        &trans  &trans  &trans  &trans  &trans         &trans         &trans  &trans  &trans  &trans  &trans   &trans   &trans   &trans
-        &trans  &trans  &trans  &trans  &trans         &trans         &trans  &trans  &trans  &trans  &trans   &trans            &trans
-        &trans          &trans  &trans  &trans         &trans         &trans  &trans  &trans  &trans  &trans   &trans   &trans   &trans
-        &trans  &trans                  &trans                        &trans                                   &trans   &trans
+      &trans
+
+      &trans  &kp F1  &kp F2  &kp F3  &fn_spotlight  &fn_dictation  &kp F6  &kp F7  &kp F8  &kp F9  &kp F10  &kp F11  &kp F12  &trans  &kp C_AL_LOCK
+      &trans  &trans  &trans  &trans  &trans         &trans         &trans  &trans  &trans  &trans  &trans   &trans   &trans   &trans
+      &trans  &trans  &trans  &trans  &trans         &trans         &trans  &trans  &trans  &trans  &trans   &trans            &trans
+      &trans          &trans  &trans  &trans         &trans         &trans  &trans  &trans  &trans  &trans   &trans   &trans   &trans
+      &trans  &trans                                                &trans                                   &trans   &trans
       >;
     };
     setting_layer {
       bindings = <
-        &bootloader  &kp F13 &kp F14  &kp F15  &kp F16  &kp F17  &kp F18  &kp F19  &kp F20  &kp F21  &kp F22  &kp F23  &kp F24  &trans  &sys_reset
-        &trans       &trans  &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans
-        &trans       &trans  &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans            &trans
-        &trans               &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans
-        &trans       &trans                    &trans            &trans                                       &trans   &trans
-        >;
+      &trans
+
+      &bootloader  &kp F13 &kp F14  &kp F15  &kp F16  &kp F17  &kp F18  &kp F19  &kp F20  &kp F21  &kp F22  &kp F23  &kp F24  &trans  &sys_reset
+      &trans       &trans  &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans
+      &trans       &trans  &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans            &trans
+      &trans               &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans
+      &trans       &trans                                      &trans                                       &trans   &trans
+      >;
     };
   };
 };

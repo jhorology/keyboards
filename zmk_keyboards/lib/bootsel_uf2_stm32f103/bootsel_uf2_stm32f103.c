@@ -14,11 +14,8 @@ void sys_arch_reboot(int type) {
 #if IS_ENABLED(CONFIG_ARM_MPU)
   arm_core_mpu_disable();
 #endif  // CONFIG_ARM_MPU
-  if (type != 0) {
-    MAGIC = CONFIG_BOOTSEL_UF2_STM32F103_MAGIC_UF2;
-  } else {
-    MAGIC = CONFIG_BOOTSEL_UF2_STM32F103_MAGIC_APP;
-  }
+  MAGIC = (type & CONFIG_BOOTSEL_UF2_STM32F103_MAGIC_UF2_REBOOT_TYPE_MASK) ? CONFIG_BOOTSEL_UF2_STM32F103_MAGIC_UF2
+                                                                           : CONFIG_BOOTSEL_UF2_STM32F103_MAGIC_APP;
   NVIC_SystemReset();
 }
 

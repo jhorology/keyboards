@@ -14,6 +14,10 @@ config BOOTSEL_UF2_STM32F103_MAGIC_UF2
     hex "Magic code for uf2 bootloader"
     default 0x544F4F42
 
+config BOOTSEL_UF2_STM32F103_MAGIC_UF2_REBOOT_TYPE_MASK
+    hex "mask bits for sys_reboot type"
+    default 0xFFFFFFFF
+
 config BOOTSEL_UF2_STM32F103_ON_FATAL_ERROR
     bool "Reset to bootlader on fatal error"
 

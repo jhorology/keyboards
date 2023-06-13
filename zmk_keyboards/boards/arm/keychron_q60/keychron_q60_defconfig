@@ -6,7 +6,7 @@ CONFIG_SOC_STM32L432XX=y
 CONFIG_BOARD_KEYCHRON_Q60=y
 
 # Enable MPU
-# CONFIG_ARM_MPU=y
+CONFIG_ARM_MPU=y
 
 # Enable HW stack protection
 CONFIG_HW_STACK_PROTECTION=y
@@ -17,13 +17,14 @@ CONFIG_CLOCK_CONTROL=y
 # enable pin controller
 CONFIG_PINCTRL=y
 
-# Enable reset by default
-CONFIG_RESET=y
-
 CONFIG_USB_SELF_POWERED=n
 
 # use polling instead of intrrupt for kscan
 # some gpio input pins are exists on same EXTI line.
+#
+# TODO
+#  strange...if DIP-SW is on, it works with interrupt.
+#
 CONFIG_ZMK_KSCAN_MATRIX_POLLING=y
 
 # Enable USB CDC ACM logging for debugging

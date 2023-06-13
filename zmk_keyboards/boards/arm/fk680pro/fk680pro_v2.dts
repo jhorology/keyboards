@@ -67,58 +67,58 @@
     };
 
     /*
-    * TODO zephyr's gpio dirver is supported only for SOC_SERIES_NRF51X
-    */
+     * TODO zephyr's gpio dirver is supported only for SOC_SERIES_NRF51X
+     */
     /*
-	led_strip: ws2812 {
-		compatible = "worldsemi,ws2812-gpio";
-		chain-length = <110>; // matrix 70 + underglow 40
-		color-mapping = <LED_COLOR_ID_GREEN	LED_COLOR_ID_RED LED_COLOR_ID_BLUE>;
-		in-gpios = <&gpioa 15 GPIO_ACTIVE_HIGH>;
-	};
+    led_strip: ws2812 {
+        compatible = "worldsemi,ws2812-gpio";
+        chain-length = <110>; // matrix 70 + underglow 40
+        color-mapping = <LED_COLOR_ID_GREEN LED_COLOR_ID_RED LED_COLOR_ID_BLUE>;
+        in-gpios = <&gpioa 15 GPIO_ACTIVE_HIGH>;
+    };
     */
 };
 
 &pinctrl {
     /*
-    * Configures number of pins assigned to the SWJ debug port.
-    *
-    *    * full         - Full SWJ (JTAG-DP + SW-DP).
-    *    * no-njtrst    - Full SWJ (JTAG-DP + SW-DP) but without NJTRST.
-    *                     Releases: PB4.
-    *    * jtag-disable - JTAG-DP Disabled and SW-DP Enabled.
-    *                     Releases: PA15 PB3 PB4.
-    *    * disable      - JTAG-DP Disabled and SW-DP Disabled.
-    *                     Releases: PA13 PA14 PA15 PB3 PB4.
-    *
-    *  If absent, then Full SWJ (JTAG-DP + SW-DP) is used (reset state).
-    */
+     * Configures number of pins assigned to the SWJ debug port.
+     *
+     *    * full         - Full SWJ (JTAG-DP + SW-DP).
+     *    * no-njtrst    - Full SWJ (JTAG-DP + SW-DP) but without NJTRST.
+     *                     Releases: PB4.
+     *    * jtag-disable - JTAG-DP Disabled and SW-DP Enabled.
+     *                     Releases: PA15 PB3 PB4.
+     *    * disable      - JTAG-DP Disabled and SW-DP Disabled.
+     *                     Releases: PA13 PA14 PA15 PB3 PB4.
+     *
+     *  If absent, then Full SWJ (JTAG-DP + SW-DP) is used (reset state).
+     */
     swj-cfg = "jtag-disable";
 };
 
 &clk_hse {
-	clock-frequency = <DT_FREQ_M(8)>;
-	status = "okay";
+    clock-frequency = <DT_FREQ_M(8)>;
+    status = "okay";
 };
 
 &pll {
-    /*
-     * TODO APM32F103 96MHz MAX
-     * dosen't work with mul = <12>
-     */
-	mul = <9>;
-	clocks = <&clk_hse>;
-	status = "okay";
+    /* TODO APM32F103 96MHz MAX */
+    // mul = <12>;
+    // usbpre = <2>;
+    mul = <9>;
+    clocks = <&clk_hse>;
+    status = "okay";
 };
 
 &rcc {
-	clocks = <&pll>;
+    clocks = <&pll>;
     /* TODO APM32F103 96MHz MAX */
-	clock-frequency = <DT_FREQ_M(72)>;
-	ahb-prescaler = <1>;
-	apb1-prescaler = <2>;
-	apb2-prescaler = <1>;
-	status = "okay";
+    // clock-frequency = <DT_FREQ_M(96)>;
+    clock-frequency = <DT_FREQ_M(72)>;
+    ahb-prescaler = <1>;
+    apb1-prescaler = <2>;
+    apb2-prescaler = <1>;
+    status = "okay";
 };
 
 &flash0 {
@@ -128,9 +128,9 @@
         #size-cells = <1>;
 
         /*
-        * uf2-stm32f103 bootloader
-        * https://github.com/mmoskal/uf2-stm32f103
-        */
+         * uf2-stm32f103 bootloader
+         * https://github.com/mmoskal/uf2-stm32f103
+         */
         boot_partition: partition@0 {
             label = "bootloader";
             reg = <0x0 DT_SIZE_K(16)>;
@@ -154,18 +154,17 @@
 };
 
 &usb {
-	status = "okay";
-	pinctrl-0 = <&usb_dm_pa11 &usb_dp_pa12>;
-	pinctrl-names = "default";
+    status = "okay";
+    pinctrl-0 = <&usb_dm_pa11 &usb_dp_pa12>;
+    pinctrl-names = "default";
     cdc_acm_uart: cdc_acm_uart {
         compatible = "zephyr,cdc-acm-uart";
     };
 };
 
 /*
-* TODO PWM driver for ws2812 RGB LEDs
-*/
-/*
+ * TODO PWM driver for ws2812 RGB LEDs
+ */
 &timers2 {
     status = "okay";
     pwm2: pwm {
@@ -174,4 +173,3 @@
         pinctrl-names = "default";
     };
 };
-*/

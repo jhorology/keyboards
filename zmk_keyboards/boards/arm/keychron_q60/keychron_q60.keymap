@@ -15,6 +15,7 @@
         compatible = "zmk,keymap";
 
         mac_layer {
+//        [DIP-SW]
 // ------------------------------------------------------------------------------------------
 // | ESC |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  0  |  -  |  =  | "|" |  `  |
 // | TAB  |  Q  |  W  |  E  |  R  |  T  |  Y  |  U  |  I  |  O  |  P  |  [  |  ]  |  BKSPC   |
@@ -23,15 +24,18 @@
 //       | ALT |  GUI   |            SPACE                       |  GUI   | ALT |
 //       ------------------------------------------------------------------------
             bindings = <
+/* DIP-SW */
+&mo _WIN
+
 &kp ESC &kp N1 &kp N2 &kp N3 &kp N4 &kp N5 &kp N6 &kp N7 &kp N8 &kp N9 &kp N0 &kp MINUS &kp EQUAL &kp BSLH &kp GRAV
 &kp TAB  &kp Q  &kp W  &kp E  &kp R  &kp T  &kp Y  &kp U  &kp I  &kp O  &kp P  &kp LBKT  &kp RBKT &kp BSPC
 &kp LCTRL &kp A  &kp S  &kp D  &kp F  &kp G  &kp H  &kp J  &kp K  &kp L  &kp SEMI &kp SQT         &kp RET
 &kp LSHFT   &kp Z  &kp X  &kp C  &kp V  &kp B  &kp N  &kp M  &kp COMMA &kp DOT &kp FSLH &kp RSHFT &mo _FN
-        &kp LALT &kp LGUI        &mo _WIN      &kp SPACE                              &kp RGUI &kp RALT
-                              /* Dip-SW */
+        &kp LALT &kp LGUI                      &kp SPACE                              &kp RGUI &kp RALT
             >;
         };
         win_layer {
+//        [DIP-SW]
 // ------------------------------------------------------------------------------------------
 // | ESC |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  0  |  -  |  =  | "|" |  `  |
 // | TAB  |  Q  |  W  |  E  |  R  |  T  |  Y  |  U  |  I  |  O  |  P  |  [  |  ]  |  BKSPC   |
@@ -40,16 +44,19 @@
 //       | ALT |  GUI   |            SPACE                       |  GUI   | ALT |
 //       ------------------------------------------------------------------------
             bindings = <
+/* DIP-SW */
+&trans
+
 &kp ESC &kp N1 &kp N2 &kp N3 &kp N4 &kp N5 &kp N6 &kp N7 &kp N8 &kp N9 &kp N0 &kp MINUS &kp EQUAL &kp BSLH &kp GRAV
 &kp TAB  &kp Q  &kp W  &kp E  &kp R  &kp T  &kp Y  &kp U  &kp I  &kp O  &kp P  &kp LBKT  &kp RBKT &kp BSPC
 &kp LCTRL &kp A  &kp S  &kp D  &kp F  &kp G  &kp H  &kp J  &kp K  &kp L  &kp SEMI &kp SQT         &kp RET
 &kp LSHFT   &kp Z  &kp X  &kp C  &kp V  &kp B  &kp N  &kp M  &kp COMMA &kp DOT &kp FSLH &kp RSHFT &mo _FN
-        &kp LGUI &kp LALT        &trans    &kp SPACE                              &kp RALT &kp RGUI
-                              /* Dip-SW */
+        &kp LGUI &kp LALT                 &kp SPACE                              &kp RALT &kp RGUI
             >;
         };
 
         fn_layer {
+//        [DIP-SW]
 // ------------------------------------------------------------------------------------------
 // | --- | F1  | F2  | F3  | F4  | F5  | F6  | F7  | F8  | F9  | F10 | F11 | F12 | INS | DEL |
 // | ---  | --- |  UP | --- | --- | --- | --- | --- |PSCRN|SLCK |PAUSE| UP  | --- | [CLEAR]  |
@@ -58,12 +65,14 @@
 //       | --- |  ---   |            ---                         |  ---   | --- |
 //       ------------------------------------------------------------------------
             bindings = <
+/* DIP-SW */
+&trans
+
 &trans  &kp F1       &kp F2       &kp F3     &kp F4 &kp F5 &kp F6          &kp F7        &kp F8    &kp F9    &kp F10         &kp F11 &kp F12 &kp INS &kp DEL
 &kp CAPS &trans       &trans       &trans     &trans &trans &trans          &trans        &kp PSCRN &kp SLCK  &kp PAUSE_BREAK &kp UP  &trans &kp KP_CLEAR
 &trans    &kp C_VOL_DN &kp C_VOL_UP &kp C_MUTE &trans &trans &kp KP_MULTIPLY &kp KP_DIVIDE &kp HOME  &kp PG_UP  &kp LEFT       &kp RIGHT     &kp KP_ENTER
 &trans      &trans       &trans      &trans      &trans &trans &kp KP_PLUS     &kp KP_MINUS  &kp END   &kp PG_DN &kp DOWN                    &trans &trans
-        &trans   &trans          &trans              &trans                                                       &trans   &trans
-                              /* Dip-SW */
+        &trans   &trans                              &trans                                                       &trans   &trans
             >;
         };
     };

@@ -13,7 +13,7 @@
 #else
 
 /*
- * selec option
+ * select option
  *  0=deselect
  *  1=select
  */
