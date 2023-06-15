@@ -40,8 +40,6 @@
     kscan0: kscan {
         compatible = "zmk,kscan-gpio-matrix";
         diode-direction = "row2col";
-	    pinctrl-0 = <&tim1_ch2n_pb0 &tim1_ch3n_pb1>;
-	    pinctrl-names = "default";
         row-gpios
         = <&gpiob 4 GPIO_ACTIVE_HIGH>
         , <&gpiob 3 GPIO_ACTIVE_HIGH>
