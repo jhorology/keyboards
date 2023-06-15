@@ -1,0 +1,16 @@
+diff --git a/app/drivers/kscan/kscan_gpio_matrix.c b/app/drivers/kscan/kscan_gpio_matrix.c
+index b8e72044..877f1dc0 100644
+--- a/app/drivers/kscan/kscan_gpio_matrix.c
++++ b/app/drivers/kscan/kscan_gpio_matrix.c
+@@ -149,7 +149,11 @@ static int kscan_matrix_interrupt_configure(const struct device *dev, const gpio
+ 
+ #if USE_INTERRUPTS
+ static int kscan_matrix_interrupt_enable(const struct device *dev) {
++#if IS_ENABLED(CONFIG_GPIO_STM32)
++    int err = kscan_matrix_interrupt_configure(dev, GPIO_INT_EDGE_TO_ACTIVE);
++#else
+     int err = kscan_matrix_interrupt_configure(dev, GPIO_INT_LEVEL_ACTIVE);
++#endif
+     if (err) {
+         return err;
+     }

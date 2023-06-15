@@ -21,10 +21,6 @@ CONFIG_USB_SELF_POWERED=n
 
 # use polling instead of intrrupt for kscan
 # some gpio input pins are exists on same EXTI line.
-#
-# TODO
-#  strange...if DIP-SW is on, it works with interrupt.
-#
 CONFIG_ZMK_KSCAN_MATRIX_POLLING=y
 
 # Enable USB CDC ACM logging for debugging

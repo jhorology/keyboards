@@ -22,7 +22,7 @@ CONFIG_USE_DT_CODE_PARTITION=y
 # default: 8192
 CONFIG_HEAP_MEM_POOL_SIZE=7168
 
-# dosen't work with interrupt ?
+# stm32 dosen't support level trigger interrupt
 CONFIG_ZMK_KSCAN_MATRIX_POLLING=y
 
 CONFIG_USB_SELF_POWERED=n
