@@ -21,6 +21,7 @@ CONFIG_PINCTRL=y
 CONFIG_USE_DT_CODE_PARTITION=y
 
 # use polling instead of interrupt
+# stm32 dosen't support level trigger interrupt
 CONFIG_ZMK_KSCAN_MATRIX_POLLING=y
 
 # Output UF2
