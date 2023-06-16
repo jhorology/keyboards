@@ -243,7 +243,7 @@ setup_docker() {
 }
 
 docker_exec() {
-  local container_id_state=$(docker ps -q -a -f name=$CONTAINER_NAME --format "{{.ID}}:{{.State}}")
+  local container_id_state=$(docker ps -a -f name=$CONTAINER_NAME --format "{{.ID}}:{{.State}}")
   # create container
   if [[ -z $container_id_state ]]; then
     docker run -dit --init \
@@ -333,7 +333,12 @@ setup() {
   if [[ ! -d "${ZEPHYR_SDK_INSTALL_DIR}/zephyr-sdk-${ZEPHYR_SDK_VERSION}" ]]; then
     mkdir -p "$ZEPHYR_SDK_INSTALL_DIR"
     cd "$ZEPHYR_SDK_INSTALL_DIR"
-    sdk_minimal_file_name="zephyr-sdk-${ZEPHYR_SDK_VERSION}_${HOST_OS}-${HOST_ARCHITECTURE}_minimal.tar.gz"
+    sdk_minimal_file_name="zephyr-sdk-${ZEPHYR_SDK_VERSION}_${HOST_OS}-${HOST_ARCHITECTURE}_minimal.tar"
+    if [[ ZEPHYR_SDK_VERSION > "0.15.2" ]] ;then
+      sdk_minimal_file_name=${sdk_minimal_file_name}.xz
+    else
+      sdk_minimal_file_name=${sdk_minimal_file_name}.gz
+    fi
     wget "https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v${ZEPHYR_SDK_VERSION}/${sdk_minimal_file_name}"
     tar xvf ${sdk_minimal_file_name}
     rm ${sdk_minimal_file_name}
