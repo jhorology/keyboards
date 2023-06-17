@@ -5,6 +5,7 @@
 #include <dt-bindings/zmk/keys.h>
 
 / {
+
   behaviors {
     // single -> LALT
     // double -> APPLE_FNn + MO(1)

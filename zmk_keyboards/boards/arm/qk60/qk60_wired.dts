@@ -6,6 +6,7 @@
 /dts-v1/;
 
 #include <st/f1/stm32f103Xb.dtsi>
+#include <st/f1/stm32f103c(8-b)tx-pinctrl.dtsi>
 #include <dt-bindings/zmk/matrix_transform.h>
 
 #if __has_include(<transform/qk60_wired-transform-option.h>)
@@ -179,6 +180,8 @@
 
 &usb {
     status = "okay";
+    pinctrl-0 = <&tim2_ch1_remap1_pwm_pa15>;
+    pinctrl-names = "default";
     cdc_acm_uart: cdc_acm_uart {
         compatible = "zephyr,cdc-acm-uart";
     };

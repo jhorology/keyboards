@@ -139,9 +139,12 @@
     };
 };
 
-/* TODO actual flash size? */
 &flash0 {
-    reg = <0x10000000 DT_SIZE_M(16)>;
+    /*
+     * Winbond W25Q16 16Mbit 2Mbytes
+     * jecd-id EF,40,15
+     */
+    reg = <0x10000000 DT_SIZE_M(2)>;
 
     partitions {
         compatible = "fixed-partitions";
@@ -161,7 +164,7 @@
          */
         code_partition: partition@100 {
             label = "code";
-            reg = <0x100 (DT_SIZE_M(16) - 0x100)>;
+            reg = <0x100 (DT_SIZE_M(2) - 0x100)>;
             read-only;
         };
     };
@@ -174,7 +177,6 @@
         compatible = "zephyr,cdc-acm-uart";
     };
 };
-
 
 &gpio0 {
     status = "okay";

@@ -1,0 +1,3 @@
+add_subdirectory_ifdef(CONFIG_BOOTSEL_VIA_DOUBLE_RESET bootsel_via_double_reset)
+add_subdirectory_ifdef(CONFIG_BOOTSEL_STM32 bootsel_stm32)
+add_subdirectory_ifdef(CONFIG_BOOTSEL_UF2_STM32F103 bootsel_uf2_stm32f103)
