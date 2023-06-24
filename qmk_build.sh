@@ -239,15 +239,13 @@ pip_install() {
   pip3 install qmk
   pip3 install -r https://raw.githubusercontent.com/qmk/qmk_firmware/master/requirements.txt
   pip3 install -r https://raw.githubusercontent.com/qmk/qmk_firmware/master/requirements-dev.txt
+  pip3 install pip-review
   pip3 cache purge
 }
 
 pip_upgrade() {
   pip_install
-  cd $PROJECT
-  pip3 --disable-pip-version-check list --outdated --format=json | \
-    python3 -c "import json, sys; print('\n'.join([x['name'] for x in json.load(sys.stdin)]))" | \
-    xargs -n1 pip install -U
+  pip-review -a
   pip3 cache purge
 }
 

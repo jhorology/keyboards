@@ -314,16 +314,14 @@ pip_install() {
   pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v$ZEPHYR_VERSION/scripts/requirements-build-test.txt
   pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v$ZEPHYR_VERSION/scripts/requirements-run-test.txt
   pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v$ZEPHYR_VERSION/scripts/requirements-doc.txt
+  pip3 install pip-review
   pip3 install doc2dash
   pip3 cache purge
 }
 
 pip_upgrade() {
   pip_install
-  cd $PROJECT
-  pip3 --disable-pip-version-check list --outdated --format=json | \
-    python3 -c "import json, sys; print('\n'.join([x['name'] for x in json.load(sys.stdin)]))" | \
-    xargs -n1 pip install -U
+  pip-review -a
   pip3 cache purge
 }
 
