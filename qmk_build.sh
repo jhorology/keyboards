@@ -413,7 +413,7 @@ build_firmware() {
   if (( $#with_flash )) && [[ $ext == "uf2" ]]; then
     volume_name=$kbd[4]
     echo -n "waiting for DFU volume to be mounted..."
-    for ((i=0; i < 20; i+=1)); do
+    while true; do
       if ${os}_uf2_flash $firmware $volume_name; then
         echo "flashing firmware finished successfully."
         break

@@ -20,9 +20,9 @@
 #define _DIP_SW &mo _WIN_BASE_LAYER
 
 // select mac base layer
-#define _MAC &to _MAC_BASE_LAYER
-// select win base layer
-#define _WIN &to _WIN_BASE_LAYER
+// normal: mac
+// +shift: win
+#define _MAC_WIN &mac_win
 
 // Left Opt on mac base layer for HHKB layout
 // single: Left Option
@@ -115,6 +115,7 @@
 #define _FN_M &kp RALT
 #define _FN_BS &kp DEL
 
+// select output
 #define _BT1 &ble 0
 #define _BT2 &ble 1
 #define _BT3 &ble 2
@@ -168,6 +169,13 @@
       label = "OTA_BOOTLOADER";
       type = <0xA8>;
       #binding-cells = <0>;
+    };
+    /omit-if-no-ref/ mac_win: switch_mac_win {
+      compatible = "zmk,behavior-mod-morph";
+      label = "SWITCH_MAC_WIN";
+      #binding-cells = <0>;
+      bindings = <&to _MAC_BASE_LAYER>, <&to _WIN_BASE_LAYER>;
+      mods = <(MOD_LSFT|MOD_RSFT)>;
     };
   };
 

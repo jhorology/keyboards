@@ -502,7 +502,7 @@ macos_uf2_flash() {
 
 fedora_uf2_flash() {
   local firmware=$1
-  local volume_name=$5
+  local volume_name=$2
 
   dfu_drive=$(/mnt/c/Windows/System32/wbem/WMIC.exe logicaldisk get deviceid, volumename | grep $volume_name | awk '{print $1}')
   if [[ ! -z $dfu_drive ]]; then
@@ -522,7 +522,7 @@ flash_uf2_firmware() {
   local volume_name=$5
 
   echo -n "waiting for DFU volume to be mounted..."
-  for ((i=0; i < 20; i+=1)); do
+  while true; do
     if ${os}_uf2_flash $firmware $volume_name; then
       echo "flashing firmware finished successfully."
       break
@@ -539,7 +539,7 @@ flash_bin_firmware() {
   if [[ $os == "fedora" ]]; then
     sudo echo -n
     echo -n "waiting for target DFU device to be connected.."
-    for ((i=0; i < 20; i+=1)); do
+    while true; do
       dfu_device=$($WIN_USBIPD wsl list 2> /dev/null | grep "$hardware_id" || echo -n "")
       if [[ ! -z $dfu_device ]]; then
         if [[ $dfu_device =~ "Not attached" ]]; then
@@ -563,7 +563,7 @@ macos_log_console() {
   local firmware=$1
 
   echo -n "waiting for debug output device to be connected.."
-  for ((i=0; i < 5; i+=1)); do
+  while true; do
     echo -n "."
     sleep 1
     for tty_dev in /dev/tty.usbmodem*(N); do

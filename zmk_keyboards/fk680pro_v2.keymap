@@ -32,7 +32,7 @@
       _W_FN      &kp LALT  _LCMD                   &kp SPACE               _RCMD      &kp RALT  _APP                 &kp C_PREV  &kp C_PP  &kp C_NEXT
       >;
     };
-    hhkb_like_fn_layer {
+    hhkb_fn_layer {
       bindings = <
       &kp ESC   &kp F1   &kp F2   &kp F3   &kp F4  &kp F5   &kp F6           &kp F7         &kp F8     &kp F9     &kp F10          &kp F11    &kp F12  &kp INS       &kp DEL
       &kp CAPS  &kp F16  &kp F17  &kp F18  &trans  &trans   &trans           &trans         &kp PSCRN  &kp SLCK   &kp PAUSE_BREAK  &kp UP     &trans   &kp KP_CLEAR  &trans
@@ -59,13 +59,13 @@
       &trans  &trans  &trans                  _FN_SPC                         &trans  &trans  &trans  &trans   &trans  &trans
       >;
     };
-    misc_settings {
+    setting_layer {
       bindings = <
-      &bootloader  &kp F13  &kp F14  &kp F15  &kp F16  &kp F17  &kp F18  &kp F19  &kp F20  &kp F21  &kp F22  &kp F23  &kp F24  &trans  &sys_reset
-      &trans       &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans  &trans
-      &trans       &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans            &trans  &trans
-      &trans       _MAC     _WIN     &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans            &trans   &trans  &trans
-      &trans       &trans   &trans                     &trans                              &trans   &trans   &trans   &trans   &trans  &trans
+      &bootloader  &kp F13   &kp F14  &kp F15  &kp F16  &kp F17  &kp F18  &kp F19  &kp F20  &kp F21  &kp F22  &kp F23  &kp F24  &trans  &sys_reset
+      &trans       &trans    &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans  &trans
+      &trans       &trans    &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans            &trans  &trans
+      &trans       _MAC_WIN  &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans   &trans            &trans   &trans  &trans
+      &trans       &trans    &trans                     &trans                              &trans   &trans   &trans   &trans   &trans  &trans
       >;
     };
   };
