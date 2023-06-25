@@ -180,7 +180,7 @@
 
 &usb {
     status = "okay";
-    pinctrl-0 = <&tim2_ch1_remap1_pwm_pa15>;
+    pinctrl-0 = <&usb_dm_pa11 &usb_dp_pa12>;
     pinctrl-names = "default";
     cdc_acm_uart: cdc_acm_uart {
         compatible = "zephyr,cdc-acm-uart";
