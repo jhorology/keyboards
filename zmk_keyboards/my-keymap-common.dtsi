@@ -116,10 +116,10 @@
 #define _FN_BS &kp DEL
 
 #define _BT1 &ble 0
-#define _BT2 &ble 0
-#define _BT3 &ble 0
-#define _BT4 &ble 0
-#define _BT5 &ble 0
+#define _BT2 &ble 1
+#define _BT3 &ble 2
+#define _BT4 &ble 3
+#define _BT5 &ble 4
 #define _BT_CLR &bt BT_CLR
 #define _USB &out OUT_USB
 
