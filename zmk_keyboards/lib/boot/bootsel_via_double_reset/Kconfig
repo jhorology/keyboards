@@ -1,5 +1,6 @@
 config BOOTSEL_VIA_DOUBLE_RESET
     bool "Enable bootsel via double-tap reset"
+    default y if BOARD_KBDFANS_TOFU60_V2
 
 if BOOTSEL_VIA_DOUBLE_RESET
 

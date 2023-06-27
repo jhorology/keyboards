@@ -52,7 +52,7 @@
       bindings = <
       &trans
 
-      &trans  &kp F1  &kp F2  &kp F3  _SPOTLIGHT _DICTATION  &kp F6  &kp F7  &kp F8  &kp F9  &kp F10  &kp F11  &kp F12  &trans  &kp C_AL_LOCK
+      &trans  &kp F1  &kp F2  &kp F3  _SPOTLIGHT _DICTATION  _DND    &kp F7  &kp F8  &kp F9  &kp F10  &kp F11  &kp F12  &trans  &kp C_AL_LOCK
       &trans  &trans  &trans  &trans  &trans     &trans      &trans  &trans  &trans  &trans  &trans   &trans   &trans           &trans
       &trans  &trans  &trans  &trans  &trans     &trans      &trans  &trans  &trans  &trans  &trans   &trans                    &trans
       &trans  &trans  &trans  &trans  &trans     &trans      &trans  &trans  &trans  &trans  &trans            &trans           &trans

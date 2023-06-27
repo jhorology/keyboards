@@ -1,5 +1,6 @@
 config BOOTSEL_STM32
     bool "Enable bootsel for stm32 SYSTEM_MEMORY bootloader"
+    default y if BOARD_KEYCHRON_Q60
     help
         see details on https://www.st.com/resource/en/application_note/an2606-stm32-microcontroller-system-memory-boot-mode-stmicroelectronics.pdf
 

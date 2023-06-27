@@ -3,7 +3,17 @@
 #include <dt-bindings/zmk/outputs.h>
 #include <dt-bindings/zmk/bt.h>
 
+
+// extra key code
+//--------------------------------------------
+
+// Apple Vendor Top Case - keyboard fn
+#define APPLE_FN (0x00ff0003)
+// System Control - Do not disturb
+#define SC_DND (0x0080009b)
+
 // common layers
+//--------------------------------------------
 
 #define _MAC_BASE_LAYER 0
 #define _WIN_BASE_LAYER 1
@@ -13,6 +23,7 @@
 #define _SETTING_LAYER 5
 
 // key definitions other than kp/trans behavior
+//--------------------------------------------
 
 // keychron DIP SW
 // off: mac base layer
@@ -64,12 +75,17 @@
 #define _APP &ansi_app
 
 // Spotlight key on apple fn Layer
-#define _SPOTLIGHT &fn_c C_AC_SEARCH
+#define _SPOTLIGHT &fn_kp C_AC_SEARCH
 
 // Dictation key on apple fn Layer
-#define _DICTATION &fn_c C_VOICE_COMMAND
+#define _DICTATION &fn_kp C_VOICE_COMMAND
+
+// Do Not Disturb on apple fn Layer
+#define _DND &fn_kp SC_DND
 
 // Emulate fn/globe shortcut keys for windows
+//--------------------------------------------
+
 // F1 : decrease brightness
 // F2 : decrease brightness
 // F3 : mission cntrol
@@ -116,6 +132,8 @@
 #define _FN_BS &kp DEL
 
 // select output
+//--------------------------------------------
+
 #define _BT1 &ble 0
 #define _BT2 &ble 1
 #define _BT3 &ble 2
@@ -123,6 +141,9 @@
 #define _BT5 &ble 4
 #define _BT_CLR &bt BT_CLR
 #define _USB &out OUT_USB
+
+// macro / behavior
+//--------------------------------------------
 
 / {
   behaviors {
@@ -196,7 +217,7 @@
       , <&macro_release &bt BT_SEL MACRO_PLACEHOLDER>
       ;
     };
-    // fn/globe key with momentaly apple fn layer
+    // fn_globe key with momentaly apple fn layer
     /omit-if-no-ref/ fn_globe: fn_globe {
       label = "FN_GLOBE_MO_FN_LAYER";
       compatible = "zmk,behavior-macro";
@@ -207,10 +228,10 @@
       , <&macro_release &mo _APPLE_FN_LAYER &kp APPLE_FN>
       ;
     };
-    // send cnsumer key with temporarily releasing fn/globe
-    //  *some consumer keys dosen't work with fn/globe key
+    // send key with temporarily releasing fn/globe
+    //  *some consumer or system control keys dosen't work with fn/globe key
     // param_1: consumer keycode
-    /omit-if-no-ref/ fn_c: fn_c {
+    /omit-if-no-ref/ fn_kp: fn_kp {
       label = "SEND_CONSUMER_KEY_WHEN_FN_GLOBE_IS_HELD";
       compatible = "zmk,behavior-macro-one-param";
       #binding-cells = <1>;
