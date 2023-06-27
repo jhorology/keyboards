@@ -15,11 +15,12 @@
  *
  *  TODO 16bit usage/usage page is not supported
  */
-#define _USAGE_PAGE(idx) ZMK_HID_USAGE_PAGE(CONFIG_ZMK_HID_EXTRA_KEY_##idx)
+
+#define _USAGE_PAGE(idx) (CONFIG_ZMK_HID_EXTRA_KEY_##idx >> 16)
 #define _USAGE_ID(idx) ZMK_HID_USAGE_ID(CONFIG_ZMK_HID_EXTRA_KEY_##idx)
-#define _C_USAGE_PAGE(idx) (CONFIG_ZMK_HID_EXTRA_KEY_##idx >> 24)
+#define _C_USAGE_PAGE(idx) (_USAGE_PAGE(idx) >> 8)
 #define _C_USAGE_ID(idx) (_USAGE_PAGE(idx) & 0xff)
-#define _HID_USAGE_PAGE(idx) HID_USAGE_PAGE(_USAGE_PAGE(idx))
+#define _HID_USAGE_PAGE(idx) HID_USAGE_PAGE(_C_USAGE_ID(idx))
 #define _HID_USAGE(idx) HID_USAGE(_USAGE_ID(idx))
 #define _HID_C_USAGE_PAGE(idx) HID_USAGE_PAGE(_C_USAGE_PAGE(idx))
 #define _HID_C_USAGE(idx) HID_USAGE(_C_USAGE_ID(idx))
