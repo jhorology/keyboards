@@ -16,19 +16,25 @@
  *  TODO 16bit usage/usage page is not supported
  */
 
+#if !CONFIG_ZMK_HID_EXTRA_KEY_0
+#  error CONFIG_ZMK_HID_EXTRA_KEY_0 msut be defined.
+#endif
+
+// key definition
 #define _USAGE_PAGE(idx) (CONFIG_ZMK_HID_EXTRA_KEY_##idx >> 16)
 #define _USAGE_ID(idx) ZMK_HID_USAGE_ID(CONFIG_ZMK_HID_EXTRA_KEY_##idx)
+// Page/Usage for Colletion(Logical)
 #define _C_USAGE_PAGE(idx) (_USAGE_PAGE(idx) >> 8)
 #define _C_USAGE_ID(idx) (_USAGE_PAGE(idx) & 0xff)
+// report descriptor
 #define _HID_USAGE_PAGE(idx) HID_USAGE_PAGE(_C_USAGE_ID(idx))
 #define _HID_USAGE(idx) HID_USAGE(_USAGE_ID(idx))
+// report descriptor for Colletion(Logical)
 #define _HID_C_USAGE_PAGE(idx) HID_USAGE_PAGE(_C_USAGE_PAGE(idx))
 #define _HID_C_USAGE(idx) HID_USAGE(_C_USAGE_ID(idx))
 // key defintion -> keycode
 #define _KC(idx) (CONFIG_ZMK_HID_EXTRA_KEY_##idx & 0x00ffffff)
-#if !CONFIG_ZMK_HID_EXTRA_KEY_0
-#  error CONFIG_ZMK_HID_EXTRA_KEY_0 msut be defined.
-#endif
+#define _KC_USAGE_PAGE(idx) (_KC(idx) >> 16)
 
 /* TODO cleanup */
 
@@ -306,27 +312,27 @@ static inline int zmk_hid_extra_keys_find(uint32_t usage) {
 }
 
 static inline bool zmk_hid_extra_keys_contains_usage_page(uint16_t usage_page) {
-  return (_USAGE_PAGE(0) == usage_page)
+  return (_KC_USAGE_PAGE(0) == usage_page)
 #if _NUM_EXTRA_KEYS > 1
-         || (_USAGE_PAGE(1) == usage_page)
+         || (_KC_USAGE_PAGE(1) == usage_page)
 #endif
 #if _NUM_EXTRA_KEYS > 2
-         || (_USAGE_PAGE(2) == usage_page)
+         || (_KC_USAGE_PAGE(2) == usage_page)
 #endif
 #if _NUM_EXTRA_KEYS > 3
-         || (_USAGE_PAGE(3) == usage_page)
+         || (_KC_USAGE_PAGE(3) == usage_page)
 #endif
 #if _NUM_EXTRA_KEYS > 4
-         || (_USAGE_PAGE(4) == usage_page)
+         || (_KC_USAGE_PAGE(4) == usage_page)
 #endif
 #if _NUM_EXTRA_KEYS > 5
-         || (_USAGE_PAGE(5) == usage_page)
+         || (_KC_USAGE_PAGE(5) == usage_page)
 #endif
 #if _NUM_EXTRA_KEYS > 6
-         || (_USAGE_PAGE(6) == usage_page)
+         || (_KC_USAGE_PAGE(6) == usage_page)
 #endif
 #if _NUM_EXTRA_KEYS > 7
-         || (_USAGE_PAGE(7) == usage_page)
+         || (_KC_USAGE_PAGE(7) == usage_page)
 #endif
     ;
 }
