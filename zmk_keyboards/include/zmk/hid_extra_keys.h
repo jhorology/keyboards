@@ -1,16 +1,17 @@
 #pragma once
 
 #include <dt-bindings/zmk/hid_usage_pages.h>
+#include <zephyr/sys/util_macro.h>
 #include <zephyr/usb/class/usb_hid.h>
 
 /*
  * CONFIG_ZMK_EXTRA_KEY_n (n=0...7)
- *  value : 0xaaabbbbcccccccc
- *   aaaa: usage page for collection
- *   bbbb: usage for collection if aa != 0
- *         usage page if aa == 0
- *   cccccccc: usage id
-
+ *  value : 0xaabbcccc
+ *   aa: usage page for collection
+ *   bb: usage for collection if aa != 0
+ *       usage page if aa == 0
+ *   cccc: usage id
+ *
  *  keycode in keymap -> 0x00bbcccc
  *
  *  TODO 16bit usage/usage page is not supported
@@ -37,7 +38,7 @@
 #define _KC_USAGE_PAGE(idx) (_KC(idx) >> 16)
 
 /* TODO cleanup */
-
+#define _PAGE_START_0 1
 #define _NUM_EXTRA_KEYS 1
 #if CONFIG_ZMK_HID_EXTRA_KEY_1
 #  undef _NUM_EXTRA_KEYS
@@ -53,20 +54,21 @@
 #        define _NUM_EXTRA_KEYS 5
 #        if CONFIG_ZMK_HID_EXTRA_KEY_5
 #          undef _NUM_EXTRA_KEYS
-#          efine _NUM_EXTRA_KEYS 6
+#          define _NUM_EXTRA_KEYS 6
 #          if CONFIG_ZMK_HID_EXTRA_KEY_6
 #            undef _NUM_EXTRA_KEYS
 #            define _NUM_EXTRA_KEYS 7
 #            if CONFIG_ZMK_HID_EXTRA_KEY_7
 #              undef _NUM_EXTRA_KEYS
 #              define _NUM_EXTRA_KEYS 8
-#            endif
-#          endif
-#        endif
-#      endif
-#    endif
-#  endif
-#endif
+#              define _PAGE_END_7 1
+#            endif /* CONFIG_ZMK_HID_EXTRA_KEY_7 */
+#          endif   /* CONFIG_ZMK_HID_EXTRA_KEY_6 */
+#        endif     /* CONFIG_ZMK_HID_EXTRA_KEY_5 */
+#      endif       /* CONFIG_ZMK_HID_EXTRA_KEY_4 */
+#    endif         /* CONFIG_ZMK_HID_EXTRA_KEY_3 */
+#  endif           /* CONFIG_ZMK_HID_EXTRA_KEY_2 */
+#endif             /* CONFIG_ZMK_HID_EXTRA_KEY_1 */
 
 #define _START_COLLECTION(idx) \
   _HID_C_USAGE_PAGE(idx), _HID_C_USAGE(idx), HID_COLLECTION(HID_COLLECTION_LOGICAL), _HID_USAGE(idx)
@@ -285,54 +287,14 @@
 #  define HID_EXTRA_KEYS_DESC _HID_EXTRA_KEYS
 #endif
 
+#define _MATCH_USAGE(idx, usage) \
+  if (_KC(idx) == usage) return idx
 static inline int zmk_hid_extra_keys_find(uint32_t usage) {
-  if (_KC(0) == usage) return 0;
-#if _NUM_EXTRA_KEYS > 1
-  if (_KC(1) == usage) return 1;
-#endif
-#if _NUM_EXTRA_KEYS > 2
-  if (_KC(2) == usage) return 2;
-#endif
-#if _NUM_EXTRA_KEYS > 3
-  if (_KC(3) == usage) return 3;
-#endif
-#if _NUM_EXTRA_KEYS > 4
-  if (_KC(4) == usage) return 4;
-#endif
-#if _NUM_EXTRA_KEYS > 5
-  if (_KC(5) == usage) return 5;
-#endif
-#if _NUM_EXTRA_KEYS > 6
-  if (_KC(6) == usage) return 6;
-#endif
-#if _NUM_EXTRA_KEYS > 7
-  if (_KC(7) == usage) return 7;
-#endif
+  LISTIFY(_NUM_EXTRA_KEYS, _MATCH_USAGE, (;), usage);
   return -1;
 }
 
+#define _ANY_USAGE_PAGE(idx, usage_page) (_KC_USAGE_PAGE(idx) == usage_page)
 static inline bool zmk_hid_extra_keys_contains_usage_page(uint16_t usage_page) {
-  return (_KC_USAGE_PAGE(0) == usage_page)
-#if _NUM_EXTRA_KEYS > 1
-         || (_KC_USAGE_PAGE(1) == usage_page)
-#endif
-#if _NUM_EXTRA_KEYS > 2
-         || (_KC_USAGE_PAGE(2) == usage_page)
-#endif
-#if _NUM_EXTRA_KEYS > 3
-         || (_KC_USAGE_PAGE(3) == usage_page)
-#endif
-#if _NUM_EXTRA_KEYS > 4
-         || (_KC_USAGE_PAGE(4) == usage_page)
-#endif
-#if _NUM_EXTRA_KEYS > 5
-         || (_KC_USAGE_PAGE(5) == usage_page)
-#endif
-#if _NUM_EXTRA_KEYS > 6
-         || (_KC_USAGE_PAGE(6) == usage_page)
-#endif
-#if _NUM_EXTRA_KEYS > 7
-         || (_KC_USAGE_PAGE(7) == usage_page)
-#endif
-    ;
+  return LISTIFY(_NUM_EXTRA_KEYS, _ANY_USAGE_PAGE, (||), usage_page);
 }
