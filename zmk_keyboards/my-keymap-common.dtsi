@@ -69,7 +69,7 @@
 // Fn/Globe key on win base layer
 #define _W_FN &mo _WIN_FN_LAYER
 
-// APP key for ANSI layout
+// APP key for ANSI/TSANGAN layout
 // single: APP
 // double: Momentaly setting layer
 #define _APP &ansi_app
@@ -134,11 +134,11 @@
 // select output
 //--------------------------------------------
 
-#define _BT1 &ble 0
-#define _BT2 &ble 1
-#define _BT3 &ble 2
-#define _BT4 &ble 3
-#define _BT5 &ble 4
+#define _BT1 &ble 0 _MAC_BASE_LAYER
+#define _BT2 &ble 1 _MAC_BASE_LAYER
+#define _BT3 &ble 2 _WIN_BASE_LAYER
+#define _BT4 &ble 3 _MAC_BASE_LAYER
+#define _BT5 &ble 4 _WIN_BASE_LAYER
 #define _BT_CLR &bt BT_CLR
 #define _USB &out OUT_USB
 
@@ -203,18 +203,23 @@
   macros {
     // Select BT profile & output
     // param_1: index number(0-4) of bt profile
+    // param_2: base layer
     /omit-if-no-ref/ ble: ble {
       label = "SELECT_BT_PROFILE_OUTPUT";
-      compatible = "zmk,behavior-macro-one-param";
-      #binding-cells = <1>;
+      compatible = "zmk,behavior-macro-two-param";
+      #binding-cells = <2>;
       bindings
       = <&macro_press &out OUT_BLE>
       , <&macro_param_1to2>
       , <&macro_press &bt BT_SEL MACRO_PLACEHOLDER>
+      , <&macro_param_2to1>
+      , <&macro_press &to MACRO_PLACEHOLDER>
       , <&macro_pause_for_release>
       , <&macro_release &out OUT_BLE>
       , <&macro_param_1to2>
       , <&macro_release &bt BT_SEL MACRO_PLACEHOLDER>
+      , <&macro_param_2to1>
+      , <&macro_release &to MACRO_PLACEHOLDER>
       ;
     };
     // fn_globe key with momentaly apple fn layer
@@ -230,7 +235,7 @@
     };
     // send key with temporarily releasing fn/globe
     //  *some consumer or system control keys dosen't work with fn/globe key
-    // param_1: consumer keycode
+    // param_1: keycode
     /omit-if-no-ref/ fn_kp: fn_kp {
       label = "SEND_CONSUMER_KEY_WHEN_FN_GLOBE_IS_HELD";
       compatible = "zmk,behavior-macro-one-param";

@@ -14,7 +14,41 @@
  *
  *  keycode in keymap -> 0x00bbcccc
  *
- *  TODO 16bit usage/usage page is not supported
+ *  TODO 16bit usage/usage page is not supported.
+ *
+ * Example:
+ *
+ *   CONFIG_EXTRA_KEY_0=0x00ff0003
+ *   CONFIG_EXTRA_KEY_1=0x00ff0004
+ *   CONFIG_EXTRA_KEY_2=0x0190009b
+ *   CONFIG_EXTRA_KEY_3=0x0190009c
+ *   CONFIG_EXTRA_KEY_4=0x0
+ *   CONFIG_EXTRA_KEY_5=0x0
+ *   CONFIG_EXTRA_KEY_6=0x0
+ *   CONFIG_EXTRA_KEY_7=0x0
+ *
+ * above definitions expand into report descriptor as a subsititute for reserved 8bit input part:
+ *
+ *   0x05, 0xFF,        //   Usage Page (Reserved 0xFF)
+ *   0x09, 0x03,        //   Usage (0x03)
+ *   0x09, 0x03,        //   Usage (0x04)
+ *   0x75, 0x01,        //   Report Size (1)
+ *   0x95, 0x01,        //   Report Count (2)
+ *   0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+ *   0x05, 0x01,        //   Usage Page (Generic Desktop Ctrls)
+ *   0x09, 0x80,        //   Usage (Sys Control)
+ *   0xA1, 0x02,        //   Collection (Logical)
+ *   0x09, 0x9B,        //     Usage (0x9B)
+ *   0x09, 0x9B,        //     Usage (0x9C)
+ *   0x15, 0x00,        //     Logical Minimum (0)
+ *   0x25, 0x01,        //     Logical Maximum (1)
+ *   0x75, 0x01,        //     Report Size (1)
+ *   0x95, 0x01,        //     Report Count (2)
+ *   0x81, 0x02,        //     Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+ *   0xC0,              //   End Collection
+ *   0x75, 0x06,        //   Report Size (4)
+ *   0x95, 0x01,        //   Report Count (1)
+ *   0x81, 0x03,        //   Input (Const,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
  */
 
 #if !CONFIG_ZMK_HID_EXTRA_KEY_0
@@ -24,21 +58,24 @@
 // key definition
 #define _USAGE_PAGE(idx) (CONFIG_ZMK_HID_EXTRA_KEY_##idx >> 16)
 #define _USAGE_ID(idx) ZMK_HID_USAGE_ID(CONFIG_ZMK_HID_EXTRA_KEY_##idx)
-// Page/Usage for Colletion(Logical)
+// Usage Page for Colletion(Logical)
 #define _C_USAGE_PAGE(idx) (_USAGE_PAGE(idx) >> 8)
+// Usage for Colletion(Logical)
 #define _C_USAGE_ID(idx) (_USAGE_PAGE(idx) & 0xff)
-// report descriptor
+// USAGE_PAGE descriptor
 #define _HID_USAGE_PAGE(idx) HID_USAGE_PAGE(_C_USAGE_ID(idx))
+// USAGE descriptor
 #define _HID_USAGE(idx) HID_USAGE(_USAGE_ID(idx))
-// report descriptor for Colletion(Logical)
+// USAGE_PAGE descriptor for Colletion(Logical)
 #define _HID_C_USAGE_PAGE(idx) HID_USAGE_PAGE(_C_USAGE_PAGE(idx))
+// USAGE descriptor for Colletion(Logical)
 #define _HID_C_USAGE(idx) HID_USAGE(_C_USAGE_ID(idx))
-// key defintion -> keycode
-#define _KC(idx) (CONFIG_ZMK_HID_EXTRA_KEY_##idx & 0x00ffffff)
-#define _KC_USAGE_PAGE(idx) (_KC(idx) >> 16)
+// keycode
+#define _EXTRA_KEY_CODE(idx) (CONFIG_ZMK_HID_EXTRA_KEY_##idx & 0x00ffffff)
+#define _EXTRA_KEY_USAGE_PAGE(idx) (_EXTRA_KEY_CODE(idx) >> 16)
 
 /* TODO cleanup */
-#define _PAGE_START_0 1
+
 #define _NUM_EXTRA_KEYS 1
 #if CONFIG_ZMK_HID_EXTRA_KEY_1
 #  undef _NUM_EXTRA_KEYS
@@ -61,14 +98,13 @@
 #            if CONFIG_ZMK_HID_EXTRA_KEY_7
 #              undef _NUM_EXTRA_KEYS
 #              define _NUM_EXTRA_KEYS 8
-#              define _PAGE_END_7 1
-#            endif /* CONFIG_ZMK_HID_EXTRA_KEY_7 */
-#          endif   /* CONFIG_ZMK_HID_EXTRA_KEY_6 */
-#        endif     /* CONFIG_ZMK_HID_EXTRA_KEY_5 */
-#      endif       /* CONFIG_ZMK_HID_EXTRA_KEY_4 */
-#    endif         /* CONFIG_ZMK_HID_EXTRA_KEY_3 */
-#  endif           /* CONFIG_ZMK_HID_EXTRA_KEY_2 */
-#endif             /* CONFIG_ZMK_HID_EXTRA_KEY_1 */
+#            endif  // CONFIG_ZMK_HID_EXTRA_KEY_7
+#          endif    // CONFIG_ZMK_HID_EXTRA_KEY_6
+#        endif      // CONFIG_ZMK_HID_EXTRA_KEY_5
+#      endif        // CONFIG_ZMK_HID_EXTRA_KEY_4
+#    endif          // CONFIG_ZMK_HID_EXTRA_KEY_3
+#  endif            // CONFIG_ZMK_HID_EXTRA_KEY_2
+#endif              // CONFIG_ZMK_HID_EXTRA_KEY_1
 
 #define _START_COLLECTION(idx) \
   _HID_C_USAGE_PAGE(idx), _HID_C_USAGE(idx), HID_COLLECTION(HID_COLLECTION_LOGICAL), _HID_USAGE(idx)
@@ -287,14 +323,14 @@
 #  define HID_EXTRA_KEYS_DESC _HID_EXTRA_KEYS
 #endif
 
-#define _MATCH_USAGE(idx, usage) \
-  if (_KC(idx) == usage) return idx
-static inline int zmk_hid_extra_keys_find(uint32_t usage) {
-  LISTIFY(_NUM_EXTRA_KEYS, _MATCH_USAGE, (;), usage);
+#define _EXTRA_KEY_MATCH_CODE(idx, keycode) \
+  if (_EXTRA_KEY_CODE(idx) == keycode) return idx
+static inline int zmk_hid_extra_keys_find(uint32_t keycode) {
+  LISTIFY(_NUM_EXTRA_KEYS, _EXTRA_KEY_MATCH_CODE, (;), keycode);
   return -1;
 }
 
-#define _ANY_USAGE_PAGE(idx, usage_page) (_KC_USAGE_PAGE(idx) == usage_page)
+#define _EXTRA_KEY_ANY_USAGE_PAGE(idx, usage_page) (_EXTRA_KEY_USAGE_PAGE(idx) == usage_page)
 static inline bool zmk_hid_extra_keys_contains_usage_page(uint16_t usage_page) {
-  return LISTIFY(_NUM_EXTRA_KEYS, _ANY_USAGE_PAGE, (||), usage_page);
+  return LISTIFY(_NUM_EXTRA_KEYS, _EXTRA_KEY_ANY_USAGE_PAGE, (||), usage_page);
 }
