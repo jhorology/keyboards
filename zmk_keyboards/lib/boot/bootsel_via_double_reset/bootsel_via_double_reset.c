@@ -1,7 +1,9 @@
 // based on https://github.com/raspberrypi/pico-sdk/tree/master/src/rp2_common/pico_bootsel_via_double_reset
 
 #include <zephyr/init.h>
+#include <zephyr/kernel.h>
 #include <zephyr/linker/section_tags.h>
+#include <zephyr/sys/reboot.h>
 
 static __noinit uint32_t magic;
 

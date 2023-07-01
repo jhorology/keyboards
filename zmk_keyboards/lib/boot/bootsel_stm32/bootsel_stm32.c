@@ -2,6 +2,7 @@
 // TODO tested only on L432
 
 #include <zephyr/arch/arm/aarch32/cortex_m/cmsis.h>
+#include <zephyr/fatal.h>
 #include <zephyr/init.h>
 #include <zephyr/linker/section_tags.h>
 
