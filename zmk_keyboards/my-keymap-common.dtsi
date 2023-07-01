@@ -134,11 +134,11 @@
 // select output
 //--------------------------------------------
 
-#define _BT1 &ble 0 _MAC_BASE_LAYER
-#define _BT2 &ble 1 _MAC_BASE_LAYER
-#define _BT3 &ble 2 _WIN_BASE_LAYER
-#define _BT4 &ble 3 _MAC_BASE_LAYER
-#define _BT5 &ble 4 _WIN_BASE_LAYER
+#define _BT_MAC1 &ble 0 _MAC_BASE_LAYER
+#define _BT_MAC2 &ble 1 _MAC_BASE_LAYER
+#define _BT_WIN1 &ble 2 _WIN_BASE_LAYER
+#define _BT_MAC3 &ble 3 _MAC_BASE_LAYER
+#define _BT_WIN2 &ble 4 _WIN_BASE_LAYER
 #define _BT_CLR &bt BT_CLR
 #define _USB &out OUT_USB
 
