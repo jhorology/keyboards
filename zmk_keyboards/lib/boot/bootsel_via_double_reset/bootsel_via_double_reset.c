@@ -1,13 +1,11 @@
 // based on https://github.com/raspberrypi/pico-sdk/tree/master/src/rp2_common/pico_bootsel_via_double_reset
 
 #include <zephyr/init.h>
-#include <zephyr/sys/reboot.h>
+#include <zephyr/linker/section_tags.h>
 
 static __noinit uint32_t magic;
 
-static int boot_double_tap_check(const struct device *port) {
-  ARG_UNUSED(port);
-
+static int boot_double_tap_check(void) {
   if (magic != CONFIG_BOOTSEL_VIA_DOUBLE_RESET_MAGIC) {
     magic = CONFIG_BOOTSEL_VIA_DOUBLE_RESET_MAGIC;
     k_msleep(CONFIG_BOOTSEL_VIA_DOUBLE_RESET_TIMEOUT_MS);
@@ -18,4 +16,4 @@ static int boot_double_tap_check(const struct device *port) {
   return 0;
 }
 
-SYS_INIT(boot_double_tap_check, POST_KERNEL, 0);
+SYS_INIT(boot_double_tap_check, POST_KERNEL, CONFIG_BOOTSEL_VIA_DOUBLE_RESET_INIT_PRIORITY);

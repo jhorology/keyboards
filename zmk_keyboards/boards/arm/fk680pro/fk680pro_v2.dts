@@ -169,7 +169,7 @@
     status = "okay";
     pwm2: pwm {
         status = "okay";
-        pinctrl-0 = <&tim2_ch1_remap1_pwm_pa15>;
+        pinctrl-0 = <&tim2_ch1_remap1_pwm_in_pa15>;
         pinctrl-names = "default";
     };
 };

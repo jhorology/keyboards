@@ -4,6 +4,10 @@ config BOOTSEL_VIA_DOUBLE_RESET
 
 if BOOTSEL_VIA_DOUBLE_RESET
 
+config BOOTSEL_VIA_DOUBLE_RESET_INIT_PRIORITY
+    int "POST_KERNEL Init Priority"
+    default 0
+
 config BOOTSEL_VIA_DOUBLE_RESET_TIMEOUT_MS
     int "Window(milliseconds) of opportunity for a second press of a reset button to enter BOOTSEL mode"
     default 200

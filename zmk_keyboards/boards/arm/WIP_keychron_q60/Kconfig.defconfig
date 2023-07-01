@@ -6,6 +6,10 @@ if BOARD_KEYCHRON_Q60
 config ZMK_KEYBOARD_NAME
     default "Keychron Q60"
 
+config SPI_STM32_INTERRUPT
+	default y
+	depends on SPI
+
 config ZMK_USB
     default y
 

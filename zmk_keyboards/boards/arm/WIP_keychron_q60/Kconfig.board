@@ -3,4 +3,4 @@
 
 config BOARD_KEYCHRON_Q60
     bool "Keychron Q60"
- 	  depends on SOC_STM32L432XX
+    depends on SOC_STM32L432XX

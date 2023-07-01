@@ -6,6 +6,10 @@ config BOOTSEL_STM32
 
 if BOOTSEL_STM32
 
+config BOOTSEL_STM32_INIT_PRIORITY
+    int "PRE_KERNEL_1 Init Priority"
+    default 0
+
 config BOOTSEL_STM32_BOOTLOADER_ADDRESS
     hex "Bootloader address"
     default 0x1FFF0000

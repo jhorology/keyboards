@@ -2,8 +2,8 @@
 // TODO tested only on L432
 
 #include <zephyr/arch/arm/aarch32/cortex_m/cmsis.h>
-#include <zephyr/fatal.h>
 #include <zephyr/init.h>
+#include <zephyr/linker/section_tags.h>
 
 static __noinit uint32_t magic;
 
@@ -16,9 +16,7 @@ void sys_arch_reboot(int type) {
   NVIC_SystemReset();
 }
 
-int bootsel_stm32_check(const struct device *port) {
-  ARG_UNUSED(port);
-
+static int bootsel_stm32_check(void) {
   if (magic == CONFIG_BOOTSEL_STM32_MAGIC) {
     magic = 0;
 #if IS_ENABLED(CONFIG_ARM_MPU)
@@ -32,7 +30,7 @@ int bootsel_stm32_check(const struct device *port) {
   return 0;
 }
 
-SYS_INIT(bootsel_stm32_check, PRE_KERNEL_1, 0);
+SYS_INIT(bootsel_stm32_check, PRE_KERNEL_1, CONFIG_BOOTSEL_STM32_INIT_PRIORITY);
 
 #if IS_ENABLED(CONFIG_BOOTSEL_STM32_ON_FATAL_ERROR)
 void k_sys_fatal_error_handler(unsigned int reason, const z_arch_esf_t *esf) {
