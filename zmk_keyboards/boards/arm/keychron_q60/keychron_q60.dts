@@ -1,7 +1,7 @@
 /*
-* Copyright (c) 2023 The ZMK Contributors
-* SPDX-License-Identifier: MIT
-*/
+ * Copyright (c) 2023 The ZMK Contributors
+ * SPDX-License-Identifier: MIT
+ */
 
 /dts-v1/;
 
@@ -70,6 +70,11 @@
 	status = "okay";
 };
 
+/* this is needed since zephyr 3.4 */
+&clk_hsi48 {
+	status = "okay";
+};
+
 &pll {
 	div-m = <1>;
 	mul-n = <20>;
@@ -124,6 +129,9 @@
 
 &usb {
     status = "okay";
+    /* pinctrl properties are required since zephyr 3.4 */
+	pinctrl-0 = <&usb_dm_pa11 &usb_dp_pa12>;
+	pinctrl-names = "default";
     cdc_acm_uart: cdc_acm_uart {
         compatible = "zephyr,cdc-acm-uart";
     };
