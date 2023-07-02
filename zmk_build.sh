@@ -93,15 +93,16 @@ zparseopts -D -E -F -- \
            -setup-docker=setup_docker \
            -pip-upgrade=pip_upgrade \
            -zephyr-doc2dash=zephyr_doc2dash \
-           {s,-docker-shell}=docker_shell \
+           -docker-shell=docker_shell \
            {d,-with-docker}=with_docker \
            {c,-with-clean}=with_clean \
            {g,-with-compile-db}=with_compile_db \
            {w,-without-update}=without_update \
            {n,-without-patch}=without_patch \
            {f,-with-flash}=with_flash \
-           {l,-with-logging}=with_logging \
            {p,-with-pp}=with_pp \
+           {l,-with-logging}=with_logging \
+           {s,-with-shell}=with_shell \
            -without-emacs=without_emacs \
   || return
 
@@ -121,19 +122,20 @@ help_usage() {
         "    $THIS_SCRIPT:t --setup-docker                  create docker image" \
         "    $THIS_SCRIPT:t --pip-upgrade                   upgrade python packages" \
         "    $THIS_SCRIPT:t --zephyr-doc2dash               generate zephyr docsets" \
-        "    $THIS_SCRIPT:t <-s|--docker-shell>             enter docker container shell" \
+        "    $THIS_SCRIPT:t --docker-shell                  enter docker container shell" \
         "    $THIS_SCRIPT:t [build options...] [TARGETS..]  build firmwares" \
         "" \
         "build options:" \
-        "    -c,--with-clean                  clean up generated files" \
-        "    -d,--with-docker                 build with docker" \
-        "    -g,--with-compile-db             generate compile_command.json" \
-        "    -w,--without-update              don't sync remote repository" \
-        "    -n,--without-patch               don't apply patches" \
-        "    -f,--with-flash                  post build copy firmware to DFU drive" \
-        "    -l,--with-logging                Enable USB logging" \
-        "    -p,--with-pp                     Save preprocessor output" \
-        "    --without-emacs                  don't generate emacs settings when --with-comile-db" \
+        "    -c,--with-clean       clean up generated files" \
+        "    -d,--with-docker      build with docker" \
+        "    -g,--with-compile-db  generate compile_command.json" \
+        "    -w,--without-update   don't sync remote repository" \
+        "    -n,--without-patch    don't apply patches" \
+        "    -f,--with-flash       post build copy firmware to DFU drive" \
+        "    -p,--with-pp          Save preprocessor output" \
+        "    -l,--with-logging     Enable USB logging" \
+        "    -s,--with-shell       Enable Shell" \
+        "    --without-emacs       don't generate emacs settings when --with-comile-db" \
        "" \
         "available targets:"
   for target in ${(k)KEYBOARDS}; do
@@ -408,6 +410,7 @@ build() {
   local board=$1
   local opts=()
   (( $#with_logging )) && opts=($opts "-DCONFIG_ZMK_USB_LOGGING=y")
+  (( $#with_shell )) && opts=($opts "-DCONFIG_SHELL=y")
   (( $#with_compile_db )) && opts=($opts "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON")
   (( $#with_pp )) && opts=($opts "-DEXTRA_CFLAGS=-save-temps=obj")
   west build --pristine --board $board --build-dir build/$board zmk/app -- \
@@ -427,6 +430,7 @@ build_with_docker() {
   local board=$1
   local opts=()
   (( $#with_logging )) && opts=($opts "-DCONFIG_ZMK_USB_LOGGING=y")
+  (( $#with_shell )) && opts=($opts "-DCONFIG_SHELL=y")
   (( $#with_pp )) && opts=($opts "-DEXTRA_CFLAGS=-save-temps=obj")
   docker_exec -i <<-EOF
     west build --pristine --board $board --build-dir build/$board zmk/app -- -DZMK_CONFIG="$CONTAINER_WORKSPACE_DIR/zmk_keyboards" $opts[*]
@@ -479,6 +483,7 @@ dist_firmware() {
   local src=build/$board/zephyr/zmk.$firmware_ext
   local variant=""
   (( $#with_logging )) && variant="_logging"
+  (( $#with_shell )) && variant="_shell"
   local dst=dist/${firmware_name}_${version}$variant.$firmware_ext
   cp $src $dst
   echo $dst
@@ -568,6 +573,7 @@ macos_log_console() {
     sleep 1
     for tty_dev in /dev/tty.usbmodem*(N); do
       if [[ $tty_dev -nt $firmware ]]; then
+        # to exit tio, [Ctrl + t][q]
         sudo tio $tty_dev
         return
       fi
@@ -576,6 +582,29 @@ macos_log_console() {
 }
 
 fedora_log_console() {
+  local firmware=$1
+
+  #TODO uidbipd-win
+}
+
+macos_shell_console() {
+  local firmware=$1
+
+  echo -n "waiting for shell device to be connected.."
+  while true; do
+    echo -n "."
+    sleep 1
+    for cu_dev in /dev/cu.usbmodem*(N); do
+      if [[ $cu_dev -nt $firmware ]]; then
+        # to exit cu, [~][.][enter]
+        sudo cu -l $cu_dev
+        return
+      fi
+    done
+  done
+}
+
+fedora_shell_console() {
   local firmware=$1
 
   #TODO uidbipd-win
@@ -713,7 +742,12 @@ for target in $TARGETS; do
   firmware_file=$(dist_firmware $board $firmware_name $firmware_ext)
   if (( $#with_flash )); then
     (( $#with_logging )) && sudo echo -n
+    (( $#with_shell )) && sudo echo -n
     flash_${firmware_ext}_firmware $firmware_file $kbd[*]
-    (( $#with_logging )) && ${os}_log_console $firmware_file
+    if (( $#with_logging )); then
+      ${os}_log_console $firmware_file
+    elif (( $#with_shell )); then
+      ${os}_shell_console $firmware_file
+    fi
   fi
 done
