@@ -10,6 +10,7 @@ manifest:
       # revision: main
       remote: petejohanson
       revision: core/zephyr-3.4-update
+      clone-depth: 1
       import: app/west.yml
   self:
     path: zmk_keyboards

@@ -1,5 +1,5 @@
 diff --git a/app/drivers/kscan/kscan_gpio_matrix.c b/app/drivers/kscan/kscan_gpio_matrix.c
-index b8e72044..877f1dc0 100644
+index b8e7204..877f1dc 100644
 --- a/app/drivers/kscan/kscan_gpio_matrix.c
 +++ b/app/drivers/kscan/kscan_gpio_matrix.c
 @@ -149,7 +149,11 @@ static int kscan_matrix_interrupt_configure(const struct device *dev, const gpio

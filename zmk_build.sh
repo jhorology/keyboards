@@ -364,6 +364,10 @@ update() {
     rm -rf build
     if [ -d zmk ]; then
       # revert changes
+      cd zephyr
+      git reset --hard HEAD
+      git clean -dfx
+      cd ..
       cd zmk
       git reset --hard HEAD
       git clean -dfx
@@ -371,6 +375,9 @@ update() {
     fi
     west update -n
     if $WITH_PATCH; then
+      cd zephyr
+      git apply -3 --verbose ../patches/zephyr_*.patch
+      cd ..
       cd zmk
       git apply -3 --verbose ../patches/zmk_*.patch
       cd ..
@@ -389,6 +396,10 @@ update_with_docker() {
         rm -rf build
         if [ -d zmk ]; then
             # revert changes
+            cd zephyr
+            git reset --hard HEAD
+            git clean -dfx
+            cd ..
             cd zmk
             git reset --hard HEAD
             git clean -dfx
@@ -396,6 +407,9 @@ update_with_docker() {
         fi
         west update -n
         if $WITH_PATCH; then
+            cd zephyr
+            git apply -3 --verbose ../patches/zephyr_*.patch
+            cd ..
             cd zmk
             git apply -3 --verbose ../patches/zmk_*.patch
             cd ..
@@ -411,6 +425,8 @@ build() {
   local opts=()
   (( $#with_logging )) && opts=($opts "-DCONFIG_ZMK_USB_LOGGING=y")
   (( $#with_shell )) && opts=($opts "-DCONFIG_SHELL=y")
+  #  temporarily fix dependencie issue for BT60
+  (( $#with_shell )) && [[ $board == "BT60" ]] && opts=($opts "-DCONFIG_SHELL_BACKEND_SERIAL=y -DCONFIG_CBPRINTF_COMPLETE=y")
   (( $#with_compile_db )) && opts=($opts "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON")
   (( $#with_pp )) && opts=($opts "-DEXTRA_CFLAGS=-save-temps=obj")
   west build --pristine --board $board --build-dir build/$board zmk/app -- \
@@ -566,7 +582,9 @@ flash_bin_firmware() {
 
 macos_log_console() {
   local firmware=$1
-
+  local log_file=logs/${firmware:t:r}.txt
+  cd $PROJECT
+  mkdir -p logs
   echo -n "waiting for debug output device to be connected.."
   while true; do
     echo -n "."
@@ -574,7 +592,7 @@ macos_log_console() {
     for tty_dev in /dev/tty.usbmodem*(N); do
       if [[ $tty_dev -nt $firmware ]]; then
         # to exit tio, [Ctrl + t][q]
-        sudo tio $tty_dev
+        sudo tio --log --log-file=$log_file $tty_dev
         return
       fi
     done

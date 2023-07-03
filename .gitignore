@@ -6,6 +6,7 @@ dist/
 secure_config.h
 
 node_modules/
+logs/
 
 .DS_Store
 *~

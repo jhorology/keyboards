@@ -1,6 +1,14 @@
 # rsource "drivers/Kconfig"
 rsource "lib/Kconfig"
 
+menu "Zephyr Extends"
+
+config USB_TRACE_SETUP
+    bool "enable trace HID setup packet"
+    default y if SHELL
+
+endmenu
+
 menu "ZMK Extends"
 
 config ZMK_HID_EXTRA_KEYS
