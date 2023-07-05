@@ -28,7 +28,7 @@
 // keychron DIP SW
 // off: mac base layer
 // on: win base layer
-#define _DIP_SW &mo _WIN_BASE_LAYER
+#define _DIP_SW &kc_dip_sw
 
 // select mac base layer
 // normal: mac
@@ -75,13 +75,13 @@
 #define _APP &ansi_app
 
 // Spotlight key on apple fn Layer
-#define _SPOTLIGHT &fn_kp C_AC_SEARCH
+#define _SPOTLIGHT &de_fn_kp C_AC_SEARCH
 
 // Dictation key on apple fn Layer
-#define _DICTATION &fn_kp C_VOICE_COMMAND
+#define _DICTATION &de_fn_kp C_VOICE_COMMAND
 
 // Do Not Disturb on apple fn Layer
-#define _DND &fn_kp SC_DND
+#define _DND &de_fn_kp SC_DND
 
 // Emulate fn/globe shortcut keys for windows
 //--------------------------------------------
@@ -236,8 +236,8 @@
     // send key with temporarily releasing fn/globe
     //  *some consumer or system control keys dosen't work with fn/globe key
     // param_1: keycode
-    /omit-if-no-ref/ fn_kp: fn_kp {
-      label = "SEND_CONSUMER_KEY_WHEN_FN_GLOBE_IS_HELD";
+    /omit-if-no-ref/ de_fn_kp: de_fn_kp {
+      label = "SEND_KEY_WHEN_FN_GLOBE_IS_HELD";
       compatible = "zmk,behavior-macro-one-param";
       #binding-cells = <1>;
       bindings
@@ -248,6 +248,17 @@
       , <&macro_pause_for_release>
       , <&macro_param_1to1>
       , <&macro_release &kp MACRO_PLACEHOLDER>
+      ;
+    };
+    // keychron dip-sw
+    /omit-if-no-ref/ kc_dip_sw: kc_dip_sw {
+      label = "KEYCHRON_DIP_SW";
+      compatible = "zmk,behavior-macro";
+      #binding-cells = <0>;
+      bindings
+      = <&macro_tap &to _WIN_BASE_LAYER>
+      , <&macro_pause_for_release>
+      , <&macro_tap &to _MAC_BASE_LAYER>
       ;
     };
   };
