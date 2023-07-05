@@ -1,16 +1,23 @@
 diff --git a/app/drivers/kscan/kscan_gpio_matrix.c b/app/drivers/kscan/kscan_gpio_matrix.c
-index b8e7204..877f1dc 100644
+index b8e7204..847e199 100644
 --- a/app/drivers/kscan/kscan_gpio_matrix.c
 +++ b/app/drivers/kscan/kscan_gpio_matrix.c
-@@ -149,7 +149,11 @@ static int kscan_matrix_interrupt_configure(const struct device *dev, const gpio
+@@ -55,6 +55,9 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
+ #define KSCAN_GPIO_COL_CFG_INIT(idx, inst_idx)                                                     \
+     KSCAN_GPIO_GET_BY_IDX(DT_DRV_INST(inst_idx), col_gpios, idx)
+ 
++#define INTERRUPT_FLAGS                                                                            \
++    COND_CODE_1(IS_ENABLED(CONFIG_GPIO_STM32), (GPIO_INT_EDGE_TO_ACTIVE), (GPIO_INT_LEVEL_ACTIVE))
++
+ enum kscan_diode_direction {
+     KSCAN_ROW2COL,
+     KSCAN_COL2ROW,
+@@ -149,7 +152,7 @@ static int kscan_matrix_interrupt_configure(const struct device *dev, const gpio
  
  #if USE_INTERRUPTS
  static int kscan_matrix_interrupt_enable(const struct device *dev) {
-+#if IS_ENABLED(CONFIG_GPIO_STM32)
-+    int err = kscan_matrix_interrupt_configure(dev, GPIO_INT_EDGE_TO_ACTIVE);
-+#else
-     int err = kscan_matrix_interrupt_configure(dev, GPIO_INT_LEVEL_ACTIVE);
-+#endif
+-    int err = kscan_matrix_interrupt_configure(dev, GPIO_INT_LEVEL_ACTIVE);
++    int err = kscan_matrix_interrupt_configure(dev, INTERRUPT_FLAGS);
      if (err) {
          return err;
      }
