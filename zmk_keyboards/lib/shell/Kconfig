@@ -1,3 +1,0 @@
-config CUSTOM_SHELL_CMD
-       bool "Enable custom shell command"
-       default y if SHELL

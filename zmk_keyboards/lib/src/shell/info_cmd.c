@@ -1,24 +1,18 @@
 #include <zephyr/shell/shell.h>
-#include <zephyr/usb/usb_device.h>
-#include <zephyr/usb/class/usb_hid.h>
 
 #if IS_ENABLED(CONFIG_PICOSDK_USE_FLASH)
 #  include <hardware/flash.h>
 #  define FLASH_RDID_CMD 0x9f
 #  define FLASH_RDID_TOTAL_BYTES (3 + 1)
 #endif
+#if IS_ENABLED(CONFIG_USB_DETECT_HOST_OS_DEBUG)
+#  include <zephyr/evil/usb_host_os.h>
+
+#  include <zephyr/usb/usb_device.h>
+#  include <zephyr/usb/class/usb_hid.h>
+#endif
 
 #define USB_SETUP_LOG_MAX 64
-
-static volatile int usb_setup_log_cnt;
-static struct usb_setup_packet usb_setup_log[USB_SETUP_LOG_MAX];
-
-void usb_trace_setup(struct usb_setup_packet *setup) {
-  if (usb_setup_log_cnt < USB_SETUP_LOG_MAX) {
-    usb_setup_log[usb_setup_log_cnt] = *setup;
-    usb_setup_log_cnt++;
-  }
-}
 
 static int cmd_hello(const struct shell *sh, size_t argc, char **argv) {
   shell_fprintf(sh, SHELL_NORMAL, "hello!\n");
@@ -39,8 +33,7 @@ static int cmd_get_rp2_flash_info(const struct shell *sh, size_t argc, char **ar
 }
 #endif
 
-extern uint8_t usb_hid_class_setup_log_cnt;
-extern struct usb_setup_packet usb_hid_class_setup_log[];
+#if IS_ENABLED(CONFIG_USB_DETECT_HOST_OS_DEBUG)
 
 static const char *strType(struct usb_setup_packet *setup) {
   switch (setup->RequestType.type) {
@@ -150,8 +143,9 @@ static const char *strDescType(struct usb_setup_packet *setup) {
 }
 
 static int cmd_get_usb_setup_log(const struct shell *sh, size_t argc, char **argv) {
-  for (uint8_t i = 0; i < usb_setup_log_cnt; i++) {
-    struct usb_setup_packet *setup = &usb_setup_log[i];
+  struct usb_setup_packet *setup;
+  int i = 0;
+  while ((setup = get_usb_setup_log_item(i++)) != NULL) {
     shell_fprintf(sh, SHELL_NORMAL,
                   "{\n"
                   "  bmRequestType: {\n"
@@ -180,12 +174,15 @@ static int cmd_get_usb_setup_log(const struct shell *sh, size_t argc, char **arg
   }
   return 0;
 }
+#endif  // CONFIG_USB_DETECT_HOST_OS_DEBUG
 
 SHELL_STATIC_SUBCMD_SET_CREATE(sub_info, SHELL_CMD_ARG(hello, NULL, "Hello", cmd_hello, 1, 0),
 #if IS_ENABLED(CONFIG_PICOSDK_USE_FLASH)
                                SHELL_CMD_ARG(rp2flash, NULL, "show flash chip info", cmd_get_rp2_flash_info, 1, 0),
 #endif
+#if IS_ENABLED(CONFIG_USB_DETECT_HOST_OS_DEBUG)
                                SHELL_CMD_ARG(usb_setup, NULL, "show usb setup log", cmd_get_usb_setup_log, 1, 0),
+#endif
                                SHELL_SUBCMD_SET_END /* Array terminated. */
 );
 SHELL_CMD_ARG_REGISTER(info, &sub_info, "INFO commands", NULL, 2, 0);

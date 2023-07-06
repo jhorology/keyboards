@@ -1,0 +1,82 @@
+menu "ZMK Extends"
+
+if ZMK_HID_REPORT_TYPE_NKRO
+
+config ZMK_HID_KEYBOARD_NKRO_MAX_USAGE
+    hex "# Maximum Usage ID Reportable"
+    default 0x97
+
+endif # ZMK_HID_REPORT_TYPE_NKRO
+
+# TODO maybe better to define in device-tree as property of keymap
+config ZMK_HID_EXTRA_KEYS
+    bool "Enable extra keys"
+    default y
+
+if ZMK_HID_EXTRA_KEYS
+
+# --------------------------------------------
+# CONFIG_ZMK_EXTRA_KEY_n (n=0...7)
+#  value : 0xaabbcccc
+#   aa bit24..31: usage page for collection
+#   bb bit16..23: usage for collection if aa != 0
+#                 usage page if aa == 0
+#   cccc bit0..15: usage
+#  keycode in keymap -> 0x00bbcccc
+#  TODO  16bit usage/usage_page is not supported
+#  TODO  maybe better to define in device-tree
+# --------------------------------------------
+
+config ZMK_HID_EXTRA_KEY_0
+    hex "Extra key code 0"
+    default 0x00ff0003
+config ZMK_HID_EXTRA_KEY_1
+    hex "Extra key code 1"
+    default 0x0180009b
+config ZMK_HID_EXTRA_KEY_2
+    hex "Extra key code 2"
+    default 0x0
+config ZMK_HID_EXTRA_KEY_3
+    hex "Extra key code 3"
+    default 0x0
+config ZMK_HID_EXTRA_KEY_4
+    hex "Extra key code 4"
+    default 0x0
+config ZMK_HID_EXTRA_KEY_5
+    hex "Extra key code 5"
+    default 0x0
+config ZMK_HID_EXTRA_KEY_6
+    hex "Extra key code 6"
+    default 0x0
+config ZMK_HID_EXTRA_KEY_7
+    hex "Extra key code 7"
+    default 0x0
+
+endif # ZMK_HID_EXTRA_KEYS
+
+config ZMK_USB_HOST_OS
+    bool "Enable uato switch layer"
+    select USB_DETECT_HOST_OS
+
+
+# TODO maybe better to define in device-tree as property of keymap
+config ZMK_USB_AUTO_SWITCH_LAYER
+    bool "Enable uato switch layer"
+    default y if ZMK_USB
+    select ZMK_USB_HOST_OS
+
+if ZMK_USB_AUTO_SWITCH_LAYER
+
+# TODO maybe better to define in device-tree
+config ZMK_USB_AUTO_SWITCH_LAYER_IF_DARWIN
+    int "Mac layer"
+    default 0
+
+# TODO maybe better to define in device-tree
+config ZMK_USB_AUTO_SWITCH_LAYER_UNLESS_DARWIN
+    int "Win layer"
+    default 1
+
+endif # ZMK_AUTO_SWITCH_LAYER
+
+endmenu

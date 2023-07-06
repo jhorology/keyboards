@@ -8,8 +8,8 @@
 #include <rpi_pico/rp2040.dtsi>
 #include <dt-bindings/zmk/matrix_transform.h>
 
-#if __has_include(<transform/kbdfans_tofu60_v2-transform-option.h>)
-#include <transform/kbdfans_tofu60_v2-transform-option.h>
+#if __has_include(<dt-bindings/my/kbdfans_tofu60_v2-transform-option.h>)
+#include <dt-bindings/my/kbdfans_tofu60_v2-transform-option.h>
 #else
 
 /*

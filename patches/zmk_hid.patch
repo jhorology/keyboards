@@ -1,5 +1,5 @@
 diff --git a/app/include/zmk/hid.h b/app/include/zmk/hid.h
-index ab42ada..0a3550c 100644
+index ab42ada..8be9409 100644
 --- a/app/include/zmk/hid.h
 +++ b/app/include/zmk/hid.h
 @@ -13,7 +13,13 @@
@@ -8,7 +8,7 @@ index ab42ada..0a3550c 100644
  
 -#define ZMK_HID_KEYBOARD_NKRO_MAX_USAGE HID_USAGE_KEY_KEYPAD_EQUAL
 +#if IS_ENABLED(CONFIG_ZMK_HID_EXTRA_KEYS)
-+#include <zmk/hid_extra_keys.h>
++#include <zmk/evil/hid_extra_keys.h>
 +#endif
 +
 +#if IS_ENABLED(CONFIG_ZMK_HID_REPORT_TYPE_NKRO)

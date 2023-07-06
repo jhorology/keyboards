@@ -9,8 +9,8 @@
 #include <st/f1/stm32f103c(8-b)tx-pinctrl.dtsi>
 #include <dt-bindings/zmk/matrix_transform.h>
 
-#if __has_include(<transform/qk60_wired-transform-option.h>)
-#include <transform/qk60_wired-transform-option.h>
+#if __has_include(<dt-bindings/my/qk60_wired-transform-option.h>)
+#include <dt-bindings/my/qk60_wired-transform-option.h>
 #else
 
 /*
