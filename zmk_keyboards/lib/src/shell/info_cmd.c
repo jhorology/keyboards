@@ -6,8 +6,7 @@
 #  define FLASH_RDID_TOTAL_BYTES (3 + 1)
 #endif
 #if IS_ENABLED(CONFIG_USB_DETECT_HOST_OS_DEBUG)
-#  include <zephyr/evil/usb_host_os.h>
-
+#  include <evil/usb_host_os.h>
 #  include <zephyr/usb/usb_device.h>
 #  include <zephyr/usb/class/usb_hid.h>
 #endif
@@ -144,7 +143,7 @@ static const char *strDescType(struct usb_setup_packet *setup) {
 
 static int cmd_get_usb_setup_log(const struct shell *sh, size_t argc, char **argv) {
   struct usb_setup_packet *setup;
-  int i = 0;
+  uint8_t i = 0;
   while ((setup = get_usb_setup_log_item(i++)) != NULL) {
     shell_fprintf(sh, SHELL_NORMAL,
                   "{\n"

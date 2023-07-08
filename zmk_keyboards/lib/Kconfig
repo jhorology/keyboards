@@ -95,6 +95,7 @@ if USB_DETECT_HOST_OS
 
 config USB_DETECT_HOST_OS_DEBUG
     bool "Enable logging usb setup packet"
+    default y if SHELL
 
 endif # USB_DETECT_HOST_OS
 

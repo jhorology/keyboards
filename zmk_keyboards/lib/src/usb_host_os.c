@@ -16,6 +16,7 @@ static enum usb_host_os detected_os = USB_HOST_OS_UNDEFINED;
 static enum usb_host_os notified_os = USB_HOST_OS_UNDEFINED;
 static volatile int packet_cnt;
 static bool maybe_darwin = false;
+static bool during_setup = false;
 static bool end_detect = false;
 
 static void usb_end_setup(struct k_work *work);
@@ -34,13 +35,19 @@ static inline void notify_os() {
 }
 
 void usb_trace_setup(struct usb_setup_packet *setup) {
+  if (!during_setup) {
+    maybe_darwin = false;
+    packet_cnt = 0;
+    during_setup = true;
+    end_detect = false;
+  }
 #if IS_ENABLED(CONFIG_USB_DETECT_HOST_OS_DEBUG)
   if (packet_cnt < USB_SETUP_LOG_MAX) {
     usb_setup_log[packet_cnt] = *setup;
   }
 #endif  // CONFIG_USB_DETECT_HOST_OS_DEBGU
-  // super easy way for now
   if (!end_detect) {
+    // TODO super easy way for now
     // macOS send SET_ADDRESS request at first
     if (packet_cnt == 0 && setup->bmRequestType == 0 && setup->bRequest == USB_SREQ_SET_ADDRESS) {
       maybe_darwin = true;
@@ -60,15 +67,14 @@ void usb_trace_setup(struct usb_setup_packet *setup) {
 
 static void usb_end_setup(struct k_work *work) {
   LOG_DBG("end setup");
-  packet_cnt = 0;
-  end_detect = false;
+  during_setup = false;
   notify_os();
 }
 
 void enable_usb_host_os(usb_host_os_callback cb) { user_cb = cb; };
 
 #if IS_ENABLED(CONFIG_USB_DETECT_HOST_OS_DEBUG)
-struct usb_setup_packet *get_usb_setup_log_item(int index) {
+struct usb_setup_packet *get_usb_setup_log_item(uint8_t index) {
   if (index < packet_cnt) {
     return &usb_setup_log[index];
   }

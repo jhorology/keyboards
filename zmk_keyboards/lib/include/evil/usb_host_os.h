@@ -8,6 +8,6 @@ typedef void (*usb_host_os_callback)(enum usb_host_os os);
 
 void enable_usb_host_os(usb_host_os_callback cb);
 
-#if IS_ENABLED(CONFIG_ZMK_USB_HOST_OS_DEBUG)
-struct usb_setup_packet *get_usb_setup_log_item(int index);
+#if IS_ENABLED(CONFIG_USB_DETECT_HOST_OS_DEBUG)
+struct usb_setup_packet *get_usb_setup_log_item(uint8_t index);
 #endif
