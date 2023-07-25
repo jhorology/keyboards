@@ -69,8 +69,9 @@ local -A KEYBOARDS=(
   q60        keychron_q60:keychron_q60:bin:0483:df11
   qk60       qk60_wired:qk60_wired_hhkb:bin:1688:2220
   tf60       kbdfans_tofu60_v2:tofu60_hhkb:uf2:RPI-RP2:none
+  ju60       cyber60_rev_d:hibi_june60:uf2:CYBER60_D:none
 )
-TARGETS=(bt60 fk68 q60 qk60)
+TARGETS=(bt60 fk68 q60 qk60 ju60)
 
 
 cd $PROJECT
