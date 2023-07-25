@@ -22,7 +22,7 @@ static int auto_switch_layer_listener(const zmk_event_t *eh) {
     LOG_DBG("layer_to: %d", layer);
     zmk_keymap_layer_to(layer);
   }
-  return 0;
+  return ZMK_EV_EVENT_BUBBLE;
 }
 
 ZMK_LISTENER(auto_switch_layer, auto_switch_layer_listener);

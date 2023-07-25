@@ -48,6 +48,7 @@ void usb_trace_setup(struct usb_setup_packet *setup) {
 #endif  // CONFIG_USB_DETECT_HOST_OS_DEBGU
   if (!end_detect) {
     // TODO super easy way for now
+    // TODO dosen't work as expected with nrf52840
     // macOS send SET_ADDRESS request at first
     if (packet_cnt == 0 && setup->bmRequestType == 0 && setup->bRequest == USB_SREQ_SET_ADDRESS) {
       maybe_darwin = true;
