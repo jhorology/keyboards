@@ -48,7 +48,7 @@
       &kp TAB    &kp Q    &kp W   &kp E   &kp R   &kp T   &kp Y   &kp U   &kp I      &kp O    &kp P     &kp LBKT   &kp RBKT             &kp BSPC
       &kp LCTRL  &kp A    &kp S   &kp D   &kp F   &kp G   &kp H   &kp J   &kp K      &kp L    &kp SEMI  &kp SQT                         &kp RET
       &kp LSHFT  &kp Z    &kp X   &kp C   &kp V   &kp B   &kp N   &kp M   &kp COMMA  &kp DOT  &kp FSLH             &kp RSHIFT           _H_FN
-      _A_FN     &kp LALT  _LCMD                   &kp SPACE                                              _RCMD     &kp RALT             _APP
+      _W_FN     &kp LALT  _LCMD                   &kp SPACE                                              _RCMD     &kp RALT             _APP
       >;
     };
     hhkb_fn_layer {
