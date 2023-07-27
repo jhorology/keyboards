@@ -1,0 +1,8 @@
+# Copyright (c) 2020 The ZMK Contributors
+# SPDX-License-Identifier: MIT
+
+description: Radial Controller Button Behavior
+
+compatible: "zmk,behavior-rc-button"
+
+include: zero_param.yaml

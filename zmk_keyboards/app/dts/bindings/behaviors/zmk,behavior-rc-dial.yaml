@@ -1,0 +1,13 @@
+# Copyright (c) 2020 The ZMK Contributors
+# SPDX-License-Identifier: MIT
+
+description: Radial Controller Dial Behavior
+
+compatible: "zmk,behavior-rc-dial"
+
+include: zero_param.yaml
+
+properties:
+  degrees-per-click-x10:
+    type: int
+    default: 0

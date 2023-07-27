@@ -1,0 +1,406 @@
+diff --git a/app/CMakeLists.txt b/app/CMakeLists.txt
+index 4c1c63c..efa3490 100644
+--- a/app/CMakeLists.txt
++++ b/app/CMakeLists.txt
+@@ -87,6 +87,7 @@ target_sources_ifdef(CONFIG_USB_DEVICE_STACK app PRIVATE src/usb.c)
+ target_sources_ifdef(CONFIG_ZMK_USB app PRIVATE src/usb_hid.c)
+ target_sources_ifdef(CONFIG_ZMK_RGB_UNDERGLOW app PRIVATE src/rgb_underglow.c)
+ target_sources_ifdef(CONFIG_ZMK_BACKLIGHT app PRIVATE src/backlight.c)
++target_sources(app PRIVATE src/workqueue.c)
+ target_sources(app PRIVATE src/main.c)
+
+ add_subdirectory(src/display/)
+diff --git a/app/Kconfig b/app/Kconfig
+index 12e24f6..65b7ec0 100644
+--- a/app/Kconfig
++++ b/app/Kconfig
+@@ -495,10 +495,18 @@ config ZMK_SETTINGS_SAVE_DEBOUNCE
+ endif
+
+ config ZMK_BATTERY_REPORT_INTERVAL
+-    depends on ZMK_BLE
++    depends on ZMK_BATTERY_REPORTING
+     int "Battery level report interval in seconds"
+     default 60
+
++config ZMK_LOW_PRIORITY_THREAD_STACK_SIZE
++    int "Low priority thread stack size"
++    default 768
++
++config ZMK_LOW_PRIORITY_THREAD_PRIORITY
++    int "Low priority thread priority"
++    default 10
++
+ #Advanced
+ endmenu
+
+diff --git a/app/drivers/kscan/kscan_mock.c b/app/drivers/kscan/kscan_mock.c
+index e1a41bb..57862b0 100644
+--- a/app/drivers/kscan/kscan_mock.c
++++ b/app/drivers/kscan/kscan_mock.c
+@@ -9,7 +9,6 @@
+ #include <stdlib.h>
+ #include <zephyr/device.h>
+ #include <zephyr/drivers/kscan.h>
+-#include <zephyr/kernel.h>
+ #include <zephyr/logging/log.h>
+
+ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
+diff --git a/app/drivers/sensor/battery/Kconfig b/app/drivers/sensor/battery/Kconfig
+index a9d7189..703adeb 100644
+--- a/app/drivers/sensor/battery/Kconfig
++++ b/app/drivers/sensor/battery/Kconfig
+@@ -14,6 +14,7 @@ config ZMK_BATTERY_NRF_VDDH
+     default $(dt_compat_enabled,$(DT_COMPAT_ZMK_BATTERY_NRF_VDDH))
+     select ADC
+     select ZMK_BATTERY
++    depends on SENSOR
+     help
+         Enable ZMK nRF VDDH voltage driver for battery monitoring.
+
+@@ -22,5 +23,6 @@ config ZMK_BATTERY_VOLTAGE_DIVIDER
+     default $(dt_compat_enabled,$(DT_COMPAT_ZMK_BATTERY_VOLTAGE_DIVIDER))
+     select ADC
+     select ZMK_BATTERY
++    depends on SENSOR
+     help
+         Enable ZMK battery voltage divider driver for battery monitoring.
+diff --git a/app/include/zmk/workqueue.h b/app/include/zmk/workqueue.h
+new file mode 100644
+index 0000000..41e9458
+--- /dev/null
++++ b/app/include/zmk/workqueue.h
+@@ -0,0 +1 @@
++struct k_work_q *zmk_workqueue_lowprio_work_q();
+diff --git a/app/src/activity.c b/app/src/activity.c
+index 57ddf89..14c2eae 100644
+--- a/app/src/activity.c
++++ b/app/src/activity.c
+@@ -74,8 +74,8 @@ void activity_work_handler(struct k_work *work) {
+     } else
+ #endif /* IS_ENABLED(CONFIG_ZMK_SLEEP) */
+         if (inactive_time > MAX_IDLE_MS) {
+-        set_state(ZMK_ACTIVITY_IDLE);
+-    }
++            set_state(ZMK_ACTIVITY_IDLE);
++        }
+ }
+
+ K_WORK_DEFINE(activity_work, activity_work_handler);
+diff --git a/app/src/battery.c b/app/src/battery.c
+index 0e63605..5c369f9 100644
+--- a/app/src/battery.c
++++ b/app/src/battery.c
+@@ -18,6 +18,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
+ #include <zmk/event_manager.h>
+ #include <zmk/battery.h>
+ #include <zmk/events/battery_state_changed.h>
++#include <zmk/workqueue.h>
+
+ static uint8_t last_state_of_charge = 0;
+
+@@ -77,7 +78,9 @@ static void zmk_battery_work(struct k_work *work) {
+
+ K_WORK_DEFINE(battery_work, zmk_battery_work);
+
+-static void zmk_battery_timer(struct k_timer *timer) { k_work_submit(&battery_work); }
++static void zmk_battery_timer(struct k_timer *timer) {
++    k_work_submit_to_queue(zmk_workqueue_lowprio_work_q(), &battery_work);
++}
+
+ K_TIMER_DEFINE(battery_timer, zmk_battery_timer, NULL);
+
+@@ -97,14 +100,7 @@ static int zmk_battery_init(void) {
+         return -ENODEV;
+     }
+
+-    int rc = zmk_battery_update(battery);
+-
+-    if (rc != 0) {
+-        LOG_DBG("Failed to update battery value: %d.", rc);
+-        return rc;
+-    }
+-
+-    k_timer_start(&battery_timer, K_MINUTES(1), K_SECONDS(CONFIG_ZMK_BATTERY_REPORT_INTERVAL));
++    k_timer_start(&battery_timer, K_NO_WAIT, K_SECONDS(CONFIG_ZMK_BATTERY_REPORT_INTERVAL));
+
+     return 0;
+ }
+diff --git a/app/src/ble.c b/app/src/ble.c
+index 4d0bfdf..aa2d321 100644
+--- a/app/src/ble.c
++++ b/app/src/ble.c
+@@ -281,14 +281,19 @@ int zmk_ble_put_peripheral_addr(const bt_addr_le_t *addr) {
+     for (int i = 0; i < ZMK_SPLIT_BLE_PERIPHERAL_COUNT; i++) {
+         // If the address is recognized and already stored in settings, return
+         // index and no additional action is necessary.
+-        if (!bt_addr_le_cmp(&peripheral_addrs[i], addr)) {
++        if (bt_addr_le_cmp(&peripheral_addrs[i], addr) == 0) {
++            LOG_DBG("Found existing peripheral address in slot %d", i);
+             return i;
++        } else {
++            char addr_str[BT_ADDR_LE_STR_LEN];
++            bt_addr_le_to_str(&peripheral_addrs[i], addr_str, sizeof(addr_str));
++            LOG_DBG("peripheral slot %d occupied by %s", i, addr_str);
+         }
+
+         // If the peripheral address slot is open, store new peripheral in the
+         // slot and return index. This compares against BT_ADDR_LE_ANY as that
+         // is the zero value.
+-        if (!bt_addr_le_cmp(&peripheral_addrs[i], BT_ADDR_LE_ANY)) {
++        if (bt_addr_le_cmp(&peripheral_addrs[i], BT_ADDR_LE_ANY) == 0) {
+             char addr_str[BT_ADDR_LE_STR_LEN];
+             bt_addr_le_to_str(addr, addr_str, sizeof(addr_str));
+             LOG_DBG("Storing peripheral %s in slot %d", addr_str, i);
+@@ -606,7 +611,7 @@ static int zmk_ble_init(void) {
+
+     bt_unpair(BT_ID_DEFAULT, NULL);
+
+-    for (int i = 0; i < ZMK_BLE_PROFILE_COUNT; i++) {
++    for (int i = 0; i < 8; i++) {
+         char setting_name[15];
+         sprintf(setting_name, "ble/profiles/%d", i);
+
+@@ -615,7 +620,20 @@ static int zmk_ble_init(void) {
+             LOG_ERR("Failed to delete setting: %d", err);
+         }
+     }
+-#endif
++
++    // Hardcoding a reasonable hardcoded value of peripheral addresses
++    // to clear so we properly clear a split central as well.
++    for (int i = 0; i < 8; i++) {
++        char setting_name[32];
++        sprintf(setting_name, "ble/peripheral_addresses/%d", i);
++
++        err = settings_delete(setting_name);
++        if (err) {
++            LOG_ERR("Failed to delete setting: %d", err);
++        }
++    }
++
++#endif // IS_ENABLED(CONFIG_ZMK_BLE_CLEAR_BONDS_ON_START)
+
+     bt_conn_cb_register(&conn_callbacks);
+     bt_conn_auth_cb_register(&zmk_ble_auth_cb_display);
+diff --git a/app/src/display/Kconfig b/app/src/display/Kconfig
+index 63ba968..a202948 100644
+--- a/app/src/display/Kconfig
++++ b/app/src/display/Kconfig
+@@ -7,7 +7,6 @@ menuconfig ZMK_DISPLAY
+     select DISPLAY
+     select LVGL
+     select LV_CONF_MINIMAL
+-    imply LV_USE_THEME_MONO
+
+ if ZMK_DISPLAY
+
+@@ -42,6 +41,11 @@ choice ZMK_DISPLAY_STATUS_SCREEN
+ config ZMK_DISPLAY_STATUS_SCREEN_BUILT_IN
+     bool "Built in status screen"
+     select LV_OBJ_LABEL
++    imply LV_USE_THEME_MONO
++    imply ZMK_WIDGET_LAYER_STATUS
++    imply ZMK_WIDGET_BATTERY_STATUS
++    imply ZMK_WIDGET_OUTPUT_STATUS
++    imply ZMK_WIDGET_PERIPHERAL_STATUS
+
+ config ZMK_DISPLAY_STATUS_SCREEN_CUSTOM
+     bool "Custom status screen"
+diff --git a/app/src/display/widgets/Kconfig b/app/src/display/widgets/Kconfig
+index 4c056cf..7ec20c1 100644
+--- a/app/src/display/widgets/Kconfig
++++ b/app/src/display/widgets/Kconfig
+@@ -5,14 +5,12 @@ menu "ZMK Display Widgets"
+
+ config ZMK_WIDGET_LAYER_STATUS
+     bool "Widget for highest, active layer using small icons"
+-    default y
+     depends on !ZMK_SPLIT || ZMK_SPLIT_ROLE_CENTRAL
+     select LV_USE_LABEL
+
+ config ZMK_WIDGET_BATTERY_STATUS
+     bool "Widget for battery charge information, using small icons"
+     depends on BT
+-    default y if BT
+     select LV_USE_LABEL
+
+ if ZMK_WIDGET_BATTERY_STATUS
+@@ -25,13 +23,11 @@ endif
+ config ZMK_WIDGET_OUTPUT_STATUS
+     bool "Widget for keyboard output status icons"
+     depends on BT && (!ZMK_SPLIT_BLE || ZMK_SPLIT_ROLE_CENTRAL)
+-    default y if BT && (!ZMK_SPLIT_BLE || ZMK_SPLIT_ROLE_CENTRAL)
+     select LV_USE_LABEL
+
+ config ZMK_WIDGET_PERIPHERAL_STATUS
+     bool "Widget for split peripheral status icons"
+     depends on BT && ZMK_SPLIT_BLE && !ZMK_SPLIT_ROLE_CENTRAL
+-    default y if BT && ZMK_SPLIT_BLE && !ZMK_SPLIT_ROLE_CENTRAL
+     select LV_USE_LABEL
+
+ config ZMK_WIDGET_WPM_STATUS
+diff --git a/app/src/rgb_underglow.c b/app/src/rgb_underglow.c
+index e18ce15..febe801 100644
+--- a/app/src/rgb_underglow.c
++++ b/app/src/rgb_underglow.c
+@@ -24,6 +24,7 @@
+ #include <zmk/event_manager.h>
+ #include <zmk/events/activity_state_changed.h>
+ #include <zmk/events/usb_conn_state_changed.h>
++#include <zmk/workqueue.h>
+
+ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
+
+@@ -196,14 +197,14 @@ static void zmk_rgb_underglow_tick(struct k_work *work) {
+     }
+ }
+
+-K_WORK_DEFINE(underglow_work, zmk_rgb_underglow_tick);
++K_WORK_DEFINE(underglow_tick_work, zmk_rgb_underglow_tick);
+
+ static void zmk_rgb_underglow_tick_handler(struct k_timer *timer) {
+     if (!state.on) {
+         return;
+     }
+
+-    k_work_submit(&underglow_work);
++    k_work_submit_to_queue(zmk_workqueue_lowprio_work_q(), &underglow_tick_work);
+ }
+
+ K_TIMER_DEFINE(underglow_tick, zmk_rgb_underglow_tick_handler, NULL);
+@@ -322,6 +323,16 @@ int zmk_rgb_underglow_on() {
+     return zmk_rgb_underglow_save_state();
+ }
+
++static void zmk_rgb_underglow_off_handler(struct k_work *work) {
++    for (int i = 0; i < STRIP_NUM_PIXELS; i++) {
++        pixels[i] = (struct led_rgb){r : 0, g : 0, b : 0};
++    }
++
++    led_strip_update_rgb(led_strip, pixels, STRIP_NUM_PIXELS);
++}
++
++K_WORK_DEFINE(underglow_off_work, zmk_rgb_underglow_off_handler);
++
+ int zmk_rgb_underglow_off() {
+     if (!led_strip)
+         return -ENODEV;
+@@ -335,11 +346,7 @@ int zmk_rgb_underglow_off() {
+     }
+ #endif
+
+-    for (int i = 0; i < STRIP_NUM_PIXELS; i++) {
+-        pixels[i] = (struct led_rgb){r : 0, g : 0, b : 0};
+-    }
+-
+-    led_strip_update_rgb(led_strip, pixels, STRIP_NUM_PIXELS);
++    k_work_submit_to_queue(zmk_workqueue_lowprio_work_q(), &underglow_off_work);
+
+     k_timer_stop(&underglow_tick);
+     state.on = false;
+diff --git a/app/src/split/bluetooth/central.c b/app/src/split/bluetooth/central.c
+index d3c3ee1..decc870 100644
+--- a/app/src/split/bluetooth/central.c
++++ b/app/src/split/bluetooth/central.c
+@@ -251,8 +251,8 @@ static uint8_t split_central_chrc_discovery_func(struct bt_conn *conn,
+
+     LOG_DBG("[ATTRIBUTE] handle %u", attr->handle);
+
+-    if (!bt_uuid_cmp(((struct bt_gatt_chrc *)attr->user_data)->uuid,
+-                     BT_UUID_DECLARE_128(ZMK_SPLIT_BT_CHAR_POSITION_STATE_UUID))) {
++    if (bt_uuid_cmp(((struct bt_gatt_chrc *)attr->user_data)->uuid,
++                    BT_UUID_DECLARE_128(ZMK_SPLIT_BT_CHAR_POSITION_STATE_UUID)) == 0) {
+         LOG_DBG("Found position state characteristic");
+         slot->discover_params.uuid = NULL;
+         slot->discover_params.start_handle = attr->handle + 2;
+@@ -264,8 +264,8 @@ static uint8_t split_central_chrc_discovery_func(struct bt_conn *conn,
+         slot->subscribe_params.notify = split_central_notify_func;
+         slot->subscribe_params.value = BT_GATT_CCC_NOTIFY;
+         split_central_subscribe(conn);
+-    } else if (!bt_uuid_cmp(((struct bt_gatt_chrc *)attr->user_data)->uuid,
+-                            BT_UUID_DECLARE_128(ZMK_SPLIT_BT_CHAR_RUN_BEHAVIOR_UUID))) {
++    } else if (bt_uuid_cmp(((struct bt_gatt_chrc *)attr->user_data)->uuid,
++                           BT_UUID_DECLARE_128(ZMK_SPLIT_BT_CHAR_RUN_BEHAVIOR_UUID)) == 0) {
+         LOG_DBG("Found run behavior handle");
+         slot->run_behavior_handle = bt_gatt_attr_value_handle(attr);
+     }
+@@ -292,7 +292,8 @@ static uint8_t split_central_service_discovery_func(struct bt_conn *conn,
+         return BT_GATT_ITER_STOP;
+     }
+
+-    if (bt_uuid_cmp(slot->discover_params.uuid, BT_UUID_DECLARE_128(ZMK_SPLIT_BT_SERVICE_UUID))) {
++    if (bt_uuid_cmp(slot->discover_params.uuid, BT_UUID_DECLARE_128(ZMK_SPLIT_BT_SERVICE_UUID)) !=
++        0) {
+         LOG_DBG("Found other service");
+         return BT_GATT_ITER_CONTINUE;
+     }
+@@ -418,7 +419,7 @@ static bool split_central_eir_parse(struct bt_data *data, void *user_data) {
+                 continue;
+             }
+
+-            if (bt_uuid_cmp(&uuid.uuid, BT_UUID_DECLARE_128(ZMK_SPLIT_BT_SERVICE_UUID))) {
++            if (bt_uuid_cmp(&uuid.uuid, BT_UUID_DECLARE_128(ZMK_SPLIT_BT_SERVICE_UUID)) != 0) {
+                 char uuid_str[BT_UUID_STR_LEN];
+                 char service_uuid_str[BT_UUID_STR_LEN];
+
+diff --git a/app/src/split/bluetooth/peripheral.c b/app/src/split/bluetooth/peripheral.c
+index f3cdd8f..eb6725f 100644
+--- a/app/src/split/bluetooth/peripheral.c
++++ b/app/src/split/bluetooth/peripheral.c
+@@ -18,7 +18,7 @@
+ #include <zephyr/bluetooth/hci.h>
+ #include <zephyr/bluetooth/uuid.h>
+ #include <zephyr/bluetooth/gatt.h>
+-#include <zephyr/bluetooth/hci_types.h>
++#include <zephyr/bluetooth/hci_err.h>
+
+ #if IS_ENABLED(CONFIG_SETTINGS)
+
+@@ -116,11 +116,11 @@ static int zmk_peripheral_ble_init(void) {
+     LOG_WRN("Clearing all existing BLE bond information from the keyboard");
+
+     bt_unpair(BT_ID_DEFAULT, NULL);
+-#endif
+-
++#else
+     bt_conn_cb_register(&conn_callbacks);
+
+     start_advertising();
++#endif
+
+     return 0;
+ }
+diff --git a/app/src/workqueue.c b/app/src/workqueue.c
+new file mode 100644
+index 0000000..a9a8bce
+--- /dev/null
++++ b/app/src/workqueue.c
+@@ -0,0 +1,27 @@
++/*
++ * Copyright (c) 2023 The ZMK Contributors
++ *
++ * SPDX-License-Identifier: MIT
++ */
++
++#include <zephyr/kernel.h>
++#include <zephyr/device.h>
++
++#include <zmk/workqueue.h>
++
++K_THREAD_STACK_DEFINE(lowprio_q_stack, CONFIG_ZMK_LOW_PRIORITY_THREAD_STACK_SIZE);
++
++static struct k_work_q lowprio_work_q;
++
++struct k_work_q *zmk_workqueue_lowprio_work_q() {
++    return &lowprio_work_q;
++}
++
++static int workqueue_init() {
++    static const struct k_work_queue_config queue_config = {.name = "Low Priority Work Queue"};
++    k_work_queue_start(&lowprio_work_q, lowprio_q_stack, K_THREAD_STACK_SIZEOF(lowprio_q_stack),
++                       CONFIG_ZMK_LOW_PRIORITY_THREAD_PRIORITY, &queue_config);
++    return 0;
++}
++
++SYS_INIT(workqueue_init, POST_KERNEL, CONFIG_KERNEL_INIT_PRIORITY_DEFAULT);

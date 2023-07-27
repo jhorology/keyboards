@@ -22,27 +22,27 @@
       &kp LSHFT  &kp Z     &kp X   &kp C   &kp V   &kp B   &kp N   &kp M   &kp COMMA  &kp DOT  &kp FSLH             &kp RSHIFT           _H_FN
                  _H_M_LOPT _LCMD                   &kp SPACE                                   _RCMD     _H_ROPT
       >;
-      sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN>;
+      sensor-bindings = <&volume_encoder>;
     };
     win_base_layer {
       bindings = <
-      &kp GRAVE  &kp N1    &kp N2  &kp N3  &kp N4  &kp N5  &kp N6  &kp N7  &kp N8     &kp N9   &kp N0    &kp MINUS  &kp EQUAL  &kp BSLH  &kp C_MUTE
+      &kp GRAVE  &kp N1    &kp N2  &kp N3  &kp N4  &kp N5  &kp N6  &kp N7  &kp N8     &kp N9   &kp N0    &kp MINUS  &kp EQUAL  &kp BSLH  &rc_btn
       &kp TAB    &kp Q     &kp W   &kp E   &kp R   &kp T   &kp Y   &kp U   &kp I      &kp O    &kp P     &kp LBKT   &kp RBKT             &kp BSPC
       &kp LCTRL  &kp A     &kp S   &kp D   &kp F   &kp G   &kp H   &kp J   &kp K      &kp L    &kp SEMI  &kp SQT                         &kp RET
       &kp LSHFT  &kp Z     &kp X   &kp C   &kp V   &kp B   &kp N   &kp M   &kp COMMA  &kp DOT  &kp FSLH             &kp RSHIFT           _H_FN
                  _H_W_LOPT _LCMD                   &kp SPACE                                  _RCMD     _H_ROPT
       >;
-      sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN>;
+      sensor-bindings = <&radial_controller>;
     };
     hhkb_fn_layer {
       bindings = <
-      &kp ESC   &kp F1     &kp F2   &kp F3   &kp F4  &kp F5  &kp F6           &kp F7         &kp F8     &kp F9     &kp F10          &kp F11   &kp F12  &kp INS  &kp C_PP
+      &kp ESC   &kp F1     &kp F2   &kp F3   &kp F4  &kp F5  &kp F6           &kp F7         &kp F8     &kp F9     &kp F10          &kp F11   &kp F12  &kp INS  &trans
       &kp CAPS  &kp F16    &kp F17  &kp F18  &trans  &trans  &trans           &trans         &kp PSCRN  &kp SLCK   &kp PAUSE_BREAK  &kp UP    &trans            &kp DEL
       &trans    &trans     &trans   &trans   &trans  &trans  &kp KP_MULTIPLY  &kp KP_DIVIDE  &kp HOME   &kp PG_UP  &kp LEFT         &kp RIGHT                   &kp KP_ENTER
       &trans    &trans     &trans   &trans   &trans  &trans  &kp KP_PLUS      &kp KP_MINUS   &kp END    &kp PG_DN  &kp DOWN                   &trans            &trans
                 &trans     &trans                                             &trans                               &trans           &trans
       >;
-      sensor-bindings = <&inc_dec_kp C_NEXT C_PREV>;
+      sensor-bindings = <&trans_encoder>;
     };
     apple_fn_layer {
       bindings = <
@@ -52,7 +52,7 @@
       &trans  &trans  &trans  &trans  &trans     &trans      &trans  &trans  &trans  &trans  &trans            &trans           &trans
               &trans  &trans                                 &trans                          &trans   &trans
       >;
-      sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN>;
+      sensor-bindings = <&trans_encoder>;
     };
     win_fn_layer {
       bindings = <
@@ -62,7 +62,7 @@
       &trans  &trans  &trans  _FN_C   &trans  &trans  _FN_N   _FN_M   &trans  &trans  &trans          &trans           &trans
               &trans  &trans                                  _FN_SPC                 &trans  &trans
       >;
-      sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN>;
+      sensor-bindings = <&trans_encoder>;
     };
     setting_layer {
       bindings = <
@@ -72,7 +72,7 @@
       &trans       _MAC_WIN  &trans    &trans    &trans    &trans    &trans   &trans   &trans   &trans   &trans            &trans                    &trans
                    &trans    &trans                                  &trans                              &trans   &trans
       >;
-      sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN>;
+      sensor-bindings = <&trans_encoder>;
     };
   };
 };

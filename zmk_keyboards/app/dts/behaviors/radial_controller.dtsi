@@ -1,0 +1,27 @@
+/*
+ * Copyright (c) 2020 The ZMK Contributors
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
+/ {
+  behaviors {
+    /omit-if-no-ref/ rc_btn: behavior_rc_button {
+      compatible = "zmk,behavior-rc-button";
+      label = "RC_BUTTON";
+      #binding-cells = <0>;
+    };
+    /omit-if-no-ref/ rc_cw: behavior_rc_dial_cw {
+      compatible = "zmk,behavior-rc-dial";
+      label = "RC_DIAL_CW";
+      degrees-per-click-x10 = <100>;
+      #binding-cells = <0>;
+    };
+    /omit-if-no-ref/ rc_ccw: behavior_rc_dial_ccw {
+      compatible = "zmk,behavior-rc-dial";
+      label = "RC_DIAL_CCW";
+      degrees-per-click-x10 = <(-100)>;
+      #binding-cells = <0>;
+    };
+  };
+};

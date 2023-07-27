@@ -380,6 +380,10 @@ update() {
       git apply -3 --verbose ../patches/zephyr_*.patch
       cd ..
       cd zmk
+      # temporary patch
+      if [[ -f ../patches/_zmk_master.patch ]]; then
+        git apply -3 --verbose ../patches/_zmk_master.patch
+      fi
       git apply -3 --verbose ../patches/zmk_*.patch
       cd ..
     fi
@@ -412,6 +416,9 @@ update_with_docker() {
             git apply -3 --verbose ../patches/zephyr_*.patch
             cd ..
             cd zmk
+            if [[ -f ../patches/_zmk_master.patch ]]; then
+               git apply -3 --verbose ../patches/_zmk_master.patch
+            fi
             git apply -3 --verbose ../patches/zmk_*.patch
             cd ..
         fi
