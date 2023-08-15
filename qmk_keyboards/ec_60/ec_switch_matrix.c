@@ -73,7 +73,7 @@ static inline void init_row(void) {
 
 static inline uint16_t calibrate_value(uint8_t row, uint8_t col, uint16_t sw_value) {
   if (ecsm_sw_calibration_value[row][col] == 0) return sw_value;
-  return (sw_value * ecsm_sw_calibration_value[row][col]) >> 6;
+  return ((uint32_t)sw_value * ecsm_sw_calibration_value[row][col]) >> 6;
 }
 
 /* Initialize the peripherals pins */
