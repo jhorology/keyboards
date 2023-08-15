@@ -25,6 +25,7 @@ enum via_custom_channel_id {
   id_custom_non_mac_fn_channel,                                                   // none mac fn functions
   id_custom_td_channel_start,                                                     // Tap Dance start
   id_custom_td_channel_end = id_custom_td_channel_start + TAP_DANCE_ENTRIES - 1,  // Tap Dance end
+  id_custom_channel_user_range
 };
 
 enum via_custom_magic_value_id {
@@ -87,6 +88,8 @@ enum via_custom_non_mac_fn_value_id {
   id_custom_non_mac_fn_m,    // Focus Menubar
   id_custom_non_mac_fn_bspc  // Delete
 };
+
+bool via_custom_value_command_user(uint8_t *data, uint8_t length);
 
 void via_custom_magic_get_value(uint8_t value_id, uint8_t *value_data);
 void via_custom_magic_set_value(uint8_t value_id, uint8_t *value_data);

@@ -1,0 +1,38 @@
+[
+  {
+    "label": "EC Tools",
+    "content": [
+      {
+        "label": "APC",
+        "content": [
+          {
+            "label": "Actuation Level",
+            "type": "range",
+            "options": [
+              1,
+              1023
+            ],
+            "content": [
+              "id_apc_actuation_threshold",
+              16,
+              1
+            ]
+          },
+          {
+            "label": "Release Level",
+            "type": "range",
+            "options": [
+              1,
+              1023
+            ],
+            "content": [
+              "id_apc_release_threshold",
+              16,
+              2
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

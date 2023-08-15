@@ -36,6 +36,8 @@ typedef struct {
   deferred_token token;  // defer_exec token
 } defer_eeprom_update_item_t;
 
+__attribute__((weak)) bool via_custom_value_command_user(uint8_t *data, uint8_t length) { return true; }
+
 static defer_eeprom_update_item_t defer_eeprom_update_items[DEFER_EEPROM_UPDATE_ITEM_SIZE];
 
 static void defer_eeprom_update(uint16_t id, defer_eeprom_update_value_type_t value_type, void *adrs, uint32_t value);
@@ -92,6 +94,10 @@ void via_custom_value_command_kb(uint8_t *data, uint8_t length) {
           return;
         case id_custom_save:
           return;
+      }
+    default:
+      if (!via_custom_value_command_user(data, length)) {
+        return;
       }
   }
   // Return the unhandled state

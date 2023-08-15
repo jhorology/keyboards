@@ -36,6 +36,7 @@ local -A KEYBOARDS=(
   c60        ciel60:default:hex:03eb:2ff0
   b60        dropbear60_solder:default:hex:03eb:2ff4
   d60        dz60rgb_wkl_v2_1_atmel_dfu:hhkb:hex:03eb:2ff4
+  ec60       ec_60:default:bin:0483:df11
   fk68       fk680pro_v2:default:uf2:"ZhaQian DFU"
   i68        ikki68_aurora:default:hex:03eb:2ff4
   k6         k6_pro_ansi_rgb:default:bin:0483:df11
@@ -49,7 +50,7 @@ local -A KEYBOARDS=(
   w60        dz60rgb_wkl_v2_1_atmel_dfu:tsangan:hex:03eb:2ff4
   z65        zoom65:default:hex:03eb:2ff4
 )
-TARGETS=(n60 c60 b60 d60 fk68 i68 libra prime_e q60 qk60 qk65 tx60 tf60 w60 z65)
+TARGETS=(n60 c60 b60 d60 ec60 fk68 i68 libra prime_e q60 qk60 qk65 tx60 tf60 w60 z65)
 
 WITH_UPDATE=true
 WITH_PATCH=true
