@@ -65,28 +65,39 @@ index a9d7189..703adeb 100644
 +    depends on SENSOR
      help
          Enable ZMK battery voltage divider driver for battery monitoring.
+diff --git a/app/drivers/sensor/battery/battery_nrf_vddh.c b/app/drivers/sensor/battery/battery_nrf_vddh.c
+index 3f23081..32c7c61 100644
+--- a/app/drivers/sensor/battery/battery_nrf_vddh.c
++++ b/app/drivers/sensor/battery/battery_nrf_vddh.c
+@@ -93,7 +93,7 @@ static int vddh_init(const struct device *dev) {
+
+ #ifdef CONFIG_ADC_NRFX_SAADC
+     drv_data->acc = (struct adc_channel_cfg){
+-        .gain = ADC_GAIN_1_5,
++        .gain = ADC_GAIN_1_2,
+         .reference = ADC_REF_INTERNAL,
+         .acquisition_time = ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 40),
+         .input_positive = SAADC_CH_PSELN_PSELN_VDDHDIV5,
+diff --git a/app/drivers/sensor/battery/battery_voltage_divider.c b/app/drivers/sensor/battery/battery_voltage_divider.c
+index 655af3d..62a02e9 100644
+--- a/app/drivers/sensor/battery/battery_voltage_divider.c
++++ b/app/drivers/sensor/battery/battery_voltage_divider.c
+@@ -140,7 +140,7 @@ static int bvd_init(const struct device *dev) {
+
+ #ifdef CONFIG_ADC_NRFX_SAADC
+     drv_data->acc = (struct adc_channel_cfg){
+-        .gain = ADC_GAIN_1_5,
++        .gain = ADC_GAIN_1_6,
+         .reference = ADC_REF_INTERNAL,
+         .acquisition_time = ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 40),
+         .input_positive = SAADC_CH_PSELP_PSELP_AnalogInput0 + drv_cfg->io_channel.channel,
 diff --git a/app/include/zmk/workqueue.h b/app/include/zmk/workqueue.h
 new file mode 100644
 index 0000000..41e9458
 --- /dev/null
 +++ b/app/include/zmk/workqueue.h
-@@ -0,0 +1 @@
+@@ -0,0 +1,1 @@
 +struct k_work_q *zmk_workqueue_lowprio_work_q();
-diff --git a/app/src/activity.c b/app/src/activity.c
-index 57ddf89..14c2eae 100644
---- a/app/src/activity.c
-+++ b/app/src/activity.c
-@@ -74,8 +74,8 @@ void activity_work_handler(struct k_work *work) {
-     } else
- #endif /* IS_ENABLED(CONFIG_ZMK_SLEEP) */
-         if (inactive_time > MAX_IDLE_MS) {
--        set_state(ZMK_ACTIVITY_IDLE);
--    }
-+            set_state(ZMK_ACTIVITY_IDLE);
-+        }
- }
-
- K_WORK_DEFINE(activity_work, activity_work_handler);
 diff --git a/app/src/battery.c b/app/src/battery.c
 index 0e63605..5c369f9 100644
 --- a/app/src/battery.c
@@ -127,7 +138,7 @@ index 0e63605..5c369f9 100644
      return 0;
  }
 diff --git a/app/src/ble.c b/app/src/ble.c
-index 4d0bfdf..aa2d321 100644
+index 4d0bfdf..cec7d2b 100644
 --- a/app/src/ble.c
 +++ b/app/src/ble.c
 @@ -281,14 +281,19 @@ int zmk_ble_put_peripheral_addr(const bt_addr_le_t *addr) {
