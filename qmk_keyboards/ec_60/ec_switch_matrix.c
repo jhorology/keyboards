@@ -27,6 +27,8 @@
 #include "print.h"
 #include "wait.h"
 
+#define NO_KEY_THRESHOLD 0x60
+
 /* Pin and port array */
 const uint32_t row_pins[] = MATRIX_ROW_PINS;
 const uint8_t col_channels[] = MATRIX_COL_CHANNELS;
@@ -205,7 +207,7 @@ void ecsm_print_matrix(void) {
 #ifdef SEND_STRING_ENABLE
 // Debug print key values
 void ecsm_send_matrix(void) {
-  send_string("{\nraw_values:[\n");
+  send_string("{\nraw_value:[\n");
   uint16_t max_value = 0;
   for (int row = 0; row < MATRIX_ROWS; row++) {
     send_string("[");
@@ -225,7 +227,7 @@ void ecsm_send_matrix(void) {
     }
     send_string("\n");
   }
-  send_string("],\ncalibraion_value:");
+  send_string("],\ncurrent_calibraion_value: [\n");
   for (int row = 0; row < MATRIX_ROWS; row++) {
     send_string("[");
     for (int col = 0; col < MATRIX_COLS; col++) {
@@ -241,7 +243,7 @@ void ecsm_send_matrix(void) {
     }
     send_string("\n");
   }
-  send_string("],\ncalibrated_value:");
+  send_string("],\ncurrent_calibrated_value: [\n");
   for (int row = 0; row < MATRIX_ROWS; row++) {
     send_string("[");
     for (int col = 0; col < MATRIX_COLS; col++) {
@@ -257,13 +259,13 @@ void ecsm_send_matrix(void) {
     }
     send_string("\n");
   }
-  send_string("]\n}\n /*\n Pates the flloing data into the ec_switch_matrix.c\n\n");
+  send_string("]\n}\n /*\n Paste the following data into the ec_switch_matrix.c\n\n");
   send_string("static uint8_t ecsm_sw_calibration_value[MATRIX_ROWS][MATRIX_COLS] = {\n");
   for (int row = 0; row < MATRIX_ROWS; row++) {
     send_string("{");
     for (int col = 0; col < MATRIX_COLS; col++) {
       uint8_t v = 0;
-      if (ecsm_sw_value[row][col] > 0x60) {
+      if (ecsm_sw_value[row][col] > NO_KEY_THRESHOLD) {
         uint32_t ratio = ((uint32_t)max_value << 6) / ecsm_sw_value[row][col];
         v = ratio > 0xff ? 0xff : ratio;
       }
