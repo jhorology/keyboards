@@ -47,6 +47,9 @@
 /* use EEPROM for actuation settnigs */
 #define EECONFIG_USER_DATA_SIZE 4
 
+/* number of layerss */
+#define DYNAMIC_KEYMAP_LAYER_COUNT 5
+
 /* ViA layout options */
 /*  7 bit */
 #define LAYOUT_OPTION_SPLIT_BS (1 << 7)
@@ -81,4 +84,4 @@
     }
 #endif
 
-#define CUSTOM_CONFIG_RHID_DEFAULT true
+// #define CUSTOM_CONFIG_RHID_DEFAULT true
