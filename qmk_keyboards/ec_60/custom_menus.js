@@ -88,7 +88,7 @@ module.exports = function (options, defines) {
       },
       {
         label:
-          'Show Calibration Data *(In 3 sconds after click,It will send data as keystrokes. Quickly focus on a text field on editor or something.)',
+          'Show Calibration Data *(In 3 sconds after click,It will send data as keystrokes. Quickly focus on a safe text field of editor or something.)',
         type: 'toggle',
         content: [
           'id_ec_show_calibration_data',

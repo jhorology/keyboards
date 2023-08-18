@@ -417,7 +417,7 @@ static void _send_matrix_array(void *matrix_array, uint8_t size, bool is_bool, b
 }
 
 static void ec_send_config(void) {
-  send_string("const data = {\nsw_value: {\nsw_value: ");
+  send_string("const data = {\nsw_value: ");
   _send_matrix_array(&sw_value[0][0], 2, false, false);
   send_string(",\nec_config: {\nactuation_mode: 0x");
   send_byte(ec_config.actuation_mode);
