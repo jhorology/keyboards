@@ -1,7 +1,7 @@
 [
   {
     "name": "EC\nDebug",
-    "title": "Debug print key values",
+    "title": "Show calibration data as keystrokes",
     "shortName": "EC.D"
   }
 ]

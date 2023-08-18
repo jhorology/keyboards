@@ -392,3 +392,17 @@ static uint32_t defer_eeprom_update_callback(uint32_t trigger_time, defer_eeprom
   item->id = 0;
   return 0;
 }
+
+// export functions
+
+void defer_eeprom_update_byte(uint8_t channel_id, uint8_t value_id, void *adrs, uint32_t value) {
+  defer_eeprom_update((channel_id << 8) + value_id, BYTE, adrs, value);
+}
+
+void defer_eeprom_update_word(uint8_t channel_id, uint8_t value_id, void *adrs, uint32_t value) {
+  defer_eeprom_update((channel_id << 8) + value_id, WORD, adrs, value);
+}
+
+void defer_eeprom_update_dword(uint8_t channel_id, uint8_t value_id, void *adrs, uint32_t value) {
+  defer_eeprom_update((channel_id << 8) + value_id, DWORD, adrs, value);
+}

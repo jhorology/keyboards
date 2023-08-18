@@ -16,73 +16,92 @@
 
 #include "ec_switch_matrix.h"
 
-#include <stdint.h>
-
-#ifdef SEND_STRING_ENABLE
-#  include <send_string.h>
-#endif
-
 #include "analog.h"
 #include "atomic_util.h"
+#include "ec_60/config.h"
+#include "math.h"
 #include "print.h"
 #include "wait.h"
 
-#define NO_KEY_THRESHOLD 0x60
+eeprom_ec_config_t eeprom_ec_config;
+ec_config_t ec_config;
 
-/* Pin and port array */
+// Pin and port array
 const uint32_t row_pins[] = MATRIX_ROW_PINS;
-const uint8_t col_channels[] = MATRIX_COL_CHANNELS;
-const uint32_t mux_sel_pins[] = MUX_SEL_PINS;
+const uint32_t amux_sel_pins[] = AMUX_SEL_PINS;
+const uint32_t amux_en_pins[] = AMUX_EN_PINS;
+const uint8_t amux_n_col_sizes[] = AMUX_COL_CHANNELS_SIZES;
+const uint8_t amux_n_col_channels[][AMUX_MAX_COLS_COUNT] = {AMUX_COL_CHANNELS};
+#define AMUX_SEL_PINS_COUNT (sizeof(amux_sel_pins) / sizeof(amux_sel_pins[0]))
+#define EXPECTED_AMUX_SEL_PINS_COUNT ceil(log2(AMUX_MAX_COLS_COUNT)
+// Checks for the correctness of the configuration
+_Static_assert(
+  (sizeof(amux_en_pins) / sizeof(amux_en_pins[0])) == AMUX_COUNT,
+  "AMUX_EN_PINS doesn't have the minimum number of bits required to enable all the multiplexers available");
+// Check that number of select pins is enough to select all the channels
+_Static_assert(AMUX_SEL_PINS_COUNT == EXPECTED_AMUX_SEL_PINS_COUNT), "AMUX_SEL_PINS doesn't have the minimum number of bits required address all the channels");
+// Check that number of elements in AMUX_COL_CHANNELS_SIZES is enough to specify the number of channels for all the
+// multiplexers available
+_Static_assert((sizeof(amux_n_col_sizes) / sizeof(amux_n_col_sizes[0])) == AMUX_COUNT,
+               "AMUX_COL_CHANNELS_SIZES doesn't have the minimum number of elements required to specify the number of "
+               "channels for all the multiplexers available");
 
-static ecsm_config_t config;
-static uint16_t ecsm_sw_value[MATRIX_ROWS][MATRIX_COLS];
-
-// TODO automatic calibration
-static uint8_t ecsm_sw_calibration_value[MATRIX_ROWS][MATRIX_COLS] = {
-  {0x92, 0x56, 0x75, 0x5d, 0x51, 0x57, 0x6d, 0x73, 0x8b, 0x99, 0x79, 0x95, 0x52, 0x91, 0x5b},
-  {0xad, 0x6e, 0x58, 0x53, 0x67, 0x5a, 0x58, 0x91, 0x5a, 0x77, 0x7c, 0x64, 0x00, 0x86, 0x00},
-  {0x67, 0x6c, 0x54, 0x52, 0x7a, 0x49, 0x4e, 0x5c, 0x48, 0x55, 0x6b, 0x5e, 0x00, 0x9b, 0x00},
-  {0x8e, 0x00, 0x58, 0x4b, 0x57, 0x69, 0x67, 0x4c, 0x40, 0x48, 0x53, 0x6e, 0x00, 0x65, 0x80},
-  {0x5a, 0x6c, 0x7e, 0x00, 0x00, 0x00, 0x71, 0x00, 0x00, 0x00, 0x81, 0x76, 0x8a, 0x00, 0x00}};
+// static ec_config_t config;
+uint16_t sw_value[MATRIX_ROWS][MATRIX_COLS];
 
 static adc_mux adcMux;
 
-static inline void discharge_capacitor(void) { writePinLow(DISCHARGE_PIN); }
-static inline void charge_capacitor(uint8_t row) {
-  writePinHigh(DISCHARGE_PIN);
-  writePinHigh(row_pins[row]);
-}
-
-static inline void init_mux_sel(void) {
-  for (int idx = 0; idx < 3; idx++) {
-    setPinOutput(mux_sel_pins[idx]);
-  }
-}
-
-static inline void select_mux(uint8_t col) {
-  uint8_t ch = col_channels[col];
-  writePin(mux_sel_pins[0], ch & 1);
-  writePin(mux_sel_pins[1], ch & 2);
-  writePin(mux_sel_pins[2], ch & 4);
-}
-
-static inline void init_row(void) {
-  for (int idx = 0; idx < MATRIX_ROWS; idx++) {
+// Initialize the row pins
+void init_row(void) {
+  // Set all row pins as output and low
+  for (uint8_t idx = 0; idx < MATRIX_ROWS; idx++) {
     setPinOutput(row_pins[idx]);
     writePinLow(row_pins[idx]);
   }
 }
 
-static inline uint16_t calibrate_value(uint8_t row, uint8_t col, uint16_t sw_value) {
-  if (ecsm_sw_calibration_value[row][col] == 0) return sw_value;
-  return ((uint32_t)sw_value * ecsm_sw_calibration_value[row][col]) >> 6;
+// Initialize the multiplexer select pin
+void init_amux_sel(void) {
+  for (uint8_t idx = 0; idx < AMUX_SEL_PINS_COUNT; idx++) {
+    setPinOutput(amux_sel_pins[idx]);
+  }
 }
 
-/* Initialize the peripherals pins */
-int ecsm_init(ecsm_config_t const* const ecsm_config) {
-  // Initialize config
-  config = *ecsm_config;
+// Select the multiplexer channel of the specified multiplexer
+void select_amux_channel(uint8_t channel, uint8_t col) {
+  // Get the channel for the specified multiplexer
+  uint8_t ch = amux_n_col_channels[channel][col];
+  // momentarily disable specified multiplexer
+  writePinHigh(amux_en_pins[channel]);
+  // Select the multiplexer channel
+  writePin(amux_sel_pins[0], ch & 1);
+  writePin(amux_sel_pins[1], ch & 2);
+  writePin(amux_sel_pins[2], ch & 4);
+  // re enable specified multiplexer
+  writePinLow(amux_en_pins[channel]);
+}
 
+// Disable all the unused multiplexers
+void disable_unused_amux(uint8_t channel) {
+  // disable all the other multiplexers apart from the current selected one
+  for (uint8_t idx = 0; idx < AMUX_COUNT; idx++) {
+    if (idx != channel) {
+      writePinHigh(amux_en_pins[idx]);
+    }
+  }
+}
+// Discharge the peak hold capacitor
+void discharge_capacitor(void) { writePinLow(DISCHARGE_PIN); }
+
+// Charge the peak hold capacitor
+void charge_capacitor(uint8_t row) {
+  writePinHigh(DISCHARGE_PIN);
+  writePinHigh(row_pins[row]);
+}
+
+// Initialize the peripherals pins
+int ec_init(void) {
+  // Initialize ADC
   palSetLineMode(ANALOG_PORT, PAL_MODE_INPUT_ANALOG);
   adcMux = pinToMux(ANALOG_PORT);
 
@@ -97,40 +116,122 @@ int ecsm_init(ecsm_config_t const* const ecsm_config) {
   init_row();
 
   // Initialize multiplexer select pin
-  init_mux_sel();
+  init_amux_sel();
 
   // Enable AMUX
-  setPinOutput(APLEX_EN_PIN_0);
-  writePinLow(APLEX_EN_PIN_0);
-  setPinOutput(APLEX_EN_PIN_1);
-  writePinLow(APLEX_EN_PIN_1);
+  setPinOutput(amux_en_pins[0]);
+  writePinLow(amux_en_pins[0]);
+  setPinOutput(amux_en_pins[1]);
+  writePinLow(amux_en_pins[1]);
 
   return 0;
 }
 
-int ecsm_update(ecsm_config_t const* const ecsm_config) {
-  // Save config
-  config = *ecsm_config;
-  return 0;
+// Get the noise floor
+void ec_noise_floor(void) {
+  // Initialize the noise floor to 0
+  for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
+    for (uint8_t col = 0; col < MATRIX_COLS; col++) {
+      ec_config.noise_floor[row][col] = 0;
+    }
+  }
+
+  // Get the noise floor
+  for (uint8_t i = 0; i < DEFAULT_NOISE_FLOOR_SAMPLING_COUNT; i++) {
+    for (uint8_t amux = 0; amux < AMUX_COUNT; amux++) {
+      disable_unused_amux(amux);
+      for (int col = 0; col < amux_n_col_sizes[amux]; col++) {
+        for (int row = 0; row < MATRIX_ROWS; row++) {
+          if (amux == 0) {
+            ec_config.noise_floor[row][col] += ec_readkey_raw(0, row, col);
+          } else {
+            ec_config.noise_floor[row][col + amux_n_col_sizes[amux - 1]] += ec_readkey_raw(amux, row, col);
+          }
+        }
+      }
+    }
+    wait_ms(5);
+  }
+
+  // Average the noise floor
+  for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
+    for (uint8_t col = 0; col < MATRIX_COLS; col++) {
+      ec_config.noise_floor[row][col] /= DEFAULT_NOISE_FLOOR_SAMPLING_COUNT;
+    }
+  }
+}
+
+// Scan key values and update matrix state
+bool ec_matrix_scan(matrix_row_t current_matrix[]) {
+  bool updated = false;
+
+  // Bottoming calibration mode: update bottoming out values and avoid keycode state change
+  // IF statement is higher in the function to avoid the overhead of the execution of normal operation mode
+  if (ec_config.bottoming_calibration) {
+    // Disable AMUX 1
+    writePinHigh(amux_en_pins[1]);
+    for (uint8_t col = 0; col < amux_n_col_sizes[0]; col++) {
+      for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
+        sw_value[row][col] = ec_readkey_raw(0, row, col);
+        if (sw_value[row][col] > (ec_config.noise_floor[row][col] + 32)) {
+          if (ec_config.bottoming_calibration_starter[row][col]) {
+            ec_config.bottoming_reading[row][col] = sw_value[row][col];
+            ec_config.bottoming_calibration_starter[row][col] = false;
+          } else if (sw_value[row][col] > ec_config.bottoming_reading[row][col]) {
+            ec_config.bottoming_reading[row][col] = sw_value[row][col];
+          }
+        }
+      }
+    }
+
+    // Disable AMUX 0
+    writePinHigh(amux_en_pins[0]);
+    for (uint8_t col = 0; col < amux_n_col_sizes[1]; col++) {
+      for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
+        sw_value[row][col] = ec_readkey_raw(1, row, col);
+        if (sw_value[row][col] > (ec_config.noise_floor[row][col] + 32)) {
+          if (ec_config.bottoming_calibration_starter[row][col + 8]) {
+            ec_config.bottoming_reading[row][col + 8] = sw_value[row][col];
+            ec_config.bottoming_calibration_starter[row][col + 8] = false;
+          } else if (sw_value[row][col] > ec_config.bottoming_reading[row][col + 8]) {
+            ec_config.bottoming_reading[row][col + 8] = sw_value[row][col];
+          }
+        }
+      }
+    }
+    // Return false to avoid keycode state change
+    return false;
+  }
+
+  // Normal operation mode: update key state
+  for (uint8_t amux = 0; amux < AMUX_COUNT; amux++) {
+    disable_unused_amux(amux);
+    for (int col = 0; col < amux_n_col_sizes[amux]; col++) {
+      for (int row = 0; row < MATRIX_ROWS; row++) {
+        if (amux == 0) {
+          sw_value[row][col] = ec_readkey_raw(0, row, col);
+          updated |= ec_update_key(&current_matrix[row], row, col, sw_value[row][col]);
+        } else {
+          sw_value[row][col + amux_n_col_sizes[amux - 1]] = ec_readkey_raw(amux, row, col);
+          updated |= ec_update_key(&current_matrix[row], row, col + amux_n_col_sizes[amux - 1],
+                                   sw_value[row][col + amux_n_col_sizes[amux - 1]]);
+        }
+      }
+    }
+  }
+  return updated;
 }
 
 // Read the capacitive sensor value
-uint16_t ecsm_readkey_raw(uint8_t channel, uint8_t row, uint8_t col) {
+uint16_t ec_readkey_raw(uint8_t channel, uint8_t row, uint8_t col) {
   uint16_t sw_value = 0;
 
   // Select the multiplexer
-  if (channel == 0) {
-    writePinHigh(APLEX_EN_PIN_0);
-    select_mux(col);
-    writePinLow(APLEX_EN_PIN_0);
-  } else {
-    writePinHigh(APLEX_EN_PIN_1);
-    select_mux(col);
-    writePinLow(APLEX_EN_PIN_1);
-  }
+  select_amux_channel(channel, col);
 
-  // Set strobe pins to low state
+  // Set the row pin to low state to avoid ghosting
   writePinLow(row_pins[row]);
+
   ATOMIC_BLOCK_FORCEON {
     // Set the row pin to high state and have capacitor charge
     charge_capacitor(row);
@@ -146,54 +247,67 @@ uint16_t ecsm_readkey_raw(uint8_t channel, uint8_t row, uint8_t col) {
 }
 
 // Update press/release state of key
-bool ecsm_update_key(matrix_row_t* current_row, uint8_t row, uint8_t col, uint16_t sw_value) {
+bool ec_update_key(matrix_row_t* current_row, uint8_t row, uint8_t col, uint16_t sw_value) {
   bool current_state = (*current_row >> col) & 1;
-  uint16_t calibrated_sw_value = calibrate_value(row, col, sw_value);
-  // Press to release
-  if (current_state && calibrated_sw_value < config.ecsm_actuation_threshold) {
-    *current_row &= ~(1 << col);
-    return true;
-  }
 
-  // Release to press
-  if ((!current_state) && calibrated_sw_value > config.ecsm_release_threshold) {
-    *current_row |= (1 << col);
-    return true;
+  // Normal board-wide APC
+  if (ec_config.actuation_mode == 0) {
+    if (current_state && sw_value < ec_config.rescaled_mode_0_release_threshold[row][col]) {
+      *current_row &= ~(1 << col);
+      uprintf("Key released: %d, %d, %d\n", row, col, sw_value);
+      return true;
+    }
+    if ((!current_state) && sw_value > ec_config.rescaled_mode_0_actuation_threshold[row][col]) {
+      *current_row |= (1 << col);
+      uprintf("Key pressed: %d, %d, %d\n", row, col, sw_value);
+      return true;
+    }
   }
-
+  // Rapid trigger starting from the initial deadzone
+  else if (ec_config.actuation_mode == 1) {
+    if (sw_value > ec_config.rescaled_mode_1_initial_deadzone_offset[row][col]) {
+      // In DA zone?
+      if (current_state) {
+        // Key is pressed
+        // Is key still moving down?
+        if (sw_value > ec_config.extremum[row][col]) {
+          ec_config.extremum[row][col] = sw_value;
+          uprintf("Key pressed: %d, %d, %d\n", row, col, sw_value);
+        } else if (sw_value < ec_config.extremum[row][col] - ec_config.mode_1_actuation_sensitivity) {
+          // Has key moved up enough to be released?
+          ec_config.extremum[row][col] = sw_value;
+          *current_row &= ~(1 << col);
+          uprintf("Key released: %d, %d, %d\n", row, col, sw_value);
+          return true;
+        }
+      } else {
+        // Key is not pressed
+        // Is the key still moving up?
+        if (sw_value < ec_config.extremum[row][col]) {
+          ec_config.extremum[row][col] = sw_value;
+        } else if (sw_value > ec_config.extremum[row][col] + ec_config.mode_1_release_sensitivity) {
+          // Has key moved down enough to be pressed?
+          ec_config.extremum[row][col] = sw_value;
+          *current_row |= (1 << col);
+          uprintf("Key pressed: %d, %d, %d\n", row, col, sw_value);
+          return true;
+        }
+      }
+    } else {
+      // Out of DA zone
+      if (sw_value < ec_config.extremum[row][col]) {
+        ec_config.extremum[row][col] = sw_value;
+      }
+    }
+  }
   return false;
 }
 
-// Scan key values and update matrix state
-bool ecsm_matrix_scan(matrix_row_t current_matrix[]) {
-  bool updated = false;
-
-  // Disable AMUX of channel 1
-  writePinHigh(APLEX_EN_PIN_1);
-  for (int col = 0; col < sizeof(col_channels); col++) {
-    for (int row = 0; row < MATRIX_ROWS; row++) {
-      ecsm_sw_value[row][col] = ecsm_readkey_raw(0, row, col);
-      updated |= ecsm_update_key(&current_matrix[row], row, col, ecsm_sw_value[row][col]);
-    }
-  }
-
-  // Disable AMUX of channel 1
-  writePinHigh(APLEX_EN_PIN_0);
-  for (int col = 0; col < (sizeof(col_channels) - 1); col++) {
-    for (int row = 0; row < MATRIX_ROWS; row++) {
-      ecsm_sw_value[row][col + 8] = ecsm_readkey_raw(1, row, col);
-      updated |= ecsm_update_key(&current_matrix[row], row, col + 8, ecsm_sw_value[row][col + 8]);
-    }
-  }
-  return updated;
-}
-
 // Debug print key values
-#ifdef CONSOLE_ENABLE
-void ecsm_print_matrix(void) {
-  for (int row = 0; row < MATRIX_ROWS; row++) {
-    for (int col = 0; col < MATRIX_COLS; col++) {
-      uprintf("%4d", ecsm_sw_value[row][col]);
+void ec_print_matrix(void) {
+  for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
+    for (uint8_t col = 0; col < MATRIX_COLS; col++) {
+      uprintf("%4d", sw_value[row][col]);
       if (col < (MATRIX_COLS - 1)) {
         print(",");
       }
@@ -202,85 +316,8 @@ void ecsm_print_matrix(void) {
   }
   print("\n");
 }
-#endif
 
-#ifdef SEND_STRING_ENABLE
-// Debug print key values
-void ecsm_send_matrix(void) {
-  send_string("{\nraw_value:[\n");
-  uint16_t max_value = 0;
-  for (int row = 0; row < MATRIX_ROWS; row++) {
-    send_string("[");
-    for (int col = 0; col < MATRIX_COLS; col++) {
-      send_string("0x");
-      if (max_value < ecsm_sw_value[row][col]) {
-        max_value = ecsm_sw_value[row][col];
-      }
-      send_word(ecsm_sw_value[row][col]);
-      if (col < (MATRIX_COLS - 1)) {
-        send_string(",");
-      }
-    }
-    send_string("]");
-    if (row < (MATRIX_ROWS - 1)) {
-      send_string(",");
-    }
-    send_string("\n");
-  }
-  send_string("],\ncurrent_calibraion_value: [\n");
-  for (int row = 0; row < MATRIX_ROWS; row++) {
-    send_string("[");
-    for (int col = 0; col < MATRIX_COLS; col++) {
-      send_string("0x");
-      send_byte(ecsm_sw_calibration_value[row][col]);
-      if (col < (MATRIX_COLS - 1)) {
-        send_string(",");
-      }
-    }
-    send_string("]");
-    if (row < (MATRIX_ROWS - 1)) {
-      send_string(",");
-    }
-    send_string("\n");
-  }
-  send_string("],\ncurrent_calibrated_value: [\n");
-  for (int row = 0; row < MATRIX_ROWS; row++) {
-    send_string("[");
-    for (int col = 0; col < MATRIX_COLS; col++) {
-      send_string("0x");
-      send_word(calibrate_value(row, col, ecsm_sw_value[row][col]));
-      if (col < (MATRIX_COLS - 1)) {
-        send_string(",");
-      }
-    }
-    send_string("]");
-    if (row < (MATRIX_ROWS - 1)) {
-      send_string(",");
-    }
-    send_string("\n");
-  }
-  send_string("]\n}\n /*\n Paste the following data into the ec_switch_matrix.c\n\n");
-  send_string("static uint8_t ecsm_sw_calibration_value[MATRIX_ROWS][MATRIX_COLS] = {\n");
-  for (int row = 0; row < MATRIX_ROWS; row++) {
-    send_string("{");
-    for (int col = 0; col < MATRIX_COLS; col++) {
-      uint8_t v = 0;
-      if (ecsm_sw_value[row][col] > NO_KEY_THRESHOLD) {
-        uint32_t ratio = ((uint32_t)max_value << 6) / ecsm_sw_value[row][col];
-        v = ratio > 0xff ? 0xff : ratio;
-      }
-      send_string("0x");
-      send_byte(v);
-      if (col < (MATRIX_COLS - 1)) {
-        send_string(",");
-      }
-    }
-    send_string("}");
-    if (row < (MATRIX_ROWS - 1)) {
-      send_string(",");
-    }
-    send_string("\n");
-  }
-  send_string("};\n*/\n");
+// Rescale the value to a different range
+uint16_t rescale(uint16_t x, uint16_t in_min, uint16_t in_max, uint16_t out_min, uint16_t out_max) {
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
-#endif

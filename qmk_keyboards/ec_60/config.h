@@ -19,36 +19,56 @@
 #define MATRIX_ROWS 5
 #define MATRIX_COLS 15
 
-/* Custom matrix pins and port select array */
 #define MATRIX_ROW_PINS \
   { B15, A8, B0, A7, B1 }
-#define MATRIX_COL_CHANNELS \
-  { 0, 3, 1, 2, 5, 7, 6, 4 }
-#define MUX_SEL_PINS \
+
+#define AMUX_COUNT 2
+#define AMUX_MAX_COLS_COUNT 8
+
+#define AMUX_EN_PINS \
+  { B7, B3 }
+
+#define AMUX_SEL_PINS \
   { B6, B5, B4 }
 
-/* Hardware peripherals pins */
-#define APLEX_EN_PIN_0 B7
-#define APLEX_EN_PIN_1 B3
+#define AMUX_COL_CHANNELS_SIZES \
+  { 8, 7 }
+
+#define AMUX_0_COL_CHANNELS \
+  { 0, 3, 1, 2, 5, 7, 6, 4 }
+
+#define AMUX_1_COL_CHANNELS \
+  { 0, 3, 1, 2, 5, 7, 6 }
+
+#define AMUX_COL_CHANNELS AMUX_0_COL_CHANNELS, AMUX_1_COL_CHANNELS
+
 #define DISCHARGE_PIN A6
 #define ANALOG_PORT A3
 
-/* Mechanical locking support. Use KC_LCAP, KC_LNUM or KC_LSCR instead in keymap */
-#define LOCKING_SUPPORT_ENABLE
-
-/* Locking resynchronize hack */
-#define LOCKING_RESYNC_ENABLE
-
-#define DEFAULT_ACTUATION_LEVEL 500
-#define DEFAULT_RELEASE_LEVEL 400
+#define DEFAULT_ACTUATION_MODE 0
+#define DEFAULT_MODE_0_ACTUATION_LEVEL 550
+#define DEFAULT_MODE_0_RELEASE_LEVEL 500
+#define DEFAULT_MODE_1_INITIAL_DEADZONE_OFFSET DEFAULT_MODE_0_ACTUATION_LEVEL
+#define DEFAULT_MODE_1_ACTUATION_SENSITIVITY 70
+#define DEFAULT_MODE_1_RELEASE_SENSITIVITY 70
+#define DEFAULT_EXTREMUM 1023
+#define EXPECTED_NOISE_FLOOR 0
+#define DEFAULT_NOISE_FLOOR_SAMPLING_COUNT 30
+#define DEFAULT_BOTTOMING_READING 1023
+#define DEFAULT_CALIBRATION_STARTER true
 
 #define DISCHARGE_TIME 10
 
-/* use EEPROM for actuation settnigs */
-#define EECONFIG_USER_DATA_SIZE 4
+/* use calibrated bottming value as default */
+#define ENABLE_CALIBRATED_BOTTOMING_READING
 
-/* number of layerss */
-#define DYNAMIC_KEYMAP_LAYER_COUNT 5
+/* increase eeprom size */
+#define WEAR_LEVELING_LOGICAL_SIZE 8192
+#define WEAR_LEVELING_BACKING_SIZE (WEAR_LEVELING_LOGICAL_SIZE * 2)
+
+/* I use KB scope for common library */
+// #define EECONFIG_KB_DATA_SIZE 160
+#define EECONFIG_USER_DATA_SIZE (10 + MATRIX_COLS * MATRIX_ROWS * 2)
 
 /* ViA layout options */
 /*  7 bit */
@@ -84,4 +104,4 @@
     }
 #endif
 
-// #define CUSTOM_CONFIG_RHID_DEFAULT true
+#define CUSTOM_CONFIG_RHID_DEFAULT true
