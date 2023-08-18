@@ -62,6 +62,9 @@
 /* use calibrated bottming value as default */
 #define ENABLE_CALIBRATED_BOTTOMING_READING
 
+// #define VIA_EC_CUSTOM_CHANNEL_ID id_custom_channel_user_range
+#define VIA_EC_CUSTOM_CHANNEL_ID 16
+
 /* increase eeprom size */
 #define WEAR_LEVELING_LOGICAL_SIZE 8192
 #define WEAR_LEVELING_BACKING_SIZE (WEAR_LEVELING_LOGICAL_SIZE * 2)

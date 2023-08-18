@@ -37,7 +37,6 @@ enum via_apc_enums {
   // clang-format on
 };
 
-#define id_ec_custom_channel id_custom_channel_user_range
 #define NO_KEY_THRESHOLD 0x60
 
 static deferred_token show_calibration_data_token;  // defer_exec token
@@ -138,7 +137,7 @@ bool via_custom_value_command_user(uint8_t *data, uint8_t length) {
   uint8_t *channel_id = &(data[1]);
   uint8_t *value_id_and_data = &(data[2]);
 
-  if (*channel_id == id_ec_custom_channel) {
+  if (*channel_id == VIA_EC_CUSTOM_CHANNEL_ID) {
     switch (*command_id) {
       case id_custom_set_value: {
         ec_config_set_value(value_id_and_data);
@@ -323,30 +322,30 @@ void ec_config_save_value(uint8_t *data) {
       break;
     case id_ec_mode_0_actuation_threshold:
       // range
-      defer_eeprom_update_word(id_ec_custom_channel, id_ec_mode_0_actuation_threshold,
+      defer_eeprom_update_word(VIA_EC_CUSTOM_CHANNEL_ID, id_ec_mode_0_actuation_threshold,
                                EECONFIG_USER_EC_MODE_0_ACTUATION_THRESHOLD,
                                eeprom_ec_config.mode_0_actuation_threshold);
       break;
     case id_ec_mode_0_release_threshold:
       // range
-      defer_eeprom_update_word(id_ec_custom_channel, id_ec_mode_0_release_threshold,
+      defer_eeprom_update_word(VIA_EC_CUSTOM_CHANNEL_ID, id_ec_mode_0_release_threshold,
                                EECONFIG_USER_EC_MODE_0_RELEASE_THRESHOLD, eeprom_ec_config.mode_0_release_threshold);
       break;
     case id_ec_mode_1_initial_deadzone_offset:
       // range
-      defer_eeprom_update_word(id_ec_custom_channel, id_ec_mode_1_initial_deadzone_offset,
+      defer_eeprom_update_word(VIA_EC_CUSTOM_CHANNEL_ID, id_ec_mode_1_initial_deadzone_offset,
                                EECONFIG_USER_EC_MODE_1_INITIAL_DEADZONE_OFFSET,
                                eeprom_ec_config.mode_1_initial_deadzone_offset);
       break;
     case id_ec_mode_1_actuation_sensitivity:
       // range
-      defer_eeprom_update_byte(id_ec_custom_channel, id_ec_mode_1_actuation_sensitivity,
+      defer_eeprom_update_byte(VIA_EC_CUSTOM_CHANNEL_ID, id_ec_mode_1_actuation_sensitivity,
                                EECONFIG_USER_EC_MODE_1_ACTUATION_SENSITIVITY,
                                eeprom_ec_config.mode_1_actuation_sensitivity);
       break;
     case id_ec_mode_1_release_sensitivity:
       // range
-      defer_eeprom_update_byte(id_ec_custom_channel, id_ec_mode_1_release_sensitivity,
+      defer_eeprom_update_byte(VIA_EC_CUSTOM_CHANNEL_ID, id_ec_mode_1_release_sensitivity,
                                EECONFIG_USER_EC_MODE_1_RELEASE_SENSITIVITY,
                                eeprom_ec_config.mode_1_release_sensitivity);
       break;
