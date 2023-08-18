@@ -184,20 +184,40 @@ static bool is_eeprom_ec_config_valid(void) {
   return true;
 }
 
-static void ec_config_rescale(void) {
+static void ec_config_rescale_mode_0_actuation_threshold(void) {
   for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
     for (uint8_t col = 0; col < MATRIX_COLS; col++) {
       ec_config.rescaled_mode_0_actuation_threshold[row][col] =
         rescale(ec_config.mode_0_actuation_threshold, 0, 1023, ec_config.noise_floor[row][col],
                 eeprom_ec_config.bottoming_reading[row][col]);
+    }
+  }
+}
+
+static void ec_config_rescale_mode_0_release_threshold(void) {
+  for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
+    for (uint8_t col = 0; col < MATRIX_COLS; col++) {
       ec_config.rescaled_mode_0_release_threshold[row][col] =
         rescale(ec_config.mode_0_release_threshold, 0, 1023, ec_config.noise_floor[row][col],
                 eeprom_ec_config.bottoming_reading[row][col]);
+    }
+  }
+}
+
+static void ec_config_rescale_mode_1_initial_deadzone_offset(void) {
+  for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
+    for (uint8_t col = 0; col < MATRIX_COLS; col++) {
       ec_config.rescaled_mode_1_initial_deadzone_offset[row][col] =
         rescale(ec_config.mode_1_initial_deadzone_offset, 0, 1023, ec_config.noise_floor[row][col],
                 eeprom_ec_config.bottoming_reading[row][col]);
     }
   }
+}
+
+static void ec_config_rescale(void) {
+  ec_config_rescale_mode_0_actuation_threshold();
+  ec_config_rescale_mode_0_release_threshold();
+  ec_config_rescale_mode_1_initial_deadzone_offset();
 }
 
 // Handle the data received by the keyboard from the VIA menus
@@ -221,11 +241,13 @@ static void ec_config_set_value(uint8_t *data) {
       // range
       ec_config.mode_0_release_threshold = (value_data[0] << 8) + value_data[1];
       eeprom_ec_config.mode_0_release_threshold = ec_config.mode_0_release_threshold;
+      ec_config_rescale_mode_0_release_threshold();
       break;
     case id_ec_mode_1_initial_deadzone_offset:
       // range
       ec_config.mode_1_initial_deadzone_offset = (value_data[0] << 8) + value_data[1];
       eeprom_ec_config.mode_1_initial_deadzone_offset = ec_config.mode_1_initial_deadzone_offset;
+      ec_config_rescale_mode_1_initial_deadzone_offset();
       break;
     case id_ec_mode_1_actuation_sensitivity:
       // range
@@ -268,7 +290,7 @@ static void ec_config_set_value(uint8_t *data) {
 }
 
 // Handle the data sent by the keyboard to the VIA menus
-void ec_config_get_value(uint8_t *data) {
+static void ec_config_get_value(uint8_t *data) {
   // data = [ value_id, value_data ]
   uint8_t *value_id = &(data[0]);
   uint8_t *value_data = &(data[1]);
@@ -364,7 +386,6 @@ void ec_config_save_value(uint8_t *data) {
 }
 
 static void _send_matrix_array(void *matrix_array, uint8_t size, bool is_bool, bool is_c) {
-  send_string("[\n");
   send_string(is_c ? "{\n" : "[\n");
   for (int row = 0; row < MATRIX_ROWS; row++) {
     send_string(is_c ? "{" : "[");
@@ -429,9 +450,9 @@ static void ec_send_config(void) {
   send_string(",\nbottoming_reading: ");
   _send_matrix_array(&ec_config.bottoming_reading[0][0], 2, false, false);
 
-  send_string("\n}\n}\n/*\nconst uint16_t PROGMEM caliblated_bottming_reading[MATRIX_ROWS][MATRIX_COLS] = {");
+  send_string("\n}\n}\n/*\nconst uint16_t PROGMEM caliblated_bottming_reading[MATRIX_ROWS][MATRIX_COLS] = ");
   _send_matrix_array(&ec_config.bottoming_reading[0][0], 2, false, true);
-  send_string("\n*/\n");
+  send_string(";\n*/\n");
 }
 
 static uint32_t defer_show_calibration_data_cb(uint32_t trigger_time, void *cb_arg) {
