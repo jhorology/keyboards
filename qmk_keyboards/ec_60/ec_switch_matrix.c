@@ -263,38 +263,32 @@ bool ec_update_key(matrix_row_t* current_row, uint8_t row, uint8_t col, uint16_t
   }
   // Rapid trigger starting from the initial deadzone
   else if (ec_config.actuation_mode == 1) {
-    if (sw_value > ec_config.rescaled_mode_1_initial_deadzone_offset[row][col]) {
-      // In DA zone?
-      if (current_state) {
-        // Key is pressed
-        // Is key still moving down?
-        if (sw_value > ec_config.extremum[row][col]) {
-          ec_config.extremum[row][col] = sw_value;
-          uprintf("Key pressed: %d, %d, %d\n", row, col, sw_value);
-        } else if (sw_value < ec_config.extremum[row][col] - ec_config.mode_1_release_sensitivity) {
-          // Has key moved up enough to be released?
-          ec_config.extremum[row][col] = sw_value;
-          *current_row &= ~(1 << col);
-          uprintf("Key released: %d, %d, %d\n", row, col, sw_value);
-          return true;
-        }
-      } else {
-        // Key is not pressed
-        // Is the key still moving up?
-        if (sw_value < ec_config.extremum[row][col]) {
-          ec_config.extremum[row][col] = sw_value;
-        } else if (sw_value > ec_config.extremum[row][col] + ec_config.mode_1_actuation_sensitivity) {
-          // Has key moved down enough to be pressed?
-          ec_config.extremum[row][col] = sw_value;
-          *current_row |= (1 << col);
-          uprintf("Key pressed: %d, %d, %d\n", row, col, sw_value);
-          return true;
-        }
+    if (current_state) {
+      // Key is pressed
+      // Is key still moving down?
+      if (sw_value > ec_config.extremum[row][col]) {
+        ec_config.extremum[row][col] = sw_value;
+        uprintf("Key pressed: %d, %d, %d\n", row, col, sw_value);
+      } else if (sw_value <= ec_config.rescaled_mode_1_initial_deadzone_offset[row][col] ||
+                 sw_value < ec_config.extremum[row][col] - ec_config.mode_1_release_sensitivity) {
+        // Has key moved up enough to be released?
+        ec_config.extremum[row][col] = sw_value;
+        *current_row &= ~(1 << col);
+        uprintf("Key released: %d, %d, %d\n", row, col, sw_value);
+        return true;
       }
     } else {
-      // Out of DA zone
+      // Key is not pressed
+      // Is the key still moving up?
       if (sw_value < ec_config.extremum[row][col]) {
         ec_config.extremum[row][col] = sw_value;
+      } else if (sw_value > ec_config.rescaled_mode_1_initial_deadzone_offset[row][col] &&
+                 sw_value > ec_config.extremum[row][col] + ec_config.mode_1_actuation_sensitivity) {
+        // Has key moved down enough to be pressed?
+        ec_config.extremum[row][col] = sw_value;
+        *current_row |= (1 << col);
+        uprintf("Key pressed: %d, %d, %d\n", row, col, sw_value);
+        return true;
       }
     }
   }
