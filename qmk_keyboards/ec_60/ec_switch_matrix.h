@@ -132,7 +132,3 @@ bool ec_update_key(matrix_row_t* current_row, uint8_t row, uint8_t col, uint16_t
 void ec_print_matrix(void);
 
 uint16_t rescale(uint16_t x, uint16_t in_min, uint16_t in_max, uint16_t out_min, uint16_t out_max);
-
-#ifdef SEND_STRING_ENABLE
-void ec_debug_send_matrix(void);
-#endif
