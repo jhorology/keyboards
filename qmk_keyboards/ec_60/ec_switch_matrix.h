@@ -52,13 +52,13 @@ typedef struct {
 } __attribute__((packed)) eeprom_ec_config_t;
 
 /* eeprom address */
-#define EECONFIG_USER_EC_ACTUATION_MODE EECONFIG_USER_DATABLOCK
-#define EECONFIG_USER_EC_MODE_0_ACTUATION_THRESHOLD (EECONFIG_USER_DATABLOCK + 2)
-#define EECONFIG_USER_EC_MODE_0_RELEASE_THRESHOLD (EECONFIG_USER_DATABLOCK + 4)
-#define EECONFIG_USER_EC_MODE_1_INITIAL_DEADZONE_OFFSET (EECONFIG_USER_DATABLOCK + 6)
-#define EECONFIG_USER_EC_MODE_1_ACTUATION_SENSITIVITY (EECONFIG_USER_DATABLOCK + 8)
-#define EECONFIG_USER_EC_MODE_1_RELEASE_SENSITIVITY (EECONFIG_USER_DATABLOCK + 9)
-#define EECONFIG_USER_EC_BOTTOMING_READING (EECONFIG_USER_DATABLOCK + 10)
+#define EC_CONFIG_ACTUATION_MODE VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR
+#define EC_CONFIG_MODE_0_ACTUATION_THRESHOLD (VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR + 2)
+#define EC_CONFIG_MODE_0_RELEASE_THRESHOLD (VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR + 4)
+#define EC_CONFIG_MODE_1_INITIAL_DEADZONE_OFFSET (VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR + 6)
+#define EC_CONFIG_MODE_1_ACTUATION_SENSITIVITY (VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR + 8)
+#define EC_CONFIG_MODE_1_RELEASE_SENSITIVITY (VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR + 9)
+#define EC_CONFIG_BOTTOMING_READING (VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR + 10)
 
 typedef struct {
   /*
@@ -111,7 +111,7 @@ typedef struct {
 // Check if the size of the reserved persistent memory is the same as the size of struct eeprom_ec_config_t
 // _Static_assert(sizeof(eeprom_ec_config_t) == EECONFIG_KB_DATA_SIZE, "Mismatch in keyboard EECONFIG stored data");
 // I use KB scoope for common library
-_Static_assert(sizeof(eeprom_ec_config_t) == EECONFIG_USER_DATA_SIZE, "Mismatch in keyboard EECONFIG stored data");
+// _Static_assert(sizeof(eeprom_ec_config_t) == EECONFIG_USER_DATA_SIZE, "Mismatch in keyboard EECONFIG stored data");
 
 extern eeprom_ec_config_t eeprom_ec_config;
 extern ec_config_t ec_config;

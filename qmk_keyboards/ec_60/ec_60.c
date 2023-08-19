@@ -40,7 +40,8 @@ enum via_apc_enums {
 #define NO_KEY_THRESHOLD 0x60
 
 static deferred_token show_calibration_data_token;  // defer_exec token
-static bool ec_config_initilized;
+static bool ec_config_initialized;
+static int ec_config_error;
 
 #ifdef ENABLE_CALIBRATED_BOTTOMING_READING
 const uint16_t PROGMEM caliblated_bottming_reading[MATRIX_ROWS][MATRIX_COLS] = {
@@ -54,14 +55,14 @@ const uint16_t PROGMEM caliblated_bottming_reading[MATRIX_ROWS][MATRIX_COLS] = {
    0x01ec},
   {0x01ef, 0x01f1, 0x01bc, 0x03ff, 0x03ff, 0x03ff, 0x021d, 0x03ff, 0x03ff, 0x03ff, 0x017d, 0x01a3, 0x01d9, 0x03ff,
    0x03ff}};
+
 #endif
 
-static bool is_eeprom_ec_config_valid(void);
+static int is_eeprom_ec_config_valid(void);
 static void defer_show_calibration_data(uint32_t delay_ms);
 static void ec_config_rescale(void);
 static void ec_config_set_value(uint8_t *data);
 static void ec_config_get_value(uint8_t *data);
-static void ec_config_save_value(uint8_t *data);
 
 // QMK hook functions
 // -----------------------------------------------------------------------------------
@@ -86,16 +87,17 @@ void eeconfig_init_user(void) {
     }
   }
   // Write default value to EEPROM now
-  eeconfig_update_user_datablock(&eeprom_ec_config);
-  ec_config_initilized = true;
+  eeprom_update_block(&eeprom_ec_config, (void *)VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR, sizeof(eeprom_ec_config_t));
+  ec_config_initialized = true;
 }
 
 // On Keyboard startup
 void keyboard_post_init_user(void) {
   // Read custom menu variables from memory
-  eeconfig_read_user_datablock(&eeprom_ec_config);
+  eeprom_read_block(&eeprom_ec_config, (void *)VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR, sizeof(eeprom_ec_config_t));
 
-  if (!is_eeprom_ec_config_valid()) {
+  ec_config_error = is_eeprom_ec_config_valid();
+  if (ec_config_error != 0) {
     eeconfig_init_user();
   }
 
@@ -147,10 +149,6 @@ bool via_custom_value_command_user(uint8_t *data, uint8_t length) {
         ec_config_get_value(value_id_and_data);
         return false;
       }
-      case id_custom_save: {
-        ec_config_save_value(value_id_and_data);
-        return false;
-      }
     }
   }
   return true;
@@ -160,28 +158,28 @@ bool via_custom_value_command_user(uint8_t *data, uint8_t length) {
 // -----------------------------------------------------------------------------------
 
 // TODO more strict validation
-static bool is_eeprom_ec_config_valid(void) {
+static int is_eeprom_ec_config_valid(void) {
   if (eeprom_ec_config.actuation_mode > 1) return false;
   if (eeprom_ec_config.mode_0_actuation_threshold > DEFAULT_EXTREMUM || eeprom_ec_config.mode_0_actuation_threshold < 1)
-    return false;
+    return -1;
   if (eeprom_ec_config.mode_0_release_threshold > DEFAULT_EXTREMUM || eeprom_ec_config.mode_0_release_threshold < 1)
-    return false;
+    return -2;
   if (eeprom_ec_config.mode_1_initial_deadzone_offset > DEFAULT_EXTREMUM ||
       eeprom_ec_config.mode_1_initial_deadzone_offset < 1)
-    return false;
+    return -3;
 
-  if (eeprom_ec_config.mode_1_actuation_sensitivity == 0) return false;
-  if (eeprom_ec_config.mode_1_release_sensitivity == 0) return false;
+  if (eeprom_ec_config.mode_1_actuation_sensitivity == 0) return -4;
+  if (eeprom_ec_config.mode_1_release_sensitivity == 0) return -5;
 
   for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
     for (uint8_t col = 0; col < MATRIX_COLS; col++) {
       // ADC 12bit EXTRENUM 10bit
       if (eeprom_ec_config.bottoming_reading[row][col] <= ec_config.noise_floor[row][col] ||
           eeprom_ec_config.bottoming_reading[row][col] > 0xfff)
-        return false;
+        return -7;
     }
   }
-  return true;
+  return 0;
 }
 
 static void ec_config_rescale_mode_0_actuation_threshold(void) {
@@ -231,33 +229,49 @@ static void ec_config_set_value(uint8_t *data) {
       // dropdown
       ec_config.actuation_mode = value_data[0];
       eeprom_ec_config.actuation_mode = ec_config.actuation_mode;
+      eeprom_update_byte((void *)EC_CONFIG_ACTUATION_MODE, eeprom_ec_config.actuation_mode);
       break;
     case id_ec_mode_0_actuation_threshold:
       // range
       ec_config.mode_0_actuation_threshold = (value_data[0] << 8) + value_data[1];
       eeprom_ec_config.mode_0_actuation_threshold = ec_config.mode_0_actuation_threshold;
+      ec_config_rescale_mode_0_actuation_threshold();
+      defer_eeprom_update_word(VIA_EC_CUSTOM_CHANNEL_ID, id_ec_mode_0_actuation_threshold,
+                               (void *)EC_CONFIG_MODE_0_ACTUATION_THRESHOLD,
+                               eeprom_ec_config.mode_0_actuation_threshold);
       break;
     case id_ec_mode_0_release_threshold:
       // range
       ec_config.mode_0_release_threshold = (value_data[0] << 8) + value_data[1];
       eeprom_ec_config.mode_0_release_threshold = ec_config.mode_0_release_threshold;
       ec_config_rescale_mode_0_release_threshold();
+      defer_eeprom_update_word(VIA_EC_CUSTOM_CHANNEL_ID, id_ec_mode_0_release_threshold,
+                               (void *)EC_CONFIG_MODE_0_RELEASE_THRESHOLD, eeprom_ec_config.mode_0_release_threshold);
       break;
     case id_ec_mode_1_initial_deadzone_offset:
       // range
       ec_config.mode_1_initial_deadzone_offset = (value_data[0] << 8) + value_data[1];
       eeprom_ec_config.mode_1_initial_deadzone_offset = ec_config.mode_1_initial_deadzone_offset;
       ec_config_rescale_mode_1_initial_deadzone_offset();
+      defer_eeprom_update_word(VIA_EC_CUSTOM_CHANNEL_ID, id_ec_mode_1_initial_deadzone_offset,
+                               (void *)EC_CONFIG_MODE_1_INITIAL_DEADZONE_OFFSET,
+                               eeprom_ec_config.mode_1_initial_deadzone_offset);
       break;
     case id_ec_mode_1_actuation_sensitivity:
       // range
       ec_config.mode_1_actuation_sensitivity = value_data[0];
       eeprom_ec_config.mode_1_actuation_sensitivity = ec_config.mode_1_actuation_sensitivity;
+      defer_eeprom_update_byte(VIA_EC_CUSTOM_CHANNEL_ID, id_ec_mode_1_actuation_sensitivity,
+                               (void *)EC_CONFIG_MODE_1_ACTUATION_SENSITIVITY,
+                               eeprom_ec_config.mode_1_actuation_sensitivity);
       break;
     case id_ec_mode_1_release_sensitivity:
       // range
       ec_config.mode_1_release_sensitivity = value_data[0];
       eeprom_ec_config.mode_1_release_sensitivity = ec_config.mode_1_release_sensitivity;
+      defer_eeprom_update_byte(VIA_EC_CUSTOM_CHANNEL_ID, id_ec_mode_1_release_sensitivity,
+                               (void *)EC_CONFIG_MODE_1_RELEASE_SENSITIVITY,
+                               eeprom_ec_config.mode_1_release_sensitivity);
       break;
     case id_ec_bottoming_calibration:
       ec_config.bottoming_calibration = value_data[0];
@@ -278,6 +292,8 @@ static void ec_config_set_value(uint8_t *data) {
           }
         }
         ec_config_rescale();
+        eeprom_update_block(&eeprom_ec_config.bottoming_reading[0][0], (void *)EC_CONFIG_BOTTOMING_READING,
+                            MATRIX_COLS * MATRIX_ROWS * 2);
       }
       break;
       // toggle
@@ -334,57 +350,6 @@ static void ec_config_get_value(uint8_t *data) {
   }
 }
 
-// Save the data to persistent memory after changes are made
-void ec_config_save_value(uint8_t *data) {
-  uint8_t *value_id = &(data[0]);
-  switch (*value_id) {
-    case id_ec_actuation_mode:
-      // dropdown
-      eeprom_update_byte(EECONFIG_USER_EC_ACTUATION_MODE, eeprom_ec_config.actuation_mode);
-      break;
-    case id_ec_mode_0_actuation_threshold:
-      // range
-      defer_eeprom_update_word(VIA_EC_CUSTOM_CHANNEL_ID, id_ec_mode_0_actuation_threshold,
-                               EECONFIG_USER_EC_MODE_0_ACTUATION_THRESHOLD,
-                               eeprom_ec_config.mode_0_actuation_threshold);
-      break;
-    case id_ec_mode_0_release_threshold:
-      // range
-      defer_eeprom_update_word(VIA_EC_CUSTOM_CHANNEL_ID, id_ec_mode_0_release_threshold,
-                               EECONFIG_USER_EC_MODE_0_RELEASE_THRESHOLD, eeprom_ec_config.mode_0_release_threshold);
-      break;
-    case id_ec_mode_1_initial_deadzone_offset:
-      // range
-      defer_eeprom_update_word(VIA_EC_CUSTOM_CHANNEL_ID, id_ec_mode_1_initial_deadzone_offset,
-                               EECONFIG_USER_EC_MODE_1_INITIAL_DEADZONE_OFFSET,
-                               eeprom_ec_config.mode_1_initial_deadzone_offset);
-      break;
-    case id_ec_mode_1_actuation_sensitivity:
-      // range
-      defer_eeprom_update_byte(VIA_EC_CUSTOM_CHANNEL_ID, id_ec_mode_1_actuation_sensitivity,
-                               EECONFIG_USER_EC_MODE_1_ACTUATION_SENSITIVITY,
-                               eeprom_ec_config.mode_1_actuation_sensitivity);
-      break;
-    case id_ec_mode_1_release_sensitivity:
-      // range
-      defer_eeprom_update_byte(VIA_EC_CUSTOM_CHANNEL_ID, id_ec_mode_1_release_sensitivity,
-                               EECONFIG_USER_EC_MODE_1_RELEASE_SENSITIVITY,
-                               eeprom_ec_config.mode_1_release_sensitivity);
-      break;
-    case id_ec_bottoming_calibration:
-      // toggle
-      if (ec_config.bottoming_calibration == 0) {
-        eeprom_update_block(&eeprom_ec_config.bottoming_reading[0][0], EECONFIG_USER_EC_BOTTOMING_READING,
-                            MATRIX_COLS * MATRIX_ROWS * 2);
-      }
-      break;
-    case id_ec_show_calibration_data:
-      // toggle
-      // nothing to do
-      break;
-  }
-}
-
 static void _send_matrix_array(void *matrix_array, uint8_t size, bool is_bool, bool is_c) {
   send_string(is_c ? "{\n" : "[\n");
   for (int row = 0; row < MATRIX_ROWS; row++) {
@@ -417,7 +382,11 @@ static void _send_matrix_array(void *matrix_array, uint8_t size, bool is_bool, b
 }
 
 static void ec_send_config(void) {
-  send_string("const data = {\nsw_value: ");
+  send_string("const data = {\nec_config_initialized: ");
+  send_string(ec_config_initialized ? "true" : "false");
+  send_string(",\nec_config_error: ");
+  send_word(ec_config_error);
+  send_string(",\nsw_value: ");
   _send_matrix_array(&sw_value[0][0], 2, false, false);
   send_string(",\nec_config: {\nactuation_mode: 0x");
   send_byte(ec_config.actuation_mode);
