@@ -44,7 +44,7 @@ static bool ec_config_initialized;
 static int ec_config_error;
 
 #ifdef ENABLE_CALIBRATED_BOTTOMING_READING
-const uint16_t PROGMEM caliblated_bottming_reading[MATRIX_ROWS][MATRIX_COLS] = {
+const uint16_t PROGMEM bottming_reading_default[MATRIX_ROWS][MATRIX_COLS] = {
   {0x025a, 0x02a2, 0x025d, 0x02f9, 0x0256, 0x025b, 0x0201, 0x022c, 0x023b, 0x01eb, 0x0240, 0x0229, 0x0290, 0x018c,
    0x0218},
   {0x0280, 0x02c8, 0x030c, 0x036a, 0x02d8, 0x030e, 0x02b7, 0x02b4, 0x0311, 0x02cd, 0x0284, 0x0281, 0x0229, 0x01d6,
@@ -79,7 +79,7 @@ void eeconfig_init_user(void) {
     for (uint8_t col = 0; col < MATRIX_COLS; col++) {
       // I don't want to lose calibration data for each update firware
 #ifdef ENABLE_CALIBRATED_BOTTOMING_READING
-      eeprom_ec_config.bottoming_reading[row][col] = pgm_read_word(&caliblated_bottming_reading[row][col]);
+      eeprom_ec_config.bottoming_reading[row][col] = pgm_read_word(&bottming_reading_default[row][col]);
 #else
       eeprom_ec_config.bottoming_reading[row][col] = DEFAULT_BOTTOMING_READING;
 #endif
@@ -418,7 +418,7 @@ static void ec_send_config(void) {
   send_string(",\nbottoming_reading: ");
   _send_matrix_array(&ec_config.bottoming_reading[0][0], 2, false, false);
 
-  send_string("\n}\n}\n/*\nconst uint16_t PROGMEM caliblated_bottming_reading[MATRIX_ROWS][MATRIX_COLS] = ");
+  send_string("\n}\n}\n/*\nconst uint16_t PROGMEM bottming_reading_default[MATRIX_ROWS][MATRIX_COLS] = ");
   _send_matrix_array(&ec_config.bottoming_reading[0][0], 2, false, true);
   send_string(";\n*/\n");
 }
