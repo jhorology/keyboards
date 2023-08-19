@@ -118,7 +118,7 @@ extern ec_config_t ec_config;
 extern uint16_t sw_value[MATRIX_ROWS][MATRIX_COLS];
 
 void init_row(void);
-void init_amux_sel(void);
+void init_amux(void);
 void select_amux_channel(uint8_t channel, uint8_t col);
 void disable_unused_amux(uint8_t channel);
 void discharge_capacitor(void);
@@ -129,9 +129,7 @@ void ec_noise_floor(void);
 bool ec_matrix_scan(matrix_row_t current_matrix[]);
 uint16_t ec_readkey_raw(uint8_t channel, uint8_t row, uint8_t col);
 bool ec_update_key(matrix_row_t* current_row, uint8_t row, uint8_t col, uint16_t sw_value);
-#ifdef CONSOLE_ENABLE
 void ec_print_matrix(void);
-#endif
 
 uint16_t rescale(uint16_t x, uint16_t in_min, uint16_t in_max, uint16_t out_min, uint16_t out_max);
 

@@ -60,8 +60,12 @@ void init_row(void) {
   }
 }
 
-// Initialize the multiplexer select pin
-void init_amux_sel(void) {
+// Initialize the multiplexers
+void init_amux(void) {
+  for (uint8_t idx = 0; idx < AMUX_COUNT; idx++) {
+    setPinOutput(amux_en_pins[idx]);
+    writePinLow(amux_en_pins[idx]);
+  }
   for (uint8_t idx = 0; idx < AMUX_SEL_PINS_COUNT; idx++) {
     setPinOutput(amux_sel_pins[idx]);
   }
@@ -115,14 +119,8 @@ int ec_init(void) {
   // Initialize drive lines
   init_row();
 
-  // Initialize multiplexer select pin
-  init_amux_sel();
-
-  // Enable AMUX
-  setPinOutput(amux_en_pins[0]);
-  writePinLow(amux_en_pins[0]);
-  setPinOutput(amux_en_pins[1]);
-  writePinLow(amux_en_pins[1]);
+  // Initialize AMUXs
+  init_amux();
 
   return 0;
 }
