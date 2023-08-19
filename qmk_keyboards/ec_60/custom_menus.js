@@ -51,21 +51,21 @@ module.exports = function (options, defines) {
             ]
           },
           {
-            label: 'Actuation Distance (0% | 100%)',
+            label: 'Actuation Moving Distance (0% | 100%)',
             type: 'range',
             options: [1, 1023],
             content: [
-              'id_ec_mode_1_actuation_distance',
+              'id_ec_mode_1_actuation_moving_distance',
               defines.VIA_EC_CUSTOM_CHANNEL_ID,
               5
             ]
           },
           {
-            label: 'Release Distance  (0% | 100%)',
+            label: 'Release Moving Distance  (0% | 100%)',
             type: 'range',
             options: [1, 1023],
             content: [
-              'id_ec_mode_1_release_distance',
+              'id_ec_mode_1_release_moving_distance',
               defines.VIA_EC_CUSTOM_CHANNEL_ID,
               6
             ]

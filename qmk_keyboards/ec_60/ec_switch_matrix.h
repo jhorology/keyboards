@@ -42,10 +42,10 @@ typedef struct {
   uint16_t mode_1_initial_deadzone_offset;
 
   /* travel distance for key press in mode 1 */
-  uint16_t mode_1_actuation_distance;
+  uint16_t mode_1_actuation_moving_distance;
 
   /* travel distance for key release in mode 1 */
-  uint16_t mode_1_release_distance;
+  uint16_t mode_1_release_moving_distance;
 
   /* bottoming reading */
   uint16_t bottoming_reading[MATRIX_ROWS][MATRIX_COLS];
@@ -56,8 +56,8 @@ typedef struct {
 #define EC_CONFIG_MODE_0_ACTUATION_THRESHOLD (VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR + 2)
 #define EC_CONFIG_MODE_0_RELEASE_THRESHOLD (VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR + 4)
 #define EC_CONFIG_MODE_1_INITIAL_DEADZONE_OFFSET (VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR + 6)
-#define EC_CONFIG_MODE_1_ACTUATION_DISTANCE (VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR + 8)
-#define EC_CONFIG_MODE_1_RELEASE_DISTANCE (VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR + 10)
+#define EC_CONFIG_MODE_1_ACTUATION_MOVING_DISTANCE (VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR + 8)
+#define EC_CONFIG_MODE_1_RELEASE_MOVING_DISTANCE (VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR + 10)
 #define EC_CONFIG_BOTTOMING_READING (VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR + 12)
 
 typedef struct {
@@ -72,10 +72,10 @@ typedef struct {
 
     struct {
       /* travel distance for key press in mode 1 */
-      uint16_t actuation_distance[MATRIX_ROWS][MATRIX_COLS];
+      uint16_t actuation_moving_distance[MATRIX_ROWS][MATRIX_COLS];
 
       /* travel distance for key release in mode 1 */
-      uint16_t release_distance[MATRIX_ROWS][MATRIX_COLS];
+      uint16_t release_moving_distance[MATRIX_ROWS][MATRIX_COLS];
 
       /* threshold for key press in mode 1 (initial deadzone) rescaled to actual scale */
       uint16_t initial_deadzone_offset[MATRIX_ROWS][MATRIX_COLS];

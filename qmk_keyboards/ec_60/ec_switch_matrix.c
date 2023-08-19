@@ -270,7 +270,8 @@ bool ec_update_key(matrix_row_t* current_row, uint8_t row, uint8_t col, uint16_t
         ec_config.extremum[row][col] = sw_value;
         uprintf("Key pressed: %d, %d, %d\n", row, col, sw_value);
       } else if (sw_value <= ec_config.rescaled.mode_1.initial_deadzone_offset[row][col] ||
-                 ec_config.extremum[row][col] - sw_value > ec_config.rescaled.mode_1.release_distance[row][col]) {
+                 ec_config.extremum[row][col] - sw_value >
+                   ec_config.rescaled.mode_1.release_moving_distance[row][col]) {
         // Has key moved up enough to be released?
         ec_config.extremum[row][col] = sw_value;
         *current_row &= ~(1 << col);
@@ -283,7 +284,8 @@ bool ec_update_key(matrix_row_t* current_row, uint8_t row, uint8_t col, uint16_t
       if (sw_value < ec_config.extremum[row][col]) {
         ec_config.extremum[row][col] = sw_value;
       } else if (sw_value > ec_config.rescaled.mode_1.initial_deadzone_offset[row][col] &&
-                 sw_value > ec_config.extremum[row][col] + ec_config.rescaled.mode_1.actuation_distance[row][col]) {
+                 sw_value >
+                   ec_config.extremum[row][col] + ec_config.rescaled.mode_1.actuation_moving_distance[row][col]) {
         // Has key moved down enough to be pressed?
         ec_config.extremum[row][col] = sw_value;
         *current_row |= (1 << col);

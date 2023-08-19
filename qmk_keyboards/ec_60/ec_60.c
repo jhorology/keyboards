@@ -26,8 +26,8 @@
 #define RESCALE_ACTUATION_THRESHOLD 1
 #define RESCALE_RELEASE_THRESHOLD (1 << 1)
 
-#define RESCALE_ACTUATION_DISTANCE 1
-#define RESCALE_RELEASE_DISTANCE (1 << 1)
+#define RESCALE_ACTUATION_MOVING_DISTANCE 1
+#define RESCALE_RELEASE_MOVING_DISTANCE (1 << 1)
 #define RESCALE_INITIAL_DEAD_ZONE (1 << 2)
 
 #define RESCALE_ALL 0xff
@@ -39,8 +39,8 @@ enum via_apc_enums {
   id_ec_mode_0_actuation_threshold,
   id_ec_mode_0_release_threshold,
   id_ec_mode_1_initial_deadzone_offset,
-  id_ec_mode_1_actuation_distance,
-  id_ec_mode_1_release_distance,
+  id_ec_mode_1_actuation_moving_distance,
+  id_ec_mode_1_release_moving_distance,
   id_ec_bottoming_calibration,
   id_ec_show_calibration_data
   // clang-format on
@@ -81,8 +81,8 @@ void eeconfig_init_user(void) {
   eeprom_ec_config.mode_0_actuation_threshold = DEFAULT_MODE_0_ACTUATION_LEVEL;
   eeprom_ec_config.mode_0_release_threshold = DEFAULT_MODE_0_RELEASE_LEVEL;
   eeprom_ec_config.mode_1_initial_deadzone_offset = DEFAULT_MODE_1_INITIAL_DEADZONE_OFFSET;
-  eeprom_ec_config.mode_1_actuation_distance = DEFAULT_MODE_1_ACTUATION_DISTANCE;
-  eeprom_ec_config.mode_1_release_distance = DEFAULT_MODE_1_RELEASE_DISTANCE;
+  eeprom_ec_config.mode_1_actuation_moving_distance = DEFAULT_MODE_1_ACTUATION_MOVING_DISTANCE;
+  eeprom_ec_config.mode_1_release_moving_distance = DEFAULT_MODE_1_RELEASE_MOVING_DISTANCE;
 
   for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
     for (uint8_t col = 0; col < MATRIX_COLS; col++) {
@@ -165,8 +165,10 @@ static int is_eeprom_ec_config_valid(void) {
   if (eeprom_ec_config.mode_0_release_threshold > 1023 || eeprom_ec_config.mode_0_release_threshold < 1) return -2;
   if (eeprom_ec_config.mode_1_initial_deadzone_offset > 1023 || eeprom_ec_config.mode_1_initial_deadzone_offset < 1)
     return -3;
-  if (eeprom_ec_config.mode_1_actuation_distance > 1023 || eeprom_ec_config.mode_1_actuation_distance < 1) return -4;
-  if (eeprom_ec_config.mode_1_release_distance > 1023 || eeprom_ec_config.mode_1_release_distance < 1) return -5;
+  if (eeprom_ec_config.mode_1_actuation_moving_distance > 1023 || eeprom_ec_config.mode_1_actuation_moving_distance < 1)
+    return -4;
+  if (eeprom_ec_config.mode_1_release_moving_distance > 1023 || eeprom_ec_config.mode_1_release_moving_distance < 1)
+    return -5;
 
   for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
     for (uint8_t col = 0; col < MATRIX_COLS; col++) {
@@ -205,14 +207,14 @@ static void ec_config_rescale(uint8_t actuation_mode, uint8_t flags) {
   } else if (actuation_mode == 1) {
     for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
       for (uint8_t col = 0; col < MATRIX_COLS; col++) {
-        if (flags & RESCALE_ACTUATION_DISTANCE) {
-          ec_config.rescaled.mode_1.actuation_distance[row][col] =
-            rescale(eeprom_ec_config.mode_1_actuation_distance, 0, 1023, ec_config.noise_floor[row][col],
+        if (flags & RESCALE_ACTUATION_MOVING_DISTANCE) {
+          ec_config.rescaled.mode_1.actuation_moving_distance[row][col] =
+            rescale(eeprom_ec_config.mode_1_actuation_moving_distance, 0, 1023, ec_config.noise_floor[row][col],
                     eeprom_ec_config.bottoming_reading[row][col]);
         }
-        if (flags & RESCALE_RELEASE_DISTANCE) {
-          ec_config.rescaled.mode_1.release_distance[row][col] =
-            rescale(eeprom_ec_config.mode_1_release_distance, 0, 1023, ec_config.noise_floor[row][col],
+        if (flags & RESCALE_RELEASE_MOVING_DISTANCE) {
+          ec_config.rescaled.mode_1.release_moving_distance[row][col] =
+            rescale(eeprom_ec_config.mode_1_release_moving_distance, 0, 1023, ec_config.noise_floor[row][col],
                     eeprom_ec_config.bottoming_reading[row][col]);
         }
         if (flags & RESCALE_INITIAL_DEAD_ZONE) {
@@ -264,19 +266,21 @@ static void ec_config_set_value(uint8_t *data) {
                                (void *)EC_CONFIG_MODE_1_INITIAL_DEADZONE_OFFSET,
                                eeprom_ec_config.mode_1_initial_deadzone_offset);
       break;
-    case id_ec_mode_1_actuation_distance:
+    case id_ec_mode_1_actuation_moving_distance:
       // range
-      eeprom_ec_config.mode_1_actuation_distance = (value_data[0] << 8) + value_data[1];
-      ec_config_rescale(0, RESCALE_ACTUATION_DISTANCE);
-      defer_eeprom_update_byte(VIA_EC_CUSTOM_CHANNEL_ID, id_ec_mode_1_actuation_distance,
-                               (void *)EC_CONFIG_MODE_1_ACTUATION_DISTANCE, eeprom_ec_config.mode_1_actuation_distance);
+      eeprom_ec_config.mode_1_actuation_moving_distance = (value_data[0] << 8) + value_data[1];
+      ec_config_rescale(0, RESCALE_ACTUATION_MOVING_DISTANCE);
+      defer_eeprom_update_byte(VIA_EC_CUSTOM_CHANNEL_ID, id_ec_mode_1_actuation_moving_distance,
+                               (void *)EC_CONFIG_MODE_1_ACTUATION_MOVING_DISTANCE,
+                               eeprom_ec_config.mode_1_actuation_moving_distance);
       break;
-    case id_ec_mode_1_release_distance:
+    case id_ec_mode_1_release_moving_distance:
       // range
-      eeprom_ec_config.mode_1_release_distance = (value_data[0] << 8) + value_data[1];
-      ec_config_rescale(0, RESCALE_RELEASE_DISTANCE);
-      defer_eeprom_update_byte(VIA_EC_CUSTOM_CHANNEL_ID, id_ec_mode_1_release_distance,
-                               (void *)EC_CONFIG_MODE_1_RELEASE_DISTANCE, eeprom_ec_config.mode_1_release_distance);
+      eeprom_ec_config.mode_1_release_moving_distance = (value_data[0] << 8) + value_data[1];
+      ec_config_rescale(0, RESCALE_RELEASE_MOVING_DISTANCE);
+      defer_eeprom_update_byte(VIA_EC_CUSTOM_CHANNEL_ID, id_ec_mode_1_release_moving_distance,
+                               (void *)EC_CONFIG_MODE_1_RELEASE_MOVING_DISTANCE,
+                               eeprom_ec_config.mode_1_release_moving_distance);
       break;
     case id_ec_bottoming_calibration:
       ec_config.bottoming_calibration = value_data[0];
@@ -329,15 +333,15 @@ static void ec_config_get_value(uint8_t *data) {
       value_data[0] = eeprom_ec_config.mode_1_initial_deadzone_offset >> 8;
       value_data[1] = eeprom_ec_config.mode_1_initial_deadzone_offset & 0xff;
       break;
-    case id_ec_mode_1_actuation_distance:
+    case id_ec_mode_1_actuation_moving_distance:
       // range
-      value_data[0] = eeprom_ec_config.mode_1_actuation_distance >> 8;
-      value_data[1] = eeprom_ec_config.mode_1_actuation_distance & 0xff;
+      value_data[0] = eeprom_ec_config.mode_1_actuation_moving_distance >> 8;
+      value_data[1] = eeprom_ec_config.mode_1_actuation_moving_distance & 0xff;
       break;
-    case id_ec_mode_1_release_distance:
+    case id_ec_mode_1_release_moving_distance:
       // range
-      value_data[0] = eeprom_ec_config.mode_1_release_distance >> 8;
-      value_data[1] = eeprom_ec_config.mode_1_release_distance & 0xff;
+      value_data[0] = eeprom_ec_config.mode_1_release_moving_distance >> 8;
+      value_data[1] = eeprom_ec_config.mode_1_release_moving_distance & 0xff;
       break;
     case id_ec_bottoming_calibration:
       // toggle
@@ -402,16 +406,16 @@ static void ec_send_config(void) {
   } else if (eeprom_ec_config.actuation_mode == 1) {
     send_string(",\ninitial_deadzone_offset: 0x");
     send_word(eeprom_ec_config.mode_1_initial_deadzone_offset);
-    send_string(",\nactuation_distance: 0x");
-    send_word(eeprom_ec_config.mode_1_actuation_distance);
-    send_string(",\nrelease_distance: 0x");
-    send_word(eeprom_ec_config.mode_1_release_distance);
+    send_string(",\nactuation_moving_distance: 0x");
+    send_word(eeprom_ec_config.mode_1_actuation_moving_distance);
+    send_string(",\nrelease_moving_distance: 0x");
+    send_word(eeprom_ec_config.mode_1_release_moving_distance);
     send_string(",\nrescaled_mode_1_initial_deadzone_offset: ");
     _send_matrix_array(ec_config.rescaled.mode_1.initial_deadzone_offset, 2, false, false);
-    send_string(",\nrescaled_mode_1_actuation_distance: ");
-    _send_matrix_array(ec_config.rescaled.mode_1.actuation_distance, 2, false, false);
-    send_string(",\nrescaled_mode_1_release_distance: ");
-    _send_matrix_array(ec_config.rescaled.mode_1.release_distance, 2, false, false);
+    send_string(",\nrescaled_mode_1_actuation_moving_distance: ");
+    _send_matrix_array(ec_config.rescaled.mode_1.actuation_moving_distance, 2, false, false);
+    send_string(",\nrescaled_mode_1_release_moving_distance: ");
+    _send_matrix_array(ec_config.rescaled.mode_1.release_moving_distance, 2, false, false);
     send_string(",\nextremum: ");
     _send_matrix_array(ec_config.extremum, 2, false, false);
   }
