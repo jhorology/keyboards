@@ -173,10 +173,10 @@ bool ec_matrix_scan(matrix_row_t current_matrix[]) {
         sw_value[row][col] = ec_readkey_raw(0, row, col);
         if (sw_value[row][col] > (ec_config.noise_floor[row][col] + 32)) {
           if (ec_config.bottoming_calibration_starter[row][col]) {
-            ec_config.bottoming_reading[row][col] = sw_value[row][col];
+            eeprom_ec_config.bottoming_reading[row][col] = sw_value[row][col];
             ec_config.bottoming_calibration_starter[row][col] = false;
-          } else if (sw_value[row][col] > ec_config.bottoming_reading[row][col]) {
-            ec_config.bottoming_reading[row][col] = sw_value[row][col];
+          } else if (sw_value[row][col] > eeprom_ec_config.bottoming_reading[row][col]) {
+            eeprom_ec_config.bottoming_reading[row][col] = sw_value[row][col];
           }
         }
       }
@@ -189,10 +189,10 @@ bool ec_matrix_scan(matrix_row_t current_matrix[]) {
         sw_value[row][col] = ec_readkey_raw(1, row, col);
         if (sw_value[row][col] > (ec_config.noise_floor[row][col] + 32)) {
           if (ec_config.bottoming_calibration_starter[row][col + 8]) {
-            ec_config.bottoming_reading[row][col + 8] = sw_value[row][col];
+            eeprom_ec_config.bottoming_reading[row][col + 8] = sw_value[row][col];
             ec_config.bottoming_calibration_starter[row][col + 8] = false;
-          } else if (sw_value[row][col] > ec_config.bottoming_reading[row][col + 8]) {
-            ec_config.bottoming_reading[row][col + 8] = sw_value[row][col];
+          } else if (sw_value[row][col] > eeprom_ec_config.bottoming_reading[row][col + 8]) {
+            eeprom_ec_config.bottoming_reading[row][col + 8] = sw_value[row][col];
           }
         }
       }
@@ -249,28 +249,28 @@ bool ec_update_key(matrix_row_t* current_row, uint8_t row, uint8_t col, uint16_t
   bool current_state = (*current_row >> col) & 1;
 
   // Normal board-wide APC
-  if (ec_config.actuation_mode == 0) {
-    if (current_state && sw_value < ec_config.rescaled_mode_0_release_threshold[row][col]) {
+  if (eeprom_ec_config.actuation_mode == 0) {
+    if (current_state && sw_value < ec_config.rescaled.mode_0.release_threshold[row][col]) {
       *current_row &= ~(1 << col);
       uprintf("Key released: %d, %d, %d\n", row, col, sw_value);
       return true;
     }
-    if ((!current_state) && sw_value > ec_config.rescaled_mode_0_actuation_threshold[row][col]) {
+    if ((!current_state) && sw_value > ec_config.rescaled.mode_0.actuation_threshold[row][col]) {
       *current_row |= (1 << col);
       uprintf("Key pressed: %d, %d, %d\n", row, col, sw_value);
       return true;
     }
   }
   // Rapid trigger starting from the initial deadzone
-  else if (ec_config.actuation_mode == 1) {
+  else if (eeprom_ec_config.actuation_mode == 1) {
     if (current_state) {
       // Key is pressed
       // Is key still moving down?
       if (sw_value > ec_config.extremum[row][col]) {
         ec_config.extremum[row][col] = sw_value;
         uprintf("Key pressed: %d, %d, %d\n", row, col, sw_value);
-      } else if (sw_value <= ec_config.rescaled_mode_1_initial_deadzone_offset[row][col] ||
-                 sw_value < ec_config.extremum[row][col] - ec_config.mode_1_release_sensitivity) {
+      } else if (sw_value <= ec_config.rescaled.mode_1.initial_deadzone_offset[row][col] ||
+                 ec_config.extremum[row][col] - sw_value > ec_config.rescaled.mode_1.release_distance[row][col]) {
         // Has key moved up enough to be released?
         ec_config.extremum[row][col] = sw_value;
         *current_row &= ~(1 << col);
@@ -282,8 +282,8 @@ bool ec_update_key(matrix_row_t* current_row, uint8_t row, uint8_t col, uint16_t
       // Is the key still moving up?
       if (sw_value < ec_config.extremum[row][col]) {
         ec_config.extremum[row][col] = sw_value;
-      } else if (sw_value > ec_config.rescaled_mode_1_initial_deadzone_offset[row][col] &&
-                 sw_value > ec_config.extremum[row][col] + ec_config.mode_1_actuation_sensitivity) {
+      } else if (sw_value > ec_config.rescaled.mode_1.initial_deadzone_offset[row][col] &&
+                 sw_value > ec_config.extremum[row][col] + ec_config.rescaled.mode_1.actuation_distance[row][col]) {
         // Has key moved down enough to be pressed?
         ec_config.extremum[row][col] = sw_value;
         *current_row |= (1 << col);

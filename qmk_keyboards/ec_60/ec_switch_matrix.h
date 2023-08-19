@@ -20,6 +20,7 @@
 #include <stdint.h>
 
 #include "eeconfig.h"
+#include "info_config.h"
 #include "matrix.h"
 
 typedef struct {
@@ -29,7 +30,6 @@ typedef struct {
     2: Rapid trigger from resting point
   */
   uint8_t actuation_mode;
-
   uint8_t _resereved;
 
   /* threshold for key press in mode 0 */
@@ -41,11 +41,11 @@ typedef struct {
   /* threshold for key press in mode 1 (initial deadzone) */
   uint16_t mode_1_initial_deadzone_offset;
 
-  /* sensitivity for key press in mode 1 (1-255) */
-  uint8_t mode_1_actuation_sensitivity;
+  /* travel distance for key press in mode 1 */
+  uint16_t mode_1_actuation_distance;
 
-  /* sensitivity for key release in mode 1 (1-255) */
-  uint8_t mode_1_release_sensitivity;
+  /* travel distance for key release in mode 1 */
+  uint16_t mode_1_release_distance;
 
   /* bottoming reading */
   uint16_t bottoming_reading[MATRIX_ROWS][MATRIX_COLS];
@@ -56,41 +56,31 @@ typedef struct {
 #define EC_CONFIG_MODE_0_ACTUATION_THRESHOLD (VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR + 2)
 #define EC_CONFIG_MODE_0_RELEASE_THRESHOLD (VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR + 4)
 #define EC_CONFIG_MODE_1_INITIAL_DEADZONE_OFFSET (VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR + 6)
-#define EC_CONFIG_MODE_1_ACTUATION_SENSITIVITY (VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR + 8)
-#define EC_CONFIG_MODE_1_RELEASE_SENSITIVITY (VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR + 9)
-#define EC_CONFIG_BOTTOMING_READING (VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR + 10)
+#define EC_CONFIG_MODE_1_ACTUATION_DISTANCE (VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR + 8)
+#define EC_CONFIG_MODE_1_RELEASE_DISTANCE (VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR + 10)
+#define EC_CONFIG_BOTTOMING_READING (VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR + 12)
 
 typedef struct {
-  /*
-    0: normal board-wide APC
-    1: Rapid trigger from specific board-wide actuation point (it can be very near that baseline noise and be "full
-    travel")
-  */
-  uint8_t actuation_mode;
+  union {
+    struct {
+      /* threshold for key press in mode 0 rescaled to actual scale */
+      uint16_t actuation_threshold[MATRIX_ROWS][MATRIX_COLS];
 
-  /* threshold for key press in mode 0 */
-  uint16_t mode_0_actuation_threshold;
+      /* threshold for key release in mode 0 rescaled to actual scale */
+      uint16_t release_threshold[MATRIX_ROWS][MATRIX_COLS];
+    } mode_0;
 
-  /* threshold for key release in mode 0 */
-  uint16_t mode_0_release_threshold;
+    struct {
+      /* travel distance for key press in mode 1 */
+      uint16_t actuation_distance[MATRIX_ROWS][MATRIX_COLS];
 
-  /* threshold for key press in mode 1 (initial deadzone) */
-  uint16_t mode_1_initial_deadzone_offset;
+      /* travel distance for key release in mode 1 */
+      uint16_t release_distance[MATRIX_ROWS][MATRIX_COLS];
 
-  /* threshold for key press in mode 0 rescaled to actual scale */
-  uint16_t rescaled_mode_0_actuation_threshold[MATRIX_ROWS][MATRIX_COLS];
-
-  /* threshold for key release in mode 0 rescaled to actual scale */
-  uint16_t rescaled_mode_0_release_threshold[MATRIX_ROWS][MATRIX_COLS];
-
-  /* threshold for key press in mode 1 (initial deadzone) rescaled to actual scale */
-  uint16_t rescaled_mode_1_initial_deadzone_offset[MATRIX_ROWS][MATRIX_COLS];
-
-  /* sensitivity for key press in mode 1 (1-255) */
-  uint8_t mode_1_actuation_sensitivity;
-
-  /* sensitivity for key release in mode 1 (1-255) */
-  uint8_t mode_1_release_sensitivity;
+      /* threshold for key press in mode 1 (initial deadzone) rescaled to actual scale */
+      uint16_t initial_deadzone_offset[MATRIX_ROWS][MATRIX_COLS];
+    } mode_1;
+  } rescaled;
 
   /* extremum values for mode 1 */
   uint16_t extremum[MATRIX_ROWS][MATRIX_COLS];
@@ -103,15 +93,12 @@ typedef struct {
 
   /* calibration mode for bottoming out values (true: calibration mode, false: normal mode) */
   bool bottoming_calibration_starter[MATRIX_ROWS][MATRIX_COLS];
-
-  /* bottoming reading */
-  uint16_t bottoming_reading[MATRIX_ROWS][MATRIX_COLS];
 } ec_config_t;
 
 // Check if the size of the reserved persistent memory is the same as the size of struct eeprom_ec_config_t
 // _Static_assert(sizeof(eeprom_ec_config_t) == EECONFIG_KB_DATA_SIZE, "Mismatch in keyboard EECONFIG stored data");
-// I use KB scoope for common library
-// _Static_assert(sizeof(eeprom_ec_config_t) == EECONFIG_USER_DATA_SIZE, "Mismatch in keyboard EECONFIG stored data");
+_Static_assert(sizeof(eeprom_ec_config_t) == (VIA_EEPROM_CUSTOM_CONFIG_SIZE - VIA_EEPROM_CUSTOM_CONFIG_COMMON_SIZE),
+               "Mismatch in keyboard EECONFIG stored data");
 
 extern eeprom_ec_config_t eeprom_ec_config;
 extern ec_config_t ec_config;

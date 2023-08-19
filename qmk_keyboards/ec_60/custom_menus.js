@@ -51,21 +51,21 @@ module.exports = function (options, defines) {
             ]
           },
           {
-            label: 'Actuation Sensitivity (1-255)',
+            label: 'Actuation Distance (0% | 100%)',
             type: 'range',
-            options: [1, 255],
+            options: [1, 1023],
             content: [
-              'id_ec_mode_1_actuation_sensitivity',
+              'id_ec_mode_1_actuation_distance',
               defines.VIA_EC_CUSTOM_CHANNEL_ID,
               5
             ]
           },
           {
-            label: 'Release Sensitivity (1-255)',
+            label: 'Release Distance  (0% | 100%)',
             type: 'range',
-            options: [1, 255],
+            options: [1, 1023],
             content: [
-              'id_ec_mode_1_release_sensitivity',
+              'id_ec_mode_1_release_distance',
               defines.VIA_EC_CUSTOM_CHANNEL_ID,
               6
             ]
