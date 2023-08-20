@@ -16,12 +16,11 @@
 
 #include "ec_switch_matrix.h"
 
-#include "analog.h"
-#include "atomic_util.h"
-#include "ec_60/config.h"
-#include "math.h"
-#include "print.h"
-#include "wait.h"
+#include <analog.h>
+#include <atomic_util.h>
+#include <math.h>
+#include <print.h>
+#include <wait.h>
 
 eeprom_ec_config_t eeprom_ec_config;
 ec_config_t ec_config;

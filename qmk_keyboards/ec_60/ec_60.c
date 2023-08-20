@@ -17,10 +17,7 @@
 #include "ec_60.h"
 
 #include <eeprom.h>
-#include <send_string.h>
-#include <stdint.h>
 
-#include "ec_60/config.h"
 #include "ec_switch_matrix.h"
 
 #define RESCALE_ACTUATION_THRESHOLD 1

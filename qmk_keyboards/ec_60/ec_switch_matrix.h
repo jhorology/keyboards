@@ -15,13 +15,7 @@
  */
 
 #pragma once
-
-#include <stdbool.h>
-#include <stdint.h>
-
-#include "eeconfig.h"
-#include "info_config.h"
-#include "matrix.h"
+#include <quantum.h>
 
 typedef struct {
   /*
