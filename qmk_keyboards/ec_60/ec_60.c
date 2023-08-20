@@ -49,16 +49,9 @@ static deferred_token show_calibration_data_token;  // defer_exec token
 static bool ec_config_initialized;
 static int ec_config_error;
 
-#ifdef ENABLE_CALIBRATED_BOTTOMING_READING
-const uint16_t PROGMEM bottming_reading_default[MATRIX_ROWS][MATRIX_COLS] = {
-  // clang-format off
-  {0x0240,0x02df,0x0296,0x02d2,0x029d,0x024d,0x025e,0x01f4,0x025a,0x01d7,0x0232,0x025a,0x027a,0x017e,0x0243},
-  {0x02a5,0x02ca,0x0308,0x0363,0x02d1,0x0333,0x02c4,0x029c,0x0314,0x02c7,0x027e,0x027f,0x0232,0x01ba,0x03ff},
-  {0x01d4,0x0304,0x0312,0x0344,0x02ab,0x02ea,0x02dd,0x030b,0x0308,0x0277,0x0284,0x02dd,0x03ff,0x0274,0x03ff},
-  {0x01ef,0x03ff,0x0297,0x0326,0x035b,0x02aa,0x02cc,0x032e,0x0348,0x0295,0x02d2,0x0274,0x03ff,0x017b,0x0204},
-  {0x0212,0x020d,0x01da,0x03ff,0x03ff,0x03ff,0x01fc,0x03ff,0x03ff,0x03ff,0x015d,0x019b,0x01c8,0x03ff,0x03ff}
-  // clang-format on
-};
+// if defined in ec_60/config.h or ec_60/keymaps/<keymap name>/config.h
+#ifdef DEFAULT_BOTTOMING_READING_USER
+const uint16_t PROGMEM bottming_reading_default[MATRIX_ROWS][MATRIX_COLS] = DEFAULT_BOTTOMING_READING_USER;
 #endif
 
 static int is_eeprom_ec_config_valid(void);
@@ -84,7 +77,7 @@ void eeconfig_init_user(void) {
   for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
     for (uint8_t col = 0; col < MATRIX_COLS; col++) {
       // I don't want to lose calibration data for each update firware
-#ifdef ENABLE_CALIBRATED_BOTTOMING_READING
+#ifdef DEFAULT_BOTTOMING_READING_USER
       eeprom_ec_config.bottoming_reading[row][col] = pgm_read_word(&bottming_reading_default[row][col]);
 #else
       eeprom_ec_config.bottoming_reading[row][col] = DEFAULT_BOTTOMING_READING;
@@ -375,7 +368,7 @@ static void ec_config_get_value(uint8_t *data) {
 }
 
 static void _send_matrix_array(void *matrix_array, uint8_t size, bool is_bool, bool is_c) {
-  send_string(is_c ? "{\n// clang-format off\n" : "[\n");
+  send_string(is_c ? "{ \\\n" : "[\n");
   for (int row = 0; row < MATRIX_ROWS; row++) {
     send_string(is_c ? "{" : "[");
     for (int col = 0; col < MATRIX_COLS; col++) {
@@ -399,9 +392,9 @@ static void _send_matrix_array(void *matrix_array, uint8_t size, bool is_bool, b
     if (row < (MATRIX_ROWS - 1)) {
       send_string(",");
     }
-    send_string("\n");
+    send_string(is_c ? " \\\n" : "\n");
   }
-  send_string(is_c ? "// clang-format on\n}" : "]");
+  send_string(is_c ? "}" : "]");
   wait_ms(100);
 }
 
@@ -448,9 +441,9 @@ static void ec_send_config(void) {
   send_string(",\nbottoming_reading: ");
   _send_matrix_array(eeprom_ec_config.bottoming_reading, 2, false, false);
 
-  send_string("\n}\n}\n/*\nconst uint16_t PROGMEM bottming_reading_default[MATRIX_ROWS][MATRIX_COLS] = ");
+  send_string("\n}\n}\n/*\n// clang-format off\n#define DEFAULT_BOTTOMING_READING_USER ");
   _send_matrix_array(eeprom_ec_config.bottoming_reading, 2, false, true);
-  send_string(";\n*/\n");
+  send_string("\n// clang-format on\n*/\n");
 }
 
 static uint32_t defer_show_calibration_data_cb(uint32_t trigger_time, void *cb_arg) {
