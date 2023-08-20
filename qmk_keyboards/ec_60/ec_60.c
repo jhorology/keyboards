@@ -270,7 +270,7 @@ static void ec_config_set_value(uint8_t *data) {
       // range
       eeprom_ec_config.mode_1_actuation_moving_distance = (value_data[0] << 8) + value_data[1];
       ec_config_rescale(1, RESCALE_ACTUATION_MOVING_DISTANCE);
-      defer_eeprom_update_byte(VIA_EC_CUSTOM_CHANNEL_ID, id_ec_mode_1_actuation_moving_distance,
+      defer_eeprom_update_word(VIA_EC_CUSTOM_CHANNEL_ID, id_ec_mode_1_actuation_moving_distance,
                                (void *)EC_CONFIG_MODE_1_ACTUATION_MOVING_DISTANCE,
                                eeprom_ec_config.mode_1_actuation_moving_distance);
       break;
@@ -278,7 +278,7 @@ static void ec_config_set_value(uint8_t *data) {
       // range
       eeprom_ec_config.mode_1_release_moving_distance = (value_data[0] << 8) + value_data[1];
       ec_config_rescale(1, RESCALE_RELEASE_MOVING_DISTANCE);
-      defer_eeprom_update_byte(VIA_EC_CUSTOM_CHANNEL_ID, id_ec_mode_1_release_moving_distance,
+      defer_eeprom_update_word(VIA_EC_CUSTOM_CHANNEL_ID, id_ec_mode_1_release_moving_distance,
                                (void *)EC_CONFIG_MODE_1_RELEASE_MOVING_DISTANCE,
                                eeprom_ec_config.mode_1_release_moving_distance);
       break;
