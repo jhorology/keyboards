@@ -3,5 +3,20 @@
     "name": "EC\nDebug",
     "title": "Show calibration data as keystrokes",
     "shortName": "EC.D"
+  },
+  {
+    "name": "R.T\nToggle",
+    "title": "Toggle Rapid Trigger On/Off",
+    "shortName": "RT🔁"
+  },
+  {
+    "name": "R.T🗹\nON",
+    "title": "Turn on Rapid Trigger mode",
+    "shortName": "RT🗹"
+  },
+  {
+    "name": "R.T\nOFF",
+    "title": "Turn off Rapid Trigger moode",
+    "shortName": "RT☐"
   }
 ]

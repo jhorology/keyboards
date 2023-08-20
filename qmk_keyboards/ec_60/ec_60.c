@@ -70,6 +70,7 @@ static void ec_config_clear_extremum(void);
 static void ec_config_rescale(uint8_t actuation_mode, uint8_t flags);
 static void ec_config_set_value(uint8_t *data);
 static void ec_config_get_value(uint8_t *data);
+static void ec_config_set_actuation_mode(uint8_t mode);
 
 // QMK hook functions
 // -----------------------------------------------------------------------------------
@@ -125,6 +126,16 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         defer_show_calibration_data(1000UL);
         return false;
       }
+      break;
+    case RT_TOGG:
+      ec_config_set_actuation_mode(eeprom_ec_config.actuation_mode == 0 ? 1 : 0);
+      break;
+    case RT_ON:
+      ec_config_set_actuation_mode(get_mods() & MOD_MASK_SHIFT ? 0 : 1);
+      break;
+    case RT_OFF:
+      ec_config_set_actuation_mode(get_mods() & MOD_MASK_SHIFT ? 1 : 0);
+      break;
   }
   return true;
 }
@@ -226,6 +237,15 @@ static void ec_config_rescale(uint8_t actuation_mode, uint8_t flags) {
   }
 }
 
+static void ec_config_set_actuation_mode(uint8_t mode) {
+  eeprom_ec_config.actuation_mode = mode;
+  ec_config_rescale(eeprom_ec_config.actuation_mode, RESCALE_ALL);
+  if (eeprom_ec_config.actuation_mode == 1) {
+    ec_config_clear_extremum();
+  }
+  eeprom_update_byte((void *)EC_CONFIG_ACTUATION_MODE, eeprom_ec_config.actuation_mode);
+}
+
 // Handle the data received by the keyboard from the VIA menus
 static void ec_config_set_value(uint8_t *data) {
   // data = [ value_id, value_data ]
@@ -235,12 +255,7 @@ static void ec_config_set_value(uint8_t *data) {
   switch (*value_id) {
     case id_ec_actuation_mode:
       // dropdown
-      eeprom_ec_config.actuation_mode = value_data[0];
-      ec_config_rescale(eeprom_ec_config.actuation_mode, RESCALE_ALL);
-      if (eeprom_ec_config.actuation_mode == 1) {
-        ec_config_clear_extremum();
-      }
-      eeprom_update_byte((void *)EC_CONFIG_ACTUATION_MODE, eeprom_ec_config.actuation_mode);
+      ec_config_set_actuation_mode(value_data[0]);
       break;
     case id_ec_mode_0_actuation_threshold:
       // range
