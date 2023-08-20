@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "matrix.h"
+#include <quantum.h>
 
 #include "ec_switch_matrix.h"
 
@@ -46,4 +46,12 @@ bool matrix_scan_custom(matrix_row_t current_matrix[]) {
 }
 
 // Bootmagic overriden to avoid conflicts with EC
-void bootmagic_lite(void) { ; }
+void bootmagic_lite(void) {
+#ifdef EC_BOOTMAGIC_LITE_THRESHOLD
+  if (ec_config.noise_floor[BOOTMAGIC_LITE_ROW][BOOTMAGIC_LITE_COLUMN] > EC_BOOTMAGIC_LITE_THRESHOLD) {
+    eeconfig_disable();
+    // Jump to bootloader.
+    bootloader_jump();
+  }
+#endif
+}

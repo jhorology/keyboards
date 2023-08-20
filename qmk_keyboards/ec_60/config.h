@@ -61,6 +61,8 @@
 
 #define DISCHARGE_TIME 10
 
+#define EC_BOOTMAGIC_LITE_THRESHOLD 0x200
+
 /* use calibrated bottming value as default */
 #define ENABLE_CALIBRATED_BOTTOMING_READING
 
