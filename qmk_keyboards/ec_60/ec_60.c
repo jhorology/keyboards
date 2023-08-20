@@ -199,6 +199,7 @@ static void ec_config_clear_extremum() {
 
 static void ec_config_rescale(uint8_t actuation_mode, uint8_t flags) {
   if (actuation_mode == 0) {
+    // APC mode
     for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
       for (uint8_t col = 0; col < MATRIX_COLS; col++) {
         if (flags & RESCALE_ACTUATION_THRESHOLD) {
@@ -206,7 +207,7 @@ static void ec_config_rescale(uint8_t actuation_mode, uint8_t flags) {
             rescale(eeprom_ec_config.mode_0_actuation_threshold, 0, 1023, ec_config.noise_floor[row][col],
                     eeprom_ec_config.bottoming_reading[row][col]);
         }
-        if (flags & RESCALE_ACTUATION_THRESHOLD) {
+        if (flags & RESCALE_RELEASE_THRESHOLD) {
           ec_config.rescaled.mode_0.release_threshold[row][col] =
             rescale(eeprom_ec_config.mode_0_release_threshold, 0, 1023, ec_config.noise_floor[row][col],
                     eeprom_ec_config.bottoming_reading[row][col]);
@@ -214,6 +215,7 @@ static void ec_config_rescale(uint8_t actuation_mode, uint8_t flags) {
       }
     }
   } else if (actuation_mode == 1) {
+    // Rapid Trigger mode
     for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
       for (uint8_t col = 0; col < MATRIX_COLS; col++) {
         if (flags & RESCALE_ACTUATION_MOVING_DISTANCE) {
