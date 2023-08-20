@@ -128,13 +128,22 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       }
       break;
     case RT_TOGG:
-      ec_config_set_actuation_mode(eeprom_ec_config.actuation_mode == 0 ? 1 : 0);
+      if (record->event.pressed) {
+        ec_config_set_actuation_mode(eeprom_ec_config.actuation_mode == 0 ? 1 : 0);
+        return false;
+      }
       break;
     case RT_ON:
-      ec_config_set_actuation_mode(get_mods() & MOD_MASK_SHIFT ? 0 : 1);
+      if (record->event.pressed) {
+        ec_config_set_actuation_mode(get_mods() & MOD_MASK_SHIFT ? 0 : 1);
+        return false;
+      }
       break;
     case RT_OFF:
-      ec_config_set_actuation_mode(get_mods() & MOD_MASK_SHIFT ? 1 : 0);
+      if (record->event.pressed) {
+        ec_config_set_actuation_mode(get_mods() & MOD_MASK_SHIFT ? 1 : 0);
+        return false;
+      }
       break;
   }
   return true;
