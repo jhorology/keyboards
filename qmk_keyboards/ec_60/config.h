@@ -112,4 +112,5 @@
     }
 #endif
 
-#define CUSTOM_CONFIG_RHID_DEFAULT true
+// for debugging
+// #define CUSTOM_CONFIG_RHID_DEFAULT true
