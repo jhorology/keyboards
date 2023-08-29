@@ -1,8 +1,8 @@
 diff --git a/quantum/encoder.c b/quantum/encoder.c
-index 1046fe6c..7d515029 100644
+index 7ab194ed..bafa8c2f 100644
 --- a/quantum/encoder.c
 +++ b/quantum/encoder.c
-@@ -52,7 +52,10 @@ static uint8_t encoder_resolutions[NUM_ENCODERS] = ENCODER_RESOLUTIONS;
+@@ -57,7 +57,10 @@ static uint8_t encoder_resolutions[NUM_ENCODERS] = ENCODER_RESOLUTIONS;
  #    define ENCODER_CLOCKWISE false
  #    define ENCODER_COUNTER_CLOCKWISE true
  #endif

@@ -11,7 +11,7 @@ BOOTLOADER = custom
 #   comment out to disable the options.
 #
 RGB_MATRIX_ENABLE = yes        # Use RGB matrix
-RGB_MATRIX_DRIVER = WS2812
+RGB_MATRIX_DRIVER = ws2812
 WS2812_DRIVER = pwm
 
 # os detection debug

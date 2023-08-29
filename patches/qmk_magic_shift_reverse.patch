@@ -1,8 +1,16 @@
 diff --git a/quantum/process_keycode/process_magic.c b/quantum/process_keycode/process_magic.c
-index 5fafe855..9754dec1 100644
+index 3b35884d..c4ce1022 100644
 --- a/quantum/process_keycode/process_magic.c
 +++ b/quantum/process_keycode/process_magic.c
-@@ -41,97 +41,99 @@ bool process_magic(uint16_t keycode, keyrecord_t *record) {
+@@ -17,6 +17,7 @@
+ #include "keycode_config.h"
+ #include "keycodes.h"
+ #include "eeconfig.h"
++#include "action_util.h"
+ 
+ #ifdef AUDIO_ENABLE
+ #    include "audio.h"
+@@ -46,97 +47,99 @@ bool process_magic(uint16_t keycode, keyrecord_t *record) {
      // skip anything that isn't a keyup
      if (record->event.pressed) {
          if (IS_MAGIC_KEYCODE(keycode)) {

@@ -1,8 +1,8 @@
 diff --git a/builddefs/common_features.mk b/builddefs/common_features.mk
-index e904d6be..90d403f9 100644
+index 094eda6f..4747740f 100644
 --- a/builddefs/common_features.mk
 +++ b/builddefs/common_features.mk
-@@ -873,6 +873,13 @@ ifeq ($(strip $(JOYSTICK_ENABLE)), yes)
+@@ -878,6 +878,13 @@ ifeq ($(strip $(JOYSTICK_ENABLE)), yes)
      endif
  endif
  
@@ -117,10 +117,10 @@ index 9d415a3b..3bf3bdff 100644
      REPORT_ID_NKRO,
      REPORT_ID_JOYSTICK,
 diff --git a/tmk_core/protocol/usb_descriptor.c b/tmk_core/protocol/usb_descriptor.c
-index 5ab9e3ff..7b0ce205 100644
+index e215c909..10c5d11a 100644
 --- a/tmk_core/protocol/usb_descriptor.c
 +++ b/tmk_core/protocol/usb_descriptor.c
-@@ -319,6 +319,46 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
+@@ -321,6 +321,46 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
          HID_RI_REPORT_SIZE(8, 16),
          HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_ARRAY | HID_IOF_ABSOLUTE),
      HID_RI_END_COLLECTION(0),
@@ -168,10 +168,10 @@ index 5ab9e3ff..7b0ce205 100644
  
  #ifdef PROGRAMMABLE_BUTTON_ENABLE
 diff --git a/tmk_core/protocol/vusb/vusb.c b/tmk_core/protocol/vusb/vusb.c
-index b3eeff9e..743912be 100644
+index d74f375f..b73deebe 100644
 --- a/tmk_core/protocol/vusb/vusb.c
 +++ b/tmk_core/protocol/vusb/vusb.c
-@@ -540,6 +540,46 @@ const PROGMEM uchar shared_hid_report[] = {
+@@ -542,6 +542,46 @@ const PROGMEM uchar shared_hid_report[] = {
      0x75, 0x10,               //   Report Size (16)
      0x81, 0x00,               //   Input (Data, Array, Absolute)
      0xC0,                     // End Collection

@@ -1,8 +1,8 @@
 diff --git a/tmk_core/protocol/usb_descriptor.c b/tmk_core/protocol/usb_descriptor.c
-index 5ab9e3ff..133c7355 100644
+index e215c909..73d91afa 100644
 --- a/tmk_core/protocol/usb_descriptor.c
 +++ b/tmk_core/protocol/usb_descriptor.c
-@@ -1089,6 +1089,10 @@ const USB_Descriptor_String_t PROGMEM SerialNumberString = {
+@@ -1091,6 +1091,10 @@ const USB_Descriptor_String_t PROGMEM SerialNumberString = {
  
  // clang-format on
  
@@ -13,7 +13,7 @@ index 5ab9e3ff..133c7355 100644
  /**
   * This function is called by the library when in device mode, and must be overridden (see library "USB Descriptors"
   * documentation) by the application code so that the address and size of a requested descriptor can be given
-@@ -1104,7 +1108,7 @@ uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const
+@@ -1106,7 +1110,7 @@ uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const
  
      switch (DescriptorType) {
          case DTYPE_Device:

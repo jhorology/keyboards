@@ -1,5 +1,5 @@
 diff --git a/tmk_core/protocol.mk b/tmk_core/protocol.mk
-index d3f15c45..f0a52528 100644
+index d159dacc..def1b200 100644
 --- a/tmk_core/protocol.mk
 +++ b/tmk_core/protocol.mk
 @@ -94,6 +94,10 @@ ifeq ($(strip $(DIGITIZER_ENABLE)), yes)
@@ -7,11 +7,11 @@ index d3f15c45..f0a52528 100644
  endif
  
 +ifeq ($(strip $(RADIAL_CONTROLLER_ENABLE)), yes)
-+    TMK_COMMON_DEFS += -DRADIAL_CONTROLLER_ENABLE
++    OPT_DEFS += -DRADIAL_CONTROLLER_ENABLE
 +endif
 +
  ifeq ($(strip $(SHARED_EP_ENABLE)), yes)
-     TMK_COMMON_DEFS += -DSHARED_EP_ENABLE
+     OPT_DEFS += -DSHARED_EP_ENABLE
  endif
 diff --git a/tmk_core/protocol/chibios/usb_main.c b/tmk_core/protocol/chibios/usb_main.c
 index b14ca30c..dd6f4ddc 100644
@@ -123,7 +123,7 @@ index 7dc6c3d8..b761d71a 100644
  void send_programmable_button(report_programmable_button_t *report);
 +void send_radial_controller(report_radial_controller_t *report);
 diff --git a/tmk_core/protocol/lufa/lufa.c b/tmk_core/protocol/lufa/lufa.c
-index 20bfc8fb..fc1d53dc 100644
+index f04ca79a..fca1e221 100644
 --- a/tmk_core/protocol/lufa/lufa.c
 +++ b/tmk_core/protocol/lufa/lufa.c
 @@ -414,6 +414,11 @@ void EVENT_USB_Device_ConfigurationChanged(void) {
@@ -168,10 +168,10 @@ index 9d415a3b..cb635ced 100644
  #ifdef JOYSTICK_SHARED_EP
      uint8_t report_id;
 diff --git a/tmk_core/protocol/usb_descriptor.c b/tmk_core/protocol/usb_descriptor.c
-index 5ab9e3ff..bd2f29fe 100644
+index e215c909..7514a23b 100644
 --- a/tmk_core/protocol/usb_descriptor.c
 +++ b/tmk_core/protocol/usb_descriptor.c
-@@ -382,6 +382,38 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
+@@ -384,6 +384,38 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
  };
  #endif
  
@@ -210,7 +210,7 @@ index 5ab9e3ff..bd2f29fe 100644
  #ifdef RAW_ENABLE
  const USB_Descriptor_HIDReport_Datatype_t PROGMEM RawReport[] = {
      HID_RI_USAGE_PAGE(16, RAW_USAGE_PAGE), // Vendor Defined
-@@ -1048,6 +1080,46 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor = {
+@@ -1050,6 +1082,46 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor = {
          .PollingIntervalMS      = USB_POLLING_INTERVAL_MS
      },
  #endif
@@ -257,7 +257,7 @@ index 5ab9e3ff..bd2f29fe 100644
  };
  
  /*
-@@ -1196,6 +1268,12 @@ uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const
+@@ -1198,6 +1270,12 @@ uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const
  
                      break;
  #endif
@@ -270,7 +270,7 @@ index 5ab9e3ff..bd2f29fe 100644
              }
  
              break;
-@@ -1251,6 +1329,12 @@ uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const
+@@ -1253,6 +1331,12 @@ uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const
                      Address = &DigitizerReport;
                      Size    = sizeof(DigitizerReport);
                      break;
