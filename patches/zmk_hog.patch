@@ -1,0 +1,13 @@
+diff --git a/app/src/hog.c b/app/src/hog.c
+index 46599ae..e7a5b7b 100644
+--- a/app/src/hog.c
++++ b/app/src/hog.c
+@@ -174,7 +174,7 @@ void send_keyboard_report_callback(struct k_work *work) {
+         }
+ 
+         struct bt_gatt_notify_params notify_params = {
+-            .attr = &hog_svc.attrs[5],
++            .attr = &hog_svc.attrs[6],
+             .data = &report,
+             .len = sizeof(report),
+         };
