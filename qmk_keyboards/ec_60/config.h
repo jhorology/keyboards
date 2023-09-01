@@ -1,4 +1,5 @@
 /* Copyright 2023 Cipulot
+ * Modified 2023 masafumi
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,29 +45,28 @@
 
 #define DISCHARGE_PIN A6
 #define ANALOG_PORT A3
-
-#define DEFAULT_ACTUATION_MODE 0
-#define DEFAULT_MODE_0_ACTUATION_LEVEL 600
-#define DEFAULT_MODE_0_RELEASE_LEVEL 450
-#define DEFAULT_MODE_1_INITIAL_DEADZONE_OFFSET 300
-#define DEFAULT_MODE_1_ACTUATION_MOVING_DISTANCE 200
-#define DEFAULT_MODE_1_RELEASE_MOVING_DISTANCE 200
-#define DEFAULT_EXTREMUM 1023
-
-#define EXPECTED_NOISE_FLOOR 0
-
-#define DEFAULT_NOISE_FLOOR_SAMPLING_COUNT 30
-#define DEFAULT_BOTTOMING_READING 1023
-#define DEFAULT_CALIBRATION_STARTER true
 #define DISCHARGE_TIME 10
+#define NOISE_FLOOR_SAMPLING_COUNT 30
 
+#define DYNAMIC_KEYMAP_LAYER_COUNT 5
+
+#define EC_ACTUATION_THRESHOLD_DEFAULT 600
+#define EC_RELEASE_THRESHOLD_DEFAULT 450
+#define EC_ACTUATION_TRAVEL_DEFAULT 200
+#define EC_RELEASE_TRAVEL_DEFAULT 200
+#define EC_DEADZONE_DEFAULT 200
+#define EC_BOTTOMING_READING_DEFAULT 1023
 #define EC_BOOTMAGIC_LITE_THRESHOLD 0x200
+#define EC_PRESET_MAP_LAYER (DYNAMIC_KEYMAP_LAYER_COUNT - 1)
+
+// 2 - 16
+#define EC_NUM_PRESETS 4
 
 /* use calibrated bottming value as default */
 #define ENABLE_CALIBRATED_BOTTOMING_READING
 
 // #define VIA_EC_CUSTOM_CHANNEL_ID id_custom_channel_user_range
-#define VIA_EC_CUSTOM_CHANNEL_ID 16
+#define EC_VIA_CUSTOM_CHANNEL_ID_START 16
 
 /* increase eeprom size */
 #define WEAR_LEVELING_LOGICAL_SIZE 8192
@@ -77,7 +77,13 @@
 
 /* ViA EEPROM */
 #undef VIA_EEPROM_CUSTOM_CONFIG_SIZE
-#define VIA_EEPROM_CUSTOM_CONFIG_SIZE (VIA_EEPROM_CUSTOM_CONFIG_COMMON_SIZE + 12 + MATRIX_COLS * MATRIX_ROWS * 2)
+/*
+  preset 4byte * EC_NUM_PRESETS
+  preset_map 4bit * matrix
+  bottoming_reading 2byte * matrix
+*/
+#define VIA_EEPROM_CUSTOM_CONFIG_SIZE \
+  (VIA_EEPROM_CUSTOM_CONFIG_COMMON_SIZE + EC_NUM_PRESETS * 8 + MATRIX_COLS * MATRIX_ROWS * 2)
 
 /* ViA layout options */
 /*  7 bit */
@@ -115,3 +121,4 @@
 
 // for debugging
 // #define CUSTOM_CONFIG_RHID_DEFAULT true
+// #define EC_DEBUG 1

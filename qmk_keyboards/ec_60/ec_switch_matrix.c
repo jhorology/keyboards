@@ -1,4 +1,5 @@
 /* Copyright 2023 Cipulot
+ * Modified 2023 masafumi
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,11 +20,10 @@
 #include <analog.h>
 #include <atomic_util.h>
 #include <math.h>
-#include <print.h>
+#include <stdint.h>
 #include <wait.h>
 
-eeprom_ec_config_t eeprom_ec_config;
-ec_config_t ec_config;
+#include "ec_config.h"
 
 // Pin and port array
 const uint32_t row_pins[] = MATRIX_ROW_PINS;
@@ -50,57 +50,14 @@ uint16_t sw_value[MATRIX_ROWS][MATRIX_COLS];
 
 static adc_mux adcMux;
 
-// Initialize the row pins
-void init_row(void) {
-  // Set all row pins as output and low
-  for (uint8_t idx = 0; idx < MATRIX_ROWS; idx++) {
-    setPinOutput(row_pins[idx]);
-    writePinLow(row_pins[idx]);
-  }
-}
-
-// Initialize the multiplexers
-void init_amux(void) {
-  for (uint8_t idx = 0; idx < AMUX_COUNT; idx++) {
-    setPinOutput(amux_en_pins[idx]);
-    writePinLow(amux_en_pins[idx]);
-  }
-  for (uint8_t idx = 0; idx < AMUX_SEL_PINS_COUNT; idx++) {
-    setPinOutput(amux_sel_pins[idx]);
-  }
-}
-
-// Select the multiplexer channel of the specified multiplexer
-void select_amux_channel(uint8_t channel, uint8_t col) {
-  // Get the channel for the specified multiplexer
-  uint8_t ch = amux_n_col_channels[channel][col];
-  // momentarily disable specified multiplexer
-  writePinHigh(amux_en_pins[channel]);
-  // Select the multiplexer channel
-  writePin(amux_sel_pins[0], ch & 1);
-  writePin(amux_sel_pins[1], ch & 2);
-  writePin(amux_sel_pins[2], ch & 4);
-  // re enable specified multiplexer
-  writePinLow(amux_en_pins[channel]);
-}
-
-// Disable all the unused multiplexers
-void disable_unused_amux(uint8_t channel) {
-  // disable all the other multiplexers apart from the current selected one
-  for (uint8_t idx = 0; idx < AMUX_COUNT; idx++) {
-    if (idx != channel) {
-      writePinHigh(amux_en_pins[idx]);
-    }
-  }
-}
-// Discharge the peak hold capacitor
-void discharge_capacitor(void) { writePinLow(DISCHARGE_PIN); }
-
-// Charge the peak hold capacitor
-void charge_capacitor(uint8_t row) {
-  writePinHigh(DISCHARGE_PIN);
-  writePinHigh(row_pins[row]);
-}
+static void init_row(void);
+static void init_amux(void);
+static void select_amux_channel(uint8_t channel, uint8_t col);
+static void disable_unused_amux(uint8_t channel);
+static void discharge_capacitor(void);
+static void charge_capacitor(uint8_t row);
+static uint16_t ec_readkey_raw(uint8_t channel, uint8_t row, uint8_t col);
+static bool ec_update_key(matrix_row_t* current_row, uint8_t row, uint8_t col, uint16_t sw_value);
 
 // Initialize the peripherals pins
 int ec_init(void) {
@@ -134,7 +91,7 @@ void ec_noise_floor(void) {
   }
 
   // Get the noise floor
-  for (uint8_t i = 0; i < DEFAULT_NOISE_FLOOR_SAMPLING_COUNT; i++) {
+  for (uint8_t i = 0; i < NOISE_FLOOR_SAMPLING_COUNT; i++) {
     for (uint8_t amux = 0; amux < AMUX_COUNT; amux++) {
       disable_unused_amux(amux);
       for (int col = 0; col < amux_n_col_sizes[amux]; col++) {
@@ -153,7 +110,7 @@ void ec_noise_floor(void) {
   // Average the noise floor
   for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
     for (uint8_t col = 0; col < MATRIX_COLS; col++) {
-      ec_config.noise_floor[row][col] /= DEFAULT_NOISE_FLOOR_SAMPLING_COUNT;
+      ec_config.noise_floor[row][col] /= NOISE_FLOOR_SAMPLING_COUNT;
     }
   }
 }
@@ -219,8 +176,60 @@ bool ec_matrix_scan(matrix_row_t current_matrix[]) {
   return updated;
 }
 
+// Initialize the row pins
+static void init_row(void) {
+  // Set all row pins as output and low
+  for (uint8_t idx = 0; idx < MATRIX_ROWS; idx++) {
+    setPinOutput(row_pins[idx]);
+    writePinLow(row_pins[idx]);
+  }
+}
+
+// Initialize the multiplexers
+static void init_amux(void) {
+  for (uint8_t idx = 0; idx < AMUX_COUNT; idx++) {
+    setPinOutput(amux_en_pins[idx]);
+    writePinLow(amux_en_pins[idx]);
+  }
+  for (uint8_t idx = 0; idx < AMUX_SEL_PINS_COUNT; idx++) {
+    setPinOutput(amux_sel_pins[idx]);
+  }
+}
+
+// Select the multiplexer channel of the specified multiplexer
+static void select_amux_channel(uint8_t channel, uint8_t col) {
+  // Get the channel for the specified multiplexer
+  uint8_t ch = amux_n_col_channels[channel][col];
+  // momentarily disable specified multiplexer
+  writePinHigh(amux_en_pins[channel]);
+  // Select the multiplexer channel
+  writePin(amux_sel_pins[0], ch & 1);
+  writePin(amux_sel_pins[1], ch & 2);
+  writePin(amux_sel_pins[2], ch & 4);
+  // re enable specified multiplexer
+  writePinLow(amux_en_pins[channel]);
+}
+
+// Disable all the unused multiplexers
+static void disable_unused_amux(uint8_t channel) {
+  // disable all the other multiplexers apart from the current selected one
+  for (uint8_t idx = 0; idx < AMUX_COUNT; idx++) {
+    if (idx != channel) {
+      writePinHigh(amux_en_pins[idx]);
+    }
+  }
+}
+// Discharge the peak hold capacitor
+static void discharge_capacitor(void) { writePinLow(DISCHARGE_PIN); }
+
+// Charge the peak hold capacitor
+static void charge_capacitor(uint8_t row) {
+  writePinHigh(DISCHARGE_PIN);
+  writePinHigh(row_pins[row]);
+}
+
 // Read the capacitive sensor value
-uint16_t ec_readkey_raw(uint8_t channel, uint8_t row, uint8_t col) {
+static uint16_t ec_readkey_raw(uint8_t channel, uint8_t row, uint8_t col) {
   uint16_t sw_value = 0;
 
   // Select the multiplexer
@@ -244,73 +253,59 @@ uint16_t ec_readkey_raw(uint8_t channel, uint8_t row, uint8_t col) {
 }
 
 // Update press/release state of key
-bool ec_update_key(matrix_row_t* current_row, uint8_t row, uint8_t col, uint16_t sw_value) {
-  bool current_state = (*current_row >> col) & 1;
+static bool ec_update_key(matrix_row_t* current_row, uint8_t row, uint8_t col, uint16_t sw_value) {
+  uint16_t extremum = sw_value < ec_config.deadzone[row][col] ? ec_config.deadzone[row][col] : sw_value;
+  if ((*current_row >> col) & 1) {
+    // key pressed
+    switch (ec_config.release[row][col].reference.mode) {
+      case EC_RELEASE_MODE_STATIC:
+        if (sw_value < ec_config.release[row][col].reference.value) {
+          ec_config.extremum[row][col] = extremum;
+          *current_row &= ~(1 << col);
+          return true;
+        }
+        break;
+      case EC_RELEASE_MODE_DYNAMIC:
+        if (sw_value < ec_config.deadzone[row][col] ||
+            (sw_value < ec_config.extremum[row][col] &&
+             ec_config.extremum[row][col] - sw_value > ec_config.release[row][col].reference.value)) {
+          ec_config.extremum[row][col] = extremum;
+          *current_row &= ~(1 << col);
+          return true;
+        }
+        break;
+    }
+    // Is key still moving down?
+    if (extremum > ec_config.extremum[row][col]) {
+      ec_config.extremum[row][col] = extremum;
+    }
 
-  // Normal board-wide APC
-  if (eeprom_ec_config.actuation_mode == 0) {
-    if (current_state && sw_value < ec_config.rescaled.mode_0.release_threshold[row][col]) {
-      *current_row &= ~(1 << col);
-      uprintf("Key released: %d, %d, %d\n", row, col, sw_value);
-      return true;
+  } else {
+    // key released
+
+    // 14-15 bit: actuation_mode
+    switch (ec_config.actuation[row][col].reference.mode) {
+      case EC_ACTUATION_MODE_STATIC:
+        if (sw_value > ec_config.actuation[row][col].reference.value) {
+          *current_row |= (1 << col);
+          ec_config.extremum[row][col] = extremum;
+          return true;
+        }
+        break;
+      case EC_ACTUATION_MODE_DYNAMIC:
+        if (sw_value > ec_config.extremum[row][col] &&
+            sw_value - ec_config.extremum[row][col] > ec_config.actuation[row][col].reference.value) {
+          // Has key moved down enough to be pressed?
+          ec_config.extremum[row][col] = extremum;
+          *current_row |= (1 << col);
+          return true;
+        }
+        break;
     }
-    if ((!current_state) && sw_value > ec_config.rescaled.mode_0.actuation_threshold[row][col]) {
-      *current_row |= (1 << col);
-      uprintf("Key pressed: %d, %d, %d\n", row, col, sw_value);
-      return true;
-    }
-  }
-  // Rapid trigger starting from the initial deadzone
-  else if (eeprom_ec_config.actuation_mode == 1) {
-    if (current_state) {
-      // Key is pressed
-      // Is key still moving down?
-      if (sw_value > ec_config.extremum[row][col]) {
-        ec_config.extremum[row][col] = sw_value;
-        uprintf("Key pressed: %d, %d, %d\n", row, col, sw_value);
-      } else if (sw_value <= ec_config.rescaled.mode_1.initial_deadzone_offset[row][col] ||
-                 ec_config.extremum[row][col] - sw_value >
-                   ec_config.rescaled.mode_1.release_moving_distance[row][col]) {
-        // Has key moved up enough to be released?
-        ec_config.extremum[row][col] = sw_value;
-        *current_row &= ~(1 << col);
-        uprintf("Key released: %d, %d, %d\n", row, col, sw_value);
-        return true;
-      }
-    } else {
-      // Key is not pressed
-      // Is the key still moving up?
-      if (sw_value < ec_config.extremum[row][col]) {
-        ec_config.extremum[row][col] = sw_value;
-      } else if (sw_value > ec_config.rescaled.mode_1.initial_deadzone_offset[row][col] &&
-                 sw_value >
-                   ec_config.extremum[row][col] + ec_config.rescaled.mode_1.actuation_moving_distance[row][col]) {
-        // Has key moved down enough to be pressed?
-        ec_config.extremum[row][col] = sw_value;
-        *current_row |= (1 << col);
-        uprintf("Key pressed: %d, %d, %d\n", row, col, sw_value);
-        return true;
-      }
+    // Is key still moving up
+    if (extremum < ec_config.extremum[row][col]) {
+      ec_config.extremum[row][col] = extremum;
     }
   }
   return false;
-}
-
-// Debug print key values
-void ec_print_matrix(void) {
-  for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
-    for (uint8_t col = 0; col < MATRIX_COLS; col++) {
-      uprintf("%4d", sw_value[row][col]);
-      if (col < (MATRIX_COLS - 1)) {
-        print(",");
-      }
-    }
-    print("\n");
-  }
-  print("\n");
-}
-
-// Rescale the value to a different range
-uint16_t rescale(uint16_t x, uint16_t in_min, uint16_t in_max, uint16_t out_min, uint16_t out_max) {
-  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }

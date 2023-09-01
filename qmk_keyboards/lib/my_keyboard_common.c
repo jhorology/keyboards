@@ -121,11 +121,13 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
 }
 
 __attribute__((weak)) bool raw_hid_receive_user(uint8_t *data, uint8_t length) { return true; }
+__attribute__((weak)) void via_raw_hid_post_receive_user(uint8_t *data, uint8_t length) {}
 
 void raw_hid_receive(uint8_t *data, uint8_t length) {
   if (custom_config_raw_hid_is_enable()) {
     if (raw_hid_receive_user(data, length)) {
       via_raw_hid_receive(data, length);
+      via_raw_hid_post_receive_user(data, length);
     }
   }
 }

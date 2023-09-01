@@ -1,4 +1,5 @@
-#/* Copyright 2023 Cipulot
+/* Copyright 2023 Cipulot
+ * Modified 2023 masafumi
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,6 +17,7 @@
 
 #include <quantum.h>
 
+#include "ec_config.h"
 #include "ec_switch_matrix.h"
 
 extern matrix_row_t raw_matrix[MATRIX_ROWS];  // raw values
@@ -31,19 +33,7 @@ void matrix_init_custom(void) {
 }
 
 // custom matrix scan function
-bool matrix_scan_custom(matrix_row_t current_matrix[]) {
-  bool updated = ec_matrix_scan(current_matrix);
-
-  // RAW matrix values on console
-  // #ifdef CONSOLE_ENABLE
-  //  static int cnt = 0;
-  //  if (cnt++ == 350) {
-  //      cnt = 0;
-  //      ec_print_matrix();
-  //  }
-  // #endif
-  return updated;
-}
+bool matrix_scan_custom(matrix_row_t current_matrix[]) { return ec_matrix_scan(current_matrix); }
 
 // Bootmagic overriden to avoid conflicts with EC
 void bootmagic_lite(void) {

@@ -4,8 +4,12 @@
 
 // custoim keycodes
 enum ec_keycodes {
-  EC_DBG = CUSTOM_KEYCODES_SAFE_RANGE,  // send calibration data as keystrokes
-  RT_TOGG,                              // Toggle Rapd Trigger mode on/off
-  RT_ON,                                // Turn on Rapid Trigger Mode, when shfit is held, turn off
-  RT_OFF                                // Turn off Rapid Trigger Mode, when shfit is held turn on
+  EC_PRESET_START = CUSTOM_KEYCODES_SAFE_RANGE,  // send calibration data as keystrokes
+  EC_PRESET_END = EC_PRESET_START + EC_NUM_PRESETS - 1,
+  EC_SEND,
+#ifdef EC_DEBUG
+  EC_DBG
+#endif
 };
+
+#define EC(preset_index) (EC_PRESET_START + preset_index)

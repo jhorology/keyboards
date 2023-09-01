@@ -1,108 +1,126 @@
-// TODO sync with source code
 module.exports = function (options, defines) {
-  const actuation = {
-    label: 'Actuation',
-    content: [
-      {
-        label: 'Mode',
-        type: 'dropdown',
-        options: [
-          ['APC', 0],
-          ['Rapid Trigger', 1]
-        ],
-        content: ['id_ec_actuation_mode', defines.VIA_EC_CUSTOM_CHANNEL_ID, 1]
-      },
-      {
-        showIf: '{id_ec_actuation_mode} == 0',
-        content: [
-          {
-            label: 'Actuation Level (0% | 100%)',
-            type: 'range',
-            options: [1, 1023],
-            content: [
-              'id_ec_mode_0_actuation_threshold',
-              defines.VIA_EC_CUSTOM_CHANNEL_ID,
-              2
-            ]
-          },
-          {
-            label: 'Release Level (0% | 100%, ALWAYS < Actuation Level)',
-            type: 'range',
-            options: [1, 1023],
-            content: [
-              'id_ec_mode_0_release_threshold',
-              defines.VIA_EC_CUSTOM_CHANNEL_ID,
-              3
-            ]
-          }
-        ]
-      },
-      {
-        showIf: '{id_ec_actuation_mode} == 1',
-        content: [
-          {
-            label: 'Initial Deadzone Offset (0% | 100%)',
-            type: 'range',
-            options: [1, 1023],
-            content: [
-              'id_ec_mode_1_initial_deadzone_offset',
-              defines.VIA_EC_CUSTOM_CHANNEL_ID,
-              4
-            ]
-          },
-          {
-            label: 'Actuation Moving Distance (0% | 100%)',
-            type: 'range',
-            options: [1, 1023],
-            content: [
-              'id_ec_mode_1_actuation_moving_distance',
-              defines.VIA_EC_CUSTOM_CHANNEL_ID,
-              5
-            ]
-          },
-          {
-            label: 'Release Moving Distance  (0% | 100%)',
-            type: 'range',
-            options: [1, 1023],
-            content: [
-              'id_ec_mode_1_release_moving_distance',
-              defines.VIA_EC_CUSTOM_CHANNEL_ID,
-              6
-            ]
-          }
-        ]
-      }
-    ]
+  const menus = []
+
+  for (let i = 0; i < defines.EC_NUM_PRESETS; i++) {
+    menus.push(createPresetMenu(defines.EC_VIA_CUSTOM_CHANNEL_ID_START + i, i))
   }
+  menus.push(
+    createCalibrationtMenu(
+      defines.EC_VIA_CUSTOM_CHANNEL_ID_START + defines.EC_NUM_PRESETS,
+      defines.EC_DEBUG
+    )
+  )
+  return [
+    {
+      label: 'EC Tools',
+      content: menus
+    }
+  ]
+}
+
+function createCalibrationtMenu(channelId, debug) {
   const calibration = {
     label: 'Calibration',
     content: [
       {
         label: 'Bottoming Calibration',
         type: 'toggle',
-        content: [
-          'id_ec_bottoming_calibration',
-          defines.VIA_EC_CUSTOM_CHANNEL_ID,
-          7
-        ]
+        content: ['id_ec_bottoming_calibration', channelId, 1]
       },
       {
         label:
-          'Show Calibration Data *(In 3 sconds after click,It will send data as keystrokes. Quickly focus on a safe text field of editor or something.)',
+          'Show Calibration Data *(In 3 sconds after click, It will send data as keystrokes.)',
         type: 'toggle',
-        content: [
-          'id_ec_show_calibration_data',
-          defines.VIA_EC_CUSTOM_CHANNEL_ID,
-          8
-        ]
+        content: ['id_ec_show_calibration_data', channelId, 2]
       }
     ]
   }
-
-  const ec_tools = {
-    label: 'EC Tools',
-    content: [actuation, calibration]
+  if (debug) {
+    calibration.content.push(
+      {
+        label:
+          'Show Debug Data *(In 3 sconds after click, It will send data as keystrokes.)',
+        type: 'toggle',
+        content: ['id_ec_debug_send_config', channelId, 3]
+      },
+      {
+        label: 'Bootloader Jump',
+        type: 'toggle',
+        content: ['id_ec_bootloader_jump', channelId, 4]
+      }
+    )
   }
+  return calibration
+}
 
-  return [ec_tools]
+function createPresetMenu(channelId, presetIndex) {
+  const valueIds = {
+    1: 'actuation_mode',
+    2: 'actuation_threshold',
+    3: 'actuation_travel',
+    4: 'release_mode',
+    5: 'release_threshold',
+    6: 'release_travel',
+    7: 'deadzone'
+  }
+  const ref = (id) => `id_ec_preset_${presetIndex}_${valueIds[id]}`
+  const content = (id) => [ref(id), channelId, id]
+  return {
+    label: `Preset EC${presetIndex}`,
+    content: [
+      {
+        label: 'Actuation Mode',
+        type: 'dropdown',
+        options: [
+          ['STATIC', 0],
+          ['DYNAMIC', 1]
+        ],
+        content: content(1)
+      },
+      {
+        showIf: `{${ref(1)}} == 0`,
+        label: 'Actuation Threshold (0% | 100%)',
+        type: 'range',
+        options: [0, 1023],
+        content: content(2)
+      },
+      {
+        showIf: `{${ref(1)}} == 1`,
+        label: 'Actuation Travel (0% | 50%)',
+        type: 'range',
+        options: [0, 511],
+        content: content(3)
+      },
+      {
+        label: 'Release Mode',
+        type: 'dropdown',
+        options: [
+          ['STATIC', 0],
+          ['DYNAMIC', 1]
+        ],
+        content: content(4)
+      },
+      {
+        showIf: `{${ref(4)}} == 0`,
+        label: 'Release Threshold (0% | 100%)',
+        type: 'range',
+        options: [0, 1023],
+        content: content(5)
+      },
+      {
+        showIf: `{${ref(4)}} == 1`,
+        label: 'Actuation Travel (0% | 50%)',
+        type: 'range',
+        options: [0, 511],
+        content: content(6)
+      },
+      {
+        showIf: `{${ref(1)}} == 1 || {${ref(4)}} == 1`,
+        label: 'Deadzone (0% | 50%)',
+        type: 'range',
+        options: [0, 511],
+        content: content(7)
+      }
+    ]
+  }
 }

@@ -274,9 +274,13 @@ async function readable(filePath) {
 function validate(target, via) {
   if (!isKeyboardDefinitionV3(via)) {
     console.log(JSON.stringify(via, null, 2))
+    let errors = isKeyboardDefinitionV3.errors
+    if (errors.length > 5) {
+      errors = errors.slice(0, 5)
+    }
     throw new Error(
       `via_json_generator: keyboard: ${target} - VIA validation fails with errors:\n ${JSON.stringify(
-        isKeyboardDefinitionV3.errors,
+        errors,
         null,
         2
       )}`

@@ -1,4 +1,5 @@
 /* Copyright 2023 Cipulot
+ * Modified 2023 masafumi
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,99 +18,7 @@
 #pragma once
 #include <quantum.h>
 
-typedef struct {
-  /*
-    0: normal board-wide APC
-    1: Rapid trigger from specific board-wide actuation point
-    2: Rapid trigger from resting point
-  */
-  uint8_t actuation_mode;
-  uint8_t _resereved;
-
-  /* threshold for key press in mode 0 */
-  uint16_t mode_0_actuation_threshold;
-
-  /* threshold for key release in mode 0 */
-  uint16_t mode_0_release_threshold;
-
-  /* threshold for key press in mode 1 (initial deadzone) */
-  uint16_t mode_1_initial_deadzone_offset;
-
-  /* travel distance for key press in mode 1 */
-  uint16_t mode_1_actuation_moving_distance;
-
-  /* travel distance for key release in mode 1 */
-  uint16_t mode_1_release_moving_distance;
-
-  /* bottoming reading */
-  uint16_t bottoming_reading[MATRIX_ROWS][MATRIX_COLS];
-} __attribute__((packed)) eeprom_ec_config_t;
-
-/* eeprom address */
-#define EC_CONFIG_ACTUATION_MODE VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR
-#define EC_CONFIG_MODE_0_ACTUATION_THRESHOLD (VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR + 2)
-#define EC_CONFIG_MODE_0_RELEASE_THRESHOLD (VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR + 4)
-#define EC_CONFIG_MODE_1_INITIAL_DEADZONE_OFFSET (VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR + 6)
-#define EC_CONFIG_MODE_1_ACTUATION_MOVING_DISTANCE (VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR + 8)
-#define EC_CONFIG_MODE_1_RELEASE_MOVING_DISTANCE (VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR + 10)
-#define EC_CONFIG_BOTTOMING_READING (VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR + 12)
-
-typedef struct {
-  union {
-    struct {
-      /* threshold for key press in mode 0 rescaled to actual scale */
-      uint16_t actuation_threshold[MATRIX_ROWS][MATRIX_COLS];
-
-      /* threshold for key release in mode 0 rescaled to actual scale */
-      uint16_t release_threshold[MATRIX_ROWS][MATRIX_COLS];
-    } mode_0;
-
-    struct {
-      /* travel distance for key press in mode 1 */
-      uint16_t actuation_moving_distance[MATRIX_ROWS][MATRIX_COLS];
-
-      /* travel distance for key release in mode 1 */
-      uint16_t release_moving_distance[MATRIX_ROWS][MATRIX_COLS];
-
-      /* threshold for key press in mode 1 (initial deadzone) rescaled to actual scale */
-      uint16_t initial_deadzone_offset[MATRIX_ROWS][MATRIX_COLS];
-    } mode_1;
-  } rescaled;
-
-  /* extremum values for mode 1 */
-  uint16_t extremum[MATRIX_ROWS][MATRIX_COLS];
-
-  /* noise floor detected during startup */
-  uint16_t noise_floor[MATRIX_ROWS][MATRIX_COLS];
-
-  /* calibration mode for bottoming out values (true: calibration mode, false: normal mode) */
-  bool bottoming_calibration;
-
-  /* calibration mode for bottoming out values (true: calibration mode, false: normal mode) */
-  bool bottoming_calibration_starter[MATRIX_ROWS][MATRIX_COLS];
-} ec_config_t;
-
-// Check if the size of the reserved persistent memory is the same as the size of struct eeprom_ec_config_t
-// _Static_assert(sizeof(eeprom_ec_config_t) == EECONFIG_KB_DATA_SIZE, "Mismatch in keyboard EECONFIG stored data");
-_Static_assert(sizeof(eeprom_ec_config_t) == (VIA_EEPROM_CUSTOM_CONFIG_SIZE - VIA_EEPROM_CUSTOM_CONFIG_COMMON_SIZE),
-               "Mismatch in keyboard EECONFIG stored data");
-
-extern eeprom_ec_config_t eeprom_ec_config;
-extern ec_config_t ec_config;
-extern uint16_t sw_value[MATRIX_ROWS][MATRIX_COLS];
-
-void init_row(void);
-void init_amux(void);
-void select_amux_channel(uint8_t channel, uint8_t col);
-void disable_unused_amux(uint8_t channel);
-void discharge_capacitor(void);
-void charge_capacitor(uint8_t row);
-
 int ec_init(void);
 void ec_noise_floor(void);
 bool ec_matrix_scan(matrix_row_t current_matrix[]);
-uint16_t ec_readkey_raw(uint8_t channel, uint8_t row, uint8_t col);
-bool ec_update_key(matrix_row_t* current_row, uint8_t row, uint8_t col, uint16_t sw_value);
-void ec_print_matrix(void);
-
-uint16_t rescale(uint16_t x, uint16_t in_min, uint16_t in_max, uint16_t out_min, uint16_t out_max);
+extern uint16_t sw_value[MATRIX_ROWS][MATRIX_COLS];
