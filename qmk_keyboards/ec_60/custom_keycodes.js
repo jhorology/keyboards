@@ -1,10 +1,12 @@
+const colors = ['🟩', '🟨', '🟧', '🟥']
+
 module.exports = function (options, defines) {
   const keycodes = []
   for (let i = 0; i < defines.EC_NUM_PRESETS; i++) {
     keycodes.push({
-      name: `EC${i}`,
+      name: `EC${i}\n${colors[i % colors.length]}`,
       title: `EC Preset ${i}. It can be mapped in only final layer.`,
-      shortName: `EC${i}`
+      shortName: `${colors[i % colors.length]}${i}`
     })
   }
   keycodes.push({
