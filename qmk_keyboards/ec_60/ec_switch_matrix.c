@@ -49,17 +49,21 @@ uint16_t sw_value[MATRIX_ROWS][MATRIX_COLS];
 
 static adc_mux adcMux;
 
+static void ec_noise_floor(void);
 static void init_row(void);
 static void init_amux(void);
-static void select_amux_channel(uint8_t channel, uint8_t col);
-static void disable_unused_amux(uint8_t channel);
-static void discharge_capacitor(void);
-static void charge_capacitor(uint8_t row);
+static inline void select_amux_channel(uint8_t channel, uint8_t col);
+static inline void disable_unused_amux(uint8_t channel);
+static inline void discharge_capacitor(void);
+static inline void charge_capacitor(uint8_t row);
 static uint16_t ec_readkey_raw(uint8_t channel, uint8_t row, uint8_t col);
 static bool ec_update_key(matrix_row_t* current_row, uint8_t row, uint8_t col, uint16_t sw_value);
 
+// QMK hook functions
+// -----------------------------------------------------------------------------------
+
 // Initialize the peripherals pins
-int ec_init(void) {
+void matrix_init_custom(void) {
   // Initialize ADC
   palSetLineMode(ANALOG_PORT, PAL_MODE_INPUT_ANALOG);
   adcMux = pinToMux(ANALOG_PORT);
@@ -77,45 +81,10 @@ int ec_init(void) {
   // Initialize AMUXs
   init_amux();
 
-  return 0;
+  ec_noise_floor();
 }
 
-// Get the noise floor
-void ec_noise_floor(void) {
-  // Initialize the noise floor to 0
-  for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
-    for (uint8_t col = 0; col < MATRIX_COLS; col++) {
-      ec_config.noise_floor[row][col] = 0;
-    }
-  }
-
-  // Get the noise floor
-  for (uint8_t i = 0; i < NOISE_FLOOR_SAMPLING_COUNT; i++) {
-    for (uint8_t amux = 0; amux < AMUX_COUNT; amux++) {
-      disable_unused_amux(amux);
-      for (int col = 0; col < amux_n_col_sizes[amux]; col++) {
-        for (int row = 0; row < MATRIX_ROWS; row++) {
-          if (amux == 0) {
-            ec_config.noise_floor[row][col] += ec_readkey_raw(0, row, col);
-          } else {
-            ec_config.noise_floor[row][col + amux_n_col_sizes[amux - 1]] += ec_readkey_raw(amux, row, col);
-          }
-        }
-      }
-    }
-    wait_ms(5);
-  }
-
-  // Average the noise floor
-  for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
-    for (uint8_t col = 0; col < MATRIX_COLS; col++) {
-      ec_config.noise_floor[row][col] /= NOISE_FLOOR_SAMPLING_COUNT;
-    }
-  }
-}
-
-// Scan key values and update matrix state
-bool ec_matrix_scan(matrix_row_t current_matrix[]) {
+bool matrix_scan_custom(matrix_row_t current_matrix[]) {
   bool updated = false;
 
   // Bottoming calibration mode: update bottoming out values and avoid keycode state change
@@ -175,6 +144,43 @@ bool ec_matrix_scan(matrix_row_t current_matrix[]) {
   return updated;
 }
 
+// static routines
+// -----------------------------------------------------------------------------------
+
+// Get the noise floor
+static void ec_noise_floor(void) {
+  // Initialize the noise floor to 0
+  for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
+    for (uint8_t col = 0; col < MATRIX_COLS; col++) {
+      ec_config.noise_floor[row][col] = 0;
+    }
+  }
+
+  // Get the noise floor
+  for (uint8_t i = 0; i < NOISE_FLOOR_SAMPLING_COUNT; i++) {
+    for (uint8_t amux = 0; amux < AMUX_COUNT; amux++) {
+      disable_unused_amux(amux);
+      for (int col = 0; col < amux_n_col_sizes[amux]; col++) {
+        for (int row = 0; row < MATRIX_ROWS; row++) {
+          if (amux == 0) {
+            ec_config.noise_floor[row][col] += ec_readkey_raw(0, row, col);
+          } else {
+            ec_config.noise_floor[row][col + amux_n_col_sizes[amux - 1]] += ec_readkey_raw(amux, row, col);
+          }
+        }
+      }
+    }
+    wait_ms(5);
+  }
+
+  // Average the noise floor
+  for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
+    for (uint8_t col = 0; col < MATRIX_COLS; col++) {
+      ec_config.noise_floor[row][col] /= NOISE_FLOOR_SAMPLING_COUNT;
+    }
+  }
+}
+
 // Initialize the row pins
 static void init_row(void) {
   // Set all row pins as output and low
@@ -196,7 +202,7 @@ static void init_amux(void) {
 }
 
 // Select the multiplexer channel of the specified multiplexer
-static void select_amux_channel(uint8_t channel, uint8_t col) {
+static inline void select_amux_channel(uint8_t channel, uint8_t col) {
   // Get the channel for the specified multiplexer
   uint8_t ch = amux_n_col_channels[channel][col];
   // momentarily disable specified multiplexer
@@ -210,7 +216,7 @@ static void select_amux_channel(uint8_t channel, uint8_t col) {
 }
 
 // Disable all the unused multiplexers
-static void disable_unused_amux(uint8_t channel) {
+static inline void disable_unused_amux(uint8_t channel) {
   // disable all the other multiplexers apart from the current selected one
   for (uint8_t idx = 0; idx < AMUX_COUNT; idx++) {
     if (idx != channel) {
@@ -219,10 +225,10 @@ static void disable_unused_amux(uint8_t channel) {
   }
 }
 // Discharge the peak hold capacitor
-static void discharge_capacitor(void) { writePinLow(DISCHARGE_PIN); }
+static inline void discharge_capacitor(void) { writePinLow(DISCHARGE_PIN); }
 
 // Charge the peak hold capacitor
-static void charge_capacitor(uint8_t row) {
+static inline void charge_capacitor(uint8_t row) {
   writePinHigh(DISCHARGE_PIN);
   writePinHigh(row_pins[row]);
 }

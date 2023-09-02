@@ -18,7 +18,4 @@
 #pragma once
 #include <quantum.h>
 
-int ec_init(void);
-void ec_noise_floor(void);
-bool ec_matrix_scan(matrix_row_t current_matrix[]);
 extern uint16_t sw_value[MATRIX_ROWS][MATRIX_COLS];

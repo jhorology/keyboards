@@ -55,6 +55,17 @@ const uint16_t PROGMEM bottming_reading_default[MATRIX_ROWS][MATRIX_COLS] = DEFA
 // QMK hook functions
 // -----------------------------------------------------------------------------------
 
+// Bootmagic overriden to avoid conflicts with EC
+void bootmagic_lite(void) {
+#ifdef EC_BOOTMAGIC_LITE_THRESHOLD
+  if (ec_config.noise_floor[BOOTMAGIC_LITE_ROW][BOOTMAGIC_LITE_COLUMN] > EC_BOOTMAGIC_LITE_THRESHOLD) {
+    eeconfig_disable();
+    // Jump to bootloader.
+    bootloader_jump();
+  }
+#endif
+}
+
 void eeconfig_init_user(void) {  // Default values
   ec_config_reset();
 }
