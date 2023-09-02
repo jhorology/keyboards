@@ -232,8 +232,8 @@ static int is_eeprom_valid(void) {
     if (preset->actuation_threshold > SCALE_RANGE) return -3;
     if (preset->release_threshold > SCALE_RANGE) return -4;
     if (preset->actuation_travel > HALF_SCALE_RANGE) return -5;
-    if (preset->release_travel >= HALF_SCALE_RANGE) return -6;
-    if (preset->deadzone >= HALF_SCALE_RANGE) return -7;
+    if (preset->release_travel > HALF_SCALE_RANGE) return -6;
+    if (preset->deadzone > HALF_SCALE_RANGE) return -7;
   }
   for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
     for (uint8_t col = 0; col < MATRIX_COLS; col++) {
