@@ -1,7 +1,6 @@
 #include "ec_config.h"
 
 #include <eeprom.h>
-#include <stdint.h>
 
 #include "ec_60.h"
 #include "ec_switch_matrix.h"

@@ -20,7 +20,6 @@
 #include <analog.h>
 #include <atomic_util.h>
 #include <math.h>
-#include <stdint.h>
 #include <wait.h>
 
 #include "ec_config.h"
