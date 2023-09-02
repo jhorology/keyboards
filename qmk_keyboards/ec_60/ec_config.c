@@ -112,7 +112,10 @@ void ec_config_update_key(uint8_t row, uint8_t col) {
   ec_config.deadzone[row][col] = rescale(row, col, preset->deadzone);
 
   if (prev_actuation_mode != preset->actuation_mode || prev_release_mode != preset->release_mode) {
-    ec_config.extremum[row][col] = 0;
+    ec_config.extremum[row][col] = sw_value[row][col];
+  }
+  if (ec_config.extremum[row][col] < ec_config.deadzone[row][col]) {
+    ec_config.extremum[row][col] = ec_config.deadzone[row][col];
   }
 }
 
