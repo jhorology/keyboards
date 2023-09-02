@@ -433,8 +433,9 @@ build() {
   local opts=()
   (( $#with_logging )) && opts=($opts "-DCONFIG_ZMK_USB_LOGGING=y")
   (( $#with_shell )) && opts=($opts "-DCONFIG_SHELL=y")
-  #  temporarily fix dependencie issue for BT60
-  (( $#with_shell )) && [[ $board == "BT60" ]] && opts=($opts "-DCONFIG_SHELL_BACKEND_SERIAL=y -DCONFIG_CBPRINTF_COMPLETE=y")
+  #  temporarily fix dependencie issue for nrf boards
+  (( $#with_shell )) && [[ $board = "bt60" || $board == "cyber60_rev_d" ]] && \
+    opts=($opts -DCONFIG_CBPRINTF_COMPLETE=y -DCONFIG_SHELL_BACKEND_SERIAL=y)
   (( $#with_compile_db )) && opts=($opts "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON")
   (( $#with_pp )) && opts=($opts "-DEXTRA_CFLAGS=-save-temps=obj")
   west build --pristine --board $board --build-dir build/$board zmk/app -- \
@@ -600,7 +601,8 @@ macos_log_console() {
     for tty_dev in /dev/tty.usbmodem*(N); do
       if [[ $tty_dev -nt $firmware ]]; then
         # to exit tio, [Ctrl + t][q]
-        sudo tio --log --log-file=$log_file $tty_dev
+        sudo chmod +urw $tty_dev
+        tio --log --log-file=$log_file $tty_dev
         return
       fi
     done
