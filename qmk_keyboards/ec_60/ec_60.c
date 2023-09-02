@@ -84,6 +84,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         ec_config_send_calibration_data(3000);
         return false;
       }
+      break;
 #ifdef EC_DEBUG
     case EC_DBG:
       if (!record->event.pressed) {
@@ -91,6 +92,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         ec_config_debug_send_config(3000);
         return false;
       }
+      break;
 #endif
   }
   return true;
