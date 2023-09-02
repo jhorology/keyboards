@@ -436,7 +436,8 @@ EOS
 
 dot_dir_locals() {
   cat <<EOS > $PROJECT/.dir-locals.el
-((nil . ((projectile-git-use-fd . t)
+((nil . ((lsp-completion-enable-additional-text-edit . nil)
+         (projectile-git-use-fd . t)
          (projectile-git-fd-args . "--hidden --no-ignore -0 --exclude '\.*' --type f --strip-cwd-prefix")
          (counsel-rg-base-command . ("rg" "--no-ignore" "--max-columns" "240" "--with-filename" "--no-heading" "--line-number" "--color" "never" "%s")))))
 EOS
