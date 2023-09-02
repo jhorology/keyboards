@@ -109,7 +109,7 @@ function createPresetMenu(channelId, presetIndex) {
       },
       {
         showIf: `{${ref(4)}} == 1`,
-        label: 'Actuation Travel (0% | 50%)',
+        label: 'Release Travel (0% | 50%)',
         type: 'range',
         options: [0, 511],
         content: content(6)
