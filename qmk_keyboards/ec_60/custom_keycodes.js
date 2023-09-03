@@ -10,7 +10,7 @@ module.exports = function (options, defines) {
     })
   }
   keycodes.push({
-    name: 'EC\nConf',
+    name: 'EC\nCalD',
     title: 'Show calibration data as keystrokes',
     shortName: 'EC.C'
   })
@@ -20,7 +20,7 @@ module.exports = function (options, defines) {
     shortName: 'EC.P'
   })
   keycodes.push({
-    name: 'EC\nPSet',
+    name: 'EC\nPMap',
     title: 'Show preset map as keystrokes',
     shortName: 'EC.M'
   })
