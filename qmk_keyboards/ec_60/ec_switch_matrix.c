@@ -50,6 +50,7 @@ uint16_t sw_value[MATRIX_ROWS][MATRIX_COLS];
 static adc_mux adcMux;
 
 static void ec_noise_floor(void);
+static void ec_bootoming_reading(void);
 static void init_row(void);
 static void init_amux(void);
 static inline void select_amux_channel(uint8_t channel, uint8_t col);
@@ -90,37 +91,7 @@ bool matrix_scan_custom(matrix_row_t current_matrix[]) {
   // Bottoming calibration mode: update bottoming out values and avoid keycode state change
   // IF statement is higher in the function to avoid the overhead of the execution of normal operation mode
   if (ec_config.bottoming_calibration) {
-    // Disable AMUX 1
-    writePinHigh(amux_en_pins[1]);
-    for (uint8_t col = 0; col < amux_n_col_sizes[0]; col++) {
-      for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
-        sw_value[row][col] = ec_readkey_raw(0, row, col);
-        if (sw_value[row][col] > (ec_config.noise_floor[row][col] + 32)) {
-          if (ec_config.bottoming_calibration_starter[row][col]) {
-            eeprom_ec_config.bottoming_reading[row][col] = sw_value[row][col];
-            ec_config.bottoming_calibration_starter[row][col] = false;
-          } else if (sw_value[row][col] > eeprom_ec_config.bottoming_reading[row][col]) {
-            eeprom_ec_config.bottoming_reading[row][col] = sw_value[row][col];
-          }
-        }
-      }
-    }
-
-    // Disable AMUX 0
-    writePinHigh(amux_en_pins[0]);
-    for (uint8_t col = 0; col < amux_n_col_sizes[1]; col++) {
-      for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
-        sw_value[row][col] = ec_readkey_raw(1, row, col);
-        if (sw_value[row][col] > (ec_config.noise_floor[row][col] + 32)) {
-          if (ec_config.bottoming_calibration_starter[row][col + 8]) {
-            eeprom_ec_config.bottoming_reading[row][col + 8] = sw_value[row][col];
-            ec_config.bottoming_calibration_starter[row][col + 8] = false;
-          } else if (sw_value[row][col] > eeprom_ec_config.bottoming_reading[row][col + 8]) {
-            eeprom_ec_config.bottoming_reading[row][col + 8] = sw_value[row][col];
-          }
-        }
-      }
-    }
+    ec_bootoming_reading();
     // Return false to avoid keycode state change
     return false;
   }
@@ -177,6 +148,40 @@ static void ec_noise_floor(void) {
   for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
     for (uint8_t col = 0; col < MATRIX_COLS; col++) {
       ec_config.noise_floor[row][col] /= NOISE_FLOOR_SAMPLING_COUNT;
+    }
+  }
+}
+
+static void ec_bootoming_reading(void) {
+  // Disable AMUX 1
+  writePinHigh(amux_en_pins[1]);
+  for (uint8_t col = 0; col < amux_n_col_sizes[0]; col++) {
+    for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
+      sw_value[row][col] = ec_readkey_raw(0, row, col);
+      if (sw_value[row][col] > (ec_config.noise_floor[row][col] + 32)) {
+        if (ec_config.bottoming_calibration_starter[row][col]) {
+          eeprom_ec_config.bottoming_reading[row][col] = sw_value[row][col];
+          ec_config.bottoming_calibration_starter[row][col] = false;
+        } else if (sw_value[row][col] > eeprom_ec_config.bottoming_reading[row][col]) {
+          eeprom_ec_config.bottoming_reading[row][col] = sw_value[row][col];
+        }
+      }
+    }
+  }
+
+  // Disable AMUX 0
+  writePinHigh(amux_en_pins[0]);
+  for (uint8_t col = 0; col < amux_n_col_sizes[1]; col++) {
+    for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
+      sw_value[row][col] = ec_readkey_raw(1, row, col);
+      if (sw_value[row][col] > (ec_config.noise_floor[row][col] + 32)) {
+        if (ec_config.bottoming_calibration_starter[row][col + 8]) {
+          eeprom_ec_config.bottoming_reading[row][col + 8] = sw_value[row][col];
+          ec_config.bottoming_calibration_starter[row][col + 8] = false;
+        } else if (sw_value[row][col] > eeprom_ec_config.bottoming_reading[row][col + 8]) {
+          eeprom_ec_config.bottoming_reading[row][col + 8] = sw_value[row][col];
+        }
+      }
     }
   }
 }
