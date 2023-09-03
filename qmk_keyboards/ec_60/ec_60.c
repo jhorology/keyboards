@@ -17,8 +17,6 @@
 
 #include "ec_60.h"
 
-#include <stdint.h>
-
 #include "ec_config.h"
 
 #define EC_PRESET_CHANNEL_ID_START EC_VIA_CUSTOM_CHANNEL_ID_START
