@@ -384,21 +384,20 @@ build_firmware() {
   [[ $ext != "uf2" ]] && (( $#with_flash )) && \
     make_target=${make_target}:flash
 
-  local envs=()
   local opts=()
 
   (( $#optimize )) && \
     opts=($opts "OPT=${optimize[-1]##=}")
 
+  cd $PROJECT/qmk_firmware
   if [[ $ext != "uf2" ]] && (( $#with_flash )) && [[ $os = "fedora" ]]; then
-    envs=($envs "DFU_HARDWARE_ID=$kbd[4]:$kbd[5]")
-    opts=($opts "DFU_UTIL=$PROJECT/util/dfu_util_wsl_helper" "DFU_PROGRAMMER=$PROJECT/util/dfu_programmer_wsl_helper")
+    opts=($opts DFU_UTIL=$PROJECT/util/dfu_util_wsl_helper DFU_PROGRAMMER=$PROJECT/util/dfu_programmer_wsl_helper)
     # sudo for later use
     sudo echo -n
+    DFU_HARDWARE_ID=$kbd[4]:$kbd[5] make -j $MAKE_JOBS $make_target $opts[*]
+  else
+    make -j $MAKE_JOBS $make_target $opts[*]
   fi
-
-  cd $PROJECT/qmk_firmware
-  $envs[*] make -j $MAKE_JOBS $make_target $opts[*]
 
   # <build date>_qmk_<qmk version>_<qnk revision>
   # version="$(date +"%Y%m%d")_qmk_$(git describe --abbrev=0 --tags)_$(git rev-parse --short HEAD)"
