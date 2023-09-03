@@ -391,8 +391,8 @@ build_firmware() {
     opts=($opts "OPT=${optimize[-1]##=}")
 
   if [[ $ext != "uf2" ]] && (( $#with_flash )) && [[ $os = "fedora" ]]; then
-    envs=($envs DFU_HARDWARE_ID=$kbd[4]:$kbd[5])
-    opts=($opts DFU_UTIL=$PROJECT/util/dfu_util_wsl_helper DFU_PROGRAMMER=$PROJECT/util/dfu_programmer_wsl_helper)
+    envs=($envs "DFU_HARDWARE_ID=$kbd[4]:$kbd[5]")
+    opts=($opts "DFU_UTIL=$PROJECT/util/dfu_util_wsl_helper" "DFU_PROGRAMMER=$PROJECT/util/dfu_programmer_wsl_helper")
     # sudo for later use
     sudo echo -n
   fi
