@@ -240,7 +240,7 @@ void via_custom_rc_set_value(uint8_t value_id, uint8_t *value_data) {
       }
       break;
   }
-  defer_eeprom_update_dword(id_custom_rc_channel, 0, DWORD, (void *)RADIAL_CONTROLLER_EEPROM_ADDR, rc_config.raw);
+  defer_eeprom_update_dword(id_custom_rc_channel, 0, (void *)RADIAL_CONTROLLER_EEPROM_ADDR, rc_config.raw);
 }
 
 void via_custom_rc_save() {
