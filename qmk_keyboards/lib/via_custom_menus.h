@@ -108,3 +108,5 @@ void via_custom_non_mac_fn_set_value(uint8_t value_id, uint8_t *value_data);
 void defer_eeprom_update_byte(uint8_t channel_id, uint8_t value_id, void *adrs, uint8_t value);
 void defer_eeprom_update_word(uint8_t channel_id, uint8_t value_id, void *adrs, uint16_t value);
 void defer_eeprom_update_dword(uint8_t channel_id, uint8_t value_id, void *adrs, uint32_t value);
+void defer_eeprom_update_block(uint8_t channel_id, uint8_t value_id, void *block_adrs, void *eeprom_adrs,
+                               uint32_t block_size);

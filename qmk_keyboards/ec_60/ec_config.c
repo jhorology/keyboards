@@ -29,7 +29,7 @@ const uint16_t PROGMEM bottming_reading_default[MATRIX_ROWS][MATRIX_COLS] = EC_B
 
 static uint8_t get_preset_index(uint8_t row, uint8_t col);
 static int is_eeprom_valid(void);
-static void defer_eeprom_update_preset(uint8_t preset_index, uint8_t raw_index);
+static void defer_eeprom_update_preset(uint8_t preset_index);
 static void update_matrix(uint8_t preset_index);
 static uint16_t rescale(uint8_t row, uint8_t col, uint16_t x);
 static ec_preset_t* get_preset_key(uint8_t row, uint8_t col);
@@ -124,7 +124,7 @@ void ec_config_set_actuation_mode(uint8_t preset_index, ec_actuation_mode_t actu
   if (preset->actuation_mode != actuation_mode) {
     preset->actuation_mode = actuation_mode;
     update_matrix(preset_index);
-    defer_eeprom_update_preset(preset_index, 0);
+    defer_eeprom_update_preset(preset_index);
   }
 }
 
@@ -133,15 +133,15 @@ void ec_config_set_release_mode(uint8_t preset_index, ec_release_mode_t release_
   if (preset->release_mode != release_mode) {
     preset->release_mode = release_mode;
     update_matrix(preset_index);
-    defer_eeprom_update_preset(preset_index, 0);
+    defer_eeprom_update_preset(preset_index);
   }
 }
 void ec_config_set_actuation_threshold(uint8_t preset_index, uint16_t actuation_threshold) {
   ec_preset_t* preset = get_preset(preset_index);
   if (preset->actuation_threshold != actuation_threshold) {
-    eeprom_ec_config.presets[preset_index].preset.actuation_threshold = actuation_threshold;
+    preset->actuation_threshold = actuation_threshold;
     update_matrix(preset_index);
-    defer_eeprom_update_preset(preset_index, 0);
+    defer_eeprom_update_preset(preset_index);
   }
 }
 
@@ -150,7 +150,7 @@ void ec_config_set_release_threshold(uint8_t preset_index, uint16_t release_thre
   if (preset->release_threshold != release_threshold) {
     preset->release_threshold = release_threshold;
     update_matrix(preset_index);
-    defer_eeprom_update_preset(preset_index, 0);
+    defer_eeprom_update_preset(preset_index);
   }
 }
 
@@ -159,7 +159,7 @@ void ec_config_set_actuation_travel(uint8_t preset_index, uint16_t actuation_tra
   if (preset->actuation_travel != actuation_travel) {
     preset->actuation_travel = actuation_travel;
     update_matrix(preset_index);
-    defer_eeprom_update_preset(preset_index, 1);
+    defer_eeprom_update_preset(preset_index);
   }
 }
 
@@ -168,7 +168,7 @@ void ec_config_set_release_travel(uint8_t preset_index, uint16_t release_travel)
   if (preset->release_travel != release_travel) {
     preset->release_travel = release_travel;
     update_matrix(preset_index);
-    defer_eeprom_update_preset(preset_index, 1);
+    defer_eeprom_update_preset(preset_index);
   }
 }
 void ec_config_set_deadzone(uint8_t preset_index, uint16_t deadzone) {
@@ -176,7 +176,7 @@ void ec_config_set_deadzone(uint8_t preset_index, uint16_t deadzone) {
   if (preset->deadzone != deadzone) {
     preset->deadzone = deadzone;
     update_matrix(preset_index);
-    defer_eeprom_update_preset(preset_index, 1);
+    defer_eeprom_update_preset(preset_index);
   }
 }
 void ec_config_start_calibration(void) {
@@ -245,10 +245,9 @@ static int is_eeprom_valid(void) {
   return 0;
 }
 
-static void defer_eeprom_update_preset(uint8_t preset_index, uint8_t raw_index) {
-  defer_eeprom_update_dword(EC_VIA_CUSTOM_CHANNEL_ID_START + preset_index, raw_index,
-                            (void*)(EC_VIA_EEPROM_PRESETS + sizeof(ec_preset_t) * preset_index),
-                            eeprom_ec_config.presets[preset_index].raw[raw_index]);
+static void defer_eeprom_update_preset(uint8_t preset_index) {
+  defer_eeprom_update_block(EC_VIA_CUSTOM_CHANNEL_ID_START + preset_index, 0, &eeprom_ec_config.presets[preset_index],
+                            (void*)(EC_VIA_EEPROM_PRESETS + sizeof(ec_preset_t) * preset_index), sizeof(ec_preset_t));
 }
 
 static void update_matrix(uint8_t preset_index) {
@@ -269,7 +268,7 @@ static uint16_t rescale(uint8_t row, uint8_t col, uint16_t x) {
 
 static ec_preset_t* get_preset_key(uint8_t row, uint8_t col) { return get_preset(get_preset_index(row, col)); }
 
-static ec_preset_t* get_preset(uint8_t preset_index) { return &(eeprom_ec_config.presets[preset_index].preset); }
+static ec_preset_t* get_preset(uint8_t preset_index) { return &(eeprom_ec_config.presets[preset_index]); }
 
 static uint32_t send_calibration_data_cb(uint32_t trigger_time, void* cb_arg) {
   send_data_token = 0;

@@ -10,44 +10,26 @@ typedef enum ec_actuation_mode { EC_ACTUATION_MODE_STATIC = 0, EC_ACTUATION_MODE
 typedef enum ec_release_mode { EC_RELEASE_MODE_STATIC = 0, EC_RELEASE_MODE_DYNAMIC } ec_release_mode_t;
 
 typedef struct {
-  // first half 32bit ------->
-
   ec_actuation_mode_t actuation_mode : 2;
   ec_release_mode_t release_mode : 2;
-
-  uint8_t reserved_0 : 4;
-
+  ec_release_mode_t reserved_0 : 4;
   // 0 | 100% (1023) of Total Travel
   uint16_t actuation_threshold : 10;
   // 0 | 100% (1023) of Total Travel
   uint16_t release_threshold : 10;
 
-  uint8_t reserved_1 : 4;
+  ec_release_mode_t reserved_1 : 4;
 
-  // <------- first half 32bit
-
-  // second half 32bit ------->
-
-  // 0 | 50% (511) of Total Travel
-  uint16_t deadzone : 9;
   // 0 | 50% (511) of Total Travel
   uint16_t actuation_travel : 9;
   // 0 | 50% (511) of Total Travel
   uint16_t release_travel : 9;
-
-  uint16_t reserved_2 : 5;
-
-  // <------- second half 32bit
+  // 0 | 50% (511) of Total Travel
+  uint16_t deadzone : 9;
 } __attribute__((packed)) ec_preset_t;
 
-typedef union {
-  ec_preset_t preset;
-  uint32_t raw[2];
-
-} __attribute__((packed)) ec_preset_union_t;
-
 typedef struct {
-  ec_preset_union_t presets[EC_NUM_PRESETS];
+  ec_preset_t presets[EC_NUM_PRESETS];
   uint16_t bottoming_reading[MATRIX_ROWS][MATRIX_COLS];
 } __attribute__((packed)) eeprom_ec_config_t;
 

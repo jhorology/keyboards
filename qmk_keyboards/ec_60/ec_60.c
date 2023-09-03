@@ -17,15 +17,13 @@
 
 #include "ec_60.h"
 
+#include <stdint.h>
+
 #include "ec_config.h"
 
 #define EC_PRESET_CHANNEL_ID_START EC_VIA_CUSTOM_CHANNEL_ID_START
 #define EC_PRESET_CHANNEL_ID_END (EC_VIA_CUSTOM_CHANNEL_ID_START + EC_NUM_PRESETS - 1)
 #define EC_CALIBRATION_CHANNEL_ID (EC_VIA_CUSTOM_CHANNEL_ID_START + EC_NUM_PRESETS)
-
-#define WRITE_UINT16_BE(adrs, value) \
-  adrs[0] = value >> 8;              \
-  adrs[1] = value & 0xff
 
 // Declaring enums for VIA config menu
 enum via_ec_preset_value_id {
@@ -51,6 +49,13 @@ enum via_ec_calibration_value_id {
 #ifdef DEFAULT_BOTTOMING_READING_USER
 const uint16_t PROGMEM bottming_reading_default[MATRIX_ROWS][MATRIX_COLS] = DEFAULT_BOTTOMING_READING_USER;
 #endif
+
+static inline void writeUInt16BE(uint8_t *dst, uint16_t value) {
+  dst[0] = value >> 8;
+  dst[1] = value & 0xff;
+}
+
+static inline uint16_t readUInt16BE(uint8_t *src) { return ((uint16_t)src[0] << 8) + src[1]; }
 
 // QMK hook functions
 // -----------------------------------------------------------------------------------
@@ -123,7 +128,7 @@ bool via_custom_value_command_user(uint8_t *data, uint8_t length) {
   uint8_t value_byte = data[3];
   uint8_t *value_ptr = &data[3];
   // Big Endian
-  uint16_t value_word = (data[3] << 8) + data[4];
+  uint16_t value_word = readUInt16BE(&data[3]);
   switch (channel_id) {
       // EC Presets
     case EC_PRESET_CHANNEL_ID_START ... EC_PRESET_CHANNEL_ID_END: {
@@ -160,25 +165,25 @@ bool via_custom_value_command_user(uint8_t *data, uint8_t length) {
         case id_custom_get_value:
           switch (value_id) {
             case id_ec_preset_actuation_mode:
-              *value_ptr = eeprom_ec_config.presets[preset_index].preset.actuation_mode;
+              *value_ptr = eeprom_ec_config.presets[preset_index].actuation_mode;
               return false;
             case id_ec_preset_actuation_threshold:
-              WRITE_UINT16_BE(value_ptr, eeprom_ec_config.presets[preset_index].preset.actuation_threshold);
+              writeUInt16BE(value_ptr, eeprom_ec_config.presets[preset_index].actuation_threshold);
               return false;
             case id_ec_preset_actuation_travel:
-              WRITE_UINT16_BE(value_ptr, eeprom_ec_config.presets[preset_index].preset.actuation_travel);
+              writeUInt16BE(value_ptr, eeprom_ec_config.presets[preset_index].actuation_travel);
               return false;
             case id_ec_preset_release_mode:
-              *value_ptr = eeprom_ec_config.presets[preset_index].preset.release_mode;
+              *value_ptr = eeprom_ec_config.presets[preset_index].release_mode;
               return false;
             case id_ec_preset_release_threshold:
-              WRITE_UINT16_BE(value_ptr, eeprom_ec_config.presets[preset_index].preset.release_threshold);
+              writeUInt16BE(value_ptr, eeprom_ec_config.presets[preset_index].release_threshold);
               return false;
             case id_ec_preset_release_travel:
-              WRITE_UINT16_BE(value_ptr, eeprom_ec_config.presets[preset_index].preset.release_travel);
+              writeUInt16BE(value_ptr, eeprom_ec_config.presets[preset_index].release_travel);
               return false;
             case id_ec_preset_deadzone:
-              WRITE_UINT16_BE(value_ptr, eeprom_ec_config.presets[preset_index].preset.deadzone);
+              writeUInt16BE(value_ptr, eeprom_ec_config.presets[preset_index].deadzone);
               return false;
           }
           break;
