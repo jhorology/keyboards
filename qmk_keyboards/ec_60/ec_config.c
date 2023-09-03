@@ -18,8 +18,13 @@ static uint16_t debug_word_value;
 static deferred_token send_data_token;  // defer_exec token
 
 // if defined in ec_60/config.h or ec_60/keymaps/<keymap name>/config.h
+
 #ifdef EC_BOTTOMING_READING_DEFAULT_USER
 const uint16_t PROGMEM bottming_reading_default[MATRIX_ROWS][MATRIX_COLS] = EC_BOTTOMING_READING_DEFAULT_USER;
+#endif
+
+#ifdef EC_PRESETS_DEFAULT_USER
+const ec_preset_t PROGMEM presets_default[EC_NUM_PRESETS] = EC_PRESETS_DEFAULT_USER;
 #endif
 
 // 0 | 100% 10bit
@@ -35,14 +40,20 @@ static uint16_t rescale(uint8_t row, uint8_t col, uint16_t x);
 static ec_preset_t* get_preset_key(uint8_t row, uint8_t col);
 static ec_preset_t* get_preset(uint8_t preset_index);
 static uint32_t send_calibration_data_cb(uint32_t trigger_time, void* cb_arg);
+static uint32_t send_presets_cb(uint32_t trigger_time, void* cb_arg);
+static uint32_t send_preset_map_cb(uint32_t trigger_time, void* cb_arg);
 #ifdef EC_DEBUG
 static uint32_t debug_send_config_cb(uint32_t trigger_time, void* cb_arg);
 #endif /* EC_DEBUG  */
 
 void ec_config_reset(void) {
   // Default values
-  for (uint8_t index = 0; index < EC_NUM_PRESETS; index++) {
-    ec_preset_t* preset = get_preset(index);
+  for (uint8_t preset_index = 0; preset_index < EC_NUM_PRESETS; preset_index++) {
+    ec_preset_t* preset = get_preset(preset_index);
+    // I don't want to lose presets for each update firmware
+#ifdef EC_PRESETS_DEFAULT_USER
+    memcpy_P(preset, &presets_default[preset_index], sizeof(ec_preset_t));
+#else
     preset->actuation_mode = EC_ACTUATION_MODE_STATIC;
     preset->release_mode = EC_RELEASE_MODE_STATIC;
     preset->actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT;
@@ -50,10 +61,11 @@ void ec_config_reset(void) {
     preset->actuation_travel = EC_ACTUATION_TRAVEL_DEFAULT;
     preset->release_travel = EC_RELEASE_TRAVEL_DEFAULT;
     preset->deadzone = EC_DEADZONE_DEFAULT;
+#endif
   }
   for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
     for (uint8_t col = 0; col < MATRIX_COLS; col++) {
-      // I don't want to lose calibration data for each update firware
+      // I don't want to lose calibration data for each update firmware
 #ifdef EC_BOTTOMING_READING_DEFAULT_USER
       eeprom_ec_config.bottoming_reading[row][col] = pgm_read_word(&bottming_reading_default[row][col]);
 #else
@@ -206,6 +218,10 @@ void ec_config_send_calibration_data(uint32_t delay_ms) {
   send_data_token = defer_exec(delay_ms, &send_calibration_data_cb, NULL);
 }
 
+void ec_config_send_presets(uint32_t delay_ms) { send_data_token = defer_exec(delay_ms, &send_presets_cb, NULL); }
+
+void ec_config_send_preset_map(uint32_t delay_ms) { send_data_token = defer_exec(delay_ms, &send_preset_map_cb, NULL); }
+
 #ifdef EC_DEBUG
 void ec_config_debug_send_config(uint32_t delay_ms) {
   send_data_token = defer_exec(delay_ms, &debug_send_config_cb, NULL);
@@ -273,7 +289,7 @@ static ec_preset_t* get_preset(uint8_t preset_index) { return &(eeprom_ec_config
 static uint32_t send_calibration_data_cb(uint32_t trigger_time, void* cb_arg) {
   send_data_token = 0;
   send_string("// clang-format off\n#define EC_BOTTOMING_READING_DEFAULT_USER { \\\n");
-  wait_ms(100);
+  wait_ms(50);
   for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
     send_string("{");
     for (uint8_t col = 0; col < MATRIX_COLS; col++) {
@@ -288,9 +304,48 @@ static uint32_t send_calibration_data_cb(uint32_t trigger_time, void* cb_arg) {
       send_string(",");
     }
     send_string(" \\\n");
-    wait_ms(100);
+    wait_ms(50);
   }
   send_string("}\n// clang-format on\n");
+  return 0;
+}
+
+static uint32_t send_presets_cb(uint32_t trigger_time, void* cb_arg) {
+  // TODO default value should be defined in keymap.c
+  send_string("// clang-format off\n#define EC_PRESETS_DEFAULT_USER {");
+  wait_ms(50);
+  for (int preset_index = 0; preset_index < EC_NUM_PRESETS; preset_index++) {
+    ec_preset_t* preset = get_preset(preset_index);
+    send_string(" \\\n[");
+    send_nibble(preset_index);
+    send_string("] = {");
+    send_string(" \\\n.actuation_mode = ");
+    send_nibble(preset->actuation_mode);
+    send_string(", \\\n.actuation_threshold = 0x");
+    send_word(preset->actuation_threshold);
+    send_string(", \\\n.actuation_travel = 0x");
+    send_word(preset->actuation_travel);
+    send_string(", \\\n.release_mode = ");
+    send_nibble(preset->release_mode);
+    send_string(", \\\n.release_threshold = 0x");
+    send_word(preset->release_threshold);
+    send_string(", \\\n.release_travel = 0x");
+    send_word(preset->release_travel);
+    send_string(", \\\n.deadzone = 0x");
+    send_word(preset->deadzone);
+    if (preset_index < (EC_NUM_PRESETS - 1)) {
+      send_string(" \\\n},");
+    } else {
+      send_string(" \\\n}");
+    }
+    wait_ms(50);
+  }
+  send_string(" \\\n}\n// clang-format on\n");
+  return 0;
+}
+
+static uint32_t send_preset_map_cb(uint32_t trigger_time, void* cb_arg) {
+  // TODO matrix/keymap conversion
   return 0;
 }
 
@@ -309,7 +364,7 @@ typedef enum {
 } matrix_array_type_t;
 // type 0
 void _send_matrix_array(matrix_array_type_t type) {
-  wait_ms(100);
+  wait_ms(50);
   send_string("[\n");
   for (int row = 0; row < MATRIX_ROWS; row++) {
     send_string("[");
@@ -352,13 +407,13 @@ void _send_matrix_array(matrix_array_type_t type) {
       if (col < (MATRIX_COLS - 1)) {
         send_string(",");
       }
-      wait_ms(100);
     }
     send_string("]");
     if (row < (MATRIX_ROWS - 1)) {
       send_string(",");
     }
     send_string("\n");
+    wait_ms(50);
   }
   send_string("]");
 }

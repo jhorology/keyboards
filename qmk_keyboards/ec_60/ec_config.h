@@ -84,6 +84,8 @@ void ec_config_set_deadzone(uint8_t preset_index, uint16_t deadzone);
 void ec_config_start_calibration(void);
 void ec_config_end_calibration(void);
 void ec_config_send_calibration_data(uint32_t delay_ms);
+void ec_config_send_presets(uint32_t delay_ms);
+void ec_config_send_preset_map(uint32_t delay_ms);
 #ifdef EC_DEBUG
 void ec_config_debug_send_config(uint32_t delay_ms);
 #endif

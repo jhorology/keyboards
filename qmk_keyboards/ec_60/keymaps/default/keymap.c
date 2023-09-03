@@ -64,7 +64,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   // row 3: normal settings, +shift key for unusual reversed setting
   [3] = LAYOUT_60_tsangan(
     QK_BOOT, KC_F13,  KC_F14,  KC_F15,  KC_F16,  KC_F17,  KC_F18,  KC_F19,  KC_F20,  KC_F21,  KC_F22,  KC_F23,  KC_F24,  _______, TERM_LCK,
-    _______, EC_SEND, _EC_DBG, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,          _______,
+    _______, EC_CALD, EC_PSET, EC_PMAP, _EC_DBG, _______, _______, _______, _______, _______, _______, _______, _______,          _______,
     _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,                   _______,
     _______,          RHID_OFF,AUT_ON,  MAC_ON,  USJ_OFF, NK_ON,   CL_NORM, AG_NORM, BS_NORM, _______, _______,          _______, _______,
     _______, _______, _______,                            _______,                                              _______, _______, _______

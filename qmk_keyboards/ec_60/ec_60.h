@@ -6,7 +6,9 @@
 enum ec_keycodes {
   EC_PRESET_START = CUSTOM_KEYCODES_SAFE_RANGE,  // send calibration data as keystrokes
   EC_PRESET_END = EC_PRESET_START + EC_NUM_PRESETS - 1,
-  EC_SEND,
+  EC_CALD,  // send calibration data
+  EC_PSET,  // Show presets
+  EC_PMAP,  // Show preset map
 #ifdef EC_DEBUG
   EC_DBG
 #endif

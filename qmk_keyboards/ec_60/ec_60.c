@@ -43,11 +43,6 @@ enum via_ec_calibration_value_id {
   id_ec_bootloader_jump
 };
 
-// if defined in ec_60/config.h or ec_60/keymaps/<keymap name>/config.h
-#ifdef DEFAULT_BOTTOMING_READING_USER
-const uint16_t PROGMEM bottming_reading_default[MATRIX_ROWS][MATRIX_COLS] = DEFAULT_BOTTOMING_READING_USER;
-#endif
-
 static inline void writeUInt16BE(uint8_t *dst, uint16_t value) {
   dst[0] = value >> 8;
   dst[1] = value & 0xff;
@@ -81,10 +76,24 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     case EC_PRESET_START ... EC_PRESET_END:
       // not keycode
       return false;
-    case EC_SEND:
+    case EC_CALD:
       if (!record->event.pressed) {
         // 3 secods after release
         ec_config_send_calibration_data(3000);
+        return false;
+      }
+      break;
+    case EC_PSET:
+      if (!record->event.pressed) {
+        // 3 secods after release
+        ec_config_send_presets(3000);
+        return false;
+      }
+      break;
+    case EC_PMAP:
+      if (!record->event.pressed) {
+        // 3 secods after release
+        ec_config_send_preset_map(3000);
         return false;
       }
       break;

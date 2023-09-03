@@ -10,9 +10,19 @@ module.exports = function (options, defines) {
     })
   }
   keycodes.push({
-    name: 'EC\nSend',
+    name: 'EC\nConf',
     title: 'Show calibration data as keystrokes',
-    shortName: 'EC.S'
+    shortName: 'EC.C'
+  })
+  keycodes.push({
+    name: 'EC\nPSet',
+    title: 'Show presets as keystrokes',
+    shortName: 'EC.P'
+  })
+  keycodes.push({
+    name: 'EC\nPSet',
+    title: 'Show preset map as keystrokes',
+    shortName: 'EC.M'
   })
   if (defines.EC_DEBUG) {
     keycodes.push({
