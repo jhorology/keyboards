@@ -23,6 +23,7 @@ zparseopts -D -E -F -- \
            {g,-with-compile-db}=with_compile_db \
            {f,-with-flash}=with_flash \
            -without-emacs=without_emacs \
+           -with-optimize:=optimize \
   || return
 
 
@@ -123,6 +124,7 @@ help_usage() {
         "  -g,--with-compile-db            generate compile_command.json" \
         "  -f,--with-flash                 post build flash firmware" \
         "  --without-emacs                 don't generate emacs settings when --with-comile-db" \
+        "  --with-optimze=<n>              experimental gcc -O[n] optionn" \
         "" \
         "available targets:"
   for target in ${(k)KEYBOARDS}; do
@@ -378,24 +380,25 @@ build_firmware() {
   local kb=$kbd[1]
   local km=$kbd[2]
   local ext=$kbd[3]
-  make_target=$kb:$km
-  cd $PROJECT/qmk_firmware
-  if [[ $ext != "uf2" ]] && (( $#with_flash )); then
-    local vid=$kbd[4]
-    local pid=$kbd[5]
+  local make_target=$kb:$km
+  [[ $ext != "uf2" ]] && (( $#with_flash )) && \
     make_target=${make_target}:flash
-    if [[ $os = "fedora" ]]; then
-      # sudo for later use
-      sudo echo -n
-      DFU_HARDWARE_ID=$vid:$pid make -j $MAKE_JOBS $make_target \
-                     DFU_UTIL=$PROJECT/util/dfu_util_wsl_helper \
-                     DFU_PROGRAMMER=$PROJECT/util/dfu_programmer_wsl_helper
-    else
-      make -j $MAKE_JOBS $make_target
-    fi
-  else
-    make -j $MAKE_JOBS $make_target
+
+  local envs=()
+  local opts=()
+
+  (( $#optimize )) && \
+    opts=($opts "OPT=${optimize[-1]##=}")
+
+  if [[ $ext != "uf2" ]] && (( $#with_flash )) && [[ $os = "fedora" ]]; then
+    envs=($envs DFU_HARDWARE_ID=$kbd[4]:$kbd[5])
+    opts=($opts DFU_UTIL=$PROJECT/util/dfu_util_wsl_helper DFU_PROGRAMMER=$PROJECT/util/dfu_programmer_wsl_helper)
+    # sudo for later use
+    sudo echo -n
   fi
+
+  cd $PROJECT/qmk_firmware
+  $envs[*] make -j $MAKE_JOBS $make_target $opts[*]
 
   # <build date>_qmk_<qmk version>_<qnk revision>
   # version="$(date +"%Y%m%d")_qmk_$(git describe --abbrev=0 --tags)_$(git rev-parse --short HEAD)"
