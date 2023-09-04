@@ -1,3 +1,5 @@
+const emoji = require('./preset_emoji')
+
 module.exports = function (options, defines) {
   const menus = []
 
@@ -63,11 +65,10 @@ function createPresetMenu(channelId, presetIndex) {
     6: 'release_travel',
     7: 'deadzone'
   }
-  const colors = ['🟩', '🟨', '🟧', '🟥']
   const ref = (id) => `id_ec_preset_${presetIndex}_${valueIds[id]}`
   const content = (id) => [ref(id), channelId, id]
   return {
-    label: `Preset ${colors[presetIndex % colors.length]}EC${presetIndex}`,
+    label: `Preset ${presetIndex} ${emoji[presetIndex % emoji.length]}`,
     content: [
       {
         label: 'Actuation Mode',

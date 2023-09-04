@@ -1,12 +1,12 @@
-const colors = ['🟩', '🟨', '🟧', '🟥']
+const emoji = require('./preset_emoji')
 
 module.exports = function (options, defines) {
   const keycodes = []
   for (let i = 0; i < defines.EC_NUM_PRESETS; i++) {
     keycodes.push({
-      name: `EC${i}\n${colors[i % colors.length]}`,
+      name: `EC${i}\n${emoji[i % emoji.length]}`,
       title: `EC Preset ${i}. It can be mapped in only final layer.`,
-      shortName: `${colors[i % colors.length]}${i}`
+      shortName: `${i} ${emoji[i % emoji.length]}`
     })
   }
   keycodes.push({

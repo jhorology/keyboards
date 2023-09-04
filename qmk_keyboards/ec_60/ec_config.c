@@ -34,6 +34,7 @@ const ec_preset_t PROGMEM presets_default[EC_NUM_PRESETS] = EC_PRESETS_DEFAULT_U
 
 static uint8_t get_preset_index(uint8_t row, uint8_t col);
 static int is_eeprom_valid(void);
+static int is_preset_valid(ec_preset_t* preset);
 static void defer_eeprom_update_preset(uint8_t preset_index);
 static void update_matrix(uint8_t preset_index);
 static uint16_t rescale(uint8_t row, uint8_t col, uint16_t x);
@@ -53,6 +54,15 @@ void ec_config_reset(void) {
     // I don't want to lose presets for each update firmware
 #ifdef EC_PRESETS_DEFAULT_USER
     memcpy_P(preset, &presets_default[preset_index], sizeof(ec_preset_t));
+    if (is_preset_valid(preset) != 0) {
+      preset->actuation_mode = EC_ACTUATION_MODE_STATIC;
+      preset->release_mode = EC_RELEASE_MODE_STATIC;
+      preset->actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT;
+      preset->release_threshold = EC_RELEASE_THRESHOLD_DEFAULT;
+      preset->actuation_travel = EC_ACTUATION_TRAVEL_DEFAULT;
+      preset->release_travel = EC_RELEASE_TRAVEL_DEFAULT;
+      preset->deadzone = EC_DEADZONE_DEFAULT;
+    }
 #else
     preset->actuation_mode = EC_ACTUATION_MODE_STATIC;
     preset->release_mode = EC_RELEASE_MODE_STATIC;
@@ -243,20 +253,32 @@ static uint8_t get_preset_index(uint8_t row, uint8_t col) {
 static int is_eeprom_valid(void) {
   for (uint8_t index = 0; index < EC_NUM_PRESETS; index++) {
     ec_preset_t* preset = get_preset(index);
-    if (preset->actuation_mode > EC_ACTUATION_MODE_DYNAMIC) return -1;
-    if (preset->release_mode > EC_RELEASE_MODE_DYNAMIC) return -2;
-    if (preset->actuation_threshold > SCALE_RANGE) return -3;
-    if (preset->release_threshold > SCALE_RANGE) return -4;
-    if (preset->actuation_travel > HALF_SCALE_RANGE) return -5;
-    if (preset->release_travel > HALF_SCALE_RANGE) return -6;
-    if (preset->deadzone > HALF_SCALE_RANGE) return -7;
+    int result = is_preset_valid(preset);
+    if (result != 0) return result;
   }
   for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
     for (uint8_t col = 0; col < MATRIX_COLS; col++) {
       if (eeprom_ec_config.bottoming_reading[row][col] <= ec_config.noise_floor[row][col] ||
           eeprom_ec_config.bottoming_reading[row][col] > 0xfff)
-        return -8;
+        return -9;
     }
+  }
+  return 0;
+}
+
+static int is_preset_valid(ec_preset_t* preset) {
+  if (preset->actuation_mode > EC_ACTUATION_MODE_DYNAMIC) return -1;
+  if (preset->release_mode > EC_RELEASE_MODE_DYNAMIC) return -2;
+  if (preset->actuation_threshold > SCALE_RANGE) return -3;
+  if (preset->release_threshold > SCALE_RANGE) return -4;
+  if (preset->actuation_travel > HALF_SCALE_RANGE) return -5;
+  if (preset->release_travel > HALF_SCALE_RANGE) return -6;
+  if (preset->deadzone > HALF_SCALE_RANGE) return -7;
+
+  // EC_PRESETS_DEFAUL_USER may not have bean defined all presets.
+  if (preset->actuation_threshold == 0 && preset->actuation_travel == 0 && preset->release_threshold == 0 &&
+      preset->release_travel == 0 && preset->deadzone == 0) {
+    return -8;
   }
   return 0;
 }

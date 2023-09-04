@@ -60,7 +60,7 @@
 #define EC_PRESET_MAP_LAYER (DYNAMIC_KEYMAP_LAYER_COUNT - 1)
 
 // 2 - 16
-#define EC_NUM_PRESETS 4
+#define EC_NUM_PRESETS 8
 
 /* use calibrated bottming value as default */
 #define ENABLE_CALIBRATED_BOTTOMING_READING

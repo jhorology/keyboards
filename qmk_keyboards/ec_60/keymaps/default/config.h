@@ -15,8 +15,18 @@
 }
 // clang-format on
 
+//
+// TODO optimize for purpose
+// EC(0) alphas
+// EC(1) mods
+// EC(2) mods bottom row
+// EC(3) enter
+// EC(4) hhkb fn
+// EC(5) spacebar
+// EC(6) prevent misstouch
+//
 // clang-format off
-#define EC_PRESETS_DEFAULT_USER { \
+#define EC_PRESETS_DEFAULT_USER {               \
   [0] = { \
     .actuation_mode = EC_ACTUATION_MODE_STATIC, \
     .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT, \
@@ -45,6 +55,42 @@
     .deadzone = EC_DEADZONE_DEFAULT \
   }, \
   [3] = { \
+    .actuation_mode = EC_ACTUATION_MODE_STATIC, \
+    .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT, \
+    .actuation_travel =  EC_ACTUATION_TRAVEL_DEFAULT, \
+    .release_mode = EC_RELEASE_MODE_STATIC, \
+    .release_threshold = EC_RELEASE_THRESHOLD_DEFAULT, \
+    .release_travel = EC_RELEASE_TRAVEL_DEFAULT, \
+    .deadzone = EC_DEADZONE_DEFAULT \
+  }, \
+  [4] = { \
+    .actuation_mode = EC_ACTUATION_MODE_STATIC, \
+    .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT, \
+    .actuation_travel =  EC_ACTUATION_TRAVEL_DEFAULT, \
+    .release_mode = EC_RELEASE_MODE_STATIC, \
+    .release_threshold = EC_RELEASE_THRESHOLD_DEFAULT, \
+    .release_travel = EC_RELEASE_TRAVEL_DEFAULT, \
+    .deadzone = EC_DEADZONE_DEFAULT \
+  }, \
+  [5] = { \
+    .actuation_mode = EC_ACTUATION_MODE_STATIC, \
+    .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT, \
+    .actuation_travel =  EC_ACTUATION_TRAVEL_DEFAULT, \
+    .release_mode = EC_RELEASE_MODE_STATIC, \
+    .release_threshold = EC_RELEASE_THRESHOLD_DEFAULT, \
+    .release_travel = EC_RELEASE_TRAVEL_DEFAULT, \
+    .deadzone = EC_DEADZONE_DEFAULT \
+  }, \
+  [6] = { \
+    .actuation_mode = EC_ACTUATION_MODE_STATIC, \
+    .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT, \
+    .actuation_travel =  EC_ACTUATION_TRAVEL_DEFAULT, \
+    .release_mode = EC_RELEASE_MODE_STATIC, \
+    .release_threshold = EC_RELEASE_THRESHOLD_DEFAULT, \
+    .release_travel = EC_RELEASE_TRAVEL_DEFAULT, \
+    .deadzone = EC_DEADZONE_DEFAULT \
+  }, \
+  [7] = { \
     .actuation_mode = EC_ACTUATION_MODE_STATIC, \
     .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT, \
     .actuation_travel =  EC_ACTUATION_TRAVEL_DEFAULT, \
