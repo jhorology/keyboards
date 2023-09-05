@@ -133,15 +133,29 @@ help_usage() {
 }
 
 
-# setup build environment & qmk_firmware
-# -----------------------------------
+npm_install() {
+  cd $PROJECT
+  npm install
+  # install xpacks/gcc
+  npm run setup
+}
+
 macos_install_packages() {
   brew update
-  # install 'qmk' in .venv
-  packages=$(brew info qmk/qmk/qmk | grep "Required:")
-  packages=${packages//Required: /}
-  packages=(${(s[, ])packages})
-  brew install $packages[*]
+  # install 'qmk' in .venv, install only required packages.
+  qmk_deps=$(brew info qmk/qmk/qmk | grep "Required:")
+  qmk_deps=${qmk_deps//Required: /}
+  qmk_deps=(${(s[, ])qmk_deps})
+  # use GCC12
+  # On arm mac, arm-none-eabi-gcc@12 dosen't exist in homebrew packages
+  packages=(avr-gcc@12)
+  for p in $qmk_deps; do
+    # exclude gcc
+    if [[ ! $p =~ "-gcc@[0-9]+" ]]; then
+      packages=($packages $p)
+    fi
+  done
+  echo brew install $packages[*]
   brew cleanup
 }
 
@@ -149,8 +163,7 @@ fedora_install_packages() {
   sudo dnf -y install \
        clang diffutils git gcc glibc-headers kernel-devel kernel-headers \
        make unzip wget zip python3 avr-binutils avr-gcc avr-gcc-c++ avr-libc \
-       arm-none-eabi-binutils-cs arm-none-eabi-gcc-cs arm-none-eabi-gcc-cs-c++ \
-       arm-none-eabi-newlib avrdude dfu-programmer dfu-util hidapi \
+       avrdude dfu-programmer dfu-util hidapi \
        usbip hwdata
 
   sudo dnf -y install libusb-devel \
@@ -281,7 +294,7 @@ clean_all() {
   cd $PROJECT
   rm -rf .venv
   rm -rf qmk_firmware
-  # brewq uninstall qmk/qmk/qmk
+  rm -rf xpacks
   rm -rf via_app
   clean
 }
@@ -375,6 +388,8 @@ fedora_uf2_flash() {
 
 # $1 target
 build_firmware() {
+  PATH=$PROJECT/xpacks/.bin:$PATH
+
   local target=$1
   local kbd=(${(@s/:/)KEYBOARDS[$target]})
   local kb=$kbd[1]
@@ -451,6 +466,7 @@ dot_projectile() {
 -/build
 -/modules
 -/node_modules
+-/xpacks
 -/via_app
 -/zephyr
 -/zmk
@@ -459,6 +475,8 @@ EOS
 }
 
 compile_db() {
+  PATH=$PROJECT/xpacks/.bin:$PATH
+
   local target=$1
   local kbd=(${(@s/:/)KEYBOARDS[$target]})
   local kb=$kbd[1]
@@ -569,6 +587,7 @@ if (( $#help )); then
   help_usage
   return
 elif (( $#setup )); then
+  npm_install
   ${os}_install_packages
   setup_qmk
   pip_install
