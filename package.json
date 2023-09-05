@@ -4,7 +4,7 @@
   "description": "",
   "private": true,
   "scripts": {
-    "setup": "xpm install @xpack-dev-tools/arm-none-eabi-gcc@12.3.1-1.1.1 --verbose"
+    "setup": "xpm install --verbose"
   },
   "keywords": [],
   "author": "",
