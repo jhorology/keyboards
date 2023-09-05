@@ -155,7 +155,8 @@ macos_install_packages() {
       packages=($packages $p)
     fi
   done
-  echo brew install $packages[*]
+  brew install $packages[*]
+  brew link --force avr-gcc@12
   brew cleanup
 }
 
