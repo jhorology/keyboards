@@ -7,34 +7,33 @@
 /*  calibration data for each specfic keybopard */
 // clang-format off
 #define EC_BOTTOMING_READING_DEFAULT_USER { \
-  {0x020e,0x02aa,0x0296,0x02f3,0x02aa,0x0281,0x028c,0x0271,0x0292,0x0208,0x0253,0x0257,0x02aa,0x01b0,0x025a}, \
-  {0x02af,0x02bd,0x02f6,0x032b,0x02ad,0x0317,0x02ac,0x0282,0x032c,0x02f0,0x0298,0x02c4,0x021a,0x01e5,0x03ff}, \
-  {0x01bb,0x0323,0x0320,0x0321,0x028d,0x02c3,0x02b9,0x02b3,0x0311,0x02d5,0x02b9,0x02d6,0x03ff,0x0294,0x03ff}, \
-  {0x01ec,0x03ff,0x0266,0x0301,0x032d,0x02e0,0x02a2,0x0330,0x0374,0x02c0,0x0320,0x0295,0x03ff,0x018e,0x0204}, \
-  {0x021e,0x0225,0x0214,0x03ff,0x03ff,0x03ff,0x0206,0x03ff,0x03ff,0x03ff,0x01a1,0x01c5,0x0209,0x03ff,0x03ff}  \
+  {0x0225,0x027c,0x027a,0x030a,0x0295,0x0270,0x0282,0x0247,0x0248,0x0245,0x0273,0x0269,0x02a9,0x019d,0x022c}, \
+  {0x02a0,0x02c2,0x02f0,0x0345,0x02ce,0x02f9,0x0295,0x0275,0x032b,0x02e5,0x029e,0x02c0,0x0257,0x01e1,0x03ff}, \
+  {0x01ca,0x02fb,0x0307,0x0321,0x02c9,0x030a,0x02df,0x0300,0x031b,0x02b8,0x02dc,0x02fa,0x03ff,0x02a0,0x03ff}, \
+  {0x01c2,0x03ff,0x027f,0x0308,0x033b,0x02be,0x02b4,0x031a,0x0361,0x02c4,0x031c,0x02a2,0x03ff,0x01ad,0x0220}, \
+  {0x01f9,0x01ed,0x01e7,0x03ff,0x03ff,0x03ff,0x020a,0x03ff,0x03ff,0x03ff,0x01af,0x01bc,0x01f2,0x03ff,0x03ff} \
 }
 // clang-format on
 
 //
 // TODO optimize for purpose
 // EC(0) alphas
-// EC(1) mods
+// EC(1) none-alphas
 // EC(2) mods bottom row
-// EC(3) enter
-// EC(4) hhkb fn
+// EC(3) little finger home Ctrl/hhkb fn
+// EC(4) enter
 // EC(5) spacebar
 // EC(6) prevent misstouch
-//
 // clang-format off
 #define EC_PRESETS_DEFAULT_USER {               \
   [0] = { \
-    .actuation_mode = EC_ACTUATION_MODE_STATIC, \
+    .actuation_mode = EC_ACTUATION_MODE_DYNAMIC, \
     .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT, \
-    .actuation_travel =  EC_ACTUATION_TRAVEL_DEFAULT, \
-    .release_mode = EC_RELEASE_MODE_STATIC, \
+    .actuation_travel =  128, \
+    .release_mode = EC_RELEASE_MODE_DYNAMIC, \
     .release_threshold = EC_RELEASE_THRESHOLD_DEFAULT, \
-    .release_travel = EC_RELEASE_TRAVEL_DEFAULT, \
-    .deadzone = EC_DEADZONE_DEFAULT \
+    .release_travel = 128, \
+    .deadzone = 112 \
   }, \
   [1] = { \
     .actuation_mode = EC_ACTUATION_MODE_STATIC, \
@@ -55,10 +54,10 @@
     .deadzone = EC_DEADZONE_DEFAULT \
   }, \
   [3] = { \
-    .actuation_mode = EC_ACTUATION_MODE_STATIC, \
+    .actuation_mode = EC_ACTUATION_MODE_DYNAMIC, \
     .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT, \
     .actuation_travel =  EC_ACTUATION_TRAVEL_DEFAULT, \
-    .release_mode = EC_RELEASE_MODE_STATIC, \
+    .release_mode = EC_RELEASE_MODE_DYNAMIC, \
     .release_threshold = EC_RELEASE_THRESHOLD_DEFAULT, \
     .release_travel = EC_RELEASE_TRAVEL_DEFAULT, \
     .deadzone = EC_DEADZONE_DEFAULT \
@@ -83,7 +82,7 @@
   }, \
   [6] = { \
     .actuation_mode = EC_ACTUATION_MODE_STATIC, \
-    .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT, \
+    .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT + 160, \
     .actuation_travel =  EC_ACTUATION_TRAVEL_DEFAULT, \
     .release_mode = EC_RELEASE_MODE_STATIC, \
     .release_threshold = EC_RELEASE_THRESHOLD_DEFAULT, \

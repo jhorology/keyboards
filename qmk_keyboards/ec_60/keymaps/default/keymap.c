@@ -72,17 +72,17 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   // final layer = EC preset map
   //  defined in config.h EC_PRESET_MAP_LAYER == (DYNAMIC_KEYMAP_LAYER_COUNT - 1)
   // EC(0) alphas
-  // EC(1) mods
+  // EC(1) none-alphas
   // EC(2) mods bottom row
-  // EC(3) enter
-  // EC(4) hhkb fn
+  // EC(3) little finger home Ctrl/hhkb fn
+  // EC(4) enter
   // EC(5) spacebar
   // EC(6) prevent misstouch
   [4] = LAYOUT_60_tsangan(
    EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(1),
    EC(1), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),        EC(1),
-   EC(1), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),               EC(3),
-   EC(1),        EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),        EC(1), EC(4),
+   EC(3), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),               EC(4),
+   EC(1),        EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),        EC(1), EC(3),
    EC(6), EC(2), EC(2),                      EC(5),                                    EC(2), EC(2), EC(6)
   )
 };

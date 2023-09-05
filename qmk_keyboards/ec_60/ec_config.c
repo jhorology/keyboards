@@ -332,8 +332,25 @@ static uint32_t send_calibration_data_cb(uint32_t trigger_time, void* cb_arg) {
   return 0;
 }
 
+static void send_preset_value(char* name, uint16_t value, uint16_t defaultValue) {
+  send_string(", \\\n.");
+  send_string(name);
+  send_string(" = ");
+  if (value == defaultValue) {
+    send_string("EC_");
+    for (char* p = name; *p; p++) {
+      char c = *p;
+      if (*p >= 'a' && *p <= 'z') c -= 0x20;
+      send_char(c);
+    }
+    send_string("_DEFAULT");
+  } else {
+    send_string("0x");
+    send_word(value);
+  }
+}
+
 static uint32_t send_presets_cb(uint32_t trigger_time, void* cb_arg) {
-  // TODO default value should be defined in keymap.c
   send_string("// clang-format off\n#define EC_PRESETS_DEFAULT_USER {");
   wait_ms(50);
   for (int preset_index = 0; preset_index < EC_NUM_PRESETS; preset_index++) {
@@ -341,20 +358,15 @@ static uint32_t send_presets_cb(uint32_t trigger_time, void* cb_arg) {
     send_string(" \\\n[");
     send_nibble(preset_index);
     send_string("] = {");
-    send_string(" \\\n.actuation_mode = ");
-    send_nibble(preset->actuation_mode);
-    send_string(", \\\n.actuation_threshold = 0x");
-    send_word(preset->actuation_threshold);
-    send_string(", \\\n.actuation_travel = 0x");
-    send_word(preset->actuation_travel);
-    send_string(", \\\n.release_mode = ");
-    send_nibble(preset->release_mode);
-    send_string(", \\\n.release_threshold = 0x");
-    send_word(preset->release_threshold);
-    send_string(", \\\n.release_travel = 0x");
-    send_word(preset->release_travel);
-    send_string(", \\\n.deadzone = 0x");
-    send_word(preset->deadzone);
+    send_string(" \\\n.actuation_mode = EC_ACTUATION_MODE_");
+    send_string(preset->actuation_mode == 0 ? "STATIC" : "DYNAMIC");
+    send_preset_value("actuation_threshold", preset->actuation_threshold, EC_ACTUATION_THRESHOLD_DEFAULT);
+    send_preset_value("actuation_travel", preset->actuation_travel, EC_ACTUATION_TRAVEL_DEFAULT);
+    send_string(", \\\n.release_mode = EC_RELEASE_MODE_");
+    send_string(preset->release_mode == 0 ? "STATIC" : "DYNAMIC");
+    send_preset_value("release_threshold", preset->release_threshold, EC_RELEASE_THRESHOLD_DEFAULT);
+    send_preset_value("release_travel", preset->release_travel, EC_RELEASE_TRAVEL_DEFAULT);
+    send_preset_value("deadzone", preset->deadzone, EC_DEADZONE_DEFAULT);
     if (preset_index < (EC_NUM_PRESETS - 1)) {
       send_string(" \\\n},");
     } else {
