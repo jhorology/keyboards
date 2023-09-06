@@ -4,7 +4,7 @@
   "description": "",
   "private": true,
   "scripts": {
-    "setup": "xpm install --verbose"
+    "postinstall": "xpm install --verbose"
   },
   "keywords": [],
   "author": "",

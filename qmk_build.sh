@@ -137,7 +137,7 @@ npm_install() {
   cd $PROJECT
   npm install
   # install xpacks/gcc
-  npm run setup
+  # npm run setup
 }
 
 macos_install_packages() {
