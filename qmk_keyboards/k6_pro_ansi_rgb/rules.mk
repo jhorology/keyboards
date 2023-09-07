@@ -9,7 +9,7 @@ KC_BLUETOOTH_ENABLE = yes       # Enable Bluetooth with
 BLUETOOTH_DRIVER = custom
 DIP_SWITCH_ENABLE = yes
 RGB_MATRIX_ENABLE = yes
-RGB_MATRIX_DRIVER = CKLED2001
+RGB_MATRIX_DRIVER = ckled2001
 EEPROM_DRIVER = wear_leveling
 WEAR_LEVELING_DRIVER = embedded_flash
 

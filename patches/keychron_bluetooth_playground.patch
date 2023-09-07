@@ -1,18 +1,17 @@
-diff --git a/drivers/led/ckled2001.c b/drivers/led/ckled2001.c
-index a99b479d..9ad5e0b2 100644
---- a/drivers/led/ckled2001.c
-+++ b/drivers/led/ckled2001.c
-@@ -231,3 +231,5 @@ void CKLED2001_sw_shutdown(uint8_t addr) {
-     // Write SW Sleep Register
-     CKLED2001_write_register(addr, SOFTWARE_SLEEP_REG, MSKSLEEP_ENABLE);
- }
-+
-+
 diff --git a/quantum/led_matrix/led_matrix.c b/quantum/led_matrix/led_matrix.c
-index 828d6164..9d175c76 100644
+index 1676a60a..1f0b2bef 100644
 --- a/quantum/led_matrix/led_matrix.c
 +++ b/quantum/led_matrix/led_matrix.c
-@@ -82,6 +82,9 @@ const led_point_t k_led_matrix_center = LED_MATRIX_CENTER;
+@@ -68,7 +68,7 @@ const led_point_t k_led_matrix_center = LED_MATRIX_CENTER;
+ #endif
+ 
+ #if !defined(LED_MATRIX_VAL_STEP)
+-#    define LED_MATRIX_VAL_STEP 8
++#    define LED_MATRIX_VAL_STEP 16
+ #endif
+ 
+ #if !defined(LED_MATRIX_SPD_STEP)
+@@ -87,6 +87,9 @@ const led_point_t k_led_matrix_center = LED_MATRIX_CENTER;
  #    define LED_MATRIX_DEFAULT_SPD UINT8_MAX / 2
  #endif
  
@@ -22,7 +21,7 @@ index 828d6164..9d175c76 100644
  // globals
  led_eeconfig_t led_matrix_eeconfig; // TODO: would like to prefix this with g_ for global consistancy, do this in another pr
  uint32_t       g_led_timer;
-@@ -93,6 +96,9 @@ last_hit_t g_last_hit_tracker;
+@@ -98,6 +101,9 @@ last_hit_t g_last_hit_tracker;
  #endif // LED_MATRIX_KEYREACTIVE_ENABLED
  
  // internals
@@ -32,7 +31,7 @@ index 828d6164..9d175c76 100644
  static bool            suspend_state     = false;
  static uint8_t         led_last_enable   = UINT8_MAX;
  static uint8_t         led_last_effect   = UINT8_MAX;
-@@ -100,7 +106,8 @@ static effect_params_t led_effect_params = {0, LED_FLAG_ALL, false};
+@@ -105,7 +111,8 @@ static effect_params_t led_effect_params = {0, LED_FLAG_ALL, false};
  static led_task_states led_task_state    = SYNCING;
  #if LED_MATRIX_TIMEOUT > 0
  static uint32_t led_anykey_timer;
@@ -42,7 +41,7 @@ index 828d6164..9d175c76 100644
  
  // double buffers
  static uint32_t led_timer_buffer;
-@@ -115,6 +122,8 @@ const uint8_t k_led_matrix_split[2] = LED_MATRIX_SPLIT;
+@@ -120,6 +127,8 @@ const uint8_t k_led_matrix_split[2] = LED_MATRIX_SPLIT;
  
  EECONFIG_DEBOUNCE_HELPER(led_matrix, EECONFIG_LED_MATRIX, led_matrix_eeconfig);
  
@@ -51,7 +50,7 @@ index 828d6164..9d175c76 100644
  void eeconfig_update_led_matrix(void) {
      eeconfig_flush_led_matrix(true);
  }
-@@ -222,12 +231,22 @@ void process_led_matrix(uint8_t row, uint8_t col, bool pressed) {
+@@ -227,12 +236,22 @@ void process_led_matrix(uint8_t row, uint8_t col, bool pressed) {
  #endif // defined(LED_MATRIX_FRAMEBUFFER_EFFECTS) && defined(ENABLE_LED_MATRIX_TYPING_HEATMAP)
  }
  
@@ -74,7 +73,7 @@ index 828d6164..9d175c76 100644
      return false;
  }
  
-@@ -338,10 +357,24 @@ static void led_task_flush(uint8_t effect) {
+@@ -343,10 +362,24 @@ static void led_task_flush(uint8_t effect) {
      // update last trackers after the first full render so we can init over several frames
      led_last_effect = effect;
      led_last_enable = led_matrix_eeconfig.enable;
@@ -99,7 +98,7 @@ index 828d6164..9d175c76 100644
      // next task
      led_task_state = SYNCING;
  }
-@@ -353,8 +386,8 @@ void led_matrix_task(void) {
+@@ -358,8 +391,8 @@ void led_matrix_task(void) {
      // while suspended and just do a software shutdown. This is a cheap hack for now.
      bool suspend_backlight = suspend_state ||
  #if LED_MATRIX_TIMEOUT > 0
@@ -110,7 +109,7 @@ index 828d6164..9d175c76 100644
                               false;
  
      uint8_t effect = suspend_backlight || !led_matrix_eeconfig.enable ? 0 : led_matrix_eeconfig.mode;
-@@ -420,6 +453,9 @@ __attribute__((weak)) bool led_matrix_indicators_advanced_user(uint8_t led_min,
+@@ -428,6 +461,9 @@ __attribute__((weak)) bool led_matrix_indicators_advanced_user(uint8_t led_min,
  
  void led_matrix_init(void) {
      led_matrix_driver.init();
@@ -120,7 +119,7 @@ index 828d6164..9d175c76 100644
  
  #ifdef LED_MATRIX_KEYREACTIVE_ENABLED
      g_last_hit_tracker.count = 0;
-@@ -466,6 +502,11 @@ void led_matrix_toggle_eeprom_helper(bool write_to_eeprom) {
+@@ -474,6 +510,11 @@ void led_matrix_toggle_eeprom_helper(bool write_to_eeprom) {
      led_task_state = STARTING;
      eeconfig_flag_led_matrix(write_to_eeprom);
      dprintf("led matrix toggle [%s]: led_matrix_eeconfig.enable = %u\n", (write_to_eeprom) ? "EEPROM" : "NOEEPROM", led_matrix_eeconfig.enable);
@@ -132,7 +131,7 @@ index 828d6164..9d175c76 100644
  }
  void led_matrix_toggle_noeeprom(void) {
      led_matrix_toggle_eeprom_helper(false);
-@@ -477,11 +518,21 @@ void led_matrix_toggle(void) {
+@@ -485,11 +526,21 @@ void led_matrix_toggle(void) {
  void led_matrix_enable(void) {
      led_matrix_enable_noeeprom();
      eeconfig_flag_led_matrix(true);
@@ -154,7 +153,7 @@ index 828d6164..9d175c76 100644
  }
  
  void led_matrix_disable(void) {
-@@ -566,6 +617,12 @@ uint8_t led_matrix_get_val(void) {
+@@ -574,6 +625,12 @@ uint8_t led_matrix_get_val(void) {
  }
  
  void led_matrix_increase_val_helper(bool write_to_eeprom) {
@@ -167,7 +166,7 @@ index 828d6164..9d175c76 100644
      led_matrix_set_val_eeprom_helper(qadd8(led_matrix_eeconfig.val, LED_MATRIX_VAL_STEP), write_to_eeprom);
  }
  void led_matrix_increase_val_noeeprom(void) {
-@@ -577,6 +634,11 @@ void led_matrix_increase_val(void) {
+@@ -585,6 +642,11 @@ void led_matrix_increase_val(void) {
  
  void led_matrix_decrease_val_helper(bool write_to_eeprom) {
      led_matrix_set_val_eeprom_helper(qsub8(led_matrix_eeconfig.val, LED_MATRIX_VAL_STEP), write_to_eeprom);
@@ -179,7 +178,7 @@ index 828d6164..9d175c76 100644
  }
  void led_matrix_decrease_val_noeeprom(void) {
      led_matrix_decrease_val_helper(false);
-@@ -638,3 +700,25 @@ void led_matrix_set_flags(led_flags_t flags) {
+@@ -646,3 +708,25 @@ void led_matrix_set_flags(led_flags_t flags) {
  void led_matrix_set_flags_noeeprom(led_flags_t flags) {
      led_matrix_set_flags_eeprom_helper(flags, false);
  }
@@ -206,10 +205,10 @@ index 828d6164..9d175c76 100644
 +__attribute__((weak)) bool led_matrix_driver_allow_shutdown(void) { return true; };
 +#endif
 diff --git a/quantum/led_matrix/led_matrix.h b/quantum/led_matrix/led_matrix.h
-index c7d360f3..208486a9 100644
+index c2533ca4..8f16ec0d 100644
 --- a/quantum/led_matrix/led_matrix.h
 +++ b/quantum/led_matrix/led_matrix.h
-@@ -78,6 +78,8 @@
+@@ -79,6 +79,8 @@
  #define LED_MATRIX_TEST_LED_FLAGS() \
      if (!HAS_ANY_FLAGS(g_led_config.flags[i], params->flags)) continue
  
@@ -218,7 +217,7 @@ index c7d360f3..208486a9 100644
  enum led_matrix_effects {
      LED_MATRIX_NONE = 0,
  
-@@ -117,6 +119,9 @@ void process_led_matrix(uint8_t row, uint8_t col, bool pressed);
+@@ -118,6 +120,9 @@ void process_led_matrix(uint8_t row, uint8_t col, bool pressed);
  
  void led_matrix_task(void);
  
@@ -228,7 +227,7 @@ index c7d360f3..208486a9 100644
  // This runs after another backlight effect and replaces
  // values already set
  void led_matrix_indicators(void);
-@@ -163,6 +168,19 @@ led_flags_t led_matrix_get_flags(void);
+@@ -164,6 +169,19 @@ led_flags_t led_matrix_get_flags(void);
  void        led_matrix_set_flags(led_flags_t flags);
  void        led_matrix_set_flags_noeeprom(led_flags_t flags);
  
@@ -248,7 +247,7 @@ index c7d360f3..208486a9 100644
  typedef struct {
      /* Perform any initialisation required for the other driver functions to work. */
      void (*init)(void);
-@@ -173,6 +191,12 @@ typedef struct {
+@@ -174,6 +192,12 @@ typedef struct {
      void (*set_value_all)(uint8_t value);
      /* Flush any buffered changes to the hardware. */
      void (*flush)(void);
@@ -262,66 +261,97 @@ index c7d360f3..208486a9 100644
  
  static inline bool led_matrix_check_finished_leds(uint8_t led_idx) {
 diff --git a/quantum/led_matrix/led_matrix_drivers.c b/quantum/led_matrix/led_matrix_drivers.c
-index 2c09ba82..eb0f2e4a 100644
+index 13c8935d..8f4c332e 100644
 --- a/quantum/led_matrix/led_matrix_drivers.c
 +++ b/quantum/led_matrix/led_matrix_drivers.c
-@@ -237,11 +237,51 @@ static void flush(void) {
+@@ -17,6 +17,8 @@
+ 
+ #include "led_matrix.h"
+ 
++#include "gpio.h"
++
+ /* Each driver needs to define a struct:
+  *
+  *    const led_matrix_driver_t led_matrix_driver;
+@@ -197,9 +199,9 @@ static void flush(void) {
+ }
+ 
+ const led_matrix_driver_t led_matrix_driver = {
+-    .init = init,
+-    .flush = flush,
+-    .set_value = is31fl3733_set_value,
++    .init          = init,
++    .flush         = flush,
++    .set_value     = is31fl3733_set_value,
+     .set_value_all = is31fl3733_set_value_all,
+ };
+ 
+@@ -218,9 +220,9 @@ static void flush(void) {
+ }
+ 
+ const led_matrix_driver_t led_matrix_driver = {
+-    .init = init,
+-    .flush = flush,
+-    .set_value = IS31FL_simple_set_brightness,
++    .init          = init,
++    .flush         = flush,
++    .set_value     = IS31FL_simple_set_brightness,
+     .set_value_all = IS31FL_simple_set_brigntness_all,
+ };
+ #    elif defined(CKLED2001)
+@@ -237,11 +239,41 @@ static void flush(void) {
  #        endif
  }
  
+-const led_matrix_driver_t led_matrix_driver = {
+-    .init = init,
+-    .flush = flush,
+-    .set_value = ckled2001_set_value,
+-    .set_value_all = ckled2001_set_value_all,
 +#        if defined(LED_MATRIX_DRIVER_SHUTDOWN_ENABLE)
 +static void shutdown(void) {
-+#       if defined(LED_DRIVER_SHUTDOWN_PIN)
++#            if defined(LED_DRIVER_SHUTDOWN_PIN)
 +    writePinLow(LED_DRIVER_SHUTDOWN_PIN);
-+#       else
++#            else
 +    CKLED2001_sw_shutdown(DRIVER_ADDR_1);
-+#           if defined(DRIVER_ADDR_2)
++#                if defined(DRIVER_ADDR_2)
 +    CKLED2001_sw_shutdown(DRIVER_ADDR_2);
-+#               if defined(DRIVER_ADDR_3)
++#                    if defined(DRIVER_ADDR_3)
 +    CKLED2001_sw_shutdown(DRIVER_ADDR_3);
-+#                   if defined(DRIVER_ADDR_4)
++#                        if defined(DRIVER_ADDR_4)
 +    CKLED2001_sw_shutdown(DRIVER_ADDR_4);
-+#                   endif
-+#               endif
-+#           endif
-+#       endif
++#                        endif
++#                    endif
++#                endif
++#            endif
 +}
 +
-+static void exit_shutdown(void) {
-+#       if defined(LED_DRIVER_SHUTDOWN_PIN)
-+    writePinHigh(LED_DRIVER_SHUTDOWN_PIN);
-+#       else
-+    CKLED2001_sw_return_normal(DRIVER_ADDR_1);
-+#           if defined(DRIVER_ADDR_2)
-+    CKLED2001_sw_return_normal(DRIVER_ADDR_2);
-+#               if defined(DRIVER_ADDR_3)
-+    CKLED2001_sw_return_normal(DRIVER_ADDR_3);
-+#                   if defined(DRIVER_ADDR_4)
-+    CKLED2001_sw_return_normal(DRIVER_ADDR_4);
-+#                   endif
-+#               endif
-+#           endif
-+#       endif
+++ static void exit_shutdown(void) {
++    +#if defined (LED_DRIVER_SHUTDOWN_PIN) + writePinHigh(LED_DRIVER_SHUTDOWN_PIN);
++    +#else + CKLED2001_sw_return_normal(DRIVER_ADDR_1);
++    +#if defined (DRIVER_ADDR_2) + CKLED2001_sw_return_normal(DRIVER_ADDR_2);
++    +#if defined (DRIVER_ADDR_3) + CKLED2001_sw_return_normal(DRIVER_ADDR_3);
++    +#if defined (DRIVER_ADDR_4) + CKLED2001_sw_return_normal(DRIVER_ADDR_4);
++    +#endif + #endif + #endif + #endif +
 +}
-+#       endif
-+
- const led_matrix_driver_t led_matrix_driver = {
-     .init = init,
-     .flush = flush,
-     .set_value = CKLED2001_set_value,
-     .set_value_all = CKLED2001_set_value_all,
-+#        if defined(LED_MATRIX_DRIVER_SHUTDOWN_ENABLE)
-+    .shutdown = shutdown,
-+    .exit_shutdown = exit_shutdown
-+#        endif
+++ #endif +
++    const led_matrix_driver_t led_matrix_driver = {.init          = init,
++                                                   .flush         = flush,
++                                                   .set_value     = ckled2001_set_value,
++                                                   .set_value_all = ckled2001_set_value_all,
++#            if defined(LED_MATRIX_DRIVER_SHUTDOWN_ENABLE)
++                                                   .shutdown      = shutdown,
++                                                   .exit_shutdown = exit_shutdown
++#            endif
  };
++#        endif
  #    endif
- #endif
+-#endif
 diff --git a/quantum/rgb_matrix/rgb_matrix.c b/quantum/rgb_matrix/rgb_matrix.c
-index 1f3912cf..8f1f99dc 100644
+index 96be6151..606173be 100644
 --- a/quantum/rgb_matrix/rgb_matrix.c
 +++ b/quantum/rgb_matrix/rgb_matrix.c
-@@ -105,6 +105,10 @@ __attribute__((weak)) RGB rgb_matrix_hsv_to_rgb(HSV hsv) {
+@@ -110,6 +110,10 @@ __attribute__((weak)) RGB rgb_matrix_hsv_to_rgb(HSV hsv) {
  #    define RGB_MATRIX_DEFAULT_SPD UINT8_MAX / 2
  #endif
  
@@ -332,7 +362,7 @@ index 1f3912cf..8f1f99dc 100644
  // globals
  rgb_config_t rgb_matrix_config; // TODO: would like to prefix this with g_ for global consistancy, do this in another pr
  uint32_t     g_rgb_timer;
-@@ -116,6 +120,9 @@ last_hit_t g_last_hit_tracker;
+@@ -121,6 +125,9 @@ last_hit_t g_last_hit_tracker;
  #endif // RGB_MATRIX_KEYREACTIVE_ENABLED
  
  // internals
@@ -342,7 +372,7 @@ index 1f3912cf..8f1f99dc 100644
  static bool            suspend_state     = false;
  static uint8_t         rgb_last_enable   = UINT8_MAX;
  static uint8_t         rgb_last_effect   = UINT8_MAX;
-@@ -123,7 +130,8 @@ static effect_params_t rgb_effect_params = {0, LED_FLAG_ALL, false};
+@@ -128,7 +135,8 @@ static effect_params_t rgb_effect_params = {0, LED_FLAG_ALL, false};
  static rgb_task_states rgb_task_state    = SYNCING;
  #if RGB_MATRIX_TIMEOUT > 0
  static uint32_t rgb_anykey_timer;
@@ -352,7 +382,7 @@ index 1f3912cf..8f1f99dc 100644
  
  // double buffers
  static uint32_t rgb_timer_buffer;
-@@ -138,6 +146,8 @@ const uint8_t k_rgb_matrix_split[2] = RGB_MATRIX_SPLIT;
+@@ -143,6 +151,8 @@ const uint8_t k_rgb_matrix_split[2] = RGB_MATRIX_SPLIT;
  
  EECONFIG_DEBOUNCE_HELPER(rgb_matrix, EECONFIG_RGB_MATRIX, rgb_matrix_config);
  
@@ -361,7 +391,7 @@ index 1f3912cf..8f1f99dc 100644
  void eeconfig_update_rgb_matrix(void) {
      eeconfig_flush_rgb_matrix(true);
  }
-@@ -281,12 +291,22 @@ void rgb_matrix_test(void) {
+@@ -286,12 +296,22 @@ void rgb_matrix_test(void) {
      }
  }
  
@@ -384,7 +414,7 @@ index 1f3912cf..8f1f99dc 100644
      return false;
  }
  
-@@ -400,9 +420,21 @@ static void rgb_task_flush(uint8_t effect) {
+@@ -405,9 +425,21 @@ static void rgb_task_flush(uint8_t effect) {
      // update last trackers after the first full render so we can init over several frames
      rgb_last_effect = effect;
      rgb_last_enable = rgb_matrix_config.enable;
@@ -407,7 +437,7 @@ index 1f3912cf..8f1f99dc 100644
  
      // next task
      rgb_task_state = SYNCING;
-@@ -415,7 +447,7 @@ void rgb_matrix_task(void) {
+@@ -420,7 +452,7 @@ void rgb_matrix_task(void) {
      // while suspended and just do a software shutdown. This is a cheap hack for now.
      bool suspend_backlight = suspend_state ||
  #if RGB_MATRIX_TIMEOUT > 0
@@ -416,7 +446,7 @@ index 1f3912cf..8f1f99dc 100644
  #endif // RGB_MATRIX_TIMEOUT > 0
                               false;
  
-@@ -473,6 +505,9 @@ __attribute__((weak)) bool rgb_matrix_indicators_advanced_user(uint8_t led_min,
+@@ -481,6 +513,9 @@ __attribute__((weak)) bool rgb_matrix_indicators_advanced_user(uint8_t led_min,
  
  void rgb_matrix_init(void) {
      rgb_matrix_driver.init();
@@ -426,7 +456,7 @@ index 1f3912cf..8f1f99dc 100644
  
  #ifdef RGB_MATRIX_KEYREACTIVE_ENABLED
      g_last_hit_tracker.count = 0;
-@@ -519,6 +554,11 @@ void rgb_matrix_toggle_eeprom_helper(bool write_to_eeprom) {
+@@ -527,6 +562,11 @@ void rgb_matrix_toggle_eeprom_helper(bool write_to_eeprom) {
      rgb_task_state = STARTING;
      eeconfig_flag_rgb_matrix(write_to_eeprom);
      dprintf("rgb matrix toggle [%s]: rgb_matrix_config.enable = %u\n", (write_to_eeprom) ? "EEPROM" : "NOEEPROM", rgb_matrix_config.enable);
@@ -438,7 +468,7 @@ index 1f3912cf..8f1f99dc 100644
  }
  void rgb_matrix_toggle_noeeprom(void) {
      rgb_matrix_toggle_eeprom_helper(false);
-@@ -530,11 +570,21 @@ void rgb_matrix_toggle(void) {
+@@ -538,11 +578,21 @@ void rgb_matrix_toggle(void) {
  void rgb_matrix_enable(void) {
      rgb_matrix_enable_noeeprom();
      eeconfig_flag_rgb_matrix(true);
@@ -460,7 +490,7 @@ index 1f3912cf..8f1f99dc 100644
  }
  
  void rgb_matrix_disable(void) {
-@@ -670,6 +720,12 @@ void rgb_matrix_decrease_sat(void) {
+@@ -678,6 +728,12 @@ void rgb_matrix_decrease_sat(void) {
  }
  
  void rgb_matrix_increase_val_helper(bool write_to_eeprom) {
@@ -473,7 +503,7 @@ index 1f3912cf..8f1f99dc 100644
      rgb_matrix_sethsv_eeprom_helper(rgb_matrix_config.hsv.h, rgb_matrix_config.hsv.s, qadd8(rgb_matrix_config.hsv.v, RGB_MATRIX_VAL_STEP), write_to_eeprom);
  }
  void rgb_matrix_increase_val_noeeprom(void) {
-@@ -681,6 +737,11 @@ void rgb_matrix_increase_val(void) {
+@@ -689,6 +745,11 @@ void rgb_matrix_increase_val(void) {
  
  void rgb_matrix_decrease_val_helper(bool write_to_eeprom) {
      rgb_matrix_sethsv_eeprom_helper(rgb_matrix_config.hsv.h, rgb_matrix_config.hsv.s, qsub8(rgb_matrix_config.hsv.v, RGB_MATRIX_VAL_STEP), write_to_eeprom);
@@ -485,7 +515,7 @@ index 1f3912cf..8f1f99dc 100644
  }
  void rgb_matrix_decrease_val_noeeprom(void) {
      rgb_matrix_decrease_val_helper(false);
-@@ -742,3 +803,22 @@ void rgb_matrix_set_flags(led_flags_t flags) {
+@@ -750,3 +811,22 @@ void rgb_matrix_set_flags(led_flags_t flags) {
  void rgb_matrix_set_flags_noeeprom(led_flags_t flags) {
      rgb_matrix_set_flags_eeprom_helper(flags, false);
  }
@@ -509,10 +539,10 @@ index 1f3912cf..8f1f99dc 100644
 +__attribute__((weak)) bool rgb_matrix_driver_allow_shutdown(void) { return true; };
 +#endif
 diff --git a/quantum/rgb_matrix/rgb_matrix.h b/quantum/rgb_matrix/rgb_matrix.h
-index 9ea248b6..dfcd261d 100644
+index 38040fb0..ebaed359 100644
 --- a/quantum/rgb_matrix/rgb_matrix.h
 +++ b/quantum/rgb_matrix/rgb_matrix.h
-@@ -92,6 +92,8 @@
+@@ -93,6 +93,8 @@
  #define RGB_MATRIX_TEST_LED_FLAGS() \
      if (!HAS_ANY_FLAGS(g_led_config.flags[i], params->flags)) continue
  
@@ -521,7 +551,7 @@ index 9ea248b6..dfcd261d 100644
  enum rgb_matrix_effects {
      RGB_MATRIX_NONE = 0,
  
-@@ -130,6 +132,9 @@ void process_rgb_matrix(uint8_t row, uint8_t col, bool pressed);
+@@ -131,6 +133,9 @@ void process_rgb_matrix(uint8_t row, uint8_t col, bool pressed);
  
  void rgb_matrix_task(void);
  
@@ -531,7 +561,7 @@ index 9ea248b6..dfcd261d 100644
  // This runs after another backlight effect and replaces
  // colors already set
  void rgb_matrix_indicators(void);
-@@ -188,6 +193,17 @@ void        rgb_matrix_decrease_speed_noeeprom(void);
+@@ -189,6 +194,17 @@ void        rgb_matrix_decrease_speed_noeeprom(void);
  led_flags_t rgb_matrix_get_flags(void);
  void        rgb_matrix_set_flags(led_flags_t flags);
  void        rgb_matrix_set_flags_noeeprom(led_flags_t flags);
@@ -549,7 +579,7 @@ index 9ea248b6..dfcd261d 100644
  
  #ifndef RGBLIGHT_ENABLE
  #    define eeconfig_update_rgblight_current eeconfig_update_rgb_matrix
-@@ -242,6 +258,12 @@ typedef struct {
+@@ -243,6 +259,12 @@ typedef struct {
      void (*set_color_all)(uint8_t r, uint8_t g, uint8_t b);
      /* Flush any buffered changes to the hardware. */
      void (*flush)(void);
@@ -563,78 +593,144 @@ index 9ea248b6..dfcd261d 100644
  
  static inline bool rgb_matrix_check_finished_leds(uint8_t led_idx) {
 diff --git a/quantum/rgb_matrix/rgb_matrix_drivers.c b/quantum/rgb_matrix/rgb_matrix_drivers.c
-index d66fc801..92b59259 100644
+index 695ecc78..e225a318 100644
 --- a/quantum/rgb_matrix/rgb_matrix_drivers.c
 +++ b/quantum/rgb_matrix/rgb_matrix_drivers.c
-@@ -121,6 +121,11 @@ static void init(void) {
- #        endif
+@@ -17,6 +17,8 @@
+ #include "rgb_matrix.h"
+ #include "util.h"
  
- #    elif defined(CKLED2001)
-+#        if defined(LED_DRIVER_SHUTDOWN_PIN)
-+    setPinOutput(LED_DRIVER_SHUTDOWN_PIN);
-+    writePinHigh(LED_DRIVER_SHUTDOWN_PIN);
-+#        endif
++#include "gpio.h"
 +
-     CKLED2001_init(DRIVER_ADDR_1);
- #        if defined(DRIVER_ADDR_2)
-     CKLED2001_init(DRIVER_ADDR_2);
-@@ -384,11 +389,51 @@ static void flush(void) {
+ /* Each driver needs to define the struct
+  *    const rgb_matrix_driver_t rgb_matrix_driver;
+  * All members must be provided.
+@@ -281,9 +283,9 @@ static void flush(void) {
+ }
+ 
+ const rgb_matrix_driver_t rgb_matrix_driver = {
+-    .init = init,
+-    .flush = flush,
+-    .set_color = is31fl3733_set_color,
++    .init          = init,
++    .flush         = flush,
++    .set_color     = is31fl3733_set_color,
+     .set_color_all = is31fl3733_set_color_all,
+ };
+ 
+@@ -302,9 +304,9 @@ static void flush(void) {
+ }
+ 
+ const rgb_matrix_driver_t rgb_matrix_driver = {
+-    .init = init,
+-    .flush = flush,
+-    .set_color = is31fl3736_set_color,
++    .init          = init,
++    .flush         = flush,
++    .set_color     = is31fl3736_set_color,
+     .set_color_all = is31fl3736_set_color_all,
+ };
+ 
+@@ -323,9 +325,9 @@ static void flush(void) {
+ }
+ 
+ const rgb_matrix_driver_t rgb_matrix_driver = {
+-    .init = init,
+-    .flush = flush,
+-    .set_color = is31fl3737_set_color,
++    .init          = init,
++    .flush         = flush,
++    .set_color     = is31fl3737_set_color,
+     .set_color_all = is31fl3737_set_color_all,
+ };
+ 
+@@ -344,9 +346,9 @@ static void flush(void) {
+ }
+ 
+ const rgb_matrix_driver_t rgb_matrix_driver = {
+-    .init = init,
+-    .flush = flush,
+-    .set_color = is31fl3741_set_color,
++    .init          = init,
++    .flush         = flush,
++    .set_color     = is31fl3741_set_color,
+     .set_color_all = is31fl3741_set_color_all,
+ };
+ 
+@@ -365,9 +367,9 @@ static void flush(void) {
+ }
+ 
+ const rgb_matrix_driver_t rgb_matrix_driver = {
+-    .init = init,
+-    .flush = flush,
+-    .set_color = IS31FL_RGB_set_color,
++    .init          = init,
++    .flush         = flush,
++    .set_color     = IS31FL_RGB_set_color,
+     .set_color_all = IS31FL_RGB_set_color_all,
+ };
+ 
+@@ -385,11 +387,50 @@ static void flush(void) {
  #        endif
  }
  
+-const rgb_matrix_driver_t rgb_matrix_driver = {
+-    .init = init,
+-    .flush = flush,
+-    .set_color = ckled2001_set_color,
+-    .set_color_all = ckled2001_set_color_all,
 +#        if defined(RGB_MATRIX_DRIVER_SHUTDOWN_ENABLE)
 +static void shutdown(void) {
-+#           if defined(LED_DRIVER_SHUTDOWN_PIN)
++#            if defined(LED_DRIVER_SHUTDOWN_PIN)
 +    writePinLow(LED_DRIVER_SHUTDOWN_PIN);
-+#           else
++#            else
 +    CKLED2001_sw_shutdown(DRIVER_ADDR_1);
-+#               if defined(DRIVER_ADDR_2)
++#                if defined(DRIVER_ADDR_2)
 +    CKLED2001_sw_shutdown(DRIVER_ADDR_2);
-+#                   if defined(DRIVER_ADDR_3)
++#                    if defined(DRIVER_ADDR_3)
 +    CKLED2001_sw_shutdown(DRIVER_ADDR_3);
-+#                       if defined(DRIVER_ADDR_4)
++#                        if defined(DRIVER_ADDR_4)
 +    CKLED2001_sw_shutdown(DRIVER_ADDR_4);
-+#                       endif
-+#                   endif
-+#               endif
-+#           endif
++#                        endif
++#                    endif
++#                endif
++#            endif
 +}
 +
 +static void exit_shutdown(void) {
-+#           if defined(LED_DRIVER_SHUTDOWN_PIN)
++#            if defined(LED_DRIVER_SHUTDOWN_PIN)
 +    writePinHigh(LED_DRIVER_SHUTDOWN_PIN);
-+#           else
++#            else
 +    CKLED2001_sw_return_normal(DRIVER_ADDR_1);
-+#               if defined(DRIVER_ADDR_2)
++#                if defined(DRIVER_ADDR_2)
 +    CKLED2001_sw_return_normal(DRIVER_ADDR_2);
-+#                   if defined(DRIVER_ADDR_3)
++#                    if defined(DRIVER_ADDR_3)
 +    CKLED2001_sw_return_normal(DRIVER_ADDR_3);
-+#                       if defined(DRIVER_ADDR_4)
++#                        if defined(DRIVER_ADDR_4)
 +    CKLED2001_sw_return_normal(DRIVER_ADDR_4);
-+#                       endif
-+#                   endif
-+#               endif
-+#           endif
++#                        endif
++#                    endif
++#                endif
++#            endif
 +}
-+#       endif
++#        endif
 +
- const rgb_matrix_driver_t rgb_matrix_driver = {
-     .init = init,
-     .flush = flush,
-     .set_color = CKLED2001_set_color,
-     .set_color_all = CKLED2001_set_color_all,
++const rgb_matrix_driver_t rgb_matrix_driver = {.init          = init,
++                                               .flush         = flush,
++                                               .set_color     = ckled2001_set_color,
++                                               .set_color_all = ckled2001_set_color_all,
 +#        if defined(RGB_MATRIX_DRIVER_SHUTDOWN_ENABLE)
-+    .shutdown = shutdown,
-+    .exit_shutdown = exit_shutdown
++                                               .shutdown      = shutdown,
++                                               .exit_shutdown = exit_shutdown
 +#        endif
  };
  #    endif
  
 diff --git a/quantum/via.c b/quantum/via.c
-index c54e37a1..4631423a 100644
+index 2acd7aa9..41c2b2b7 100644
 --- a/quantum/via.c
 +++ b/quantum/via.c
-@@ -662,8 +662,18 @@ void via_qmk_rgb_matrix_set_value(uint8_t *data) {
+@@ -695,8 +695,18 @@ void via_qmk_rgb_matrix_set_value(uint8_t *data) {
      uint8_t *value_id   = &(data[0]);
      uint8_t *value_data = &(data[1]);
      switch (*value_id) {
@@ -655,7 +751,7 @@ index c54e37a1..4631423a 100644
          }
          case id_qmk_rgb_matrix_effect: {
 diff --git a/tmk_core/protocol.mk b/tmk_core/protocol.mk
-index d3f15c45..de97e2ae 100644
+index d159dacc..c82508cc 100644
 --- a/tmk_core/protocol.mk
 +++ b/tmk_core/protocol.mk
 @@ -48,8 +48,6 @@ endif
@@ -665,15 +761,15 @@ index d3f15c45..de97e2ae 100644
 -    else ifeq ($(strip $(BLUETOOTH_ENABLE)), yes)
 -        $(info NKRO is not currently supported with Bluetooth, and has been disabled.)
      else
-         TMK_COMMON_DEFS += -DNKRO_ENABLE
+         OPT_DEFS += -DNKRO_ENABLE
          SHARED_EP_ENABLE = yes
 diff --git a/tmk_core/protocol/chibios/chibios.c b/tmk_core/protocol/chibios/chibios.c
-index 10a97660..b5e39e02 100644
+index 4d97f1cd..22f9601e 100644
 --- a/tmk_core/protocol/chibios/chibios.c
 +++ b/tmk_core/protocol/chibios/chibios.c
-@@ -189,7 +189,7 @@ void protocol_pre_task(void) {
+@@ -191,7 +191,7 @@ void protocol_pre_task(void) {
              /* Remote wakeup */
-             if (suspend_wakeup_condition()) {
+             if ((USB_DRIVER.status & USB_GETSTATUS_REMOTE_WAKEUP_ENABLED) && suspend_wakeup_condition()) {
                  usbWakeupHost(&USB_DRIVER);
 -                restart_usb_driver(&USB_DRIVER);
 +                usb_wakeup(&USB_DRIVER);
@@ -694,20 +790,10 @@ index ad45f9b1..0e3f28e3 100644
          }
  
 diff --git a/tmk_core/protocol/chibios/usb_main.c b/tmk_core/protocol/chibios/usb_main.c
-index b14ca30c..449e6d5e 100644
+index b14ca30c..ddeeab43 100644
 --- a/tmk_core/protocol/chibios/usb_main.c
 +++ b/tmk_core/protocol/chibios/usb_main.c
-@@ -693,7 +693,8 @@ static bool usb_request_hook_cb(USBDriver *usbp) {
-                         if ((usbp->setup[4] == KEYBOARD_INTERFACE) && (usbp->setup[5] == 0)) { /* wIndex */
-                             keyboard_protocol = ((usbp->setup[2]) != 0x00);                    /* LSB(wValue) */
- #ifdef NKRO_ENABLE
--                            if (!keyboard_protocol && keyboard_idle) {
-+                            keymap_config.nkro = !!keyboard_protocol;
-+                            if (!keymap_config.nkro && keyboard_idle) {
- #else  /* NKRO_ENABLE */
-                             if (keyboard_idle) {
- #endif /* NKRO_ENABLE */
-@@ -798,20 +799,23 @@ void init_usb_driver(USBDriver *usbp) {
+@@ -798,20 +798,23 @@ void init_usb_driver(USBDriver *usbp) {
      chVTObjectInit(&keyboard_idle_timer);
  }
  
@@ -773,7 +859,7 @@ index add408ca..48374567 100644
  /* host driver */
  void           host_set_driver(host_driver_t *driver);
 diff --git a/tmk_core/protocol/report.c b/tmk_core/protocol/report.c
-index 5755098c..9922e835 100644
+index 1ba3be46..172cdec3 100644
 --- a/tmk_core/protocol/report.c
 +++ b/tmk_core/protocol/report.c
 @@ -20,6 +20,9 @@
@@ -792,7 +878,7 @@ index 5755098c..9922e835 100644
  #ifdef NKRO_ENABLE
 +#ifdef  BLUETOOTH_ENABLE
 +    if ((((get_transport() == TRANSPORT_USB) && keyboard_protocol) ||
-+          ((get_transport() == TRANSPORT_BLUETOOTH) && bluetooth_report_protocol))
++          ((get_transport() == TRANSPORT_BLUETOOTH) && bluetooth_report_protocol)) 
 +          && keymap_config.nkro) {
 +#else
      if (keyboard_protocol && keymap_config.nkro) {
@@ -807,7 +893,7 @@ index 5755098c..9922e835 100644
  #ifdef NKRO_ENABLE
 +#ifdef  BLUETOOTH_ENABLE
 +    if ((((get_transport() == TRANSPORT_USB) && keyboard_protocol) ||
-+          ((get_transport() == TRANSPORT_BLUETOOTH) && bluetooth_report_protocol))
++          ((get_transport() == TRANSPORT_BLUETOOTH) && bluetooth_report_protocol)) 
 +          && keymap_config.nkro) {
 +#else
      if (keyboard_protocol && keymap_config.nkro) {
@@ -821,7 +907,7 @@ index 5755098c..9922e835 100644
  #ifdef NKRO_ENABLE
 +#ifdef  BLUETOOTH_ENABLE
 +    if ((((get_transport() == TRANSPORT_USB) && keyboard_protocol) ||
-+          ((get_transport() == TRANSPORT_BLUETOOTH) && bluetooth_report_protocol))
++          ((get_transport() == TRANSPORT_BLUETOOTH) && bluetooth_report_protocol)) 
 +          && keymap_config.nkro) {
 +#else
      if (keyboard_protocol && keymap_config.nkro) {
@@ -835,7 +921,7 @@ index 5755098c..9922e835 100644
  #ifdef NKRO_ENABLE
 +#ifdef  BLUETOOTH_ENABLE
 +    if ((((get_transport() == TRANSPORT_USB) && keyboard_protocol) ||
-+          ((get_transport() == TRANSPORT_BLUETOOTH) && bluetooth_report_protocol))
++          ((get_transport() == TRANSPORT_BLUETOOTH) && bluetooth_report_protocol)) 
 +          && keymap_config.nkro) {
 +#else
      if (keyboard_protocol && keymap_config.nkro) {
@@ -849,7 +935,7 @@ index 5755098c..9922e835 100644
  #ifdef NKRO_ENABLE
 +#ifdef  BLUETOOTH_ENABLE
 +    if ((((get_transport() == TRANSPORT_USB) && keyboard_protocol) ||
-+          ((get_transport() == TRANSPORT_BLUETOOTH) && bluetooth_report_protocol))
++          ((get_transport() == TRANSPORT_BLUETOOTH) && bluetooth_report_protocol)) 
 +          && keymap_config.nkro) {
 +#else
      if (keyboard_protocol && keymap_config.nkro) {
@@ -863,7 +949,7 @@ index 5755098c..9922e835 100644
  #ifdef NKRO_ENABLE
 +#ifdef  BLUETOOTH_ENABLE
 +    if ((((get_transport() == TRANSPORT_USB) && keyboard_protocol) ||
-+          ((get_transport() == TRANSPORT_BLUETOOTH) && bluetooth_report_protocol))
++          ((get_transport() == TRANSPORT_BLUETOOTH) && bluetooth_report_protocol)) 
 +          && keymap_config.nkro) {
 +#else
      if (keyboard_protocol && keymap_config.nkro) {
