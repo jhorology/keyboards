@@ -37,14 +37,8 @@ bool process_apple_fn(uint16_t keycode, keyrecord_t *record) {
       host_apple_send(record->event.pressed, USAGE_INDEX_APPLE_KEYBOARD_FN);
       if (!host_apple_is_pressed(REPORT_MASK_APPLE_KEYBOARD_FN)) apple_ff_cnt = 0;
       return false;
-    case APPLE_VIDEO_MIRROR ... APPLE_LANGUAGE:
-      host_apple_send(record->event.pressed, USAGE_INDEX_APPLE_VIDEO_MIRROR + (keycode - APPLE_VIDEO_MIRROR));
-      return false;
-    case APPLE_DICTATION:
-      send_dictation(record->event.pressed);
-      return false;
-    case APPLE_DO_NOT_DISTURB:
-      send_do_not_disturb(record->event.pressed);
+    case APPLE_FUNCTION:
+      host_apple_send(record->event.pressed, USAGE_INDEX_APPLE_FUNCTION);
       return false;
     default:
       return (

@@ -1,11 +1,6 @@
 module.exports = function (options, defines) {
   return [
     {
-      name: 'RHID🔁\nTOGG',
-      title: 'Toggle allow or deny access to RAW HID',
-      shortName: 'RH🔁'
-    },
-    {
       name: 'RHID🗹\nON',
       title: 'Allow access to RAW HID',
       shortName: 'RH🗹'
@@ -19,12 +14,6 @@ module.exports = function (options, defines) {
       ? []
       : [
           {
-            name: 'Mac🔁\nTOGG',
-            title:
-              'Toggle enabling or disabling mac mode with switching base layer 0(mac) or 1',
-            shortName: 'Mac🔁'
-          },
-          {
             name: 'Mac🗹\nON',
             title: 'Enable mac mode with switching base layer 0',
             shortName: 'Mac🗹'
@@ -36,11 +25,6 @@ module.exports = function (options, defines) {
           }
         ]),
     {
-      name: 'AUT🔁\nTOGG',
-      title: 'Toggle enabling or disabling auto detection of mac mode',
-      shortName: 'AUT🔁'
-    },
-    {
       name: 'AUT🗹\nON',
       title: 'Enable auto detection of mac mode',
       shortName: 'AUT🗹'
@@ -49,12 +33,6 @@ module.exports = function (options, defines) {
       name: 'AUT☐\nOFF',
       title: 'Disable auto detection of mac mode',
       shortName: 'AUT☐'
-    },
-    {
-      name: '社畜🔁\nTOGG',
-      title:
-        'Toggle enabling key overridng for ANSI layout under JIS environment',
-      shortName: '社🔁'
     },
     {
       name: '社畜🗹\nON',
@@ -78,59 +56,9 @@ module.exports = function (options, defines) {
       shortName: '🌐+Fn'
     },
     {
-      name: 'Apple\nVideo\nMirror',
-      title: 'for experimental purpose.',
-      shortName: 'V.MIRR'
-    },
-    {
-      name: 'Apple\nCramshell\nLatched',
-      title: 'for experimental purpose.',
-      shortName: 'Crams\nhell'
-    },
-    {
-      name: 'Apple\nSpotlight',
-      title: 'Open Spotlight',
-      shortName: 'Spot\nLight'
-    },
-    {
-      name: 'Apple\nDashboard',
-      title: 'for experimental purpose.',
-      shortName: 'Dashboard'
-    },
-    {
       name: 'Apple\nFunction',
       title: 'for experimental purpose.',
       shortName: 'Function'
-    },
-    {
-      name: 'Apple\nLaunch\nPad',
-      title: 'Open LaunchPad',
-      shortName: 'Launch\nPad'
-    },
-    {
-      name: 'Apple\nExpose\nAll',
-      title: 'Mission Control',
-      shortName: 'Expose\nAll'
-    },
-    {
-      name: 'Apple\nExpose\nDesktop',
-      title: 'for experimental purpose.',
-      shortName: 'Expose\nDesktop'
-    },
-    {
-      name: 'Apple\nLanguage',
-      title: 'for experimental purpose.',
-      shortName: 'Language'
-    },
-    {
-      name: 'Apple\nDictation',
-      title: 'Activate dictation / Siri(Long press)',
-      shortName: '🎤'
-    },
-    {
-      name: 'Apple\nDnD',
-      title: 'Turn Do Not Disturb on or off',
-      shortName: 'DnD'
     },
     {
       name: '英数\nかな',

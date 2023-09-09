@@ -114,9 +114,6 @@ bool process_record_custom_config(uint16_t keycode, keyrecord_t *record) {
     bool normal_true = get_mods() & MOD_MASK_SHIFT ? false : true;
     bool normal_false = !normal_true;
     switch (keycode) {
-      case RHID_TOGG:
-        custom_config_raw_hid_toggle_enable();
-        return false;
       case RHID_ON:
         custom_config_raw_hid_set_enable(normal_true);
         return false;
@@ -124,10 +121,6 @@ bool process_record_custom_config(uint16_t keycode, keyrecord_t *record) {
         custom_config_raw_hid_set_enable(normal_false);
         return false;
 #ifndef DIP_SWITCH_ENABLE
-      case MAC_TOGG:
-        // *keyboard will restart
-        custom_config_mac_toggle_enable();
-        return false;
       case MAC_ON:
         // *keyboard may restart
         custom_config_mac_set_enable(normal_true);
@@ -137,19 +130,12 @@ bool process_record_custom_config(uint16_t keycode, keyrecord_t *record) {
         custom_config_mac_set_enable(normal_false);
         return false;
 #endif
-      case AUT_TOGG:
-        // *keyboard may restart
-        custom_config_auto_detect_toggle_enable();
-        return false;
       case AUT_ON:
         // *keyboard may restart
         custom_config_auto_detect_set_enable(normal_true);
         return false;
       case AUT_OFF:
         custom_config_auto_detect_set_enable(normal_false);
-        return false;
-      case USJ_TOGG:
-        custom_config_usj_toggle_enable();
         return false;
       case USJ_ON:
         custom_config_usj_set_enable(normal_true);
