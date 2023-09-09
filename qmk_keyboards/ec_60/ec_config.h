@@ -1,7 +1,6 @@
 
 #pragma once
 #include <quantum.h>
-#include <stdint.h>
 
 // mode max 4 modes
 typedef enum ec_actuation_mode { EC_ACTUATION_MODE_STATIC = 0, EC_ACTUATION_MODE_DYNAMIC } ec_actuation_mode_t;
@@ -12,7 +11,7 @@ typedef enum ec_release_mode { EC_RELEASE_MODE_STATIC = 0, EC_RELEASE_MODE_DYNAM
 typedef struct {
   ec_actuation_mode_t actuation_mode : 2;
   ec_release_mode_t release_mode : 2;
-  ec_release_mode_t reserved_0 : 4;
+  uint8_t reserved_0 : 4;
   // 0 | 100% (1023) of Total Travel
   uint16_t actuation_threshold : 10;
   // 0 | 100% (1023) of Total Travel
@@ -31,11 +30,14 @@ typedef struct {
 typedef struct {
   ec_preset_t presets[EC_NUM_PRESETS];
   uint16_t bottoming_reading[MATRIX_ROWS][MATRIX_COLS];
+  uint8_t preset_map : 3;  // 0 - 7
+  uint16_t reserved_0 : 13;
 } __attribute__((packed)) eeprom_ec_config_t;
 
 /* eeprom address */
 #define EC_VIA_EEPROM_PRESETS VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR
 #define EC_VIA_EEPROM_BOTTOMING_READING (EC_VIA_EEPROM_PRESETS + sizeof(ec_preset_t) * EC_NUM_PRESETS)
+#define EC_VIA_EEPROM_PRESET_MAP (EC_VIA_EEPROM_BOTTOMING_READING + 2 * MATRIX_ROWS * MATRIX_COLS)
 
 // Check if the size of the reserved persistent memory is the same as the size of struct eeprom_ec_config_t
 _Static_assert(sizeof(ec_preset_t) == 8, "Mismatch in keyboard EECONFIG stored data");
@@ -81,6 +83,7 @@ void ec_config_set_release_threshold(uint8_t preset_index, uint16_t release_thre
 void ec_config_set_actuation_travel(uint8_t preset_index, uint16_t actuation_travel);
 void ec_config_set_release_travel(uint8_t preset_index, uint16_t release_travel);
 void ec_config_set_deadzone(uint8_t preset_index, uint16_t deadzone);
+void ec_config_set_preset_map(uint8_t preset_map_index);
 void ec_config_start_calibration(void);
 void ec_config_end_calibration(void);
 void ec_config_send_calibration_data(uint32_t delay_ms);

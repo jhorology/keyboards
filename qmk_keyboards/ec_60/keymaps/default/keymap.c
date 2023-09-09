@@ -65,12 +65,12 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [3] = LAYOUT_60_tsangan(
     QK_BOOT, KC_F13,  KC_F14,  KC_F15,  KC_F16,  KC_F17,  KC_F18,  KC_F19,  KC_F20,  KC_F21,  KC_F22,  KC_F23,  KC_F24,  _______, TERM_LCK,
     _______, EC_CALD, EC_PSET, EC_PMAP, _EC_DBG, _______, _______, _______, _______, _______, _______, _______, _______,          _______,
-    _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,                   _______,
+    _______, ECM(0),  ECM(1),  ECM(2),  ECM(3),  _______, _______, _______, _______, _______, _______, _______,                   _______,
     _______,          RHID_OFF,AUT_ON,  MAC_ON,  USJ_OFF, NK_ON,   CL_NORM, AG_NORM, BS_NORM, _______, _______,          _______, _______,
     _______, _______, _______,                            _______,                                              _______, _______, _______
   ),
-  // final layer = EC preset map
-  //  defined in config.h EC_PRESET_MAP_LAYER == (DYNAMIC_KEYMAP_LAYER_COUNT - 1)
+
+  // EC Preset map 0
   // EC(0) alphas
   // EC(1) none-alphas
   // EC(2) mods bottom row
@@ -78,12 +78,40 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   // EC(4) enter
   // EC(5) spacebar
   // EC(6) prevent misstouch
-  [4] = LAYOUT_60_tsangan(
-   EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(1),
-   EC(1), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),        EC(1),
-   EC(3), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),               EC(4),
-   EC(1),        EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),        EC(1), EC(3),
-   EC(6), EC(2), EC(2),                      EC(5),                                    EC(2), EC(2), EC(6)
+  [EC_PRESET_MAP(0)] = LAYOUT_60_tsangan(
+    EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(1),
+    EC(1), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),        EC(1),
+    EC(3), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),               EC(4),
+    EC(1),        EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),        EC(1), EC(3),
+    EC(6), EC(2), EC(2),                      EC(5),                                    EC(2), EC(2), EC(6)
+  ),
+
+  // EC Preset map 0
+  [EC_PRESET_MAP(1)] = LAYOUT_60_tsangan(
+    EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),
+    EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),        EC(0),
+    EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),               EC(0),
+    EC(0),        EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),        EC(0), EC(0),
+    EC(0), EC(0), EC(0),                      EC(0),                                    EC(0), EC(0), EC(0)
+  ),
+
+  // EC Preset map 0
+  [EC_PRESET_MAP(2)] = LAYOUT_60_tsangan(
+    EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),
+    EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),        EC(0),
+    EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),               EC(0),
+    EC(0),        EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),        EC(0), EC(0),
+    EC(0), EC(0), EC(0),                      EC(0),                                    EC(0), EC(0), EC(0)
+  ),
+
+  // EC Preset map 0
+  [EC_PRESET_MAP(3)] = LAYOUT_60_tsangan(
+    EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),
+    EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),        EC(0),
+    EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),               EC(0),
+    EC(0),        EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),        EC(0), EC(0),
+    EC(0), EC(0), EC(0),                      EC(0),                                    EC(0), EC(0), EC(0)
   )
+
 };
 // clang-format on

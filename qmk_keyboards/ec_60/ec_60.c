@@ -76,35 +76,37 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     case EC_PRESET_START ... EC_PRESET_END:
       // not keycode
       return false;
+    case EC_PRESET_MAP_START ... EC_PRESET_MAP_END:
+      if (record->event.pressed) {
+        uint8_t preset_map_index = keycode - EC_PRESET_MAP_START;
+        ec_config_set_preset_map(preset_map_index);
+      }
+      return false;
     case EC_CALD:
       if (!record->event.pressed) {
         // 3 secods after release
         ec_config_send_calibration_data(3000);
-        return false;
       }
-      break;
+      return false;
     case EC_PSET:
       if (!record->event.pressed) {
         // 3 secods after release
         ec_config_send_presets(3000);
-        return false;
       }
-      break;
+      return false;
     case EC_PMAP:
       if (!record->event.pressed) {
         // 3 secods after release
         ec_config_send_preset_map(3000);
-        return false;
       }
-      break;
+      return false;
 #ifdef EC_DEBUG
     case EC_DBG:
       if (!record->event.pressed) {
         // 3 secods after release
         ec_config_debug_send_config(3000);
-        return false;
       }
-      break;
+      return false;
 #endif
   }
   return true;
@@ -117,7 +119,7 @@ void via_raw_hid_post_receive_user(uint8_t *data, uint8_t length) {
   uint8_t *command_data = &(data[1]);
   switch (command_id) {
     case id_dynamic_keymap_set_keycode:
-      if (command_data[0] == EC_PRESET_MAP_LAYER) {
+      if ((command_data[0] - EC_PRESET_MAP_START) == eeprom_ec_config.preset_map) {
         ec_config_update_key(command_data[1], command_data[2]);
       }
       break;

@@ -6,6 +6,8 @@
 enum ec_keycodes {
   EC_PRESET_START = CUSTOM_KEYCODES_SAFE_RANGE,  // send calibration data as keystrokes
   EC_PRESET_END = EC_PRESET_START + EC_NUM_PRESETS - 1,
+  EC_PRESET_MAP_START = EC_PRESET_START + EC_NUM_PRESETS,  // send calibration data as keystrokes
+  EC_PRESET_MAP_END = EC_PRESET_START + EC_NUM_PRESETS + EC_NUM_PRESET_MAPS - 1,
   EC_CALD,  // send calibration data
   EC_PSET,  // Show presets
   EC_PMAP,  // Show preset map
@@ -13,5 +15,12 @@ enum ec_keycodes {
   EC_DBG
 #endif
 };
-
+// EC preset
 #define EC(preset_index) (EC_PRESET_START + preset_index)
+// EC preset map
+#define ECM(preset_map_index) (EC_PRESET_MAP_START + preset_map_index)
+
+// layer index
+#define EC_PRESET_MAP_LAYER_START (DYNAMIC_KEYMAP_LAYER_COUNT - EC_NUM_PRESET_MAPS)
+#define EC_PRESET_MAP_LAYER_END (DYNAMIC_KEYMAP_LAYER_COUNT - 1)
+#define EC_PRESET_MAP(map_index) (EC_PRESET_MAP_LAYER_START + map_index)

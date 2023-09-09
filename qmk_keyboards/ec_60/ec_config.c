@@ -83,6 +83,8 @@ void ec_config_reset(void) {
 #endif
     }
   }
+  eeprom_ec_config.preset_map = 0;
+
   // Write default value to EEPROM now
   eeprom_update_block(&eeprom_ec_config, (void*)VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR, sizeof(eeprom_ec_config_t));
 #ifdef EC_DEBUG
@@ -201,6 +203,19 @@ void ec_config_set_deadzone(uint8_t preset_index, uint16_t deadzone) {
     defer_eeprom_update_preset(preset_index);
   }
 }
+
+void ec_config_set_preset_map(uint8_t preset_map_index) {
+  if (eeprom_ec_config.preset_map != preset_map_index) {
+    eeprom_ec_config.preset_map = preset_map_index;
+    for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
+      for (uint8_t col = 0; col < MATRIX_COLS; col++) {
+        ec_config_update_key(row, col);
+      }
+    }
+    eeprom_update_word((void*)EC_VIA_EEPROM_PRESET_MAP, eeprom_ec_config.preset_map);
+  }
+}
+
 void ec_config_start_calibration(void) {
   for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
     for (uint8_t col = 0; col < MATRIX_COLS; col++) {
@@ -209,6 +224,7 @@ void ec_config_start_calibration(void) {
   }
   ec_config.bottoming_calibration = true;
 }
+
 void ec_config_end_calibration(void) {
   ec_config.bottoming_calibration = false;
   for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
@@ -243,7 +259,7 @@ void ec_config_debug_send_config(uint32_t delay_ms) {
 //-----------------------------------------------------
 
 static uint8_t get_preset_index(uint8_t row, uint8_t col) {
-  uint16_t keycode = dynamic_keymap_get_keycode(EC_PRESET_MAP_LAYER, row, col);
+  uint16_t keycode = dynamic_keymap_get_keycode(EC_PRESET_MAP(eeprom_ec_config.preset_map), row, col);
   if (keycode >= EC_PRESET_START && keycode <= EC_PRESET_END) {
     return keycode - EC_PRESET_START;
   }
@@ -263,6 +279,7 @@ static int is_eeprom_valid(void) {
         return -9;
     }
   }
+  if (eeprom_ec_config.preset_map >= EC_NUM_PRESET_MAPS) return -10;
   return 0;
 }
 
@@ -490,6 +507,8 @@ static uint32_t debug_send_config_cb(uint32_t trigger_time, void* cb_arg) {
   }
   send_string("],\nbottoming_reading: ");
   _send_matrix_array(_bottoming_reading);
+  send_string(",\npreset_map: ");
+  send_nibble(eeprom_ec_config.preset_map);
   // end eepro_ec_config
   send_string("\n}");
 
