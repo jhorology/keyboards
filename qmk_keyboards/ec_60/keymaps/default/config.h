@@ -17,25 +17,17 @@
 
 //
 // TODO optimize for purpose
-// EC(0) alphas
-// EC(1) none-alphas
-// EC(2) mods bottom row
-// EC(3) little finger home Ctrl/hhkb fn
-// EC(4) enter
-// EC(5) spacebar
-// EC(6) prevent misstouch
+// EC(0) default
+// EC(1) alphas
+// EC(2) none-alphas
+// EC(3) mods bottom row
+// EC(4) little finger home Ctrl/hhkb fn
+// EC(5) enter
+// EC(6) spacebar
+// EC(7) prevent misstouch
 // clang-format off
 #define EC_PRESETS_DEFAULT_USER {               \
   [0] = { \
-    .actuation_mode = EC_ACTUATION_MODE_DYNAMIC, \
-    .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT, \
-    .actuation_travel =  128, \
-    .release_mode = EC_RELEASE_MODE_DYNAMIC, \
-    .release_threshold = EC_RELEASE_THRESHOLD_DEFAULT, \
-    .release_travel = 128, \
-    .deadzone = 112 \
-  }, \
-  [1] = { \
     .actuation_mode = EC_ACTUATION_MODE_STATIC, \
     .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT, \
     .actuation_travel =  EC_ACTUATION_TRAVEL_DEFAULT, \
@@ -43,6 +35,15 @@
     .release_threshold = EC_RELEASE_THRESHOLD_DEFAULT, \
     .release_travel = EC_RELEASE_TRAVEL_DEFAULT, \
     .deadzone = EC_DEADZONE_DEFAULT \
+  }, \
+  [1] = { \
+    .actuation_mode = EC_ACTUATION_MODE_DYNAMIC, \
+    .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT, \
+    .actuation_travel =  128, \
+    .release_mode = EC_RELEASE_MODE_DYNAMIC, \
+    .release_threshold = EC_RELEASE_THRESHOLD_DEFAULT, \
+    .release_travel = 128, \
+    .deadzone = 112 \
   }, \
   [2] = { \
     .actuation_mode = EC_ACTUATION_MODE_STATIC, \
@@ -82,7 +83,7 @@
   }, \
   [6] = { \
     .actuation_mode = EC_ACTUATION_MODE_STATIC, \
-    .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT + 160, \
+    .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT, \
     .actuation_travel =  EC_ACTUATION_TRAVEL_DEFAULT, \
     .release_mode = EC_RELEASE_MODE_STATIC, \
     .release_threshold = EC_RELEASE_THRESHOLD_DEFAULT, \
@@ -91,7 +92,7 @@
   }, \
   [7] = { \
     .actuation_mode = EC_ACTUATION_MODE_STATIC, \
-    .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT, \
+    .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT + 160, \
     .actuation_travel =  EC_ACTUATION_TRAVEL_DEFAULT, \
     .release_mode = EC_RELEASE_MODE_STATIC, \
     .release_threshold = EC_RELEASE_THRESHOLD_DEFAULT, \

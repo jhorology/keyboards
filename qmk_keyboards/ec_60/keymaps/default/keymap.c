@@ -71,19 +71,20 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   ),
 
   // EC Preset map 0
-  // EC(0) alphas
-  // EC(1) none-alphas
-  // EC(2) mods bottom row
-  // EC(3) little finger home Ctrl/hhkb fn
-  // EC(4) enter
-  // EC(5) spacebar
-  // EC(6) prevent misstouch
+  // EC(0) default
+  // EC(1) alphas
+  // EC(2) none-alphas
+  // EC(3) mods bottom row
+  // EC(4) little finger home Ctrl/hhkb fn
+  // EC(5) enter
+  // EC(6) spacebar
+  // EC(7) prevent misstouch
   [EC_PRESET_MAP(0)] = LAYOUT_60_tsangan(
-    EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(1),
-    EC(1), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),        EC(1),
-    EC(3), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),               EC(4),
-    EC(1),        EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),        EC(1), EC(3),
-    EC(6), EC(2), EC(2),                      EC(5),                                    EC(2), EC(2), EC(6)
+    EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(2),
+    EC(2), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1),        EC(2),
+    EC(4), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1),               EC(5),
+    EC(2),        EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1),        EC(2), EC(4),
+    EC(7), EC(3), EC(3),                      EC(6),                                    EC(3), EC(2), EC(7)
   ),
 
   // EC Preset map 0
