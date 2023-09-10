@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ec_config.h"
 #include "lib/my_keyboard_common.h"
 
 // custoim keycodes
@@ -24,3 +25,6 @@ enum ec_keycodes {
 #define EC_PRESET_MAP_LAYER_START (DYNAMIC_KEYMAP_LAYER_COUNT - EC_NUM_PRESET_MAPS)
 #define EC_PRESET_MAP_LAYER_END (DYNAMIC_KEYMAP_LAYER_COUNT - 1)
 #define EC_PRESET_MAP(map_index) (EC_PRESET_MAP_LAYER_START + map_index)
+
+extern const uint16_t ec_bottoming_reading_default[MATRIX_ROWS][MATRIX_COLS];
+extern const ec_preset_t ec_presets_default[EC_NUM_PRESETS];

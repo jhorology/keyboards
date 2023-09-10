@@ -21,6 +21,7 @@
 #else
 #  define _EC_DBG _______
 #endif
+
 // tap dance
 // [single tap, single hold, multi tap, tap hold, tapping term]
 const tap_dance_entry_t PROGMEM tap_dance_predefined_entries[NUM_TAP_DANCE_PREDEFINED_ENTRIES] = {
@@ -32,6 +33,101 @@ const tap_dance_entry_t PROGMEM tap_dance_predefined_entries[NUM_TAP_DANCE_PREDE
 
 // unused place holder for getting a keyrecord_t#keyccode field.
 combo_t key_combos[COMBO_COUNT] = {};
+
+// clang-format off
+const uint16_t PROGMEM ec_bottoming_reading_default[MATRIX_ROWS][MATRIX_COLS] = {
+  {0x0205,0x023d,0x0242,0x02fa,0x027a,0x0277,0x022a,0x0206,0x024f,0x01d0,0x022d,0x0238,0x0267,0x018b,0x0216},
+  {0x0249,0x02a0,0x02e4,0x0327,0x02a7,0x02d0,0x0275,0x024b,0x02eb,0x02a2,0x0259,0x0287,0x022c,0x01d4,0x03ff},
+  {0x01a0,0x02d8,0x02df,0x0306,0x0294,0x02e2,0x029f,0x02ac,0x02e5,0x028b,0x02a0,0x02a8,0x03ff,0x0268,0x03ff},
+  {0x019e,0x03ff,0x0250,0x02ea,0x0314,0x02a6,0x0260,0x02e0,0x0331,0x028c,0x02dc,0x028b,0x03ff,0x017a,0x01ff},
+  {0x01c6,0x01f3,0x01b4,0x03ff,0x03ff,0x03ff,0x026a,0x03ff,0x03ff,0x03ff,0x017a,0x017a,0x01a8,0x03ff,0x03ff}
+};
+// clang-format on
+
+// clang-format off
+const ec_preset_t PROGMEM ec_presets_default[EC_NUM_PRESETS] = {
+  // EC Preset 0 ⬜️ - default
+  [0] = {
+    .actuation_mode = EC_ACTUATION_MODE_STATIC,
+    .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT,
+    .actuation_travel =  EC_ACTUATION_TRAVEL_DEFAULT,
+    .release_mode = EC_RELEASE_MODE_STATIC,
+    .release_threshold = EC_RELEASE_THRESHOLD_DEFAULT,
+    .release_travel = EC_RELEASE_TRAVEL_DEFAULT,
+    .deadzone = EC_DEADZONE_DEFAULT
+  },
+  // EC Preset 1 🟩 - alphas
+  [1] = {
+    .actuation_mode = EC_ACTUATION_MODE_DYNAMIC,
+    .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT,
+    .actuation_travel = 128,
+    .release_mode = EC_RELEASE_MODE_DYNAMIC,
+    .release_threshold = EC_RELEASE_THRESHOLD_DEFAULT,
+    .release_travel = 128,
+    .deadzone = 112
+  },
+  // EC Preset 2 🟨 - none-alphas
+  [2] = {
+    .actuation_mode = EC_ACTUATION_MODE_STATIC,
+    .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT,
+    .actuation_travel =  EC_ACTUATION_TRAVEL_DEFAULT,
+    .release_mode = EC_RELEASE_MODE_STATIC,
+    .release_threshold = EC_RELEASE_THRESHOLD_DEFAULT,
+    .release_travel = EC_RELEASE_TRAVEL_DEFAULT,
+    .deadzone = EC_DEADZONE_DEFAULT
+  },
+  // EC Preset 3 🟧 - mods
+  [3] = {
+    .actuation_mode = EC_ACTUATION_MODE_STATIC,
+    .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT,
+    .actuation_travel =  EC_ACTUATION_TRAVEL_DEFAULT,
+    .release_mode = EC_RELEASE_MODE_STATIC,
+    .release_threshold = EC_RELEASE_THRESHOLD_DEFAULT,
+    .release_travel = EC_RELEASE_TRAVEL_DEFAULT,
+    .deadzone = EC_DEADZONE_DEFAULT
+  },
+  // EC Preset 4 🟥 - little finger home,Ctrl/HHKB fn
+  [4] = {
+    .actuation_mode = EC_ACTUATION_MODE_STATIC,
+    .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT,
+    .actuation_travel =  EC_ACTUATION_TRAVEL_DEFAULT,
+    .release_mode = EC_RELEASE_MODE_STATIC,
+    .release_threshold = EC_RELEASE_THRESHOLD_DEFAULT,
+    .release_travel = EC_RELEASE_TRAVEL_DEFAULT,
+    .deadzone = EC_DEADZONE_DEFAULT
+  },
+  // EC Preset 5 🟦 - enter key
+  [5] = {
+    .actuation_mode = EC_ACTUATION_MODE_STATIC,
+    .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT,
+    .actuation_travel =  EC_ACTUATION_TRAVEL_DEFAULT,
+    .release_mode = EC_RELEASE_MODE_STATIC,
+    .release_threshold = EC_RELEASE_THRESHOLD_DEFAULT,
+    .release_travel = EC_RELEASE_TRAVEL_DEFAULT,
+    .deadzone = EC_DEADZONE_DEFAULT
+  },
+  // EC Preset 6 🟪 - spacebar
+  [6] = {
+    .actuation_mode = EC_ACTUATION_MODE_STATIC,
+    .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT,
+    .actuation_travel =  EC_ACTUATION_TRAVEL_DEFAULT,
+    .release_mode = EC_RELEASE_MODE_STATIC,
+    .release_threshold = EC_RELEASE_THRESHOLD_DEFAULT,
+    .release_travel = EC_RELEASE_TRAVEL_DEFAULT,
+    .deadzone = EC_DEADZONE_DEFAULT
+  },
+  // EC Preset 7 ⬛️ - prevent mistouch
+  [7] = {
+    .actuation_mode = EC_ACTUATION_MODE_STATIC,
+    .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT + 160,
+    .actuation_travel =  EC_ACTUATION_TRAVEL_DEFAULT,
+    .release_mode = EC_RELEASE_MODE_STATIC,
+    .release_threshold = EC_RELEASE_THRESHOLD_DEFAULT,
+    .release_travel = EC_RELEASE_TRAVEL_DEFAULT,
+    .deadzone = EC_DEADZONE_DEFAULT
+  }
+};
+// clang-format on
 
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -60,7 +156,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     _______, _______, _______,                            _______,                                              _______, _______, _______
   ),
   // settings, application-specific keys
-  // TG(4) - EC calibration
+  // row 1 - EC data
   // row 3: normal settings, +shift key for unusual reversed setting
   [3] = LAYOUT_60_tsangan(
     QK_BOOT, KC_F13,  KC_F14,  KC_F15,  KC_F16,  KC_F17,  KC_F18,  KC_F19,  KC_F20,  KC_F21,  KC_F22,  KC_F23,  KC_F24,  _______, TERM_LCK,
@@ -74,20 +170,20 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   // EC(0) default
   // EC(1) alphas
   // EC(2) none-alphas
-  // EC(3) mods bottom row
+  // EC(3) mods
   // EC(4) little finger home Ctrl/hhkb fn
   // EC(5) enter
   // EC(6) spacebar
-  // EC(7) prevent misstouch
+  // EC(7) prevent mistouch
   [EC_PRESET_MAP(0)] = LAYOUT_60_tsangan(
     EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(2),
     EC(2), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1),        EC(2),
     EC(4), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1),               EC(5),
-    EC(2),        EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1),        EC(2), EC(4),
-    EC(7), EC(3), EC(3),                      EC(6),                                    EC(3), EC(2), EC(7)
+    EC(3),        EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1), EC(1),        EC(3), EC(4),
+    EC(7), EC(3), EC(3),                      EC(6),                                    EC(3), EC(3), EC(7)
   ),
 
-  // EC Preset map 0
+  // EC Preset map 1
   [EC_PRESET_MAP(1)] = LAYOUT_60_tsangan(
     EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),
     EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),        EC(0),
@@ -96,7 +192,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     EC(0), EC(0), EC(0),                      EC(0),                                    EC(0), EC(0), EC(0)
   ),
 
-  // EC Preset map 0
+  // EC Preset map 2
   [EC_PRESET_MAP(2)] = LAYOUT_60_tsangan(
     EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),
     EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),        EC(0),
@@ -105,7 +201,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     EC(0), EC(0), EC(0),                      EC(0),                                    EC(0), EC(0), EC(0)
   ),
 
-  // EC Preset map 0
+  // EC Preset map 3
   [EC_PRESET_MAP(3)] = LAYOUT_60_tsangan(
     EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),
     EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),        EC(0),
@@ -113,6 +209,5 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     EC(0),        EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0), EC(0),        EC(0), EC(0),
     EC(0), EC(0), EC(0),                      EC(0),                                    EC(0), EC(0), EC(0)
   )
-
 };
 // clang-format on

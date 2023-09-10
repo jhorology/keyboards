@@ -19,14 +19,6 @@ static deferred_token send_data_token;  // defer_exec token
 
 // if defined in ec_60/config.h or ec_60/keymaps/<keymap name>/config.h
 
-#ifdef EC_BOTTOMING_READING_DEFAULT_USER
-const uint16_t PROGMEM bottming_reading_default[MATRIX_ROWS][MATRIX_COLS] = EC_BOTTOMING_READING_DEFAULT_USER;
-#endif
-
-#ifdef EC_PRESETS_DEFAULT_USER
-const ec_preset_t PROGMEM presets_default[EC_NUM_PRESETS] = EC_PRESETS_DEFAULT_USER;
-#endif
-
 // 0 | 100% 10bit
 #define SCALE_RANGE 0x3ff
 // 0 | 50% 9bit
@@ -52,8 +44,7 @@ void ec_config_reset(void) {
   for (uint8_t preset_index = 0; preset_index < EC_NUM_PRESETS; preset_index++) {
     ec_preset_t* preset = get_preset(preset_index);
     // I don't want to lose presets for each update firmware
-#ifdef EC_PRESETS_DEFAULT_USER
-    memcpy_P(preset, &presets_default[preset_index], sizeof(ec_preset_t));
+    memcpy_P(preset, &ec_presets_default[preset_index], sizeof(ec_preset_t));
     if (is_preset_valid(preset) != 0) {
       preset->actuation_mode = EC_ACTUATION_MODE_STATIC;
       preset->release_mode = EC_RELEASE_MODE_STATIC;
@@ -63,26 +54,15 @@ void ec_config_reset(void) {
       preset->release_travel = EC_RELEASE_TRAVEL_DEFAULT;
       preset->deadzone = EC_DEADZONE_DEFAULT;
     }
-#else
-    preset->actuation_mode = EC_ACTUATION_MODE_STATIC;
-    preset->release_mode = EC_RELEASE_MODE_STATIC;
-    preset->actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT;
-    preset->release_threshold = EC_RELEASE_THRESHOLD_DEFAULT;
-    preset->actuation_travel = EC_ACTUATION_TRAVEL_DEFAULT;
-    preset->release_travel = EC_RELEASE_TRAVEL_DEFAULT;
-    preset->deadzone = EC_DEADZONE_DEFAULT;
-#endif
   }
   for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
     for (uint8_t col = 0; col < MATRIX_COLS; col++) {
       // I don't want to lose calibration data for each update firmware
-#ifdef EC_BOTTOMING_READING_DEFAULT_USER
-      eeprom_ec_config.bottoming_reading[row][col] = pgm_read_word(&bottming_reading_default[row][col]);
-#else
-      eeprom_ec_config.bottoming_reading[row][col] = EC_BOTTOMING_READING_DEFAULT;
-#endif
+      eeprom_ec_config.bottoming_reading[row][col] = pgm_read_word(&ec_bottoming_reading_default[row][col]);
     }
   }
+  memcpy_P(&eeprom_ec_config.bottoming_reading[0][0], &ec_bottoming_reading_default[0][0],
+           MATRIX_ROWS * MATRIX_COLS * 2);
   eeprom_ec_config.preset_map = 0;
 
   // Write default value to EEPROM now
@@ -327,7 +307,8 @@ static ec_preset_t* get_preset(uint8_t preset_index) { return &(eeprom_ec_config
 
 static uint32_t send_calibration_data_cb(uint32_t trigger_time, void* cb_arg) {
   send_data_token = 0;
-  send_string("// clang-format off\n#define EC_BOTTOMING_READING_DEFAULT_USER { \\\n");
+  send_string(
+    "// clang-format off\nconst uint16_t PROGMEM ec_bottoming_reading_default[MATRIX_ROWS][MATRIX_COLS] = {\n");
   wait_ms(50);
   for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
     send_string("{");
@@ -342,15 +323,15 @@ static uint32_t send_calibration_data_cb(uint32_t trigger_time, void* cb_arg) {
     if (row < (MATRIX_ROWS - 1)) {
       send_string(",");
     }
-    send_string(" \\\n");
+    send_string(" \n");
     wait_ms(50);
   }
-  send_string("}\n// clang-format on\n");
+  send_string("};\n// clang-format on\n");
   return 0;
 }
 
 static void send_preset_value(char* name, uint16_t value, uint16_t defaultValue) {
-  send_string(", \\\n.");
+  send_string(", \n.");
   send_string(name);
   send_string(" = ");
   if (value == defaultValue) {
@@ -368,30 +349,30 @@ static void send_preset_value(char* name, uint16_t value, uint16_t defaultValue)
 }
 
 static uint32_t send_presets_cb(uint32_t trigger_time, void* cb_arg) {
-  send_string("// clang-format off\n#define EC_PRESETS_DEFAULT_USER {");
+  send_string("// clang-format off\nconst ec_preset_t PROGMEM ec_presets_default[EC_NUM_PRESETS] = {");
   wait_ms(50);
   for (int preset_index = 0; preset_index < EC_NUM_PRESETS; preset_index++) {
     ec_preset_t* preset = get_preset(preset_index);
-    send_string(" \\\n[");
+    send_string(" \n[");
     send_nibble(preset_index);
     send_string("] = {");
-    send_string(" \\\n.actuation_mode = EC_ACTUATION_MODE_");
+    send_string(" \n.actuation_mode = EC_ACTUATION_MODE_");
     send_string(preset->actuation_mode == 0 ? "STATIC" : "DYNAMIC");
     send_preset_value("actuation_threshold", preset->actuation_threshold, EC_ACTUATION_THRESHOLD_DEFAULT);
     send_preset_value("actuation_travel", preset->actuation_travel, EC_ACTUATION_TRAVEL_DEFAULT);
-    send_string(", \\\n.release_mode = EC_RELEASE_MODE_");
+    send_string(", \n.release_mode = EC_RELEASE_MODE_");
     send_string(preset->release_mode == 0 ? "STATIC" : "DYNAMIC");
     send_preset_value("release_threshold", preset->release_threshold, EC_RELEASE_THRESHOLD_DEFAULT);
     send_preset_value("release_travel", preset->release_travel, EC_RELEASE_TRAVEL_DEFAULT);
     send_preset_value("deadzone", preset->deadzone, EC_DEADZONE_DEFAULT);
     if (preset_index < (EC_NUM_PRESETS - 1)) {
-      send_string(" \\\n},");
+      send_string(" \n},");
     } else {
-      send_string(" \\\n}");
+      send_string(" \n}");
     }
     wait_ms(50);
   }
-  send_string(" \\\n}\n// clang-format on\n");
+  send_string(" \n};\n// clang-format on\n");
   return 0;
 }
 
