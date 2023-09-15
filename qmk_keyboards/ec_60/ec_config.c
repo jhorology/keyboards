@@ -29,7 +29,8 @@ static int is_eeprom_valid(void);
 static int is_preset_valid(ec_preset_t* preset);
 static void defer_eeprom_update_preset(uint8_t preset_index);
 static void update_matrix(uint8_t preset_index);
-static uint16_t rescale(uint8_t row, uint8_t col, uint16_t x);
+static uint16_t rescale_threshold(uint8_t row, uint8_t col, uint16_t x);
+static uint16_t rescale_travel(uint8_t row, uint8_t col, uint16_t x);
 static ec_preset_t* get_preset_key(uint8_t row, uint8_t col);
 static ec_preset_t* get_preset(uint8_t preset_index);
 static uint32_t send_calibration_data_cb(uint32_t trigger_time, void* cb_arg);
@@ -96,24 +97,24 @@ void ec_config_update_key(uint8_t row, uint8_t col) {
   ec_config.actuation[row][col].reference.mode = preset->actuation_mode;
   switch (preset->actuation_mode) {
     case EC_ACTUATION_MODE_STATIC:
-      ec_config.actuation[row][col].reference.value = rescale(row, col, preset->actuation_threshold);
+      ec_config.actuation[row][col].reference.value = rescale_threshold(row, col, preset->actuation_threshold);
       break;
     case EC_ACTUATION_MODE_DYNAMIC:
-      ec_config.actuation[row][col].reference.value = rescale(row, col, preset->actuation_travel);
+      ec_config.actuation[row][col].reference.value = rescale_travel(row, col, preset->actuation_travel);
       break;
   }
   // release
   ec_config.release[row][col].reference.mode = preset->release_mode;
   switch (preset->release_mode) {
     case EC_RELEASE_MODE_STATIC:
-      ec_config.release[row][col].reference.value = rescale(row, col, preset->release_threshold);
+      ec_config.release[row][col].reference.value = rescale_threshold(row, col, preset->release_threshold);
       break;
     case EC_RELEASE_MODE_DYNAMIC:
-      ec_config.release[row][col].reference.value = rescale(row, col, preset->release_travel);
+      ec_config.release[row][col].reference.value = rescale_travel(row, col, preset->release_travel);
       break;
   }
   // deadzone
-  ec_config.deadzone[row][col] = rescale(row, col, preset->deadzone);
+  ec_config.deadzone[row][col] = rescale_threshold(row, col, preset->deadzone);
 
   if (prev_actuation_mode != preset->actuation_mode || prev_release_mode != preset->release_mode) {
     ec_config.extremum[row][col] = sw_value[row][col];
@@ -295,10 +296,16 @@ static void update_matrix(uint8_t preset_index) {
   }
 }
 
-static uint16_t rescale(uint8_t row, uint8_t col, uint16_t x) {
+static uint16_t rescale_threshold(uint8_t row, uint8_t col, uint16_t x) {
   uint16_t out_max = eeprom_ec_config.bottoming_reading[row][col];
   uint16_t out_min = ec_config.noise_floor[row][col];
   return x * (out_max - out_min) / SCALE_RANGE + out_min;
+}
+
+static uint16_t rescale_travel(uint8_t row, uint8_t col, uint16_t x) {
+  uint16_t out_max = eeprom_ec_config.bottoming_reading[row][col];
+  uint16_t out_min = ec_config.noise_floor[row][col];
+  return x * (out_max - out_min) / SCALE_RANGE;
 }
 
 static ec_preset_t* get_preset_key(uint8_t row, uint8_t col) { return get_preset(get_preset_index(row, col)); }
