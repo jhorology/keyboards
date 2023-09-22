@@ -21,7 +21,7 @@
 #include <send_string.h>
 
 #ifndef OS_FINGERPRINT_TIMEOUT_MILLIS
-#  define OS_FINGERPRINT_TIMEOUT_MILLIS 500
+#  define OS_FINGERPRINT_TIMEOUT_MILLIS 1000
 #endif
 
 #define DTYPE_DEVICE 0x01
@@ -35,7 +35,6 @@ static uint8_t fingerprint[NUM_DESCRIPTOR_REQUESTS][2];
 
 static uint8_t request_cnt;
 static bool detecting = false;
-static bool end_detect = false;
 static uint32_t wlengths = 0;
 static deferred_token timeout_token;
 static os_variant_t detected_os;
@@ -51,8 +50,8 @@ void trace_usb_get_descriptor(const uint8_t dtype, const uint16_t w_length) {
   if (!detecting && dtype == DTYPE_DEVICE) {
     request_cnt = 0;
     detecting = true;
-    end_detect = false;
     wlengths = 0;
+    detected_os = UNSURE;
   }
   if (detecting) {
 #ifdef OS_FINGERPRINT_DEBUG_ENABLE
@@ -62,16 +61,16 @@ void trace_usb_get_descriptor(const uint8_t dtype, const uint16_t w_length) {
       request_cnt++;
     }
 #endif
-    if (!end_detect) {
+    if (detected_os == UNSURE) {
       // detect DARWIN (macOS iOS iPadOS)
       if (dtype == DTYPE_CONFIG && (wlengths & 0xff00ff00) == 0x02000200) {
         detected_os = DARWIN;
 #ifdef OS_FINGERPRINT_NOTIFY_IMMEDIATELY
         os_fingerprint_update_kb(detected_os);
 #endif
-        end_detect = true;
       }
       // TODO other OS
+
       wlengths <<= 8;
       if (dtype == DTYPE_STRING) {
         wlengths += wlength & 0xff;
@@ -94,14 +93,13 @@ static uint32_t os_fingerprint_timeout_callback(uint32_t trigger_time, void* cb_
     request_cnt++;
   }
 #endif
-  if (end_detect) {
+  if (detected_os != UNSURE) {
 #ifndef OS_FINGERPRINT_NOTIFY_IMMEDIATELY
     os_fingerprint_update_kb(detected_os);
 #endif
   } else {
     detected_os = NOT_DARWIN;
     os_fingerprint_update_kb(detected_os);
-    end_detect = true;
   }
   detecting = false;
   timeout_token = 0;
