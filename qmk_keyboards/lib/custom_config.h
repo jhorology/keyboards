@@ -92,5 +92,3 @@ uint16_t dynamic_tap_dance_tapping_term(uint8_t index);
 
 void dynamic_non_mac_fn_reset(const uint16_t *keycodes, uint8_t len);
 uint16_t dynamic_non_mac_fn_keycode(non_mac_fn_key_t fn_key);
-
-void pgm_memcpy(void *dest, const void *src, uint8_t len);

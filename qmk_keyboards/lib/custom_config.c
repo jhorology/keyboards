@@ -266,7 +266,7 @@ void dynamic_tap_dance_reset() {
   initial_data.tapping_term = TAPPING_TERM;
   for (uint8_t i = 0; i < TAP_DANCE_ENTRIES; i++) {
     if (i < NUM_TAP_DANCE_PREDEFINED_ENTRIES) {
-      pgm_memcpy(&data, &tap_dance_predefined_entries[i], sizeof(tap_dance_entry_t));
+      memcpy_P(&data, &tap_dance_predefined_entries[i], sizeof(tap_dance_entry_t));
     } else {
       data = initial_data;
     }
@@ -315,10 +315,4 @@ void dynamic_non_mac_fn_reset(const uint16_t *keycodes, uint8_t len) {
 uint16_t dynamic_non_mac_fn_keycode(non_mac_fn_key_t fn_key) {
   uint16_t *adrs = (uint16_t *)DYNAMIC_NON_MAC_FN_EEPROM_ADDR;
   return eeprom_read_word(adrs + fn_key);
-}
-
-void pgm_memcpy(void *dest, const void *src, uint8_t len) {
-  for (uint8_t i = 0; i < len; i++) {
-    *(uint8_t *)dest++ = pgm_read_byte((uint8_t *)src++);
-  }
 }
