@@ -158,7 +158,7 @@ static int cmd_get_usb_setup_log(const struct shell *sh, size_t argc, char **arg
                   setup->bRequest, strRequest(setup));
     if (setup->RequestType.type == USB_REQTYPE_TYPE_STANDARD && setup->bRequest == USB_SREQ_GET_DESCRIPTOR) {
       shell_fprintf(sh, SHELL_NORMAL,
-                    "  descType: '%doo:%s',\n"
+                    "  descType: '%d:%s',\n"
                     "  descIndex: %d,\n",
                     USB_GET_DESCRIPTOR_TYPE(setup->wValue), strDescType(setup),
                     USB_GET_DESCRIPTOR_INDEX(setup->wValue));

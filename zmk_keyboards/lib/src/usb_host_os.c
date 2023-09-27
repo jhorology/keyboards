@@ -61,8 +61,8 @@ void usb_trace_setup(struct usb_setup_packet *setup) {
           end_detect = true;
         }
         // TODO other OS
-        wlengths <<= 8;
         if (descriptor_type == USB_DESC_STRING) {
+          wlengths <<= 8;
           wlengths += setup->wLength & 0xff;
         }
       }
