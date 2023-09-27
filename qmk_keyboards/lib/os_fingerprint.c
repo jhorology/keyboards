@@ -71,8 +71,8 @@ void trace_usb_get_descriptor(const uint8_t dtype, const uint16_t w_length) {
       }
       // TODO other OS
 
-      wlengths <<= 8;
       if (dtype == DTYPE_STRING) {
+        wlengths <<= 8;
         wlengths += wlength & 0xff;
       }
     }
