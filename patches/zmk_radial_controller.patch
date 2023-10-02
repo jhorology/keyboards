@@ -1,5 +1,5 @@
 diff --git a/app/Kconfig b/app/Kconfig
-index 12e24f6..95f0479 100644
+index 0e7bdfa..856f8c9 100644
 --- a/app/Kconfig
 +++ b/app/Kconfig
 @@ -144,6 +144,10 @@ config ZMK_BLE_CONSUMER_REPORT_QUEUE_SIZE
@@ -13,7 +13,7 @@ index 12e24f6..95f0479 100644
  config ZMK_BLE_CLEAR_BONDS_ON_START
      bool "Configuration that clears all bond information from the keyboard on startup."
      default n
-@@ -558,4 +562,3 @@ osource "$(ZMK_CONFIG)/boards/shields/*/Kconfig.shield"
+@@ -570,4 +574,3 @@ osource "$(ZMK_CONFIG)/boards/shields/*/Kconfig.shield"
  
  
  source "Kconfig.zephyr"

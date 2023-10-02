@@ -1,8 +1,8 @@
-diff --git a/app/drivers/kscan/kscan_gpio_matrix.c b/app/drivers/kscan/kscan_gpio_matrix.c
-index b8e7204..847e199 100644
---- a/app/drivers/kscan/kscan_gpio_matrix.c
-+++ b/app/drivers/kscan/kscan_gpio_matrix.c
-@@ -55,6 +55,9 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
+diff --git a/app/module/drivers/kscan/kscan_gpio_matrix.c b/app/module/drivers/kscan/kscan_gpio_matrix.c
+index 0d8a319..de0e7d6 100644
+--- a/app/module/drivers/kscan/kscan_gpio_matrix.c
++++ b/app/module/drivers/kscan/kscan_gpio_matrix.c
+@@ -56,6 +56,9 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
  #define KSCAN_GPIO_COL_CFG_INIT(idx, inst_idx)                                                     \
      KSCAN_GPIO_GET_BY_IDX(DT_DRV_INST(inst_idx), col_gpios, idx)
  
@@ -12,7 +12,7 @@ index b8e7204..847e199 100644
  enum kscan_diode_direction {
      KSCAN_ROW2COL,
      KSCAN_COL2ROW,
-@@ -149,7 +152,7 @@ static int kscan_matrix_interrupt_configure(const struct device *dev, const gpio
+@@ -150,7 +153,7 @@ static int kscan_matrix_interrupt_configure(const struct device *dev, const gpio
  
  #if USE_INTERRUPTS
  static int kscan_matrix_interrupt_enable(const struct device *dev) {
