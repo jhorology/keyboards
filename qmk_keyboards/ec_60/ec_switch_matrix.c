@@ -128,17 +128,25 @@ static void ec_noise_floor(void) {
   }
 
   // Get the noise floor
+  // max: ec_config.noise_floor[row][col]
+  // min: ec_config.extremum[row][col]
   for (uint8_t i = 0; i < NOISE_FLOOR_SAMPLING_COUNT; i++) {
+    uint8_t col = 0;
     for (uint8_t amux = 0; amux < AMUX_COUNT; amux++) {
       disable_unused_amux(amux);
-      for (int col = 0; col < amux_n_col_sizes[amux]; col++) {
+      for (int amux_col = 0; amux_col < amux_n_col_sizes[amux]; amux_col++) {
         for (int row = 0; row < MATRIX_ROWS; row++) {
-          if (amux == 0) {
-            ec_config.noise_floor[row][col] += ec_readkey_raw(0, row, col);
-          } else {
-            ec_config.noise_floor[row][col + amux_n_col_sizes[amux - 1]] += ec_readkey_raw(amux, row, col);
+          uint16_t value = ec_readkey_raw(amux, row, amux_col);
+          // max value
+          if (value > ec_config.noise_floor[row][col]) {
+            ec_config.noise_floor[row][col] = value;
+          }
+          // min value
+          if (ec_config.extremum[row][col] == 0 || value < ec_config.extremum[row][col]) {
+            ec_config.extremum[row][col] = value;
           }
         }
+        col++;
       }
     }
     wait_ms(5);
@@ -147,7 +155,8 @@ static void ec_noise_floor(void) {
   // Average the noise floor
   for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
     for (uint8_t col = 0; col < MATRIX_COLS; col++) {
-      ec_config.noise_floor[row][col] /= NOISE_FLOOR_SAMPLING_COUNT;
+      ec_config.noise_floor[row][col] = (ec_config.noise_floor[row][col] + ec_config.extremum[row][col]) / 2;
+      ec_config.extremum[row][col] = 0;
     }
   }
 }
