@@ -44,9 +44,9 @@ _Static_assert((sizeof(amux_n_col_sizes) / sizeof(amux_n_col_sizes[0])) == AMUX_
                "AMUX_COL_CHANNELS_SIZES doesn't have the minimum number of elements required to specify the number of "
                "channels for all the multiplexers available");
 
-// static ec_config_t config;
+#ifdef EC_DEBUG
 uint16_t sw_value[MATRIX_ROWS][MATRIX_COLS];
-
+#endif
 static adc_mux adcMux;
 
 static void ec_bootoming_reading(void);
@@ -57,7 +57,20 @@ static inline void disable_unused_amux(uint8_t channel);
 static inline void discharge_capacitor(void);
 static inline void charge_capacitor(uint8_t row);
 static uint16_t ec_readkey_raw(uint8_t channel, uint8_t row, uint8_t col);
-static bool ec_update_key(matrix_row_t* current_row, uint8_t row, uint8_t col, uint16_t sw_value);
+static inline bool ec_update_key(matrix_row_t* current_row, uint8_t row, uint8_t col, uint16_t sw_value);
+
+#define MATRIX_READ_LOOP(...)                                               \
+  uint8_t col = 0;                                                          \
+  for (uint8_t amux = 0; amux < AMUX_COUNT; amux++) {                       \
+    disable_unused_amux(amux);                                              \
+    for (int amux_col = 0; amux_col < amux_n_col_sizes[amux]; amux_col++) { \
+      for (int row = 0; row < MATRIX_ROWS; row++) {                         \
+        uint16_t value = ec_readkey_raw(amux, row, amux_col);               \
+        __VA_ARGS__                                                         \
+      }                                                                     \
+      col++;                                                                \
+    }                                                                       \
+  }
 
 // QMK hook functions
 // -----------------------------------------------------------------------------------
@@ -96,21 +109,11 @@ bool matrix_scan_custom(matrix_row_t current_matrix[]) {
   }
 
   // Normal operation mode: update key state
-  for (uint8_t amux = 0; amux < AMUX_COUNT; amux++) {
-    disable_unused_amux(amux);
-    for (int col = 0; col < amux_n_col_sizes[amux]; col++) {
-      for (int row = 0; row < MATRIX_ROWS; row++) {
-        if (amux == 0) {
-          sw_value[row][col] = ec_readkey_raw(0, row, col);
-          updated |= ec_update_key(&current_matrix[row], row, col, sw_value[row][col]);
-        } else {
-          sw_value[row][col + amux_n_col_sizes[amux - 1]] = ec_readkey_raw(amux, row, col);
-          updated |= ec_update_key(&current_matrix[row], row, col + amux_n_col_sizes[amux - 1],
-                                   sw_value[row][col + amux_n_col_sizes[amux - 1]]);
-        }
-      }
-    }
-  }
+  MATRIX_READ_LOOP(
+#ifdef EC_DEBUG
+    sw_value[row][col] = value;
+#endif
+    updated |= ec_update_key(&current_matrix[row], row, col, value);)
   return updated;
 }
 
@@ -123,6 +126,7 @@ void ec_calibrate_noise_floor(void) {
   for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
     for (uint8_t col = 0; col < MATRIX_COLS; col++) {
       ec_config.noise_floor[row][col] = 0;
+      ec_config.extremum[row][col] = 0;
     }
   }
 
@@ -130,25 +134,14 @@ void ec_calibrate_noise_floor(void) {
   // max: ec_config.noise_floor[row][col]
   // min: ec_config.extremum[row][col]
   for (uint8_t i = 0; i < NOISE_FLOOR_SAMPLING_COUNT; i++) {
-    uint8_t col = 0;
-    for (uint8_t amux = 0; amux < AMUX_COUNT; amux++) {
-      disable_unused_amux(amux);
-      for (int amux_col = 0; amux_col < amux_n_col_sizes[amux]; amux_col++) {
-        for (int row = 0; row < MATRIX_ROWS; row++) {
-          uint16_t value = ec_readkey_raw(amux, row, amux_col);
-          // max value
-          if (value > ec_config.noise_floor[row][col]) {
-            ec_config.noise_floor[row][col] = value;
-          }
-          // min value
-          if (ec_config.extremum[row][col] == 0 || value < ec_config.extremum[row][col]) {
-            ec_config.extremum[row][col] = value;
-          }
-        }
-        col++;
-      }
-    }
     wait_ms(5);
+    MATRIX_READ_LOOP(
+      // max value
+      if (value > ec_config.noise_floor[row][col]) { ec_config.noise_floor[row][col] = value; }
+      // min value
+      if (ec_config.extremum[row][col] == 0 || value < ec_config.extremum[row][col]) {
+        ec_config.extremum[row][col] = value;
+      })
   }
 
   // Average the noise floor
@@ -162,37 +155,18 @@ void ec_calibrate_noise_floor(void) {
 }
 
 static void ec_bootoming_reading(void) {
-  // Disable AMUX 1
-  writePinHigh(amux_en_pins[1]);
-  for (uint8_t col = 0; col < amux_n_col_sizes[0]; col++) {
-    for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
-      sw_value[row][col] = ec_readkey_raw(0, row, col);
-      if (sw_value[row][col] > (ec_config.noise_floor[row][col] + 32)) {
-        if (ec_config.bottoming_calibration_starter[row][col]) {
-          eeprom_ec_config.bottoming_reading[row][col] = sw_value[row][col];
-          ec_config.bottoming_calibration_starter[row][col] = false;
-        } else if (sw_value[row][col] > eeprom_ec_config.bottoming_reading[row][col]) {
-          eeprom_ec_config.bottoming_reading[row][col] = sw_value[row][col];
-        }
+  MATRIX_READ_LOOP(
+#ifdef EC_DEBUG
+    sw_value[row][col] = value;
+#endif
+    if (value > (ec_config.noise_floor[row][col] + 32)) {
+      if (ec_config.bottoming_calibration_starter[row][col]) {
+        eeprom_ec_config.bottoming_reading[row][col] = value;
+        ec_config.bottoming_calibration_starter[row][col] = false;
+      } else if (value > eeprom_ec_config.bottoming_reading[row][col]) {
+        eeprom_ec_config.bottoming_reading[row][col] = value;
       }
-    }
-  }
-
-  // Disable AMUX 0
-  writePinHigh(amux_en_pins[0]);
-  for (uint8_t col = 0; col < amux_n_col_sizes[1]; col++) {
-    for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
-      sw_value[row][col] = ec_readkey_raw(1, row, col);
-      if (sw_value[row][col] > (ec_config.noise_floor[row][col] + 32)) {
-        if (ec_config.bottoming_calibration_starter[row][col + 8]) {
-          eeprom_ec_config.bottoming_reading[row][col + 8] = sw_value[row][col];
-          ec_config.bottoming_calibration_starter[row][col + 8] = false;
-        } else if (sw_value[row][col] > eeprom_ec_config.bottoming_reading[row][col + 8]) {
-          eeprom_ec_config.bottoming_reading[row][col + 8] = sw_value[row][col];
-        }
-      }
-    }
-  }
+    })
 }
 
 // Initialize the row pins
@@ -272,7 +246,7 @@ static uint16_t ec_readkey_raw(uint8_t channel, uint8_t row, uint8_t col) {
 }
 
 // Update press/release state of key
-static bool ec_update_key(matrix_row_t* current_row, uint8_t row, uint8_t col, uint16_t sw_value) {
+static inline bool ec_update_key(matrix_row_t* current_row, uint8_t row, uint8_t col, uint16_t sw_value) {
   uint16_t extremum = sw_value < ec_config.deadzone[row][col] ? ec_config.deadzone[row][col] : sw_value;
   if ((*current_row >> col) & 1) {
     // key pressed

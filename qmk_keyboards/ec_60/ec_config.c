@@ -117,7 +117,7 @@ void ec_config_update_key(uint8_t row, uint8_t col) {
   ec_config.deadzone[row][col] = rescale_threshold(row, col, preset->deadzone);
 
   if (prev_actuation_mode != preset->actuation_mode || prev_release_mode != preset->release_mode) {
-    ec_config.extremum[row][col] = sw_value[row][col];
+    ec_config.extremum[row][col] = ec_config.noise_floor[row][col];
   }
   if (ec_config.extremum[row][col] < ec_config.deadzone[row][col]) {
     ec_config.extremum[row][col] = ec_config.deadzone[row][col];
@@ -400,6 +400,7 @@ typedef enum {
   _release_mode,
   _release_value,
   _deadzone,
+  _noise,
   _noise_floor,
   _calibration_starter
 } matrix_array_type_t;
@@ -436,6 +437,10 @@ void _send_matrix_array(matrix_array_type_t type) {
         case _deadzone:
           send_string("0x");
           send_word(ec_config.deadzone[row][col]);
+          break;
+        case _noise:
+          send_string("0x");
+          send_word(ec_config.noise[row][col]);
           break;
         case _noise_floor:
           send_string("0x");
@@ -515,6 +520,8 @@ static uint32_t debug_send_config_cb(uint32_t trigger_time, void* cb_arg) {
   _send_matrix_array(_release_value);
   send_string(",\ndeadzone: ");
   _send_matrix_array(_deadzone);
+  send_string(",\nnoise: ");
+  _send_matrix_array(_noise);
   send_string(",\nnoise_floor: ");
   _send_matrix_array(_noise_floor);
 

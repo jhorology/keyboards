@@ -19,4 +19,6 @@
 #include <quantum.h>
 
 void ec_calibrate_noise_floor(void);
+#ifdef EC_DEBUG
 extern uint16_t sw_value[MATRIX_ROWS][MATRIX_COLS];
+#endif
