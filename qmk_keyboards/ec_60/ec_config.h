@@ -66,6 +66,7 @@ typedef struct {
   uint16_t deadzone[MATRIX_ROWS][MATRIX_COLS];
   uint16_t extremum[MATRIX_ROWS][MATRIX_COLS];
   uint16_t noise_floor[MATRIX_ROWS][MATRIX_COLS];
+  uint16_t noise[MATRIX_ROWS][MATRIX_COLS];
   bool bottoming_calibration;
   bool bottoming_calibration_starter[MATRIX_ROWS][MATRIX_COLS];
 } ec_config_t;

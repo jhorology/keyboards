@@ -49,7 +49,6 @@ uint16_t sw_value[MATRIX_ROWS][MATRIX_COLS];
 
 static adc_mux adcMux;
 
-static void ec_noise_floor(void);
 static void ec_bootoming_reading(void);
 static void init_row(void);
 static void init_amux(void);
@@ -82,7 +81,7 @@ void matrix_init_custom(void) {
   // Initialize AMUXs
   init_amux();
 
-  ec_noise_floor();
+  ec_calibrate_noise_floor();
 }
 
 bool matrix_scan_custom(matrix_row_t current_matrix[]) {
@@ -119,7 +118,7 @@ bool matrix_scan_custom(matrix_row_t current_matrix[]) {
 // -----------------------------------------------------------------------------------
 
 // Get the noise floor
-static void ec_noise_floor(void) {
+void ec_calibrate_noise_floor(void) {
   // Initialize the noise floor to 0
   for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
     for (uint8_t col = 0; col < MATRIX_COLS; col++) {
@@ -155,8 +154,9 @@ static void ec_noise_floor(void) {
   // Average the noise floor
   for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
     for (uint8_t col = 0; col < MATRIX_COLS; col++) {
+      ec_config.noise[row][col] = ec_config.noise_floor[row][col] - ec_config.extremum[row][col];
       ec_config.noise_floor[row][col] = (ec_config.noise_floor[row][col] + ec_config.extremum[row][col]) / 2;
-      ec_config.extremum[row][col] = 0;
+      ec_config.extremum[row][col] = ec_config.noise_floor[row][col];
     }
   }
 }

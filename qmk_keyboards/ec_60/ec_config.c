@@ -208,11 +208,13 @@ void ec_config_start_calibration(void) {
 
 void ec_config_end_calibration(void) {
   ec_config.bottoming_calibration = false;
+  ec_calibrate_noise_floor();
   for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
     for (uint8_t col = 0; col < MATRIX_COLS; col++) {
       if (ec_config.bottoming_calibration_starter[row][col]) {
         ec_config.bottoming_calibration_starter[row][col] = false;
       } else {
+        eeprom_ec_config.bottoming_reading[row][col] -= ec_config.noise[row][col] / 2;
         ec_config_update_key(row, col);
       }
     }
