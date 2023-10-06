@@ -111,6 +111,7 @@ bool matrix_scan_custom(matrix_row_t current_matrix[]) {
 #endif
     updated |= ec_update_key(&current_matrix[row], row, col, value);)
 
+#ifdef EC_DEBUG
   matrix_scan_count++;
 
   uint32_t timer_now = timer_read32();
@@ -119,7 +120,7 @@ bool matrix_scan_custom(matrix_row_t current_matrix[]) {
     matrix_timer = timer_now;
     matrix_scan_count = 0;
   }
-
+#endif
   return updated;
 }
 
