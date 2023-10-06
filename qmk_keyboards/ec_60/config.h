@@ -32,16 +32,15 @@
 #define AMUX_SEL_PINS \
   { B6, B5, B4 }
 
-#define AMUX_COL_CHANNELS_SIZES \
-  { 8, 7 }
-
-#define AMUX_0_COL_CHANNELS \
-  { 0, 3, 1, 2, 5, 7, 6, 4 }
-
-#define AMUX_1_COL_CHANNELS \
-  { 0, 3, 1, 2, 5, 7, 6 }
-
-#define AMUX_COL_CHANNELS AMUX_0_COL_CHANNELS, AMUX_1_COL_CHANNELS
+#define MATRIX_COL_CHANNEL(amux, ch) ((amux << 4) + ch)
+// cla
+#define MATRIX_COL_CHANNELS                                                                                   \
+  {                                                                                                           \
+    MATRIX_COL_CHANNEL(0, 0), MATRIX_COL_CHANNEL(0, 3), MATRIX_COL_CHANNEL(0, 1), MATRIX_COL_CHANNEL(0, 2),   \
+      MATRIX_COL_CHANNEL(0, 5), MATRIX_COL_CHANNEL(0, 7), MATRIX_COL_CHANNEL(0, 6), MATRIX_COL_CHANNEL(0, 4), \
+      MATRIX_COL_CHANNEL(1, 0), MATRIX_COL_CHANNEL(1, 3), MATRIX_COL_CHANNEL(1, 1), MATRIX_COL_CHANNEL(1, 2), \
+      MATRIX_COL_CHANNEL(1, 5), MATRIX_COL_CHANNEL(1, 7), MATRIX_COL_CHANNEL(1, 6)                            \
+  }
 
 #define DISCHARGE_PIN A6
 #define ANALOG_PORT A3

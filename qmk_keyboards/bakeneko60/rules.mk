@@ -1,1 +1,2 @@
-# This file intentionally left blank
+# gcc optimization
+OPT = 2

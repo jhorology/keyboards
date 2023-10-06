@@ -28,8 +28,7 @@
 const uint32_t row_pins[] = MATRIX_ROW_PINS;
 const uint32_t amux_sel_pins[] = AMUX_SEL_PINS;
 const uint32_t amux_en_pins[] = AMUX_EN_PINS;
-const uint8_t amux_n_col_sizes[] = AMUX_COL_CHANNELS_SIZES;
-const uint8_t amux_n_col_channels[][AMUX_MAX_COLS_COUNT] = {AMUX_COL_CHANNELS};
+const uint8_t matrix_col_channels[] = MATRIX_COL_CHANNELS;
 #define AMUX_SEL_PINS_COUNT (sizeof(amux_sel_pins) / sizeof(amux_sel_pins[0]))
 #define EXPECTED_AMUX_SEL_PINS_COUNT ceil(log2(AMUX_MAX_COLS_COUNT)
 // Checks for the correctness of the configuration
@@ -40,36 +39,36 @@ _Static_assert(
 _Static_assert(AMUX_SEL_PINS_COUNT == EXPECTED_AMUX_SEL_PINS_COUNT), "AMUX_SEL_PINS doesn't have the minimum number of bits required address all the channels");
 // Check that number of elements in AMUX_COL_CHANNELS_SIZES is enough to specify the number of channels for all the
 // multiplexers available
-_Static_assert((sizeof(amux_n_col_sizes) / sizeof(amux_n_col_sizes[0])) == AMUX_COUNT,
-               "AMUX_COL_CHANNELS_SIZES doesn't have the minimum number of elements required to specify the number of "
-               "channels for all the multiplexers available");
 
 #ifdef EC_DEBUG
 uint16_t sw_value[MATRIX_ROWS][MATRIX_COLS];
+static uint32_t matrix_timer = 0;
+static uint32_t matrix_scan_count = 0;
+uint32_t last_matrix_scan_count = 0;
 #endif
+
 static adc_mux adcMux;
 
 static void ec_bootoming_reading(void);
 static void init_row(void);
 static void init_amux(void);
-static inline void select_amux_channel(uint8_t channel, uint8_t col);
-static inline void disable_unused_amux(uint8_t channel);
+static inline void select_amux_channel(uint8_t amux_col_ch);
+static inline void disable_unused_amux(uint8_t amux);
 static inline void discharge_capacitor(void);
 static inline void charge_capacitor(uint8_t row);
-static uint16_t ec_readkey_raw(uint8_t channel, uint8_t row, uint8_t col);
+static uint16_t ec_readkey_raw(uint8_t row, uint8_t amux_col_ch);
 static inline bool ec_update_key(matrix_row_t* current_row, uint8_t row, uint8_t col, uint16_t sw_value);
 
-#define MATRIX_READ_LOOP(...)                                               \
-  uint8_t col = 0;                                                          \
-  for (uint8_t amux = 0; amux < AMUX_COUNT; amux++) {                       \
-    disable_unused_amux(amux);                                              \
-    for (int amux_col = 0; amux_col < amux_n_col_sizes[amux]; amux_col++) { \
-      for (int row = 0; row < MATRIX_ROWS; row++) {                         \
-        uint16_t value = ec_readkey_raw(amux, row, amux_col);               \
-        __VA_ARGS__                                                         \
-      }                                                                     \
-      col++;                                                                \
-    }                                                                       \
+#define MATRIX_READ_LOOP(...)                            \
+  for (int col = 0; col < MATRIX_COLS; col++) {          \
+    uint8_t amux_col_ch = matrix_col_channels[col];      \
+    if ((amux_col_ch & 0xf) == 0) {                      \
+      disable_unused_amux(amux_col_ch >> 4);             \
+    }                                                    \
+    for (int row = 0; row < MATRIX_ROWS; row++) {        \
+      uint16_t value = ec_readkey_raw(row, amux_col_ch); \
+      __VA_ARGS__                                        \
+    }                                                    \
   }
 
 // QMK hook functions
@@ -114,6 +113,16 @@ bool matrix_scan_custom(matrix_row_t current_matrix[]) {
     sw_value[row][col] = value;
 #endif
     updated |= ec_update_key(&current_matrix[row], row, col, value);)
+
+  matrix_scan_count++;
+
+  uint32_t timer_now = timer_read32();
+  if (TIMER_DIFF_32(timer_now, matrix_timer) >= 1000) {
+    last_matrix_scan_count = matrix_scan_count;
+    matrix_timer = timer_now;
+    matrix_scan_count = 0;
+  }
+
   return updated;
 }
 
@@ -190,27 +199,45 @@ static void init_amux(void) {
 }
 
 // Select the multiplexer channel of the specified multiplexer
-static inline void select_amux_channel(uint8_t channel, uint8_t col) {
+static inline void select_amux_channel(uint8_t amux_col_ch) {
   // Get the channel for the specified multiplexer
-  uint8_t ch = amux_n_col_channels[channel][col];
+  uint8_t amux = amux_col_ch >> 4;
   // momentarily disable specified multiplexer
-  writePinHigh(amux_en_pins[channel]);
+  writePinHigh(amux_en_pins[amux]);
   // Select the multiplexer channel
-  writePin(amux_sel_pins[0], ch & 1);
-  writePin(amux_sel_pins[1], ch & 2);
-  writePin(amux_sel_pins[2], ch & 4);
+  writePin(amux_sel_pins[0], amux_col_ch & 1);
+  writePin(amux_sel_pins[1], amux_col_ch & 2);
+  writePin(amux_sel_pins[2], amux_col_ch & 4);
   // re enable specified multiplexer
-  writePinLow(amux_en_pins[channel]);
+  writePinLow(amux_en_pins[amux]);
 }
 
 // Disable all the unused multiplexers
-static inline void disable_unused_amux(uint8_t channel) {
+static inline void disable_unused_amux(uint8_t amux) {
   // disable all the other multiplexers apart from the current selected one
-  for (uint8_t idx = 0; idx < AMUX_COUNT; idx++) {
-    if (idx != channel) {
-      writePinHigh(amux_en_pins[idx]);
-    }
+#if AMUX_COUNT >= 1
+  if (0 != amux) {
+    writePinHigh(amux_en_pins[0]);
   }
+#endif
+#if AMUX_COUNT >= 2
+  if (1 != amux) {
+    writePinHigh(amux_en_pins[1]);
+  }
+#endif
+#if AMUX_COUNT >= 3
+  if (2 != amux) {
+    writePinHigh(amux_en_pins[2]);
+  }
+#endif
+#if AMUX_COUNT >= 4
+  if (3 != amux) {
+    writePinHigh(amux_en_pins[3]);
+  }
+#endif
+#if AMUX_COUNT >= 5
+#  error Unsupported AMUX_COUNT, maximum is 4
+#endif
 }
 // Discharge the peak hold capacitor
 static inline void discharge_capacitor(void) { writePinLow(DISCHARGE_PIN); }
@@ -222,11 +249,11 @@ static inline void charge_capacitor(uint8_t row) {
 }
 
 // Read the capacitive sensor value
-static uint16_t ec_readkey_raw(uint8_t channel, uint8_t row, uint8_t col) {
-  uint16_t sw_value = 0;
+static uint16_t ec_readkey_raw(uint8_t row, uint8_t amux_col_ch) {
+  uint16_t sw_value;
 
   // Select the multiplexer
-  select_amux_channel(channel, col);
+  select_amux_channel(amux_col_ch);
 
   // Set the row pin to low state to avoid ghosting
   writePinLow(row_pins[row]);

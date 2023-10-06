@@ -7,3 +7,6 @@ SEND_STRING_ENABLE = yes
 # os detection debug
 OS_FINGERPRINT_DEBUG_ENABLE = yes
 OPT_DEFS += -DOS_FINGERPRINT_DEBUG_ENABLE
+
+# gcc optimization
+OPT = 2

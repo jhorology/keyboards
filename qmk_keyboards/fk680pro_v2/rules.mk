@@ -24,3 +24,6 @@ RADIAL_CONTROLLER_ENABLE = yes
 SRC += lib/radial_controller.c
 
 SRC += uf2_boot.c
+
+# gcc optimization
+OPT = 2

@@ -13,7 +13,8 @@ enum ec_keycodes {
   EC_PSET,  // Show presets
   EC_PMAP,  // Show preset map
 #ifdef EC_DEBUG
-  EC_DBG
+  EC_DBG_DT,
+  EC_DBG_FQ
 #endif
 };
 // EC preset

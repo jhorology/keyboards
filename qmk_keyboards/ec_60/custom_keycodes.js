@@ -35,9 +35,14 @@ module.exports = function (options, defines) {
   })
   if (defines.EC_DEBUG) {
     keycodes.push({
-      name: 'EC\nDebug',
+      name: 'EC\nD.dt',
       title: 'Show debug data as keystrokes',
-      shortName: 'EC.D'
+      shortName: 'EC.Dd'
+    })
+    keycodes.push({
+      name: 'EC\nD.fq',
+      title: 'Show matrix scan frequency as keystrokes',
+      shortName: 'EC.Df'
     })
   }
   return keycodes

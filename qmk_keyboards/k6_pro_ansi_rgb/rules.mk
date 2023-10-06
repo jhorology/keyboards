@@ -39,3 +39,6 @@ SRC += \
 
 KEYCHRON_BLUETOOTH_DIR := $(dir $(lastword $(MAKEFILE_LIST)))bluetooth
 VPATH += $(KEYCHRON_BLUETOOTH_DIR)
+
+# gcc optimization
+OPT = 2

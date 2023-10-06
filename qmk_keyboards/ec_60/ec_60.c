@@ -18,6 +18,7 @@
 #include "ec_60.h"
 
 #include "ec_config.h"
+#include "ec_switch_matrix.h"
 
 #define EC_PRESET_CHANNEL_ID_START EC_VIA_CUSTOM_CHANNEL_ID_START
 #define EC_PRESET_CHANNEL_ID_END (EC_VIA_CUSTOM_CHANNEL_ID_START + EC_NUM_PRESETS - 1)
@@ -101,10 +102,18 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       }
       return false;
 #ifdef EC_DEBUG
-    case EC_DBG:
+    case EC_DBG_DT:
       if (!record->event.pressed) {
         // 3 secods after release
         ec_config_debug_send_config(3000);
+      }
+      return false;
+    case EC_DBG_FQ:
+      if (record->event.pressed) {
+        // 3 secods after release
+        uint32_t scan_freq = last_matrix_scan_count;
+        send_string("matrix scan frequency: 0x");
+        send_dword(scan_freq);
       }
       return false;
 #endif

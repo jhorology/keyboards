@@ -29,7 +29,7 @@ zparseopts -D -E -F -- \
 
 # configuration
 # -----------------------------------
-# <make target name>:<keymap>:<extension of firmware file>:DFU Storage Volume
+# <make target name>:<keymap>:<extension of firmware file>:DFU VID or DFU Storage Volume:DFU PID
 
 # configurable
 local -A KEYBOARDS=(
@@ -38,7 +38,7 @@ local -A KEYBOARDS=(
   b60        dropbear60_solder:default:hex:03eb:2ff4
   d60        dz60rgb_wkl_v2_1_atmel_dfu:hhkb:hex:03eb:2ff4
   ec60       ec_60:default:bin:0483:df11
-  fk68       fk680pro_v2:default:uf2:"ZhaQian DFU"
+  fk68       fk680pro_v2:default:uf2:"ZhaQian DFU":none
   i68        ikki68_aurora:default:hex:03eb:2ff4
   k6         k6_pro_ansi_rgb:default:bin:0483:df11
   libra      libra_mini:default:hex:2341:0036
@@ -47,7 +47,7 @@ local -A KEYBOARDS=(
   qk60       qk60:default:bin:1688:2220
   qk65       qk65_solder:default:hex:03eb:2ff4
   tx60       tetrix60:default:hex:03eb:2ff4
-  tf60       tofu60_2_0:default:uf2:"RPI-RP2"
+  tf60       tofu60_2_0:default:uf2:"RPI-RP2":none
   w60        dz60rgb_wkl_v2_1_atmel_dfu:tsangan:hex:03eb:2ff4
   z65        zoom65:default:hex:03eb:2ff4
 )

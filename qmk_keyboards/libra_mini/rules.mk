@@ -3,3 +3,6 @@ POINTING_DEVICE_ENABLE = yes
 POINTING_DEVICE_DRIVER = analog_joystick
 
 SRC += analog.c
+
+# gcc optimization
+OPT = s  # optimize for size
