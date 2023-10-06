@@ -36,8 +36,8 @@
 // cla
 #define MATRIX_COL_CHANNELS                                                                                   \
   {                                                                                                           \
-    MATRIX_COL_CHANNEL(0, 0), MATRIX_COL_CHANNEL(0, 3), MATRIX_COL_CHANNEL(0, 1), MATRIX_COL_CHANNEL(0, 2),   \
-      MATRIX_COL_CHANNEL(0, 5), MATRIX_COL_CHANNEL(0, 7), MATRIX_COL_CHANNEL(0, 6), MATRIX_COL_CHANNEL(0, 4), \
+    MATRIX_COL_CHANNEL(2, 0), MATRIX_COL_CHANNEL(2, 3), MATRIX_COL_CHANNEL(2, 1), MATRIX_COL_CHANNEL(2, 2),   \
+      MATRIX_COL_CHANNEL(2, 5), MATRIX_COL_CHANNEL(2, 7), MATRIX_COL_CHANNEL(2, 6), MATRIX_COL_CHANNEL(2, 4), \
       MATRIX_COL_CHANNEL(1, 0), MATRIX_COL_CHANNEL(1, 3), MATRIX_COL_CHANNEL(1, 1), MATRIX_COL_CHANNEL(1, 2), \
       MATRIX_COL_CHANNEL(1, 5), MATRIX_COL_CHANNEL(1, 7), MATRIX_COL_CHANNEL(1, 6)                            \
   }

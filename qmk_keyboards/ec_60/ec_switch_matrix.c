@@ -29,6 +29,8 @@ const uint32_t row_pins[] = MATRIX_ROW_PINS;
 const uint32_t amux_sel_pins[] = AMUX_SEL_PINS;
 const uint32_t amux_en_pins[] = AMUX_EN_PINS;
 const uint8_t matrix_col_channels[] = MATRIX_COL_CHANNELS;
+static rtcnt_t key_scan_time;
+
 #define AMUX_SEL_PINS_COUNT (sizeof(amux_sel_pins) / sizeof(amux_sel_pins[0]))
 #define EXPECTED_AMUX_SEL_PINS_COUNT ceil(log2(AMUX_MAX_COLS_COUNT)
 // Checks for the correctness of the configuration
@@ -52,23 +54,17 @@ static adc_mux adcMux;
 static void ec_bootoming_reading(void);
 static void init_row(void);
 static void init_amux(void);
-static inline void select_amux_channel(uint8_t amux_col_ch);
-static inline void disable_unused_amux(uint8_t amux);
-static inline void discharge_capacitor(void);
-static inline void charge_capacitor(uint8_t row);
-static uint16_t ec_readkey_raw(uint8_t row, uint8_t amux_col_ch);
+static inline void select_col(uint8_t amux_col_ch);
+static uint16_t ec_readkey_raw(uint8_t row);
 static inline bool ec_update_key(matrix_row_t* current_row, uint8_t row, uint8_t col, uint16_t sw_value);
 
-#define MATRIX_READ_LOOP(...)                            \
-  for (int col = 0; col < MATRIX_COLS; col++) {          \
-    uint8_t amux_col_ch = matrix_col_channels[col];      \
-    if ((amux_col_ch & 0xf) == 0) {                      \
-      disable_unused_amux(amux_col_ch >> 4);             \
-    }                                                    \
-    for (int row = 0; row < MATRIX_ROWS; row++) {        \
-      uint16_t value = ec_readkey_raw(row, amux_col_ch); \
-      __VA_ARGS__                                        \
-    }                                                    \
+#define MATRIX_READ_LOOP(...)                     \
+  for (int col = 0; col < MATRIX_COLS; col++) {   \
+    select_col(matrix_col_channels[col]);         \
+    for (int row = 0; row < MATRIX_ROWS; row++) { \
+      uint16_t value = ec_readkey_raw(row);       \
+      __VA_ARGS__                                 \
+    }                                             \
   }
 
 // QMK hook functions
@@ -93,6 +89,7 @@ void matrix_init_custom(void) {
   // Initialize AMUXs
   init_amux();
 
+  key_scan_time = chSysGetRealtimeCounterX();
   ec_calibrate_noise_floor();
 }
 
@@ -191,84 +188,55 @@ static void init_row(void) {
 static void init_amux(void) {
   for (uint8_t idx = 0; idx < AMUX_COUNT; idx++) {
     setPinOutput(amux_en_pins[idx]);
-    writePinLow(amux_en_pins[idx]);
+    writePinHigh(amux_en_pins[idx]);
   }
   for (uint8_t idx = 0; idx < AMUX_SEL_PINS_COUNT; idx++) {
     setPinOutput(amux_sel_pins[idx]);
   }
 }
 
-// Select the multiplexer channel of the specified multiplexer
-static inline void select_amux_channel(uint8_t amux_col_ch) {
-  // Get the channel for the specified multiplexer
-  uint8_t amux = amux_col_ch >> 4;
-  // momentarily disable specified multiplexer
-  writePinHigh(amux_en_pins[amux]);
-  // Select the multiplexer channel
-  writePin(amux_sel_pins[0], amux_col_ch & 1);
-  writePin(amux_sel_pins[1], amux_col_ch & 2);
-  writePin(amux_sel_pins[2], amux_col_ch & 4);
-  // re enable specified multiplexer
-  writePinLow(amux_en_pins[amux]);
-}
-
-// Disable all the unused multiplexers
-static inline void disable_unused_amux(uint8_t amux) {
-  // disable all the other multiplexers apart from the current selected one
+static inline void select_col(uint8_t amux_col_ch) {
+  if ((amux_col_ch & 0xf) == 0) {
 #if AMUX_COUNT >= 1
-  if (0 != amux) {
-    writePinHigh(amux_en_pins[0]);
-  }
+    writePin(amux_en_pins[0], amux_col_ch & 0x10);
 #endif
 #if AMUX_COUNT >= 2
-  if (1 != amux) {
-    writePinHigh(amux_en_pins[1]);
-  }
+    writePin(amux_en_pins[1], amux_col_ch & 0x20);
 #endif
 #if AMUX_COUNT >= 3
-  if (2 != amux) {
-    writePinHigh(amux_en_pins[2]);
-  }
+    writePin(amux_en_pins[2], amux_col_ch & 0x40);
 #endif
 #if AMUX_COUNT >= 4
-  if (3 != amux) {
-    writePinHigh(amux_en_pins[3]);
-  }
+    writePin(amux_en_pins[3], amux_col_ch & 0x88);
 #endif
 #if AMUX_COUNT >= 5
 #  error Unsupported AMUX_COUNT, maximum is 4
 #endif
-}
-// Discharge the peak hold capacitor
-static inline void discharge_capacitor(void) { writePinLow(DISCHARGE_PIN); }
-
-// Charge the peak hold capacitor
-static inline void charge_capacitor(uint8_t row) {
-  writePinHigh(DISCHARGE_PIN);
-  writePinHigh(row_pins[row]);
+  }
+  writePin(amux_sel_pins[0], amux_col_ch & 1);
+  writePin(amux_sel_pins[1], amux_col_ch & 2);
+  writePin(amux_sel_pins[2], amux_col_ch & 4);
 }
 
 // Read the capacitive sensor value
-static uint16_t ec_readkey_raw(uint8_t row, uint8_t amux_col_ch) {
+static uint16_t ec_readkey_raw(uint8_t row) {
   uint16_t sw_value;
 
-  // Select the multiplexer
-  select_amux_channel(amux_col_ch);
-
-  // Set the row pin to low state to avoid ghosting
-  writePinLow(row_pins[row]);
+  // wait_us(DISCHARGE_TIME)
+  while (chSysIsCounterWithinX(chSysGetRealtimeCounterX(), key_scan_time,
+                               key_scan_time + US2RTC(REALTIME_COUNTER_CLOCK, DISCHARGE_TIME))) {
+  }
+  writePinHigh(DISCHARGE_PIN);
 
   ATOMIC_BLOCK_FORCEON {
-    // Set the row pin to high state and have capacitor charge
-    charge_capacitor(row);
+    writePinHigh(row_pins[row]);
     // Read the ADC value
     sw_value = adc_read(adcMux);
+    writePinLow(row_pins[row]);
   }
   // Discharge peak hold capacitor
-  discharge_capacitor();
-  // Waiting for the ghost capacitor to discharge fully
-  wait_us(DISCHARGE_TIME);
-
+  writePinLow(DISCHARGE_PIN);
+  key_scan_time = chSysGetRealtimeCounterX();
   return sw_value;
 }
 
