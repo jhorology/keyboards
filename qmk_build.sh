@@ -17,11 +17,12 @@ zparseopts -D -E -F -- \
            -scp-secure-config=scp_secure_config \
            -via-json=via_json \
            -via-app=via_app \
-           {w,-without-update}=without_update \
-           {p,-without-patch}=without_patch \
-           {-without-via-json}=without_via_json \
-           {g,-with-compile-db}=with_compile_db \
            {f,-with-flash}=with_flash \
+           {w,-without-update}=without_update \
+           {g,-with-compile-db}=with_compile_db \
+           {p,-with-pp}=with_pp \
+           {-without-patch}=without_patch \
+           {-without-via-json}=without_via_json \
            -without-emacs=without_emacs \
            -with-optimize:=optimize \
   || return
@@ -118,11 +119,12 @@ help_usage() {
         "  --without-via_json              don't generate via JSON, use JSON file in dist folder" \
         "" \
         "build options:" \
-        "  -w,--without-update             don't sync remote repository" \
-        "  -p,--without-patch              don't apply patches" \
-        "  --without-via-json              don't generate via JSON, use JSON file in dist folder" \
-        "  -g,--with-compile-db            generate compile_command.json" \
         "  -f,--with-flash                 post build flash firmware" \
+        "  -g,--with-compile-db            generate compile_command.json" \
+        "  -w,--without-update             don't sync remote repository" \
+        "  -p,--with-pp                    save preprocessor output" \
+        "  --without-patch                 don't apply patches" \
+        "  --without-via-json              don't generate via JSON, use JSON file in dist folder" \
         "  --without-emacs                 don't generate emacs settings when --with-comile-db" \
         "  --with-optimze=<n>              experimental gcc -O[n] optionn" \
         "" \
@@ -401,6 +403,9 @@ build_firmware() {
     make_target=${make_target}:flash
 
   local opts=()
+
+  (( $#with_pp )) && \
+    opts=($opts "KEEP_INTERMEDIATES=yes")
 
   (( $#optimize )) && \
     opts=($opts "OPT=${optimize[-1]##=}")
