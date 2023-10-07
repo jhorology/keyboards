@@ -187,7 +187,6 @@ function createTapDanceMenu(size) {
         {
           label: 'Single Tap',
           type: 'keycode',
-          bytes: 2,
           content: [
             `id_custom_td_${i}_single_tap`,
             ID_CUSTOM_TD_CHANNEL_START + i,
@@ -197,7 +196,6 @@ function createTapDanceMenu(size) {
         {
           label: 'Hold',
           type: 'keycode',
-          bytes: 2,
           content: [
             `id_custom_td_${i}_single_hold`,
             ID_CUSTOM_TD_CHANNEL_START + i,
@@ -207,7 +205,6 @@ function createTapDanceMenu(size) {
         {
           label: 'Double Tap',
           type: 'keycode',
-          bytes: 2,
           content: [
             `id_custom_td_${i}_multi_tap`,
             ID_CUSTOM_TD_CHANNEL_START + i,
@@ -217,7 +214,6 @@ function createTapDanceMenu(size) {
         {
           label: 'Tap Hold',
           type: 'keycode',
-          bytes: 2,
           content: [
             `id_custom_td_${i}_tap_hold`,
             ID_CUSTOM_TD_CHANNEL_START + i,
@@ -227,7 +223,6 @@ function createTapDanceMenu(size) {
         {
           label: 'Tapping Term: (50 - 1000 ms)',
           type: 'range',
-          bytes: 2,
           options: [50, 1000],
           content: [
             `id_custom_td_${i}_tapping_term`,
@@ -259,56 +254,179 @@ function createNonMacFnMenu(hasDipSwitch) {
             ]
           },
           {
-            label: 'When mac mode is disabled, fn🌐 key apply to:',
-            type: 'dropdown',
-            options: [
-              ['None', 0],
-              ['F1-12 Key only', 1],
-              ['Alpha Key only', 2],
-              ['Both F1-12 and Alpha', 3]
-            ],
+            label: 'When mac mode is disable, fn🌐 key apply to F1-12 keys',
+            type: 'toggle',
             content: [
-              'id_custom_non_mac_fn_mode',
+              'id_custom_non_mac_fn_fkey',
               ID_CUSTOM_NON_MAC_FN_CHANNEL,
               2
             ]
           },
+          {
+            label: 'When mac mode is disable, fn🌐 key apply to alpha keys',
+            type: 'toggle',
+            content: [
+              'id_custom_non_mac_fn_alpha',
+              ID_CUSTOM_NON_MAC_FN_CHANNEL,
+              3
+            ]
+          },
+          {
+            label: 'When mac mode is disabled, fn🌐 key apply to cursor keys',
+            type: 'toggle',
+            content: [
+              'id_custom_non_mac_fn_cursor',
+              ID_CUSTOM_NON_MAC_FN_CHANNEL,
+              4
+            ]
+          },
           ...[
             // see https://manuals.info.apple.com/MANUALS/2000/MA2010/en_US/magic-keyboard-touchID-03404572-ug.pdf
-            { key: 'F1', desc: 'Decrese brightness of display' },
-            { key: 'F2', desc: 'Increase brightness of display' },
-            { key: 'F3', desc: 'Open Mission Control' },
-            { key: 'F4', desc: 'Open Spotlight' },
-            { key: 'F5', desc: 'Activate dictation' },
-            { key: 'F6', desc: 'Turn Do Not Disturb on or off' },
-            { key: 'F7', desc: 'Media Track prev' },
-            { key: 'F8', desc: 'Media Play/Pause' },
-            { key: 'F9', desc: 'Media Track next' },
-            { key: 'F10', desc: 'Mute sound' },
-            { key: 'F11', desc: 'Decrease volume of sound' },
-            { key: 'F12', desc: 'Increase volume of sound' },
-            { key: 'Space', desc: 'Hey Siri' },
-            { key: 'Q', desc: 'Quick Notes' },
-            { key: 'E', desc: 'Emoji & Symbols' },
-            { key: 'A', desc: 'Focus Dock' },
-            { key: 'D', desc: 'Dictation' },
-            { key: 'F', desc: 'Toggle Full Screen Mode' },
-            { key: 'H', desc: 'Show Desktop' },
-            { key: 'C', desc: 'Open Control Center' },
-            { key: 'N', desc: 'Open Notification' },
-            { key: 'M', desc: 'Focus Menubar' },
-            { key: 'Backspace', desc: 'Delete' }
+            {
+              key: 'F1',
+              desc: 'Decrese brightness of display',
+              depends: 'id_custom_non_mac_fn_fkey'
+            },
+            {
+              key: 'F2',
+              desc: 'Increase brightness of display',
+              depends: 'id_custom_non_mac_fn_fkey'
+            },
+            {
+              key: 'F3',
+              desc: 'Open Mission Control',
+              depends: 'id_custom_non_mac_fn_fkey'
+            },
+            {
+              key: 'F4',
+              desc: 'Open Spotlight',
+              depends: 'id_custom_non_mac_fn_fkey'
+            },
+            {
+              key: 'F5',
+              desc: 'Activate dictation',
+              depends: 'id_custom_non_mac_fn_fkey'
+            },
+            {
+              key: 'F6',
+              desc: 'Turn Do Not Disturb on or off',
+              depends: 'id_custom_non_mac_fn_fkey'
+            },
+            {
+              key: 'F7',
+              desc: 'Media Track prev',
+              depends: 'id_custom_non_mac_fn_fkey'
+            },
+            {
+              key: 'F8',
+              desc: 'Media Play/Pause',
+              depends: 'id_custom_non_mac_fn_fkey'
+            },
+            {
+              key: 'F9',
+              desc: 'Media Track next',
+              depends: 'id_custom_non_mac_fn_fkey'
+            },
+            {
+              key: 'F10',
+              desc: 'Mute sound',
+              depends: 'id_custom_non_mac_fn_fkey'
+            },
+            {
+              key: 'F11',
+              desc: 'Decrease volume of sound',
+              depends: 'id_custom_non_mac_fn_fkey'
+            },
+            {
+              key: 'F12',
+              desc: 'Increase volume of sound',
+              depends: 'id_custom_non_mac_fn_fkey'
+            },
+            {
+              key: 'Space',
+              desc: 'Hey Siri',
+              depends: 'id_custom_non_mac_fn_alpha'
+            },
+            {
+              key: 'Q',
+              desc: 'Quick Notes',
+              depends: 'id_custom_non_mac_fn_alpha'
+            },
+            {
+              key: 'E',
+              desc: 'Emoji & Symbols',
+              depends: 'id_custom_non_mac_fn_alpha'
+            },
+            {
+              key: 'A',
+              desc: 'Focus Dock',
+              depends: 'id_custom_non_mac_fn_alpha'
+            },
+            {
+              key: 'D',
+              desc: 'Dictation',
+              depends: 'id_custom_non_mac_fn_alpha'
+            },
+            {
+              key: 'F',
+              desc: 'Toggle Full Screen Mode',
+              depends: 'id_custom_non_mac_fn_alpha'
+            },
+            {
+              key: 'H',
+              desc: 'Show Desktop',
+              depends: 'id_custom_non_mac_fn_alpha'
+            },
+            {
+              key: 'C',
+              desc: 'Open Control Center',
+              depends: 'id_custom_non_mac_fn_alpha'
+            },
+            {
+              key: 'N',
+              desc: 'Open Notification',
+              depends: 'id_custom_non_mac_fn_alpha'
+            },
+            {
+              key: 'M',
+              desc: 'Focus Menubar',
+              depends: 'id_custom_non_mac_fn_alpha'
+            },
+            {
+              key: 'Backspace',
+              desc: 'Forward delete',
+              depends: 'id_custom_non_mac_fn_cursor'
+            },
+            {
+              key: 'Up Arrow',
+              desc: 'Scroll up one page',
+              depends: 'id_custom_non_mac_fn_cursor'
+            },
+            {
+              key: 'Down Arrow',
+              desc: 'Scroll down one page',
+              depends: 'id_custom_non_mac_fn_cursor'
+            },
+            {
+              key: 'Left Arrow',
+              desc: 'Scroo to the beginning of a document',
+              depends: 'id_custom_non_mac_fn_cursor'
+            },
+            {
+              key: 'Right Arrow',
+              desc: 'Scroll to the end of a document',
+              depends: 'id_custom_non_mac_fn_cursor'
+            }
           ].map((e, i) => ({
-            showIf: `{id_custom_non_mac_fn_mode} == ${
-              i < 12 ? '1' : '2'
-            } || {id_custom_non_mac_fn_mode} == 3`,
+            showIf: `{${e.depends}} == 1`,
             label: `fn + ${e.key}: ${e.desc}`,
             type: 'keycode',
-            bytes: 2,
             content: [
-              `id_custom_non_mac_fn_${e.key.toLowerCase()}`,
+              `id_custom_non_mac_fn_${e.key
+                .toLowerCase()
+                .replaceAll(' ', '_')}`,
               ID_CUSTOM_NON_MAC_FN_CHANNEL,
-              i + 3
+              i + 5
             ]
           }))
         ]

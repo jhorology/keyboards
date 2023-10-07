@@ -32,8 +32,14 @@
 #ifndef CUSTOM_CONFIG_USJ_DEFAULT
 #  define CUSTOM_CONFIG_USJ_DEFAULT false
 #endif
-#ifndef CUSTOM_CONFIG_NON_MAC_FN_MODE_DEFAULT
-#  define CUSTOM_CONFIG_NON_MAC_FN_MODE_DEFAULT 3
+#ifndef CUSTOM_CONFIG_NON_MAC_FN_FKEY_DEFAULT
+#  define CUSTOM_CONFIG_NON_MAC_FN_FKEY_DEFAULT true
+#endif
+#ifndef CUSTOM_CONFIG_NON_MAC_FN_ALPHA_DEFAULT
+#  define CUSTOM_CONFIG_NON_MAC_FN_ALPHA_DEFAULT true
+#endif
+#ifndef CUSTOM_CONFIG_NON_MAC_FN_CURSOR_DEFAULT
+#  define CUSTOM_CONFIG_NON_MAC_FN_CURSOR_DEFAULT true
 #endif
 
 #ifdef RADIAL_CONTROLLER_ENABLE
@@ -71,7 +77,9 @@ void custom_config_reset() {
   kb_config.mac = CUSTOM_CONFIG_MAC_DEFAULT;
   kb_config.auto_detect = CUSTOM_CONFIG_AUTO_DETECT_DEFAULT;
   kb_config.usj = CUSTOM_CONFIG_USJ_DEFAULT;
-  kb_config.non_mac_fn_mode = CUSTOM_CONFIG_NON_MAC_FN_MODE_DEFAULT;
+  kb_config.non_mac_fn_fkey = CUSTOM_CONFIG_NON_MAC_FN_FKEY_DEFAULT;
+  kb_config.non_mac_fn_alpha = CUSTOM_CONFIG_NON_MAC_FN_ALPHA_DEFAULT;
+  kb_config.non_mac_fn_cursor = CUSTOM_CONFIG_NON_MAC_FN_CURSOR_DEFAULT;
 
   eeconfig_update_kb(kb_config.raw);
 #ifdef RADIAL_CONTROLLER_ENABLE
@@ -223,11 +231,28 @@ void custom_config_auto_detect_set_enable(bool enable) {
   }
 }
 
-uint8_t custom_config_non_mac_fn_get_mode() { return kb_config.non_mac_fn_mode; }
+uint8_t custom_config_non_mac_fn_fkey_is_enable() { return kb_config.non_mac_fn_fkey; }
 
-void custom_config_non_mac_fn_set_mode(uint8_t mode) {
-  if (mode != kb_config.non_mac_fn_mode) {
-    kb_config.non_mac_fn_mode = mode;
+void custom_config_non_mac_fn_set_fkey(bool enable) {
+  if (enable != kb_config.non_mac_fn_fkey) {
+    kb_config.non_mac_fn_fkey = enable;
+    eeconfig_update_kb(kb_config.raw);
+  }
+}
+
+uint8_t custom_config_non_mac_fn_alpha_is_enable() { return kb_config.non_mac_fn_alpha; }
+
+void custom_config_non_mac_fn_set_alpha(bool enable) {
+  if (enable != kb_config.non_mac_fn_alpha) {
+    kb_config.non_mac_fn_alpha = enable;
+    eeconfig_update_kb(kb_config.raw);
+  }
+}
+uint8_t custom_config_non_mac_fn_cursor_is_enable() { return kb_config.non_mac_fn_cursor; }
+
+void custom_config_non_mac_fn_set_cursor(bool enable) {
+  if (enable != kb_config.non_mac_fn_cursor) {
+    kb_config.non_mac_fn_cursor = enable;
     eeconfig_update_kb(kb_config.raw);
   }
 }

@@ -109,14 +109,14 @@ static bool process_non_mac_fn(uint16_t keycode, keyrecord_t *record) {
   if (!fn_override_flags && !record->event.pressed) return true;
 
   non_mac_fn_key_t fn_key = FN_UNKNOWN;
-  if (custom_config_non_mac_fn_get_mode() & NON_MAC_FN_MODE_FKEY_MASK) {
+  if (custom_config_non_mac_fn_fkey_is_enable()) {
     switch (keycode) {
       case KC_F1 ... KC_F12:
         fn_key = FN_F1 + keycode - KC_F1;
         break;
     }
   }
-  if (custom_config_non_mac_fn_get_mode() & NON_MAC_FN_MODE_ALPHA_MASK) {
+  if (custom_config_non_mac_fn_alpha_is_enable()) {
     switch (keycode) {
       case KC_SPC:
         fn_key = FN_SPC;
@@ -147,8 +147,25 @@ static bool process_non_mac_fn(uint16_t keycode, keyrecord_t *record) {
         break;
       case KC_M:
         fn_key = FN_M;
+        break;
+    }
+  }
+  if (custom_config_non_mac_fn_cursor_is_enable()) {
+    switch (keycode) {
       case KC_BSPC:
         fn_key = FN_BSPC;
+        break;
+      case KC_UP:
+        fn_key = FN_UP;
+        break;
+      case KC_DOWN:
+        fn_key = FN_DOWN;
+        break;
+      case KC_LEFT:
+        fn_key = FN_LEFT;
+        break;
+      case KC_RIGHT:
+        fn_key = FN_RIGHT;
         break;
     }
   }

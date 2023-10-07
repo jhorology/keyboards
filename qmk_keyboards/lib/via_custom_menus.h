@@ -63,7 +63,9 @@ enum via_custom_td_value_id {
 
 enum via_custom_non_mac_fn_value_id {
   id_custom_non_mac_auto_detect = 1,
-  id_custom_non_mac_fn_mode,
+  id_custom_non_mac_fn_fkey,
+  id_custom_non_mac_fn_alpha,
+  id_custom_non_mac_fn_cursor,
   id_custom_non_mac_fn_f1,
   id_custom_non_mac_fn_f2,
   id_custom_non_mac_fn_f3,
@@ -76,17 +78,21 @@ enum via_custom_non_mac_fn_value_id {
   id_custom_non_mac_fn_f10,
   id_custom_non_mac_fn_f11,
   id_custom_non_mac_fn_f12,
-  id_custom_non_mac_fn_spc,  // Hey Siri
-  id_custom_non_mac_fn_q,    // Qick Notes
-  id_custom_non_mac_fn_e,    // Emoji & Symbols
-  id_custom_non_mac_fn_a,    // Focus Dock
-  id_custom_non_mac_fn_d,    // Start Dictation
-  id_custom_non_mac_fn_f,    // Toggle full screen mode
-  id_custom_non_mac_fn_h,    // Show Desktop
-  id_custom_non_mac_fn_c,    // Show Control Cnecter
-  id_custom_non_mac_fn_n,    // Show Notification
-  id_custom_non_mac_fn_m,    // Focus Menubar
-  id_custom_non_mac_fn_bspc  // Delete
+  id_custom_non_mac_fn_spc,    // Hey Siri
+  id_custom_non_mac_fn_q,      // Qick Notes
+  id_custom_non_mac_fn_e,      // Emoji & Symbols
+  id_custom_non_mac_fn_a,      // Focus Dock
+  id_custom_non_mac_fn_d,      // Start Dictation
+  id_custom_non_mac_fn_f,      // Toggle full screen mode
+  id_custom_non_mac_fn_h,      // Show Desktop
+  id_custom_non_mac_fn_c,      // Show Control Cnecter
+  id_custom_non_mac_fn_n,      // Show Notification
+  id_custom_non_mac_fn_m,      // Focus Menubar
+  id_custom_non_mac_fn_bspc,   // Delete
+  id_custom_non_mac_fn_up,     // up arrow
+  id_custom_non_mac_fn_down,   // down arrow
+  id_custom_non_mac_fn_left,   // left arrow
+  id_custom_non_mac_fn_right,  // right arrow
 };
 
 bool via_custom_value_command_user(uint8_t *data, uint8_t length);

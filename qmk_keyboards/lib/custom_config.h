@@ -23,16 +23,16 @@
 #include "tap_dance.h"
 
 // apple fn override modes for non-macos
-#define NON_MAC_FN_MODE_FKEY_MASK 1
-#define NON_MAC_FN_MODE_ALPHA_MASK 2
 typedef union {
   uint32_t raw;
   struct {
-    bool raw_hid : 1;             // allow access to raw hid
-    bool usj : 1;                 // ANSI layou on JIS.
-    bool mac : 1;                 // mac mode.
-    bool auto_detect : 1;         // auto detect mac/non-mac mode.
-    uint8_t non_mac_fn_mode : 2;  // fn override mode for non-macos  0: OFF, 1: F1-12, 2: Alpha, 3: All
+    bool raw_hid : 1;               // allow access to raw hid
+    bool usj : 1;                   // ANSI layou on JIS.
+    bool mac : 1;                   // mac mode.
+    bool auto_detect : 1;           // auto detect mac/non-mac mode.
+    uint8_t non_mac_fn_fkey : 1;    // none mac fn key enable for F1-12
+    uint8_t non_mac_fn_alpha : 1;   // none mac fn key enable for alpha key
+    uint8_t non_mac_fn_cursor : 1;  // none mac fn key enable for cursor key
   };
 } kb_config_t;
 extern kb_config_t kb_config;
@@ -75,8 +75,13 @@ void custom_config_auto_detect_toggle_enable(void);
 void custom_config_auto_detect_set_enable(bool);
 
 void custom_config_mac_set_enable_without_reset(bool);
-uint8_t custom_config_non_mac_fn_get_mode(void);
-void custom_config_non_mac_fn_set_mode(uint8_t);
+
+uint8_t custom_config_non_mac_fn_fkey_is_enable(void);
+void custom_config_non_mac_fn_set_fkey(bool);
+uint8_t custom_config_non_mac_fn_alpha_is_enable(void);
+void custom_config_non_mac_fn_set_alpha(bool);
+uint8_t custom_config_non_mac_fn_cursor_is_enable(void);
+void custom_config_non_mac_fn_set_cursor(bool);
 
 #ifdef RADIAL_CONTROLLER_ENABLE
 uint8_t custom_config_rc_get_encoder_clicks(void);

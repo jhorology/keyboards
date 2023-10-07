@@ -50,7 +50,7 @@ const uint16_t PROGMEM non_mac_fn_keys_default[] = {
   [FN_F10] = KC_MUTE,   // mute audio
   [FN_F11] = KC_VOLD,   // decrease audio volume
   [FN_F12] = KC_VOLU,   // increase audio volume
-  [FN_SPC] = KC_NO,     // Hey Siri -> TODO Cortana
+  [FN_SPC] = G(KC_C),   // Hey Siri -> Copilot
   [FN_Q] = LAG(KC_N),   // Quick Notes
   [FN_E] = G(KC_DOT),   // Emoji & Symbols
   [FN_A] = G(KC_B),     // Focus Dock -> Focus Taskbar
@@ -61,6 +61,10 @@ const uint16_t PROGMEM non_mac_fn_keys_default[] = {
   [FN_N] = G(KC_N),     // Open Notification
   [FN_M] = KC_LALT,     // Focus menubar
   [FN_BSPC] = KC_DEL,   // Delete
+  [FN_UP] = KC_PGUP,    // Page Up
+  [FN_DOWN] = KC_PGDN,  // Page Down
+  [FN_LEFT] = KC_HOME,  // Home
+  [FN_RIGHT] = KC_END,  // End
 #endif  // MON_MAC_FN_KEYS_PREFER_LINUX
 };
 
