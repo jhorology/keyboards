@@ -107,7 +107,11 @@ bool matrix_scan_custom(matrix_row_t current_matrix[]) {
   }
 
   // Normal operation mode: update key state
-  MATRIX_READ_LOOP(updated |= ec_update_key(&current_matrix[row], col, key, sw_value);)
+  MATRIX_READ_LOOP(
+#ifdef EC_DEBUG
+    key->sw_value = sw_value;
+#endif
+    updated |= ec_update_key(&current_matrix[row], col, key, sw_value);)
 
 #ifdef EC_DEBUG
   matrix_scan_count++;
@@ -211,21 +215,21 @@ static inline void select_col(uint8_t amux_col_ch) {
 static uint16_t ec_readkey_raw(uint8_t row) {
   uint16_t sw_value;
 
-  // wait_us(DISCHARGE_TIME)
-  while (chSysIsCounterWithinX(chSysGetRealtimeCounterX(), key_scan_time,
-                               key_scan_time + US2RTC(REALTIME_COUNTER_CLOCK, DISCHARGE_TIME))) {
-  }
-  writePinHigh(DISCHARGE_PIN);
-
   ATOMIC_BLOCK_FORCEON {
+    // DISCHARGE_TIME 10us = 850 clock count
+    while (chSysIsCounterWithinX(chSysGetRealtimeCounterX(), key_scan_time,
+                                 key_scan_time + US2RTC(REALTIME_COUNTER_CLOCK, DISCHARGE_TIME))) {
+    }
+    // charge peak hold capacitor
+    writePinHigh(DISCHARGE_PIN);
     writePinHigh(row_pins[row]);
     // Read the ADC value
     sw_value = adc_read(adcMux);
     writePinLow(row_pins[row]);
+    // Discharge peak hold capacitor
+    writePinLow(DISCHARGE_PIN);
+    key_scan_time = chSysGetRealtimeCounterX();
   }
-  // Discharge peak hold capacitor
-  writePinLow(DISCHARGE_PIN);
-  key_scan_time = chSysGetRealtimeCounterX();
   return sw_value;
 }
 

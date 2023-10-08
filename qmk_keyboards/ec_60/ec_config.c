@@ -58,12 +58,8 @@ void ec_config_reset(void) {
       preset->deadzone = EC_DEADZONE_DEFAULT;
     }
   }
-  for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
-    for (uint8_t col = 0; col < MATRIX_COLS; col++) {
-      // I don't want to lose calibration data for each update firmware
-      ec_eeprom_config.bottoming_reading[row][col] = pgm_read_word(&ec_bottoming_reading_default[row][col]);
-    }
-  }
+  MATRIX_LOOP(ec_eeprom_config.bottoming_reading[row][col] = pgm_read_word(&ec_bottoming_reading_default[row][col]);)
+
   memcpy_P(&ec_eeprom_config.bottoming_reading[0][0], &ec_bottoming_reading_default[0][0],
            MATRIX_ROWS * MATRIX_COLS * 2);
   ec_eeprom_config.preset_map = 0;
@@ -84,11 +80,7 @@ void ec_config_init(void) {
   if (result != 0) {
     ec_config_reset();
   }
-  for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
-    for (uint8_t col = 0; col < MATRIX_COLS; col++) {
-      ec_config_update_key(row, col);
-    }
-  }
+  MATRIX_LOOP(ec_config_update_key(row, col);)
 }
 
 void ec_config_update_key(uint8_t row, uint8_t col) {
@@ -192,11 +184,7 @@ void ec_config_set_deadzone(uint8_t preset_index, uint16_t deadzone) {
 void ec_config_set_preset_map(uint8_t preset_map_index) {
   if (ec_eeprom_config.preset_map != preset_map_index) {
     ec_eeprom_config.preset_map = preset_map_index;
-    for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
-      for (uint8_t col = 0; col < MATRIX_COLS; col++) {
-        ec_config_update_key(row, col);
-      }
-    }
+    MATRIX_LOOP(ec_config_update_key(row, col);)
     eeprom_update_word((void*)EC_VIA_EEPROM_PRESET_MAP, ec_eeprom_config.preset_map);
   }
 }
