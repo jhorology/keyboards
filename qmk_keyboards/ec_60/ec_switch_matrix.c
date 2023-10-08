@@ -42,8 +42,9 @@ _Static_assert(AMUX_SEL_PINS_COUNT == EXPECTED_AMUX_SEL_PINS_COUNT), "AMUX_SEL_P
 // Check that number of elements in AMUX_COL_CHANNELS_SIZES is enough to specify the number of channels for all the
 // multiplexers available
 
+#define BOTTOMING_READING_THRESHOLD 0xff
+
 #ifdef EC_DEBUG
-uint16_t sw_value[MATRIX_ROWS][MATRIX_COLS];
 static uint32_t matrix_timer = 0;
 static uint32_t matrix_scan_count = 0;
 uint32_t last_matrix_scan_count = 0;
@@ -56,15 +57,16 @@ static void init_row(void);
 static void init_amux(void);
 static inline void select_col(uint8_t amux_col_ch);
 static uint16_t ec_readkey_raw(uint8_t row);
-static inline bool ec_update_key(matrix_row_t* current_row, uint8_t row, uint8_t col, uint16_t sw_value);
+static inline bool ec_update_key(matrix_row_t* current_row, uint8_t col, ec_key_config_t* key, uint16_t sw_value);
 
-#define MATRIX_READ_LOOP(...)                     \
-  for (int col = 0; col < MATRIX_COLS; col++) {   \
-    select_col(matrix_col_channels[col]);         \
-    for (int row = 0; row < MATRIX_ROWS; row++) { \
-      uint16_t value = ec_readkey_raw(row);       \
-      __VA_ARGS__                                 \
-    }                                             \
+#define MATRIX_READ_LOOP(...)                           \
+  for (int col = 0; col < MATRIX_COLS; col++) {         \
+    select_col(matrix_col_channels[col]);               \
+    for (int row = 0; row < MATRIX_ROWS; row++) {       \
+      uint16_t sw_value = ec_readkey_raw(row);          \
+      ec_key_config_t* key = &ec_config_keys[row][col]; \
+      __VA_ARGS__                                       \
+    }                                                   \
   }
 
 // QMK hook functions
@@ -98,18 +100,14 @@ bool matrix_scan_custom(matrix_row_t current_matrix[]) {
 
   // Bottoming calibration mode: update bottoming out values and avoid keycode state change
   // IF statement is higher in the function to avoid the overhead of the execution of normal operation mode
-  if (ec_config.bottoming_calibration) {
+  if (bottoming_calibration) {
     ec_bootoming_reading();
     // Return false to avoid keycode state change
     return false;
   }
 
   // Normal operation mode: update key state
-  MATRIX_READ_LOOP(
-#ifdef EC_DEBUG
-    sw_value[row][col] = value;
-#endif
-    updated |= ec_update_key(&current_matrix[row], row, col, value);)
+  MATRIX_READ_LOOP(updated |= ec_update_key(&current_matrix[row], col, key, sw_value);)
 
 #ifdef EC_DEBUG
   matrix_scan_count++;
@@ -130,12 +128,7 @@ bool matrix_scan_custom(matrix_row_t current_matrix[]) {
 // Get the noise floor
 void ec_calibrate_noise_floor(void) {
   // Initialize the noise floor to 0
-  for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
-    for (uint8_t col = 0; col < MATRIX_COLS; col++) {
-      ec_config.noise_floor[row][col] = 0;
-      ec_config.extremum[row][col] = 0;
-    }
-  }
+  MATRIX_LOOP_WITH_KEY(key->noise_floor = 0; key->extremum = 0;)
 
   // Get the noise floor
   // max: ec_config.noise_floor[row][col]
@@ -144,35 +137,30 @@ void ec_calibrate_noise_floor(void) {
     wait_ms(5);
     MATRIX_READ_LOOP(
       // max value
-      if (value > ec_config.noise_floor[row][col]) { ec_config.noise_floor[row][col] = value; }
+      if (sw_value > key->noise_floor) { key->noise_floor = sw_value; }
       // min value
-      if (ec_config.extremum[row][col] == 0 || value < ec_config.extremum[row][col]) {
-        ec_config.extremum[row][col] = value;
-      })
+      if (key->extremum == 0 || sw_value < key->extremum) { key->extremum = sw_value; })
   }
 
   // Average the noise floor
-  for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
-    for (uint8_t col = 0; col < MATRIX_COLS; col++) {
-      ec_config.noise[row][col] = ec_config.noise_floor[row][col] - ec_config.extremum[row][col];
-      ec_config.noise_floor[row][col] = (ec_config.noise_floor[row][col] + ec_config.extremum[row][col]) / 2;
-      ec_config.extremum[row][col] = ec_config.noise_floor[row][col];
-    }
-  }
+  MATRIX_LOOP_WITH_KEY(
+    // noise = max - mini
+    key->noise = key->noise_floor - key->extremum;
+    // noise_floor = (max + min) / 2
+    key->noise_floor = (key->noise_floor + key->extremum) / 2;
+    // initilize extremum
+    key->extremum = key->noise_floor;)
 }
 
 static void ec_bootoming_reading(void) {
   MATRIX_READ_LOOP(
 #ifdef EC_DEBUG
-    sw_value[row][col] = value;
+    key->sw_value = sw_value;
 #endif
-    if (value > (ec_config.noise_floor[row][col] + 32)) {
-      if (ec_config.bottoming_calibration_starter[row][col]) {
-        eeprom_ec_config.bottoming_reading[row][col] = value;
-        ec_config.bottoming_calibration_starter[row][col] = false;
-      } else if (value > eeprom_ec_config.bottoming_reading[row][col]) {
-        eeprom_ec_config.bottoming_reading[row][col] = value;
-      }
+    if (sw_value > BOTTOMING_READING_THRESHOLD &&
+        (key->bottoming_calibration_starter || sw_value > ec_eeprom_config.bottoming_reading[row][col])) {
+      ec_eeprom_config.bottoming_reading[row][col] = sw_value;
+      key->bottoming_calibration_starter = false;
     })
 }
 
@@ -242,58 +230,56 @@ static uint16_t ec_readkey_raw(uint8_t row) {
 }
 
 // Update press/release state of key
-static inline bool ec_update_key(matrix_row_t* current_row, uint8_t row, uint8_t col, uint16_t sw_value) {
-  uint16_t extremum = sw_value < ec_config.deadzone[row][col] ? ec_config.deadzone[row][col] : sw_value;
+static inline bool ec_update_key(matrix_row_t* current_row, uint8_t col, ec_key_config_t* key, uint16_t sw_value) {
+  uint16_t extremum = sw_value < key->deadzone ? key->deadzone : sw_value;
   if ((*current_row >> col) & 1) {
     // key pressed
-    switch (ec_config.release[row][col].reference.mode) {
+    switch (key->release_mode) {
       case EC_RELEASE_MODE_STATIC:
-        if (sw_value < ec_config.release[row][col].reference.value) {
-          ec_config.extremum[row][col] = extremum;
+        if (sw_value < key->release_reference) {
+          key->extremum = extremum;
           *current_row &= ~(1 << col);
           return true;
         }
         break;
       case EC_RELEASE_MODE_DYNAMIC:
-        if (sw_value < ec_config.deadzone[row][col] ||
-            (sw_value < ec_config.extremum[row][col] &&
-             ec_config.extremum[row][col] - sw_value > ec_config.release[row][col].reference.value)) {
-          ec_config.extremum[row][col] = extremum;
+        if (sw_value < key->deadzone ||
+            (sw_value < key->extremum && key->extremum - sw_value > key->release_reference)) {
+          key->extremum = extremum;
           *current_row &= ~(1 << col);
           return true;
         }
         break;
     }
     // Is key still moving down?
-    if (extremum > ec_config.extremum[row][col]) {
-      ec_config.extremum[row][col] = extremum;
+    if (extremum > key->extremum) {
+      key->extremum = extremum;
     }
 
   } else {
     // key released
 
     // 14-15 bit: actuation_mode
-    switch (ec_config.actuation[row][col].reference.mode) {
+    switch (key->actuation_mode) {
       case EC_ACTUATION_MODE_STATIC:
-        if (sw_value > ec_config.actuation[row][col].reference.value) {
+        if (sw_value > key->actuation_reference) {
           *current_row |= (1 << col);
-          ec_config.extremum[row][col] = extremum;
+          key->extremum = extremum;
           return true;
         }
         break;
       case EC_ACTUATION_MODE_DYNAMIC:
-        if (sw_value > ec_config.extremum[row][col] &&
-            sw_value - ec_config.extremum[row][col] > ec_config.actuation[row][col].reference.value) {
+        if (sw_value > key->extremum && sw_value - key->extremum > key->actuation_reference) {
           // Has key moved down enough to be pressed?
-          ec_config.extremum[row][col] = extremum;
+          key->extremum = extremum;
           *current_row |= (1 << col);
           return true;
         }
         break;
     }
     // Is key still moving up
-    if (extremum < ec_config.extremum[row][col]) {
-      ec_config.extremum[row][col] = extremum;
+    if (extremum < key->extremum) {
+      key->extremum = extremum;
     }
   }
   return false;

@@ -409,7 +409,7 @@ function createNonMacFnMenu(hasDipSwitch) {
             },
             {
               key: 'Left Arrow',
-              desc: 'Scroo to the beginning of a document',
+              desc: 'Scroll to the beginning of a document',
               depends: 'id_custom_non_mac_fn_cursor'
             },
             {

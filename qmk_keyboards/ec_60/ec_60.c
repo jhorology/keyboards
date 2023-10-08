@@ -57,7 +57,7 @@ static inline uint16_t readUInt16BE(uint8_t *src) { return ((uint16_t)src[0] << 
 // Bootmagic overriden to avoid conflicts with EC
 void bootmagic_lite(void) {
 #ifdef EC_BOOTMAGIC_LITE_THRESHOLD
-  if (ec_config.noise_floor[BOOTMAGIC_LITE_ROW][BOOTMAGIC_LITE_COLUMN] > EC_BOOTMAGIC_LITE_THRESHOLD) {
+  if (ec_config_keys[BOOTMAGIC_LITE_ROW][BOOTMAGIC_LITE_COLUMN].noise_floor > EC_BOOTMAGIC_LITE_THRESHOLD) {
     eeconfig_disable();
     // Jump to bootloader.
     bootloader_jump();
@@ -128,7 +128,7 @@ void via_raw_hid_post_receive_user(uint8_t *data, uint8_t length) {
   uint8_t *command_data = &(data[1]);
   switch (command_id) {
     case id_dynamic_keymap_set_keycode:
-      if ((command_data[0] - EC_PRESET_MAP_START) == eeprom_ec_config.preset_map) {
+      if ((command_data[0] - EC_PRESET_MAP_START) == ec_eeprom_config.preset_map) {
         ec_config_update_key(command_data[1], command_data[2]);
       }
       break;
@@ -183,25 +183,25 @@ bool via_custom_value_command_user(uint8_t *data, uint8_t length) {
         case id_custom_get_value:
           switch (value_id) {
             case id_ec_preset_actuation_mode:
-              *value_ptr = eeprom_ec_config.presets[preset_index].actuation_mode;
+              *value_ptr = ec_eeprom_config.presets[preset_index].actuation_mode;
               return false;
             case id_ec_preset_actuation_threshold:
-              writeUInt16BE(value_ptr, eeprom_ec_config.presets[preset_index].actuation_threshold);
+              writeUInt16BE(value_ptr, ec_eeprom_config.presets[preset_index].actuation_threshold);
               return false;
             case id_ec_preset_actuation_travel:
-              writeUInt16BE(value_ptr, eeprom_ec_config.presets[preset_index].actuation_travel);
+              writeUInt16BE(value_ptr, ec_eeprom_config.presets[preset_index].actuation_travel);
               return false;
             case id_ec_preset_release_mode:
-              *value_ptr = eeprom_ec_config.presets[preset_index].release_mode;
+              *value_ptr = ec_eeprom_config.presets[preset_index].release_mode;
               return false;
             case id_ec_preset_release_threshold:
-              writeUInt16BE(value_ptr, eeprom_ec_config.presets[preset_index].release_threshold);
+              writeUInt16BE(value_ptr, ec_eeprom_config.presets[preset_index].release_threshold);
               return false;
             case id_ec_preset_release_travel:
-              writeUInt16BE(value_ptr, eeprom_ec_config.presets[preset_index].release_travel);
+              writeUInt16BE(value_ptr, ec_eeprom_config.presets[preset_index].release_travel);
               return false;
             case id_ec_preset_deadzone:
-              writeUInt16BE(value_ptr, eeprom_ec_config.presets[preset_index].deadzone);
+              writeUInt16BE(value_ptr, ec_eeprom_config.presets[preset_index].deadzone);
               return false;
           }
           break;

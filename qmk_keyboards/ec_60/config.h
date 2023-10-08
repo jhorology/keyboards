@@ -121,5 +121,5 @@
 #endif
 
 // for debugging
-// #define CUSTOM_CONFIG_RHID_DEFAULT true
-// #define EC_DEBUG 1
+#define CUSTOM_CONFIG_RHID_DEFAULT true
+#define EC_DEBUG 1

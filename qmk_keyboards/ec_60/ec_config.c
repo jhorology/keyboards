@@ -5,12 +5,13 @@
 #include "ec_60.h"
 #include "ec_switch_matrix.h"
 
-ec_config_t ec_config;
-eeprom_ec_config_t eeprom_ec_config;
+ec_eeprom_config_t ec_eeprom_config;
+ec_key_config_t ec_config_keys[MATRIX_ROWS][MATRIX_COLS];
+bool bottoming_calibration;
 
 #ifdef EC_DEBUG
-static bool eeprom_ec_config_reseted;
-static int8_t eeprom_ec_config_error;
+static bool ec_eeprom_config_reseted;
+static int8_t ec_eeprom_config_error;
 static uint8_t debug_byte_value;
 static uint16_t debug_word_value;
 #endif /* EC_DEBUG  */
@@ -29,8 +30,6 @@ static int is_eeprom_valid(void);
 static int is_preset_valid(ec_preset_t* preset);
 static void defer_eeprom_update_preset(uint8_t preset_index);
 static void update_matrix(uint8_t preset_index);
-static uint16_t rescale_threshold(uint8_t row, uint8_t col, uint16_t x);
-static uint16_t rescale_travel(uint8_t row, uint8_t col, uint16_t x);
 static ec_preset_t* get_preset_key(uint8_t row, uint8_t col);
 static ec_preset_t* get_preset(uint8_t preset_index);
 static uint32_t send_calibration_data_cb(uint32_t trigger_time, void* cb_arg);
@@ -39,6 +38,9 @@ static uint32_t send_preset_map_cb(uint32_t trigger_time, void* cb_arg);
 #ifdef EC_DEBUG
 static uint32_t debug_send_config_cb(uint32_t trigger_time, void* cb_arg);
 #endif /* EC_DEBUG  */
+
+#define RESCALE_TRAVEL(noise_floor, bottoming, x) (x * (bottoming - noise_floor) / SCALE_RANGE)
+#define RESCALE_THRESHOLD(noise_floor, bottoming, x) (RESCALE_TRAVEL(noise_floor, bottoming, x) + noise_floor)
 
 void ec_config_reset(void) {
   // Default values
@@ -59,25 +61,25 @@ void ec_config_reset(void) {
   for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
     for (uint8_t col = 0; col < MATRIX_COLS; col++) {
       // I don't want to lose calibration data for each update firmware
-      eeprom_ec_config.bottoming_reading[row][col] = pgm_read_word(&ec_bottoming_reading_default[row][col]);
+      ec_eeprom_config.bottoming_reading[row][col] = pgm_read_word(&ec_bottoming_reading_default[row][col]);
     }
   }
-  memcpy_P(&eeprom_ec_config.bottoming_reading[0][0], &ec_bottoming_reading_default[0][0],
+  memcpy_P(&ec_eeprom_config.bottoming_reading[0][0], &ec_bottoming_reading_default[0][0],
            MATRIX_ROWS * MATRIX_COLS * 2);
-  eeprom_ec_config.preset_map = 0;
+  ec_eeprom_config.preset_map = 0;
 
   // Write default value to EEPROM now
-  eeprom_update_block(&eeprom_ec_config, (void*)VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR, sizeof(eeprom_ec_config_t));
+  eeprom_update_block(&ec_eeprom_config, (void*)VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR, sizeof(ec_eeprom_config_t));
 #ifdef EC_DEBUG
-  eeprom_ec_config_reseted = true;
+  ec_eeprom_config_reseted = true;
 #endif /* EC_DEBUG  */
 }
 
 void ec_config_init(void) {
-  eeprom_read_block(&eeprom_ec_config, (void*)VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR, sizeof(eeprom_ec_config_t));
+  eeprom_read_block(&ec_eeprom_config, (void*)VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR, sizeof(ec_eeprom_config_t));
   int16_t result = is_eeprom_valid();
 #ifdef EC_DEBUG
-  eeprom_ec_config_error = result;
+  ec_eeprom_config_error = result;
 #endif
   if (result != 0) {
     ec_config_reset();
@@ -91,36 +93,38 @@ void ec_config_init(void) {
 
 void ec_config_update_key(uint8_t row, uint8_t col) {
   ec_preset_t* preset = get_preset_key(row, col);
-  uint8_t prev_actuation_mode = ec_config.actuation[row][col].reference.mode;
-  uint8_t prev_release_mode = ec_config.release[row][col].reference.mode;
+  ec_key_config_t* key = &ec_config_keys[row][col];
+  uint16_t bottoming = ec_eeprom_config.bottoming_reading[row][col];
+  uint8_t prev_actuation_mode = key->actuation_mode;
+  uint8_t prev_release_mode = key->release_mode;
   // actuation
-  ec_config.actuation[row][col].reference.mode = preset->actuation_mode;
+  key->actuation_mode = preset->actuation_mode;
   switch (preset->actuation_mode) {
     case EC_ACTUATION_MODE_STATIC:
-      ec_config.actuation[row][col].reference.value = rescale_threshold(row, col, preset->actuation_threshold);
+      key->actuation_reference = RESCALE_THRESHOLD(key->noise_floor, bottoming, preset->actuation_threshold);
       break;
     case EC_ACTUATION_MODE_DYNAMIC:
-      ec_config.actuation[row][col].reference.value = rescale_travel(row, col, preset->actuation_travel);
+      key->actuation_reference = RESCALE_TRAVEL(key->noise_floor, bottoming, preset->actuation_threshold);
       break;
   }
   // release
-  ec_config.release[row][col].reference.mode = preset->release_mode;
+  key->release_mode = preset->release_mode;
   switch (preset->release_mode) {
     case EC_RELEASE_MODE_STATIC:
-      ec_config.release[row][col].reference.value = rescale_threshold(row, col, preset->release_threshold);
+      key->release_reference = RESCALE_THRESHOLD(key->noise_floor, bottoming, preset->release_threshold);
       break;
     case EC_RELEASE_MODE_DYNAMIC:
-      ec_config.release[row][col].reference.value = rescale_travel(row, col, preset->release_travel);
+      key->release_reference = RESCALE_TRAVEL(key->noise_floor, bottoming, preset->release_threshold);
       break;
   }
   // deadzone
-  ec_config.deadzone[row][col] = rescale_threshold(row, col, preset->deadzone);
+  key->deadzone = RESCALE_THRESHOLD(key->noise_floor, bottoming, preset->deadzone);
 
   if (prev_actuation_mode != preset->actuation_mode || prev_release_mode != preset->release_mode) {
-    ec_config.extremum[row][col] = ec_config.noise_floor[row][col];
+    key->extremum = key->noise_floor;
   }
-  if (ec_config.extremum[row][col] < ec_config.deadzone[row][col]) {
-    ec_config.extremum[row][col] = ec_config.deadzone[row][col];
+  if (key->extremum < key->deadzone) {
+    key->extremum = key->deadzone;
   }
 }
 
@@ -186,40 +190,32 @@ void ec_config_set_deadzone(uint8_t preset_index, uint16_t deadzone) {
 }
 
 void ec_config_set_preset_map(uint8_t preset_map_index) {
-  if (eeprom_ec_config.preset_map != preset_map_index) {
-    eeprom_ec_config.preset_map = preset_map_index;
+  if (ec_eeprom_config.preset_map != preset_map_index) {
+    ec_eeprom_config.preset_map = preset_map_index;
     for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
       for (uint8_t col = 0; col < MATRIX_COLS; col++) {
         ec_config_update_key(row, col);
       }
     }
-    eeprom_update_word((void*)EC_VIA_EEPROM_PRESET_MAP, eeprom_ec_config.preset_map);
+    eeprom_update_word((void*)EC_VIA_EEPROM_PRESET_MAP, ec_eeprom_config.preset_map);
   }
 }
 
 void ec_config_start_calibration(void) {
-  for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
-    for (uint8_t col = 0; col < MATRIX_COLS; col++) {
-      ec_config.bottoming_calibration_starter[row][col] = true;
-    }
-  }
-  ec_config.bottoming_calibration = true;
+  MATRIX_LOOP_WITH_KEY(key->bottoming_calibration_starter = true;)
+  bottoming_calibration = true;
 }
 
 void ec_config_end_calibration(void) {
-  ec_config.bottoming_calibration = false;
+  bottoming_calibration = false;
   ec_calibrate_noise_floor();
-  for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
-    for (uint8_t col = 0; col < MATRIX_COLS; col++) {
-      if (ec_config.bottoming_calibration_starter[row][col]) {
-        ec_config.bottoming_calibration_starter[row][col] = false;
-      } else {
-        eeprom_ec_config.bottoming_reading[row][col] -= ec_config.noise[row][col] / 2;
-        ec_config_update_key(row, col);
-      }
-    }
-  }
-  eeprom_update_block(&eeprom_ec_config.bottoming_reading[0][0], (void*)EC_VIA_EEPROM_BOTTOMING_READING,
+  MATRIX_LOOP_WITH_KEY(
+    if (key->bottoming_calibration_starter) { key->bottoming_calibration_starter = false; } else {
+      // bottoming = max - nose / 2
+      ec_eeprom_config.bottoming_reading[row][col] -= key->noise / 2;
+      ec_config_update_key(row, col);
+    })
+  eeprom_update_block(&ec_eeprom_config.bottoming_reading[0][0], (void*)EC_VIA_EEPROM_BOTTOMING_READING,
                       MATRIX_COLS * MATRIX_ROWS * 2);
 }
 
@@ -242,7 +238,7 @@ void ec_config_debug_send_config(uint32_t delay_ms) {
 //-----------------------------------------------------
 
 static uint8_t get_preset_index(uint8_t row, uint8_t col) {
-  uint16_t keycode = dynamic_keymap_get_keycode(EC_PRESET_MAP(eeprom_ec_config.preset_map), row, col);
+  uint16_t keycode = dynamic_keymap_get_keycode(EC_PRESET_MAP(ec_eeprom_config.preset_map), row, col);
   if (keycode >= EC_PRESET_START && keycode <= EC_PRESET_END) {
     return keycode - EC_PRESET_START;
   }
@@ -255,14 +251,9 @@ static int is_eeprom_valid(void) {
     int result = is_preset_valid(preset);
     if (result != 0) return result;
   }
-  for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
-    for (uint8_t col = 0; col < MATRIX_COLS; col++) {
-      if (eeprom_ec_config.bottoming_reading[row][col] <= ec_config.noise_floor[row][col] ||
-          eeprom_ec_config.bottoming_reading[row][col] > 0xfff)
-        return -9;
-    }
-  }
-  if (eeprom_ec_config.preset_map >= EC_NUM_PRESET_MAPS) return -10;
+  MATRIX_LOOP_WITH_KEY(if (ec_eeprom_config.bottoming_reading[row][col] <= key->noise_floor ||
+                           ec_eeprom_config.bottoming_reading[row][col] > 0xfff) return -9;)
+  if (ec_eeprom_config.preset_map >= EC_NUM_PRESET_MAPS) return -10;
   return 0;
 }
 
@@ -284,35 +275,15 @@ static int is_preset_valid(ec_preset_t* preset) {
 }
 
 static void defer_eeprom_update_preset(uint8_t preset_index) {
-  defer_eeprom_update_block(EC_VIA_CUSTOM_CHANNEL_ID_START + preset_index, 0, &eeprom_ec_config.presets[preset_index],
+  defer_eeprom_update_block(EC_VIA_CUSTOM_CHANNEL_ID_START + preset_index, 0, &ec_eeprom_config.presets[preset_index],
                             (void*)(EC_VIA_EEPROM_PRESETS + sizeof(ec_preset_t) * preset_index), sizeof(ec_preset_t));
 }
 
-static void update_matrix(uint8_t preset_index) {
-  for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
-    for (uint8_t col = 0; col < MATRIX_COLS; col++) {
-      if (get_preset_index(row, col) == preset_index) {
-        ec_config_update_key(row, col);
-      }
-    }
-  }
-}
-
-static uint16_t rescale_threshold(uint8_t row, uint8_t col, uint16_t x) {
-  uint16_t out_max = eeprom_ec_config.bottoming_reading[row][col];
-  uint16_t out_min = ec_config.noise_floor[row][col];
-  return x * (out_max - out_min) / SCALE_RANGE + out_min;
-}
-
-static uint16_t rescale_travel(uint8_t row, uint8_t col, uint16_t x) {
-  uint16_t out_max = eeprom_ec_config.bottoming_reading[row][col];
-  uint16_t out_min = ec_config.noise_floor[row][col];
-  return x * (out_max - out_min) / SCALE_RANGE;
-}
+static void update_matrix(uint8_t preset_index) { MATRIX_LOOP(ec_config_update_key(row, col);) }
 
 static ec_preset_t* get_preset_key(uint8_t row, uint8_t col) { return get_preset(get_preset_index(row, col)); }
 
-static ec_preset_t* get_preset(uint8_t preset_index) { return &(eeprom_ec_config.presets[preset_index]); }
+static ec_preset_t* get_preset(uint8_t preset_index) { return &(ec_eeprom_config.presets[preset_index]); }
 
 static uint32_t send_calibration_data_cb(uint32_t trigger_time, void* cb_arg) {
   send_data_token = 0;
@@ -323,7 +294,7 @@ static uint32_t send_calibration_data_cb(uint32_t trigger_time, void* cb_arg) {
     send_string("{");
     for (uint8_t col = 0; col < MATRIX_COLS; col++) {
       send_string("0x");
-      send_word(eeprom_ec_config.bottoming_reading[row][col]);
+      send_word(ec_eeprom_config.bottoming_reading[row][col]);
       if (col < (MATRIX_COLS - 1)) {
         send_string(",");
       }
@@ -396,9 +367,9 @@ typedef enum {
   _sw_value = 0,
   _bottoming_reading,
   _actuation_mode,
-  _actuation_value,
+  _actuation_reference,
   _release_mode,
-  _release_value,
+  _release_reference,
   _deadzone,
   _noise,
   _noise_floor,
@@ -411,43 +382,44 @@ void _send_matrix_array(matrix_array_type_t type) {
   for (int row = 0; row < MATRIX_ROWS; row++) {
     send_string("[");
     for (int col = 0; col < MATRIX_COLS; col++) {
+      ec_key_config_t* key = &ec_config_keys[row][col];
       switch (type) {
         case _sw_value:
           send_string("0x");
-          send_word(sw_value[row][col]);
+          send_word(key->sw_value);
           break;
         case _bottoming_reading:
           send_string("0x");
-          send_word(eeprom_ec_config.bottoming_reading[row][col]);
+          send_word(ec_eeprom_config.bottoming_reading[row][col]);
           break;
         case _actuation_mode:
-          send_nibble(ec_config.actuation[row][col].reference.mode);
+          send_nibble(key->actuation_mode);
           break;
-        case _actuation_value:
+        case _actuation_reference:
           send_string("0x");
-          send_word(ec_config.actuation[row][col].reference.value);
+          send_word(key->actuation_reference);
           break;
         case _release_mode:
-          send_nibble(ec_config.release[row][col].reference.mode);
+          send_nibble(key->release_mode);
           break;
-        case _release_value:
+        case _release_reference:
           send_string("0x");
-          send_word(ec_config.release[row][col].reference.value);
+          send_word(key->release_reference);
           break;
         case _deadzone:
           send_string("0x");
-          send_word(ec_config.deadzone[row][col]);
+          send_word(key->deadzone);
           break;
         case _noise:
           send_string("0x");
-          send_word(ec_config.noise[row][col]);
+          send_word(key->noise);
           break;
         case _noise_floor:
           send_string("0x");
-          send_word(ec_config.noise_floor[row][col]);
+          send_word(key->noise_floor);
           break;
         case _calibration_starter:
-          send_string(ec_config.bottoming_calibration_starter[row][col] ? "true" : "false");
+          send_string(key->bottoming_calibration_starter ? "true" : "false");
           break;
       }
       if (col < (MATRIX_COLS - 1)) {
@@ -466,17 +438,19 @@ void _send_matrix_array(matrix_array_type_t type) {
 
 static uint32_t debug_send_config_cb(uint32_t trigger_time, void* cb_arg) {
   send_data_token = 0;
-  send_string("const data = {\neeprom_ec_config_reseted: ");
-  send_string(eeprom_ec_config_reseted ? "true" : "false");
-  send_string(",\neeprom_ec_config_error: 0x");
-  send_word(eeprom_ec_config_error);
+  send_string("const data = {\nec_eeprom_config_reseted: ");
+  send_string(ec_eeprom_config_reseted ? "true" : "false");
+  send_string(",\nec_eeprom_config_error: 0x");
+  send_word(ec_eeprom_config_error);
   send_string(",\ndebug_byte_value: 0x");
   send_byte(debug_byte_value);
   send_string(",\ndebug_word_value: 0x");
   send_word(debug_word_value);
+  send_string(",\nbottoming_calibration: ");
+  send_string(bottoming_calibration ? "true" : "false");
   send_string(",\nsw_value: ");
   _send_matrix_array(_sw_value);
-  send_string(",\neeprom_ec_config: {\npresets: [\n");
+  send_string(",\nec_eeprom_config: {\npresets: [\n");
   for (uint8_t i = 0; i < EC_NUM_PRESETS; i++) {
     ec_preset_t* preset = get_preset(i);
     send_string("{\nactuation_mode: ");
@@ -503,7 +477,7 @@ static uint32_t debug_send_config_cb(uint32_t trigger_time, void* cb_arg) {
   send_string("],\nbottoming_reading: ");
   _send_matrix_array(_bottoming_reading);
   send_string(",\npreset_map: ");
-  send_nibble(eeprom_ec_config.preset_map);
+  send_nibble(ec_eeprom_config.preset_map);
   // end eepro_ec_config
   send_string("\n}");
 
@@ -512,12 +486,12 @@ static uint32_t debug_send_config_cb(uint32_t trigger_time, void* cb_arg) {
 
   send_string("actuation_mode: ");
   _send_matrix_array(_actuation_mode);
-  send_string(",\nactuation_value: ");
-  _send_matrix_array(_actuation_value);
+  send_string(",\nactuation_reference: ");
+  _send_matrix_array(_actuation_reference);
   send_string(",\nrelease_mode: ");
   _send_matrix_array(_release_mode);
-  send_string(",\nrelease_value: ");
-  _send_matrix_array(_release_value);
+  send_string(",\nrelease_reference: ");
+  _send_matrix_array(_release_reference);
   send_string(",\ndeadzone: ");
   _send_matrix_array(_deadzone);
   send_string(",\nnoise: ");
@@ -525,8 +499,6 @@ static uint32_t debug_send_config_cb(uint32_t trigger_time, void* cb_arg) {
   send_string(",\nnoise_floor: ");
   _send_matrix_array(_noise_floor);
 
-  send_string(",\nbottoming_calibration: ");
-  send_string(ec_config.bottoming_calibration ? "true" : "false");
   send_string(",\nbottoming_calibration_starter: ");
   _send_matrix_array(_calibration_starter);
   // end eepro_ec_config
