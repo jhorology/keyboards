@@ -91,7 +91,7 @@ void ec_config_update_key(uint8_t row, uint8_t col) {
       key->actuation_reference = KEY_THRESHOLD(key->noise_floor, bottoming, preset->actuation_threshold);
       break;
     case EC_ACTUATION_MODE_DYNAMIC:
-      key->actuation_reference = KEY_TRAVEL(key->noise_floor, bottoming, preset->actuation_threshold);
+      key->actuation_reference = KEY_TRAVEL(key->noise_floor, bottoming, preset->actuation_travel);
       break;
   }
   // release
@@ -101,7 +101,7 @@ void ec_config_update_key(uint8_t row, uint8_t col) {
       key->release_reference = KEY_THRESHOLD(key->noise_floor, bottoming, preset->release_threshold);
       break;
     case EC_RELEASE_MODE_DYNAMIC:
-      key->release_reference = KEY_TRAVEL(key->noise_floor, bottoming, preset->release_threshold);
+      key->release_reference = KEY_TRAVEL(key->noise_floor, bottoming, preset->release_travel);
       break;
   }
   // deadzone
