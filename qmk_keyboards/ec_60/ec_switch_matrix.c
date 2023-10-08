@@ -215,11 +215,11 @@ static inline void select_col(uint8_t amux_col_ch) {
 static uint16_t ec_readkey_raw(uint8_t row) {
   uint16_t sw_value;
 
+  // DISCHARGE_TIME 10us = 850 clock count
+  while (chSysIsCounterWithinX(chSysGetRealtimeCounterX(), key_scan_time,
+                               key_scan_time + US2RTC(REALTIME_COUNTER_CLOCK, DISCHARGE_TIME))) {
+  }
   ATOMIC_BLOCK_FORCEON {
-    // DISCHARGE_TIME 10us = 850 clock count
-    while (chSysIsCounterWithinX(chSysGetRealtimeCounterX(), key_scan_time,
-                                 key_scan_time + US2RTC(REALTIME_COUNTER_CLOCK, DISCHARGE_TIME))) {
-    }
     // charge peak hold capacitor
     writePinHigh(DISCHARGE_PIN);
     writePinHigh(row_pins[row]);
