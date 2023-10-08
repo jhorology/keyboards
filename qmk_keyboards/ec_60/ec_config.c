@@ -20,11 +20,6 @@ static deferred_token send_data_token;  // defer_exec token
 
 // if defined in ec_60/config.h or ec_60/keymaps/<keymap name>/config.h
 
-// 0 | 100% 10bit
-#define SCALE_RANGE 0x3ff
-// 0 | 50% 9bit
-#define HALF_SCALE_RANGE 0x1ff
-
 static uint8_t get_preset_index(uint8_t row, uint8_t col);
 static int is_eeprom_valid(void);
 static int is_preset_valid(ec_preset_t* preset);
@@ -39,8 +34,8 @@ static uint32_t send_preset_map_cb(uint32_t trigger_time, void* cb_arg);
 static uint32_t debug_send_config_cb(uint32_t trigger_time, void* cb_arg);
 #endif /* EC_DEBUG  */
 
-#define RESCALE_TRAVEL(noise_floor, bottoming, x) (x * (bottoming - noise_floor) / SCALE_RANGE)
-#define RESCALE_THRESHOLD(noise_floor, bottoming, x) (RESCALE_TRAVEL(noise_floor, bottoming, x) + noise_floor)
+#define KEY_TRAVEL(noise_floor, bottoming, x) (x * (bottoming - noise_floor) / EC_SCALE_RANGE)
+#define KEY_THRESHOLD(noise_floor, bottoming, x) (KEY_TRAVEL(noise_floor, bottoming, x) + noise_floor)
 
 void ec_config_reset(void) {
   // Default values
@@ -93,24 +88,24 @@ void ec_config_update_key(uint8_t row, uint8_t col) {
   key->actuation_mode = preset->actuation_mode;
   switch (preset->actuation_mode) {
     case EC_ACTUATION_MODE_STATIC:
-      key->actuation_reference = RESCALE_THRESHOLD(key->noise_floor, bottoming, preset->actuation_threshold);
+      key->actuation_reference = KEY_THRESHOLD(key->noise_floor, bottoming, preset->actuation_threshold);
       break;
     case EC_ACTUATION_MODE_DYNAMIC:
-      key->actuation_reference = RESCALE_TRAVEL(key->noise_floor, bottoming, preset->actuation_threshold);
+      key->actuation_reference = KEY_TRAVEL(key->noise_floor, bottoming, preset->actuation_threshold);
       break;
   }
   // release
   key->release_mode = preset->release_mode;
   switch (preset->release_mode) {
     case EC_RELEASE_MODE_STATIC:
-      key->release_reference = RESCALE_THRESHOLD(key->noise_floor, bottoming, preset->release_threshold);
+      key->release_reference = KEY_THRESHOLD(key->noise_floor, bottoming, preset->release_threshold);
       break;
     case EC_RELEASE_MODE_DYNAMIC:
-      key->release_reference = RESCALE_TRAVEL(key->noise_floor, bottoming, preset->release_threshold);
+      key->release_reference = KEY_TRAVEL(key->noise_floor, bottoming, preset->release_threshold);
       break;
   }
   // deadzone
-  key->deadzone = RESCALE_THRESHOLD(key->noise_floor, bottoming, preset->deadzone);
+  key->deadzone = KEY_THRESHOLD(key->noise_floor, bottoming, preset->deadzone);
 
   if (prev_actuation_mode != preset->actuation_mode || prev_release_mode != preset->release_mode) {
     key->extremum = key->noise_floor;
@@ -248,11 +243,11 @@ static int is_eeprom_valid(void) {
 static int is_preset_valid(ec_preset_t* preset) {
   if (preset->actuation_mode > EC_ACTUATION_MODE_DYNAMIC) return -1;
   if (preset->release_mode > EC_RELEASE_MODE_DYNAMIC) return -2;
-  if (preset->actuation_threshold > SCALE_RANGE) return -3;
-  if (preset->release_threshold > SCALE_RANGE) return -4;
-  if (preset->actuation_travel > HALF_SCALE_RANGE) return -5;
-  if (preset->release_travel > HALF_SCALE_RANGE) return -6;
-  if (preset->deadzone > HALF_SCALE_RANGE) return -7;
+  if (preset->actuation_threshold > EC_SCALE_RANGE) return -3;
+  if (preset->release_threshold > EC_SCALE_RANGE) return -4;
+  if (preset->actuation_travel > (EC_SCALE_RANGE >> 1)) return -5;
+  if (preset->release_travel > (EC_SCALE_RANGE >> 1)) return -6;
+  if (preset->deadzone > (EC_SCALE_RANGE >> 1)) return -7;
 
   // EC_PRESETS_DEFAUL_USER may not have bean defined all presets.
   if (preset->actuation_threshold == 0 && preset->actuation_travel == 0 && preset->release_threshold == 0 &&

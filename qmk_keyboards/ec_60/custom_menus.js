@@ -4,7 +4,7 @@ module.exports = function (options, defines) {
   const menus = []
 
   for (let i = 0; i < defines.EC_NUM_PRESETS; i++) {
-    menus.push(createPresetMenu(defines.EC_VIA_CUSTOM_CHANNEL_ID_START + i, i))
+    menus.push(createPresetMenu(defines, i))
   }
   menus.push(
     createCalibrationtMenu(
@@ -55,16 +55,17 @@ function createCalibrationtMenu(channelId, debug) {
   return calibration
 }
 
-function createPresetMenu(channelId, presetIndex) {
-  const valueIds = {
-    1: 'actuation_mode',
-    2: 'actuation_threshold',
-    3: 'actuation_travel',
-    4: 'release_mode',
-    5: 'release_threshold',
-    6: 'release_travel',
-    7: 'deadzone'
-  }
+function createPresetMenu(defines, presetIndex) {
+  const channelId = defines.EC_VIA_CUSTOM_CHANNEL_ID_START + presetIndex,
+    valueIds = {
+      1: 'actuation_mode',
+      2: 'actuation_threshold',
+      3: 'actuation_travel',
+      4: 'release_mode',
+      5: 'release_threshold',
+      6: 'release_travel',
+      7: 'deadzone'
+    }
   const ref = (id) => `id_ec_preset_${presetIndex}_${valueIds[id]}`
   const content = (id) => [ref(id), channelId, id]
   return {
@@ -83,14 +84,14 @@ function createPresetMenu(channelId, presetIndex) {
         showIf: `{${ref(1)}} == 0`,
         label: 'Actuation Threshold (0% | 100%)',
         type: 'range',
-        options: [0, 1023],
+        options: [0, defines.EC_SCALE_RANGE],
         content: content(2)
       },
       {
         showIf: `{${ref(1)}} == 1`,
         label: 'Actuation Travel (0% | 50%)',
         type: 'range',
-        options: [0, 511],
+        options: [0, defines.EC_SCALE_RANGE >> 1],
         content: content(3)
       },
       {
@@ -106,21 +107,21 @@ function createPresetMenu(channelId, presetIndex) {
         showIf: `{${ref(4)}} == 0`,
         label: 'Release Threshold (0% | 100%)',
         type: 'range',
-        options: [0, 1023],
+        options: [0, defines.EC_SCALE_RANGE],
         content: content(5)
       },
       {
         showIf: `{${ref(4)}} == 1`,
         label: 'Release Travel (0% | 50%)',
         type: 'range',
-        options: [0, 511],
+        options: [0, defines.EC_SCALE_RANGE >> 1],
         content: content(6)
       },
       {
         showIf: `{${ref(1)}} == 1 || {${ref(4)}} == 1`,
         label: 'Deadzone (0% | 50%)',
         type: 'range',
-        options: [0, 511],
+        options: [0, defines.EC_SCALE_RANGE >> 1],
         content: content(7)
       }
     ]

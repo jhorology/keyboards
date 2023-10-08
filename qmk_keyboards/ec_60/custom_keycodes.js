@@ -6,7 +6,9 @@ module.exports = function (options, defines) {
   for (let i = 0; i < defines.EC_NUM_PRESETS; i++) {
     keycodes.push({
       name: `EC${i}\n${emoji[i % emoji.length]}`,
-      title: `EC Preset ${i}. It can be mapped in EC preset map layers.`,
+      title: `EC Preset ${i}. It can be mapped in only EC preset map layers(${
+        defines.DYNAMIC_KEYMAP_LAYER_COUNT - defines.EC_NUM_PRESET_MAPS
+      } - ${defines.DYNAMIC_KEYMAP_LAYER_COUNT - 1}).`,
       shortName: `${i} ${emoji[i % emoji.length]}`
     })
   }
