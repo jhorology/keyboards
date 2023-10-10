@@ -139,61 +139,41 @@ void ec_config_debug_send_config(uint32_t delay_ms);
     }                                                   \
   }
 
+// convtert a percentage of tatal travel into preset
+#define EC_PERC(perc) ((perc) * EC_SCALE_RANGE / 100)
+
 // clang-format off
-#define EC_STATIC_PRESET_DEFAULT {                          \
-  .actuation_mode = EC_ACTUATION_MODE_STATIC,               \
-  .release_mode = EC_RELEASE_MODE_STATIC,                   \
-  .actuation_threshold = EC_SCALE_RANGE * 4 / 9,            \
-  .release_threshold = EC_SCALE_RANGE / 3,                  \
-  .actuation_travel =  EC_SCALE_RANGE / 5,                  \
-  .release_travel = EC_SCALE_RANGE / 5,                     \
-  .deadzone = EC_SCALE_RANGE / 5,                           \
-  .sub_action_enable = false,                               \
-  .sub_action_keycode = KC_NO,                              \
-  .sub_action_actuation_threshold = EC_SCALE_RANGE * 5 / 6, \
-  .sub_action_release_threshold = EC_SCALE_RANGE / 2        \
+#define EC_STATIC_PRESET(a, r) {                 \
+  .actuation_mode = EC_ACTUATION_MODE_STATIC,    \
+  .release_mode = EC_RELEASE_MODE_STATIC,        \
+  .actuation_threshold = a,                      \
+  .release_threshold = r,                        \
+  .actuation_travel = EC_PERC(15),               \
+  .release_travel = EC_PERC(15),                 \
+  .deadzone = EC_PERC(15),                       \
+  .sub_action_enable = false,                    \
+  .sub_action_keycode = KC_NO,                   \
+  .sub_action_actuation_threshold = EC_PERC(90), \
+  .sub_action_release_threshold = EC_PERC(75)    \
 }
+#define EC_STATIC_PRESET_PERC(a, r) EC_STATIC_PRESET(EC_PERC(a), EC_PERC(r))
+#define EC_STATIC_PRESET_DEFAULT EC_STATIC_PRESET_PERC(45, 30)
 
-#define EC_STATIC_PRESET(actuation, release) {              \
-  .actuation_mode = EC_ACTUATION_MODE_STATIC,               \
-  .release_mode = EC_RELEASE_MODE_STATIC,                   \
-  .actuation_threshold = (actuation),                       \
-  .release_threshold = (release),                           \
-  .actuation_travel =  EC_SCALE_RANGE / 5,                  \
-  .release_travel = EC_SCALE_RANGE / 5,                     \
-  .deadzone = EC_SCALE_RANGE / 5,                           \
-  .sub_action_enable = false,                               \
-  .sub_action_keycode = KC_NO,                              \
-  .sub_action_actuation_threshold = EC_SCALE_RANGE * 5 / 6, \
-  .sub_action_release_threshold = EC_SCALE_RANGE / 2        \
-}
 
-#define EC_DYNAMIC_PRESET_DEFAULT {                         \
-  .actuation_mode = EC_ACTUATION_MODE_DYNAMIC,              \
-  .release_mode = EC_RELEASE_MODE_DYNAMIC,                  \
-  .actuation_threshold = EC_SCALE_RANGE * 4 / 9,            \
-  .release_threshold = EC_SCALE_RANGE / 3,                  \
-  .actuation_travel = EC_SCALE_RANGE / 6,                   \
-  .release_travel = EC_SCALE_RANGE / 6,                     \
-  .deadzone = EC_SCALE_RANGE / 6,                           \
-  .sub_action_enable = false,                               \
-  .sub_action_keycode = KC_NO,                              \
-  .sub_action_actuation_threshold = EC_SCALE_RANGE * 5 / 6, \
-  .sub_action_release_threshold = EC_SCALE_RANGE / 2        \
+#define EC_DYNAMIC_PRESET(a, r, d) {             \
+  .actuation_mode = EC_ACTUATION_MODE_DYNAMIC,   \
+  .release_mode = EC_RELEASE_MODE_DYNAMIC,       \
+  .actuation_threshold = EC_PERC(40),            \
+  .release_threshold = EC_PERC(30),              \
+  .actuation_travel = a,                         \
+  .release_travel = r,                           \
+  .deadzone = d,                                 \
+  .sub_action_enable = false,                    \
+  .sub_action_keycode = KC_NO,                   \
+  .sub_action_actuation_threshold = EC_PERC(90), \
+  .sub_action_release_threshold = EC_PERC(75)    \
 }
-
-#define EC_DYNAMIC_PRESET(deadzone, actuation, release) {   \
-  .actuation_mode = EC_ACTUATION_MODE_DYNAMIC,              \
-  .release_mode = EC_RELEASE_MODE_DYNAMIC,                  \
-  .actuation_threshold = EC_SCALE_RANGE * 4 / 9,            \
-  .release_threshold = EC_SCALE_RANGE / 3,                  \
-  .actuation_travel = (actuation),                          \
-  .release_travel = (release),                              \
-  .deadzone = (deadzone),                                   \
-  .sub_action_enable = false,                               \
-  .sub_action_keycode = KC_NO,                              \
-  .sub_action_actuation_threshold = EC_SCALE_RANGE * 5 / 6, \
-  .sub_action_release_threshold = EC_SCALE_RANGE / 2        \
-}
+#define EC_DYNAMIC_PRESET_PERC(a, r, d) EC_DYNAMIC_PRESET(EC_PERC(a), EC_PERC(r), EC_PERC(d))
+#define EC_DYNAMIC_PRESET_DEFAULT EC_DYNAMIC_PRESET_PERC(15, 15, 20)
 
 // clang-format on

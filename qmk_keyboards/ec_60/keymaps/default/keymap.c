@@ -51,7 +51,7 @@ const ec_preset_t PROGMEM ec_presets_default[EC_NUM_PRESETS] = {
   // EC Preset 0 ⬜️ - default
   [0] = EC_STATIC_PRESET_DEFAULT,
   // EC Preset 1 🟩 - alphas
-  [1] = EC_DYNAMIC_PRESET_DEFAULT,
+  [1] = EC_DYNAMIC_PRESET_PERC(10, 10, 10),
   // EC Preset 2 🟨 - none-alphas
   [2] = EC_DYNAMIC_PRESET_DEFAULT,
   // EC Preset 3 🟧 - mods
@@ -59,11 +59,11 @@ const ec_preset_t PROGMEM ec_presets_default[EC_NUM_PRESETS] = {
   // EC Preset 4 🟥 - little finger home,Ctrl/HHKB fn
   [4] = EC_STATIC_PRESET_DEFAULT,
   // EC Preset 5 🟦 - enter key
-  [5] = EC_DYNAMIC_PRESET_DEFAULT,
+  [5] = EC_DYNAMIC_PRESET_PERC(20, 20, 15),
   // EC Preset 6 🟪 - spacebar
-  [6] = EC_DYNAMIC_PRESET_DEFAULT,
+  [6] = EC_DYNAMIC_PRESET_PERC(20, 20, 15),
   // EC Preset 7 ⬛️ - prevent mistouch
-  [7] = EC_STATIC_PRESET(EC_SCALE_RANGE * 3 / 5, EC_SCALE_RANGE * 3 / 5),
+  [7] = EC_STATIC_PRESET_PERC(60, 30),
 };
 // clang-format on
 
