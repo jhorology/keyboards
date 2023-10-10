@@ -20,16 +20,16 @@ static deferred_token send_data_token;  // defer_exec token
 
 // if defined in ec_60/config.h or ec_60/keymaps/<keymap name>/config.h
 
-static uint8_t get_preset_index(uint8_t row, uint8_t col);
+static uint8_t get_key_preset_index(uint8_t row, uint8_t col);
 static int is_eeprom_valid(void);
 static int is_preset_valid(ec_preset_t* preset);
+static void update_key(ec_key_config_t* key, ec_preset_t* preset, uint16_t bottoming);
 static void defer_eeprom_update_preset(uint8_t preset_index);
 static void update_matrix(uint8_t preset_index);
-static ec_preset_t* get_preset_key(uint8_t row, uint8_t col);
+static ec_preset_t* get_key_preset(uint8_t row, uint8_t col);
 static ec_preset_t* get_preset(uint8_t preset_index);
 static uint32_t send_calibration_data_cb(uint32_t trigger_time, void* cb_arg);
 static uint32_t send_presets_cb(uint32_t trigger_time, void* cb_arg);
-static uint32_t send_preset_map_cb(uint32_t trigger_time, void* cb_arg);
 #ifdef EC_DEBUG
 static uint32_t debug_send_config_cb(uint32_t trigger_time, void* cb_arg);
 #endif /* EC_DEBUG  */
@@ -38,26 +38,21 @@ static uint32_t debug_send_config_cb(uint32_t trigger_time, void* cb_arg);
 #define KEY_THRESHOLD(noise_floor, bottoming, x) (KEY_TRAVEL(noise_floor, bottoming, x) + noise_floor)
 
 void ec_config_reset(void) {
+  ec_preset_t preset_default = EC_STATIC_PRESET_DEFAULT;
   // Default values
   for (uint8_t preset_index = 0; preset_index < EC_NUM_PRESETS; preset_index++) {
     ec_preset_t* preset = get_preset(preset_index);
     // I don't want to lose presets for each update firmware
     memcpy_P(preset, &ec_presets_default[preset_index], sizeof(ec_preset_t));
     if (is_preset_valid(preset) != 0) {
-      preset->actuation_mode = EC_ACTUATION_MODE_STATIC;
-      preset->release_mode = EC_RELEASE_MODE_STATIC;
-      preset->actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT;
-      preset->release_threshold = EC_RELEASE_THRESHOLD_DEFAULT;
-      preset->actuation_travel = EC_ACTUATION_TRAVEL_DEFAULT;
-      preset->release_travel = EC_RELEASE_TRAVEL_DEFAULT;
-      preset->deadzone = EC_DEADZONE_DEFAULT;
+      ec_eeprom_config.presets[preset_index] = preset_default;
     }
   }
   MATRIX_LOOP(ec_eeprom_config.bottoming_reading[row][col] = pgm_read_word(&ec_bottoming_reading_default[row][col]);)
 
   memcpy_P(&ec_eeprom_config.bottoming_reading[0][0], &ec_bottoming_reading_default[0][0],
            MATRIX_ROWS * MATRIX_COLS * 2);
-  ec_eeprom_config.preset_map = 0;
+  ec_eeprom_config.selected_preset_map_index = 0;
 
   // Write default value to EEPROM now
   eeprom_update_block(&ec_eeprom_config, (void*)VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR, sizeof(ec_eeprom_config_t));
@@ -79,40 +74,7 @@ void ec_config_init(void) {
 }
 
 void ec_config_update_key(uint8_t row, uint8_t col) {
-  ec_preset_t* preset = get_preset_key(row, col);
-  ec_key_config_t* key = &ec_config_keys[row][col];
-  uint16_t bottoming = ec_eeprom_config.bottoming_reading[row][col];
-  uint8_t prev_actuation_mode = key->actuation_mode;
-  uint8_t prev_release_mode = key->release_mode;
-  // actuation
-  key->actuation_mode = preset->actuation_mode;
-  switch (preset->actuation_mode) {
-    case EC_ACTUATION_MODE_STATIC:
-      key->actuation_reference = KEY_THRESHOLD(key->noise_floor, bottoming, preset->actuation_threshold);
-      break;
-    case EC_ACTUATION_MODE_DYNAMIC:
-      key->actuation_reference = KEY_TRAVEL(key->noise_floor, bottoming, preset->actuation_travel);
-      break;
-  }
-  // release
-  key->release_mode = preset->release_mode;
-  switch (preset->release_mode) {
-    case EC_RELEASE_MODE_STATIC:
-      key->release_reference = KEY_THRESHOLD(key->noise_floor, bottoming, preset->release_threshold);
-      break;
-    case EC_RELEASE_MODE_DYNAMIC:
-      key->release_reference = KEY_TRAVEL(key->noise_floor, bottoming, preset->release_travel);
-      break;
-  }
-  // deadzone
-  key->deadzone = KEY_THRESHOLD(key->noise_floor, bottoming, preset->deadzone);
-
-  if (prev_actuation_mode != preset->actuation_mode || prev_release_mode != preset->release_mode) {
-    key->extremum = key->noise_floor;
-  }
-  if (key->extremum < key->deadzone) {
-    key->extremum = key->deadzone;
-  }
+  update_key(&ec_config_keys[row][col], get_key_preset(row, col), ec_eeprom_config.bottoming_reading[row][col]);
 }
 
 void ec_config_set_actuation_mode(uint8_t preset_index, ec_actuation_mode_t actuation_mode) {
@@ -167,6 +129,7 @@ void ec_config_set_release_travel(uint8_t preset_index, uint16_t release_travel)
     defer_eeprom_update_preset(preset_index);
   }
 }
+
 void ec_config_set_deadzone(uint8_t preset_index, uint16_t deadzone) {
   ec_preset_t* preset = get_preset(preset_index);
   if (preset->deadzone != deadzone) {
@@ -176,11 +139,47 @@ void ec_config_set_deadzone(uint8_t preset_index, uint16_t deadzone) {
   }
 }
 
+void ec_config_set_sub_action_enable(uint8_t preset_index, bool enable) {
+  ec_preset_t* preset = get_preset(preset_index);
+  if (preset->sub_action_enable != enable) {
+    preset->sub_action_enable = enable;
+    update_matrix(preset_index);
+    defer_eeprom_update_preset(preset_index);
+  }
+}
+
+void ec_config_set_sub_action_keycode(uint8_t preset_index, uint16_t keycode) {
+  ec_preset_t* preset = get_preset(preset_index);
+  if (preset->sub_action_keycode != keycode) {
+    preset->sub_action_keycode = keycode;
+    update_matrix(preset_index);
+    defer_eeprom_update_preset(preset_index);
+  }
+}
+
+void ec_config_set_sub_action_actuation_threshold(uint8_t preset_index, uint16_t actuation_threshold) {
+  ec_preset_t* preset = get_preset(preset_index);
+  if (preset->sub_action_actuation_threshold != actuation_threshold) {
+    preset->sub_action_actuation_threshold = actuation_threshold;
+    update_matrix(preset_index);
+    defer_eeprom_update_preset(preset_index);
+  }
+}
+
+void ec_config_set_sub_action_release_threshold(uint8_t preset_index, uint16_t release_threshold) {
+  ec_preset_t* preset = get_preset(preset_index);
+  if (preset->sub_action_release_threshold != release_threshold) {
+    preset->sub_action_release_threshold = release_threshold;
+    update_matrix(preset_index);
+    defer_eeprom_update_preset(preset_index);
+  }
+}
+
 void ec_config_set_preset_map(uint8_t preset_map_index) {
-  if (ec_eeprom_config.preset_map != preset_map_index) {
-    ec_eeprom_config.preset_map = preset_map_index;
+  if (ec_eeprom_config.selected_preset_map_index != preset_map_index) {
+    ec_eeprom_config.selected_preset_map_index = preset_map_index;
     MATRIX_LOOP(ec_config_update_key(row, col);)
-    eeprom_update_word((void*)EC_VIA_EEPROM_PRESET_MAP, ec_eeprom_config.preset_map);
+    eeprom_update_word((void*)EC_VIA_EEPROM_PRESET_MAP, ec_eeprom_config.selected_preset_map_index);
   }
 }
 
@@ -208,8 +207,6 @@ void ec_config_send_calibration_data(uint32_t delay_ms) {
 
 void ec_config_send_presets(uint32_t delay_ms) { send_data_token = defer_exec(delay_ms, &send_presets_cb, NULL); }
 
-void ec_config_send_preset_map(uint32_t delay_ms) { send_data_token = defer_exec(delay_ms, &send_preset_map_cb, NULL); }
-
 #ifdef EC_DEBUG
 void ec_config_debug_send_config(uint32_t delay_ms) {
   send_data_token = defer_exec(delay_ms, &debug_send_config_cb, NULL);
@@ -220,8 +217,8 @@ void ec_config_debug_send_config(uint32_t delay_ms) {
 // sttatic routines
 //-----------------------------------------------------
 
-static uint8_t get_preset_index(uint8_t row, uint8_t col) {
-  uint16_t keycode = dynamic_keymap_get_keycode(EC_PRESET_MAP(ec_eeprom_config.preset_map), row, col);
+static uint8_t get_key_preset_index(uint8_t row, uint8_t col) {
+  uint16_t keycode = dynamic_keymap_get_keycode(EC_PRESET_MAP(ec_eeprom_config.selected_preset_map_index), row, col);
   if (keycode >= EC_PRESET_START && keycode <= EC_PRESET_END) {
     return keycode - EC_PRESET_START;
   }
@@ -236,8 +233,49 @@ static int is_eeprom_valid(void) {
   }
   MATRIX_LOOP_WITH_KEY(if (ec_eeprom_config.bottoming_reading[row][col] <= key->noise_floor ||
                            ec_eeprom_config.bottoming_reading[row][col] > 0xfff) return -9;)
-  if (ec_eeprom_config.preset_map >= EC_NUM_PRESET_MAPS) return -10;
+  if (ec_eeprom_config.selected_preset_map_index >= EC_NUM_PRESET_MAPS) return -10;
   return 0;
+}
+
+static void update_key(ec_key_config_t* key, ec_preset_t* preset, uint16_t bottoming) {
+  uint8_t prev_actuation_mode = key->actuation_mode;
+  uint8_t prev_release_mode = key->release_mode;
+  // actuation
+  key->actuation_mode = preset->actuation_mode;
+  switch (preset->actuation_mode) {
+    case EC_ACTUATION_MODE_STATIC:
+      key->actuation_reference = KEY_THRESHOLD(key->noise_floor, bottoming, preset->actuation_threshold);
+      break;
+    case EC_ACTUATION_MODE_DYNAMIC:
+      key->actuation_reference = KEY_TRAVEL(key->noise_floor, bottoming, preset->actuation_travel);
+      break;
+  }
+  // release
+  key->release_mode = preset->release_mode;
+  switch (preset->release_mode) {
+    case EC_RELEASE_MODE_STATIC:
+      key->release_reference = KEY_THRESHOLD(key->noise_floor, bottoming, preset->release_threshold);
+      break;
+    case EC_RELEASE_MODE_DYNAMIC:
+      key->release_reference = KEY_TRAVEL(key->noise_floor, bottoming, preset->release_travel);
+      break;
+  }
+  // deadzone
+  key->deadzone = KEY_THRESHOLD(key->noise_floor, bottoming, preset->deadzone);
+
+  // sub action
+  key->sub_action_keycode = preset->sub_action_enable ? preset->sub_action_keycode : KC_NO;
+  key->sub_action_actuation_threshold =
+    KEY_THRESHOLD(key->noise_floor, bottoming, preset->sub_action_actuation_threshold);
+  key->sub_action_release_threshold = KEY_THRESHOLD(key->noise_floor, bottoming, preset->sub_action_release_threshold);
+
+  // reset extremum
+  if (prev_actuation_mode != preset->actuation_mode || prev_release_mode != preset->release_mode) {
+    key->extremum = key->noise_floor;
+  }
+  if (key->extremum < key->deadzone) {
+    key->extremum = key->deadzone;
+  }
 }
 
 static int is_preset_valid(ec_preset_t* preset) {
@@ -248,11 +286,13 @@ static int is_preset_valid(ec_preset_t* preset) {
   if (preset->actuation_travel > (EC_SCALE_RANGE >> 1)) return -5;
   if (preset->release_travel > (EC_SCALE_RANGE >> 1)) return -6;
   if (preset->deadzone > (EC_SCALE_RANGE >> 1)) return -7;
+  if (preset->sub_action_actuation_threshold > EC_SCALE_RANGE) return -8;
+  if (preset->sub_action_release_threshold > EC_SCALE_RANGE) return -9;
 
   // EC_PRESETS_DEFAUL_USER may not have bean defined all presets.
   if (preset->actuation_threshold == 0 && preset->actuation_travel == 0 && preset->release_threshold == 0 &&
       preset->release_travel == 0 && preset->deadzone == 0) {
-    return -8;
+    return -10;
   }
   return 0;
 }
@@ -262,9 +302,16 @@ static void defer_eeprom_update_preset(uint8_t preset_index) {
                             (void*)(EC_VIA_EEPROM_PRESETS + sizeof(ec_preset_t) * preset_index), sizeof(ec_preset_t));
 }
 
-static void update_matrix(uint8_t preset_index) { MATRIX_LOOP(ec_config_update_key(row, col);) }
+static void update_matrix(uint8_t preset_index) {
+  MATRIX_LOOP_WITH_KEY(                                         //
+    uint8_t key_preset_index = get_key_preset_index(row, col);  //
+    if (preset_index == key_preset_index) {
+      update_key(key, get_preset(preset_index), ec_eeprom_config.bottoming_reading[row][col]);
+    }  //
+  )
+}
 
-static ec_preset_t* get_preset_key(uint8_t row, uint8_t col) { return get_preset(get_preset_index(row, col)); }
+static ec_preset_t* get_key_preset(uint8_t row, uint8_t col) { return get_preset(get_key_preset_index(row, col)); }
 
 static ec_preset_t* get_preset(uint8_t preset_index) { return &(ec_eeprom_config.presets[preset_index]); }
 
@@ -293,22 +340,11 @@ static uint32_t send_calibration_data_cb(uint32_t trigger_time, void* cb_arg) {
   return 0;
 }
 
-static void send_preset_value(char* name, uint16_t value, uint16_t defaultValue) {
+static void send_preset_value(char* name, uint16_t value) {
   send_string(", \n.");
   send_string(name);
-  send_string(" = ");
-  if (value == defaultValue) {
-    send_string("EC_");
-    for (char* p = name; *p; p++) {
-      char c = *p;
-      if (*p >= 'a' && *p <= 'z') c -= 0x20;
-      send_char(c);
-    }
-    send_string("_DEFAULT");
-  } else {
-    send_string("0x");
-    send_word(value);
-  }
+  send_string(" = 0x");
+  send_word(value);
 }
 
 static uint32_t send_presets_cb(uint32_t trigger_time, void* cb_arg) {
@@ -321,13 +357,16 @@ static uint32_t send_presets_cb(uint32_t trigger_time, void* cb_arg) {
     send_string("] = {");
     send_string(" \n.actuation_mode = EC_ACTUATION_MODE_");
     send_string(preset->actuation_mode == 0 ? "STATIC" : "DYNAMIC");
-    send_preset_value("actuation_threshold", preset->actuation_threshold, EC_ACTUATION_THRESHOLD_DEFAULT);
-    send_preset_value("actuation_travel", preset->actuation_travel, EC_ACTUATION_TRAVEL_DEFAULT);
+    send_preset_value("actuation_threshold", preset->actuation_threshold);
+    send_preset_value("actuation_travel", preset->actuation_travel);
     send_string(", \n.release_mode = EC_RELEASE_MODE_");
     send_string(preset->release_mode == 0 ? "STATIC" : "DYNAMIC");
-    send_preset_value("release_threshold", preset->release_threshold, EC_RELEASE_THRESHOLD_DEFAULT);
-    send_preset_value("release_travel", preset->release_travel, EC_RELEASE_TRAVEL_DEFAULT);
-    send_preset_value("deadzone", preset->deadzone, EC_DEADZONE_DEFAULT);
+    send_preset_value("release_threshold", preset->release_threshold);
+    send_preset_value("release_travel", preset->release_travel);
+    send_preset_value("deadzone", preset->deadzone);
+    send_preset_value("sub_action_keycode", preset->sub_action_keycode);
+    send_preset_value("sub_action_actuation_threshold", preset->sub_action_actuation_threshold);
+    send_preset_value("sub_action_release_threshold", preset->sub_action_release_threshold);
     if (preset_index < (EC_NUM_PRESETS - 1)) {
       send_string(" \n},");
     } else {
@@ -336,11 +375,6 @@ static uint32_t send_presets_cb(uint32_t trigger_time, void* cb_arg) {
     wait_ms(50);
   }
   send_string(" \n};\n// clang-format on\n");
-  return 0;
-}
-
-static uint32_t send_preset_map_cb(uint32_t trigger_time, void* cb_arg) {
-  // TODO matrix/keymap conversion
   return 0;
 }
 
@@ -459,8 +493,8 @@ static uint32_t debug_send_config_cb(uint32_t trigger_time, void* cb_arg) {
   }
   send_string("],\nbottoming_reading: ");
   _send_matrix_array(_bottoming_reading);
-  send_string(",\npreset_map: ");
-  send_nibble(ec_eeprom_config.preset_map);
+  send_string(",\nselected_preset_map_index: ");
+  send_nibble(ec_eeprom_config.selected_preset_map_index);
   // end eepro_ec_config
   send_string("\n}");
 

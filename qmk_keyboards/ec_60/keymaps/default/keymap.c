@@ -49,85 +49,21 @@ const uint16_t PROGMEM ec_bottoming_reading_default[MATRIX_ROWS][MATRIX_COLS] = 
 // clang-format off
 const ec_preset_t PROGMEM ec_presets_default[EC_NUM_PRESETS] = {
   // EC Preset 0 ⬜️ - default
-  [0] = {
-    .actuation_mode = EC_ACTUATION_MODE_STATIC,
-    .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT,
-    .actuation_travel =  EC_ACTUATION_TRAVEL_DEFAULT,
-    .release_mode = EC_RELEASE_MODE_STATIC,
-    .release_threshold = EC_RELEASE_THRESHOLD_DEFAULT,
-    .release_travel = EC_RELEASE_TRAVEL_DEFAULT,
-    .deadzone = EC_DEADZONE_DEFAULT
-  },
+  [0] = EC_STATIC_PRESET_DEFAULT,
   // EC Preset 1 🟩 - alphas
-  [1] = {
-    .actuation_mode = EC_ACTUATION_MODE_DYNAMIC,
-    .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT,
-    .actuation_travel = 128,
-    .release_mode = EC_RELEASE_MODE_DYNAMIC,
-    .release_threshold = EC_RELEASE_THRESHOLD_DEFAULT,
-    .release_travel = 128,
-    .deadzone = 112
-  },
+  [1] = EC_DYNAMIC_PRESET_DEFAULT,
   // EC Preset 2 🟨 - none-alphas
-  [2] = {
-    .actuation_mode = EC_ACTUATION_MODE_STATIC,
-    .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT,
-    .actuation_travel =  EC_ACTUATION_TRAVEL_DEFAULT,
-    .release_mode = EC_RELEASE_MODE_STATIC,
-    .release_threshold = EC_RELEASE_THRESHOLD_DEFAULT,
-    .release_travel = EC_RELEASE_TRAVEL_DEFAULT,
-    .deadzone = EC_DEADZONE_DEFAULT
-  },
+  [2] = EC_DYNAMIC_PRESET_DEFAULT,
   // EC Preset 3 🟧 - mods
-  [3] = {
-    .actuation_mode = EC_ACTUATION_MODE_STATIC,
-    .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT,
-    .actuation_travel =  EC_ACTUATION_TRAVEL_DEFAULT,
-    .release_mode = EC_RELEASE_MODE_STATIC,
-    .release_threshold = EC_RELEASE_THRESHOLD_DEFAULT,
-    .release_travel = EC_RELEASE_TRAVEL_DEFAULT,
-    .deadzone = EC_DEADZONE_DEFAULT
-  },
+  [3] = EC_DYNAMIC_PRESET_DEFAULT,
   // EC Preset 4 🟥 - little finger home,Ctrl/HHKB fn
-  [4] = {
-    .actuation_mode = EC_ACTUATION_MODE_STATIC,
-    .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT,
-    .actuation_travel =  EC_ACTUATION_TRAVEL_DEFAULT,
-    .release_mode = EC_RELEASE_MODE_STATIC,
-    .release_threshold = EC_RELEASE_THRESHOLD_DEFAULT,
-    .release_travel = EC_RELEASE_TRAVEL_DEFAULT,
-    .deadzone = EC_DEADZONE_DEFAULT
-  },
+  [4] = EC_STATIC_PRESET_DEFAULT,
   // EC Preset 5 🟦 - enter key
-  [5] = {
-    .actuation_mode = EC_ACTUATION_MODE_STATIC,
-    .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT,
-    .actuation_travel =  EC_ACTUATION_TRAVEL_DEFAULT,
-    .release_mode = EC_RELEASE_MODE_STATIC,
-    .release_threshold = EC_RELEASE_THRESHOLD_DEFAULT,
-    .release_travel = EC_RELEASE_TRAVEL_DEFAULT,
-    .deadzone = EC_DEADZONE_DEFAULT
-  },
+  [5] = EC_DYNAMIC_PRESET_DEFAULT,
   // EC Preset 6 🟪 - spacebar
-  [6] = {
-    .actuation_mode = EC_ACTUATION_MODE_STATIC,
-    .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT,
-    .actuation_travel =  EC_ACTUATION_TRAVEL_DEFAULT,
-    .release_mode = EC_RELEASE_MODE_STATIC,
-    .release_threshold = EC_RELEASE_THRESHOLD_DEFAULT,
-    .release_travel = EC_RELEASE_TRAVEL_DEFAULT,
-    .deadzone = EC_DEADZONE_DEFAULT
-  },
+  [6] = EC_DYNAMIC_PRESET_DEFAULT,
   // EC Preset 7 ⬛️ - prevent mistouch
-  [7] = {
-    .actuation_mode = EC_ACTUATION_MODE_STATIC,
-    .actuation_threshold = EC_ACTUATION_THRESHOLD_DEFAULT + 160,
-    .actuation_travel =  EC_ACTUATION_TRAVEL_DEFAULT,
-    .release_mode = EC_RELEASE_MODE_STATIC,
-    .release_threshold = EC_RELEASE_THRESHOLD_DEFAULT,
-    .release_travel = EC_RELEASE_TRAVEL_DEFAULT,
-    .deadzone = EC_DEADZONE_DEFAULT
-  }
+  [7] = EC_STATIC_PRESET(EC_SCALE_RANGE * 3 / 5, EC_SCALE_RANGE * 3 / 5),
 };
 // clang-format on
 
@@ -162,7 +98,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   // row 3: normal settings, +shift key for unusual reversed setting
   [3] = LAYOUT_60_tsangan(
     QK_BOOT, KC_F13,  KC_F14,  KC_F15,  KC_F16,  KC_F17,  KC_F18,  KC_F19,  KC_F20,  KC_F21,  KC_F22,  KC_F23,  KC_F24,  _______, TERM_LCK,
-    _______, EC_CALD, EC_PSET, EC_PMAP, _EC_DBG0,_EC_DBG1,_______, _______, _______, _______, _______, _______, TEST_OS,          _______,
+    _______, EC_CALD, EC_PSET, _______, _EC_DBG0,_EC_DBG1,_______, _______, _______, _______, _______, _______, TEST_OS,          _______,
     _______, ECM(0),  ECM(1),  ECM(2),  ECM(3),  _______, _______, _______, _______, _______, _______, _______,                   _______,
     _______,          RHID_OFF,AUT_ON,  MAC_ON,  USJ_OFF, NK_ON,   CL_NORM, AG_NORM, BS_NORM, _______, _______,          _______, _______,
     _______, _______, _______,                            _______,                                              _______, _______, _______

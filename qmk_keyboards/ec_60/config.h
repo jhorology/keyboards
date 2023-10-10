@@ -48,30 +48,23 @@
 #define DISCHARGE_TIME 10
 #define NOISE_FLOOR_SAMPLING_COUNT 30
 
-// 0 | 100% 10bit
-#define EC_SCALE_RANGE 0x3ff
-
-#define EC_ACTUATION_THRESHOLD_DEFAULT (EC_SCALE_RANGE >> 1)
-#define EC_RELEASE_THRESHOLD_DEFAULT ((EC_SCALE_RANGE >> 1) - (EC_SCALE_RANGE >> 3))
-#define EC_ACTUATION_TRAVEL_DEFAULT (EC_SCALE_RANGE / 5)
-#define EC_RELEASE_TRAVEL_DEFAULT (EC_SCALE_RANGE / 5)
-#define EC_DEADZONE_DEFAULT (EC_SCALE_RANGE / 5)
 #define EC_BOTTOMING_READING_DEFAULT 1023
 #define EC_BOOTMAGIC_LITE_THRESHOLD 0x180
 
+// must be numeric definition for via_json_generator ------>
+
+// Total Travel resolutoion 0 | 100% 10bit
+#define EC_SCALE_RANGE 1023
 // 2 - 16
-#define EC_NUM_PRESETS 8
+#define EC_NUM_PRESETS 16
 // 1 - 8
 #define EC_NUM_PRESET_MAPS 4
-
 // keymap * 4 + EC preset map * 4
 #define DYNAMIC_KEYMAP_LAYER_COUNT 8
-
-/* use calibrated bottming value as default */
-#define ENABLE_CALIBRATED_BOTTOMING_READING
-
-// #define VIA_EC_CUSTOM_CHANNEL_ID id_custom_channel_user_range
+// via custtom command channnel id
 #define EC_VIA_CUSTOM_CHANNEL_ID_START 16
+
+//<------  must be numeric for via_json_generator
 
 /* increase eeprom size */
 #define WEAR_LEVELING_LOGICAL_SIZE 8192
@@ -82,13 +75,18 @@
 
 /* ViA EEPROM */
 #undef VIA_EEPROM_CUSTOM_CONFIG_SIZE
+
 /*
-  preset 4byte * EC_NUM_PRESETS
-  preset_map 4bit * matrix
-  bottoming_reading 2byte * matrix
+typedef struct {
+  ec_preset_t presets[EC_NUM_PRESETS];
+  uint16_t bottoming_reading[MATRIX_ROWS][MATRIX_COLS];
+  uint8_t selected_preset_map_index : 3;  // 0 - 7
+  uint16_t reserved_0 : 13;
+} __attribute__((packed)) ec_eeprom_config_t;
 */
+#define VIA_EC_PRESET_SIZE 12
 #define VIA_EEPROM_CUSTOM_CONFIG_SIZE \
-  (VIA_EEPROM_CUSTOM_CONFIG_COMMON_SIZE + EC_NUM_PRESETS * 8 + MATRIX_COLS * MATRIX_ROWS * 2 + 2)
+  (VIA_EEPROM_CUSTOM_CONFIG_COMMON_SIZE + EC_NUM_PRESETS * VIA_EC_PRESET_SIZE + MATRIX_COLS * MATRIX_ROWS * 2 + 2)
 
 /* ViA layout options */
 /*  7 bit */

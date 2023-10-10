@@ -15,9 +15,6 @@
  */
 #include "via_custom_menus.h"
 
-#ifdef CONSOLE_ENABLE
-#  include <print.h>
-#endif
 #include <eeprom.h>
 
 #include "apple_fn.h"
@@ -42,68 +39,89 @@ typedef struct {
   deferred_token token;  // defer_exec token
 } defer_eeprom_update_item_t;
 
-__attribute__((weak)) bool via_custom_value_command_user(uint8_t *data, uint8_t length) { return true; }
+__attribute__((weak)) bool via_custom_value_command_user(via_custom_command_t *command) { return true; }
 
 static defer_eeprom_update_item_t defer_eeprom_update_items[DEFER_EEPROM_UPDATE_ITEM_SIZE];
+
+static void via_custom_magic_get_value(via_custom_command_t *command);
+static void via_custom_magic_set_value(via_custom_command_t *command);
+#ifdef RADIAL_CONTROLLER_ENABLE
+static void via_custom_rc_get_value(via_custom_command_t *command);
+static void via_custom_rc_set_value(via_custom_command_t *command);
+#endif
+static void via_custom_td_get_value(via_custom_command_t *command);
+static void via_custom_td_set_value(via_custom_command_t *command);
+
+static void via_custom_non_mac_fn_get_value(via_custom_command_t *command);
+static void via_custom_non_mac_fn_set_value(via_custom_command_t *command);
 
 static void defer_eeprom_update(uint16_t id, defer_eeprom_update_value_type_t value_type, void *eeprom_adrs,
                                 uint32_t value, void *block_adrs, size_t block_size);
 static uint32_t defer_eeprom_update_callback(uint32_t trigger_time, defer_eeprom_update_item_t *item);
 
+static inline uint8_t via_readUInt8(via_custom_command_t *command) { return command->data[0]; }
+static inline void via_writeUInt8(via_custom_command_t *command, uint8_t value) { command->data[0] = value; }
+static inline uint16_t via_readUInt16BE(via_custom_command_t *command) {
+  return ((uint16_t)(command->data[0]) << 8) + command->data[1];
+}
+static inline void via_writeUInt16BE(via_custom_command_t *command, uint16_t value) {
+  command->data[0] = value >> 8;
+  command->data[1] = value & 0xff;
+}
+
 // VIA custom hook function
 void via_custom_value_command_kb(uint8_t *data, uint8_t length) {
+  via_custom_command_t command = VIA_CUSTOM_COMMAND(data);
   // data = [ command_id, channel_id, value_id, value_data ]
-  switch (data[1]) {
+  switch (command.channel_id) {
     case id_custom_magic_channel:
-      switch (data[0]) {
+      switch (command.command_id) {
         case id_custom_set_value:
-          via_custom_magic_set_value(data[2], &(data[3]));
+          via_custom_magic_set_value(&command);
           return;
         case id_custom_get_value:
-          via_custom_magic_get_value(data[2], &(data[3]));
+          via_custom_magic_get_value(&command);
           return;
         case id_custom_save:
           return;
       }
 #ifdef RADIAL_CONTROLLER_ENABLE
     case id_custom_rc_channel:
-      switch (data[0]) {
+      switch (command.command_id) {
         case id_custom_set_value:
-          via_custom_rc_set_value(data[2], &(data[3]));
+          via_custom_rc_set_value(&command);
           return;
         case id_custom_get_value:
-          via_custom_rc_get_value(data[2], &(data[3]));
+          via_custom_rc_get_value(&command);
           return;
         case id_custom_save:
-          via_custom_rc_save();
           return;
       }
 #endif
     case id_custom_td_channel_start ... id_custom_td_channel_end:
       switch (data[0]) {
         case id_custom_set_value:
-          via_custom_td_set_value(data[1] - id_custom_td_channel_start, data[2], &(data[3]));
+          via_custom_td_set_value(&command);
           return;
         case id_custom_get_value:
-          via_custom_td_get_value(data[1] - id_custom_td_channel_start, data[2], &(data[3]));
+          via_custom_td_get_value(&command);
           return;
         case id_custom_save:
-          via_custom_td_save(data[1] - id_custom_td_channel_start);
           return;
       }
     case id_custom_non_mac_fn_channel:
       switch (data[0]) {
         case id_custom_set_value:
-          via_custom_non_mac_fn_set_value(data[2], &(data[3]));
+          via_custom_non_mac_fn_set_value(&command);
           return;
         case id_custom_get_value:
-          via_custom_non_mac_fn_get_value(data[2], &(data[3]));
+          via_custom_non_mac_fn_get_value(&command);
           return;
         case id_custom_save:
           return;
       }
     default:
-      if (!via_custom_value_command_user(data, length)) {
+      if (!via_custom_value_command_user(&command)) {
         return;
       }
   }
@@ -113,80 +131,81 @@ void via_custom_value_command_kb(uint8_t *data, uint8_t length) {
 
 // QMK Magic menu
 
-void via_custom_magic_get_value(uint8_t value_id, uint8_t *value_data) {
+static void via_custom_magic_get_value(via_custom_command_t *command) {
   keymap_config.raw = eeconfig_read_keymap();
-  switch (value_id) {
+  switch (command->value_id) {
     case id_custom_magic_swap_control_capslock:
-      value_data[0] = keymap_config.swap_control_capslock;
+      via_write_toggle_value(command, keymap_config.swap_control_capslock);
       break;
     case id_custom_magic_swap_escape_capslock:
-      value_data[0] = keymap_config.swap_escape_capslock;
+      via_write_toggle_value(command, keymap_config.swap_escape_capslock);
       break;
     case id_custom_magic_capslock_to_control:
-      value_data[0] = keymap_config.capslock_to_control;
+      via_write_toggle_value(command, keymap_config.capslock_to_control);
       break;
     case id_custom_magic_swap_lctl_lgui:
-      value_data[0] = keymap_config.swap_lctl_lgui;
+      via_write_toggle_value(command, keymap_config.swap_lctl_lgui);
       break;
     case id_custom_magic_swap_rctl_rgui:
-      value_data[0] = keymap_config.swap_rctl_rgui;
+      via_write_toggle_value(command, keymap_config.swap_rctl_rgui);
       break;
     case id_custom_magic_swap_lalt_lgui:
-      value_data[0] = keymap_config.swap_lalt_lgui;
+      via_write_toggle_value(command, keymap_config.swap_lalt_lgui);
       break;
     case id_custom_magic_swap_ralt_rgui:
-      value_data[0] = keymap_config.swap_ralt_rgui;
+      via_write_toggle_value(command, keymap_config.swap_ralt_rgui);
       break;
     case id_custom_magic_no_gui:
-      value_data[0] = keymap_config.no_gui;
+      via_write_toggle_value(command, keymap_config.no_gui);
       break;
     case id_custom_magic_swap_grave_esc:
-      value_data[0] = keymap_config.swap_grave_esc;
+      via_write_toggle_value(command, keymap_config.swap_grave_esc);
       break;
     case id_custom_magic_host_nkro:
-      value_data[0] = keymap_config.nkro;
+      via_write_toggle_value(command, keymap_config.nkro);
       break;
     case id_custom_magic_swap_bs_bsls:
-      value_data[0] = keymap_config.swap_backslash_backspace;
+      via_write_toggle_value(command, keymap_config.swap_backslash_backspace);
       break;
   }
 }
 
-void via_custom_magic_set_value(uint8_t value_id, uint8_t *value_data) {
+static void via_custom_magic_set_value(via_custom_command_t *command) {
   keymap_config.raw = eeconfig_read_keymap();
-  switch (value_id) {
+  bool value = via_read_toggle_value(command);
+  switch (command->value_id) {
     case id_custom_magic_swap_control_capslock:
-      keymap_config.swap_control_capslock = value_data[0];
+      keymap_config.swap_control_capslock = value;
       break;
     case id_custom_magic_swap_escape_capslock:
-      keymap_config.swap_escape_capslock = value_data[0];
+      keymap_config.swap_escape_capslock = value;
       break;
     case id_custom_magic_capslock_to_control:
-      keymap_config.capslock_to_control = value_data[0];
+      keymap_config.capslock_to_control = value;
       break;
     case id_custom_magic_swap_lctl_lgui:
-      keymap_config.swap_lctl_lgui = value_data[0];
+      keymap_config.swap_lctl_lgui = value;
       break;
     case id_custom_magic_swap_rctl_rgui:
-      keymap_config.swap_rctl_rgui = value_data[0];
+      keymap_config.swap_rctl_rgui = value;
       break;
     case id_custom_magic_swap_lalt_lgui:
-      keymap_config.swap_lalt_lgui = value_data[0];
+      keymap_config.swap_lalt_lgui = value;
       break;
     case id_custom_magic_swap_ralt_rgui:
-      keymap_config.swap_ralt_rgui = value_data[0];
+      keymap_config.swap_ralt_rgui = value;
       break;
     case id_custom_magic_no_gui:
-      keymap_config.no_gui = value_data[0];
+      keymap_config.no_gui = value;
       break;
     case id_custom_magic_swap_grave_esc:
-      keymap_config.swap_grave_esc = value_data[0];
+      keymap_config.swap_grave_esc = value;
       break;
     case id_custom_magic_host_nkro:
-      keymap_config.nkro = value_data[0];
+      keymap_config.nkro = value;
       break;
     case id_custom_magic_swap_bs_bsls:
-      keymap_config.swap_backslash_backspace = value_data[0];
+      keymap_config.swap_backslash_backspace = value;
       break;
   }
   eeconfig_update_keymap(keymap_config.raw);
@@ -196,158 +215,121 @@ void via_custom_magic_set_value(uint8_t value_id, uint8_t *value_data) {
 // Radial Controller menu
 
 #ifdef RADIAL_CONTROLLER_ENABLE
-void via_custom_rc_get_value(uint8_t value_id, uint8_t *value_data) {
-  switch (value_id) {
+static void via_custom_rc_get_value(via_custom_command_t *command) {
+  switch (command->value_id) {
     case id_custom_rc_encoder_clicks:
-      value_data[0] = rc_config.encoder_clicks;
+      via_write_dropdown_value(command, rc_config.encoder_clicks);
       break;
     case id_custom_rc_key_angular_speed:
-      value_data[0] = rc_config.key_angular_speed;
+      via_write_range_byte_value(command, rc_config.key_angular_speed);
       break;
     case id_custom_rc_fine_tune_ratio:
-      value_data[0] = rc_config.fine_tune_ratio;
+      via_write_dropdown_value(command, rc_config.fine_tune_ratio);
       break;
     case id_custom_rc_fine_tune_mod_ctrl ... id_custom_rc_fine_tune_mod_apple_fn:
-      value_data[0] = (rc_config.fine_tune_mods & (1 << (value_id - id_custom_rc_fine_tune_mod_ctrl))) ? 1 : 0;
+      via_write_toggle_value(
+        command, (rc_config.fine_tune_mods & (1 << (command->value_id - id_custom_rc_fine_tune_mod_ctrl))) ? 1 : 0);
       break;
   }
-#  ifdef CONSOLE_ENABLE
-  uprintf("via_custom_rc_get_value:value_id:%d value:%02X %02X\n", value_id, value_data[0], value_data[1]);
-#  endif
 }
 
-void via_custom_rc_set_value(uint8_t value_id, uint8_t *value_data) {
-  uint8_t mod_mask;
-#  ifdef CONSOLE_ENABLE
-  uprintf("via_custom_rc_set_value:value_id:%d value:%02X %02X\n", value_id, value_data[0], value_data[1]);
-#  endif
-  switch (value_id) {
+static void via_custom_rc_set_value(via_custom_command_t *command) {
+  switch (command->value_id) {
     case id_custom_rc_encoder_clicks:
-      rc_config.encoder_clicks = value_data[0];
+      rc_config.encoder_clicks = via_read_dropdown_value(command);
       break;
     case id_custom_rc_key_angular_speed:
-      rc_config.key_angular_speed = value_data[0];
+      rc_config.key_angular_speed = via_read_range_byte_value(command);
       break;
     case id_custom_rc_fine_tune_ratio:
-      rc_config.fine_tune_ratio = value_data[0];
+      rc_config.fine_tune_ratio = via_read_dropdown_value(command);
       break;
-    case id_custom_rc_fine_tune_mod_ctrl ... id_custom_rc_fine_tune_mod_apple_fn:
-      mod_mask = 1 << (value_id - id_custom_rc_fine_tune_mod_ctrl);
-      if (value_data[0]) {
+    case id_custom_rc_fine_tune_mod_ctrl ... id_custom_rc_fine_tune_mod_apple_fn: {
+      uint8_t mod_mask = 1 << (command->value_id - id_custom_rc_fine_tune_mod_ctrl);
+      if (via_read_toggle_value(command)) {
         rc_config.fine_tune_mods |= mod_mask;
       } else {
         rc_config.fine_tune_mods &= ~mod_mask;
       }
       break;
+    }
   }
   defer_eeprom_update_dword(id_custom_rc_channel, 0, (void *)RADIAL_CONTROLLER_EEPROM_ADDR, rc_config.raw);
 }
 
-void via_custom_rc_save() {
-#  ifdef CONSOLE_ENABLE
-  uprintf("via_custom_rc_save_value\n");
-#  endif
-}
 #endif  // RADIAL_CONTROLLER_ENABLE
 
 // Tap Dance menu
 
-void via_custom_td_get_value(uint8_t td_index, uint8_t value_id, uint8_t *value_data) {
-  uint16_t value;
-  switch (value_id) {
+static void via_custom_td_get_value(via_custom_command_t *command) {
+  uint8_t td_index = command->channel_id - id_custom_td_channel_start;
+  switch (command->value_id) {
     case id_custom_td_single_tap ... id_custom_td_tap_hold:
-      value = dynamic_tap_dance_keycode(td_index, value_id);
+      via_write_keycode_value(command, dynamic_tap_dance_keycode(td_index, command->value_id));
       break;
     case id_custom_td_tapping_term:
-      value = dynamic_tap_dance_tapping_term(td_index);
+      via_write_range_word_value(command, dynamic_tap_dance_tapping_term(td_index));
       break;
   }
-  // 16 bit BigEndian
-  value_data[0] = value >> 8;
-  value_data[1] = value & 0xff;
-#ifdef CONSOLE_ENABLE
-  uprintf("via_custom_td_get_value:td_index:%d value_id:%d value:%02X %02X\n", td_index, value_id, value_data[0],
-          value_data[1]);
-#endif
 }
 
-void via_custom_td_set_value(uint8_t td_index, uint8_t value_id, uint8_t *value_data) {
-  uint16_t *adrs = (uint16_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + 10 * td_index + (value_id - 1) * 2);
-#ifdef CONSOLE_ENABLE
-  uprintf("via_custom_td_set_value:td_index:%d value_id:%d value:%02X %02X\n", td_index, value_id, value_data[0],
-          value_data[1]);
-#endif
+static void via_custom_td_set_value(via_custom_command_t *command) {
+  uint8_t td_index = command->channel_id - id_custom_td_channel_start;
+  uint16_t *adrs = (uint16_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + 10 * td_index + (command->value_id - 1) * 2);
   if (td_index < TAP_DANCE_ENTRIES) {
-    switch (value_id) {
+    switch (command->value_id) {
       case id_custom_td_single_tap ... id_custom_td_tap_hold:
-        // 18bit BigEndian
-        eeprom_update_word(adrs, ((uint16_t)value_data[0] << 8) + value_data[1]);
+        eeprom_update_word(adrs, via_read_keycode_value(command));
         break;
       case id_custom_td_tapping_term:
-        // 16bit BigEndian
-        defer_eeprom_update_word(id_custom_td_channel_start + td_index, value_id, adrs,
-                                 ((uint16_t)value_data[0] << 8) + value_data[1]);
+        defer_eeprom_update_word(command->channel_id, command->value_id, adrs, via_read_range_word_value(command));
         break;
     }
   }
-}
-
-void via_custom_td_save(uint8_t td_index) {
-#ifdef CONSOLE_ENABLE
-  uprintf("via_custom_td_save:td_index:%d\n", td_index);
-#endif  // ONSOLE_ENABLE
 }
 
 // non-mac fn functions
 
-void via_custom_non_mac_fn_get_value(uint8_t value_id, uint8_t *value_data) {
-  switch (value_id) {
+static void via_custom_non_mac_fn_get_value(via_custom_command_t *command) {
+  switch (command->value_id) {
     case id_custom_non_mac_auto_detect:
-      value_data[0] = custom_config_auto_detect_is_enable();
+      via_write_toggle_value(command, custom_config_auto_detect_is_enable());
       break;
     case id_custom_non_mac_fn_fkey:
-      value_data[0] = custom_config_non_mac_fn_fkey_is_enable();
+      via_write_toggle_value(command, custom_config_non_mac_fn_fkey_is_enable());
       break;
     case id_custom_non_mac_fn_alpha:
-      value_data[0] = custom_config_non_mac_fn_alpha_is_enable();
+      via_write_toggle_value(command, custom_config_non_mac_fn_alpha_is_enable());
       break;
     case id_custom_non_mac_fn_cursor:
-      value_data[0] = custom_config_non_mac_fn_cursor_is_enable();
+      via_write_toggle_value(command, custom_config_non_mac_fn_cursor_is_enable());
       break;
     case id_custom_non_mac_fn_f1 ... id_custom_non_mac_fn_right: {
-      uint16_t keycode = dynamic_non_mac_fn_keycode(FN_F1 + (value_id - id_custom_non_mac_fn_f1));
-      // 16bit BigEndian
-      value_data[0] = keycode >> 8;
-      value_data[1] = keycode & 0xff;
+      via_write_keycode_value(command,
+                              dynamic_non_mac_fn_keycode(FN_F1 + (command->value_id - id_custom_non_mac_fn_f1)));
       break;
     }
   }
-#ifdef CONSOLE_ENABLE
-  uprintf("via_custom_non_mac_fn_get_value:value_id:%d value:%02X %02X\n", value_id, value_data[0], value_data[1]);
-#endif
 }
 
-void via_custom_non_mac_fn_set_value(uint8_t value_id, uint8_t *value_data) {
-#ifdef CONSOLE_ENABLE
-  uprintf("via_custom_non_mac_fn_set_value:value_id:%d value:%02X %02X\n", value_id, value_data[0], value_data[1]);
-#endif
-  switch (value_id) {
+static void via_custom_non_mac_fn_set_value(via_custom_command_t *command) {
+  switch (command->value_id) {
     case id_custom_non_mac_auto_detect:
-      custom_config_auto_detect_set_enable(value_data[0]);
+      custom_config_auto_detect_set_enable(via_read_toggle_value(command));
       break;
     case id_custom_non_mac_fn_fkey:
-      custom_config_non_mac_fn_set_fkey(value_data[0]);
+      custom_config_non_mac_fn_set_fkey(via_read_toggle_value(command));
       break;
     case id_custom_non_mac_fn_alpha:
-      custom_config_non_mac_fn_set_alpha(value_data[0]);
+      custom_config_non_mac_fn_set_alpha(via_read_toggle_value(command));
       break;
     case id_custom_non_mac_fn_cursor:
-      custom_config_non_mac_fn_set_cursor(value_data[0]);
+      custom_config_non_mac_fn_set_cursor(via_read_toggle_value(command));
       break;
     case id_custom_non_mac_fn_f1 ... id_custom_non_mac_fn_right:
-      // 16bit BigEndian
-      eeprom_update_word((uint16_t *)(DYNAMIC_NON_MAC_FN_EEPROM_ADDR + (value_id - id_custom_non_mac_fn_f1) * 2),
-                         ((uint16_t)value_data[0] << 8) + value_data[1]);
+      eeprom_update_word(
+        (uint16_t *)(DYNAMIC_NON_MAC_FN_EEPROM_ADDR + (command->value_id - id_custom_non_mac_fn_f1) * 2),
+        via_read_keycode_value(command));
       break;
   }
 }
@@ -430,6 +412,17 @@ static uint32_t defer_eeprom_update_callback(uint32_t trigger_time, defer_eeprom
 }
 
 // export functions
+
+uint8_t via_read_dropdown_value(via_custom_command_t *command) { return via_readUInt8(command); }
+void via_write_dropdown_value(via_custom_command_t *command, uint8_t value) { via_writeUInt8(command, value); }
+bool via_read_toggle_value(via_custom_command_t *command) { return via_readUInt8(command); }
+void via_write_toggle_value(via_custom_command_t *command, bool value) { via_writeUInt8(command, value); }
+bool via_read_range_byte_value(via_custom_command_t *command) { return via_readUInt8(command); }
+void via_write_range_byte_value(via_custom_command_t *command, uint8_t value) { via_writeUInt8(command, value); }
+bool via_read_range_word_value(via_custom_command_t *command) { return via_readUInt16BE(command); }
+void via_write_range_word_value(via_custom_command_t *command, uint16_t value) { via_writeUInt16BE(command, value); }
+bool via_read_keycode_value(via_custom_command_t *command) { return via_readUInt16BE(command); }
+void via_write_keycode_value(via_custom_command_t *command, uint16_t keycode) { via_writeUInt16BE(command, keycode); }
 
 void defer_eeprom_update_byte(uint8_t channel_id, uint8_t value_id, void *eeprom_adrs, uint8_t value) {
   defer_eeprom_update((channel_id << 8) + value_id, BYTE, eeprom_adrs, value, 0, 0);

@@ -20,36 +20,21 @@
 #include "ec_config.h"
 #include "ec_switch_matrix.h"
 
-#define EC_PRESET_CHANNEL_ID_START EC_VIA_CUSTOM_CHANNEL_ID_START
-#define EC_PRESET_CHANNEL_ID_END (EC_VIA_CUSTOM_CHANNEL_ID_START + EC_NUM_PRESETS - 1)
-#define EC_CALIBRATION_CHANNEL_ID (EC_VIA_CUSTOM_CHANNEL_ID_START + EC_NUM_PRESETS)
+#if EC_SCALE_RANGE >= 0x100
+#  define VIA_READ_EC_RANGE_VALUE(command) via_read_range_word_value(command)
+#  define VIA_WRITE_EC_RANGE_VALUE(command, value) via_write_range_word_value(command, value)
+#else
+#  define VIA_READ_EC_RANGE_VALUE(command) via_read_range_byte_value(command)
+#  define VIA_WRITE_EC_RANGE_VALUE(command, value) via_write_range_byte_value(command, value)
+#endif
 
-// Declaring enums for VIA config menu
-enum via_ec_preset_value_id {
-  // clang-format off
-  id_ec_preset_actuation_mode = 1,
-  id_ec_preset_actuation_threshold,
-  id_ec_preset_actuation_travel,
-  id_ec_preset_release_mode,
-  id_ec_preset_release_threshold,
-  id_ec_preset_release_travel,
-  id_ec_preset_deadzone
-  // clang-format on
-};
-
-enum via_ec_calibration_value_id {
-  id_ec_bottoming_calibration = 1,
-  id_ec_show_calibration_data,
-  id_ec_debug_send_config,
-  id_ec_bootloader_jump
-};
-
-static inline void writeUInt16BE(uint8_t *dst, uint16_t value) {
-  dst[0] = value >> 8;
-  dst[1] = value & 0xff;
-}
-
-static inline uint16_t readUInt16BE(uint8_t *src) { return ((uint16_t)src[0] << 8) + src[1]; }
+#if EC_SCALE_RANGE >= 0x200
+#  define VIA_READ_EC_HALF_RANGE_VALUE(command) via_read_range_word_value(command)
+#  define VIA_WRITE_EC_HALF_RANGE_VALUE(command, value) via_write_range_word_value(command, value)
+#else
+#  define VIA_READ_EC_HALF_RANGE_VALUE(command) via_read_range_byte_value(command)
+#  define VIA_WRITE_EC_HALF_RANGE_VALUE(command, value) via_write_range_byte_value(command, value)
+#endif
 
 // QMK hook functions
 // -----------------------------------------------------------------------------------
@@ -74,15 +59,6 @@ void keyboard_post_init_user(void) { ec_config_init(); }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
-    case EC_PRESET_START ... EC_PRESET_END:
-      // not keycode
-      return false;
-    case EC_PRESET_MAP_START ... EC_PRESET_MAP_END:
-      if (record->event.pressed) {
-        uint8_t preset_map_index = keycode - EC_PRESET_MAP_START;
-        ec_config_set_preset_map(preset_map_index);
-      }
-      return false;
     case EC_CALD:
       if (!record->event.pressed) {
         // 3 secods after release
@@ -95,11 +71,14 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         ec_config_send_presets(3000);
       }
       return false;
-    case EC_PMAP:
-      if (!record->event.pressed) {
-        // 3 secods after release
-        ec_config_send_preset_map(3000);
+    case EC_PRESET_MAP_START ... EC_PRESET_MAP_END:
+      if (record->event.pressed) {
+        uint8_t preset_map_index = keycode - EC_PRESET_MAP_START;
+        ec_config_set_preset_map(preset_map_index);
       }
+      return false;
+    case EC_PRESET_START ... EC_PRESET_END:
+      // not keycode
       return false;
 #ifdef EC_DEBUG
     case EC_DBG_DT:
@@ -124,14 +103,17 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 // common lib hook functions
 // -----------------------------------------------------------------------------------
 void via_raw_hid_post_receive_user(uint8_t *data, uint8_t length) {
-  uint8_t command_id = data[0];
-  uint8_t *command_data = &(data[1]);
-  switch (command_id) {
-    case id_dynamic_keymap_set_keycode:
-      if ((command_data[0] - EC_PRESET_MAP_START) == ec_eeprom_config.preset_map) {
-        ec_config_update_key(command_data[1], command_data[2]);
+  via_custom_command_t command = VIA_CUSTOM_COMMAND(data);
+  switch (command.command_id) {
+    case id_dynamic_keymap_set_keycode: {
+      uint8_t layer = command.data[0];
+      uint8_t row = command.data[1];
+      uint8_t col = command.data[2];
+      if ((layer - EC_PRESET_MAP_START) == ec_eeprom_config.selected_preset_map_index) {
+        ec_config_update_key(row, col);
       }
       break;
+    }
     case id_dynamic_keymap_reset: {
       ec_config_init();
       break;
@@ -139,105 +121,32 @@ void via_raw_hid_post_receive_user(uint8_t *data, uint8_t length) {
   }
 }
 
-bool via_custom_value_command_user(uint8_t *data, uint8_t length) {
-  uint8_t command_id = data[0];
-  uint8_t channel_id = data[1];
-  uint8_t value_id = data[2];
-  uint8_t value_byte = data[3];
-  uint8_t *value_ptr = &data[3];
-  // Big Endian
-  uint16_t value_word = readUInt16BE(&data[3]);
-  switch (channel_id) {
-      // EC Presets
-    case EC_PRESET_CHANNEL_ID_START ... EC_PRESET_CHANNEL_ID_END: {
-      uint8_t preset_index = data[1] - EC_PRESET_CHANNEL_ID_START;
-      switch (command_id) {
-          // EC Presets set value
+bool via_custom_value_command_user(via_custom_command_t *command) {
+  switch (command->channel_id) {
+    case id_ec_tools_channel:
+      switch (command->command_id) {
         case id_custom_set_value:
-          switch (value_id) {
-            case id_ec_preset_actuation_mode:
-              ec_config_set_actuation_mode(preset_index, value_byte);
-              return false;
-            case id_ec_preset_actuation_threshold:
-              ec_config_set_actuation_threshold(preset_index, value_word);
-              return false;
-            case id_ec_preset_actuation_travel:
-              ec_config_set_actuation_travel(preset_index, value_word);
-              return false;
-            case id_ec_preset_release_mode:
-              ec_config_set_release_mode(preset_index, value_byte);
-              return false;
-            case id_ec_preset_release_threshold:
-              ec_config_set_release_threshold(preset_index, value_word);
-              return false;
-            case id_ec_preset_release_travel:
-              ec_config_set_release_travel(preset_index, value_word);
-              return false;
-            case id_ec_preset_deadzone:
-              ec_config_set_deadzone(preset_index, value_word);
-              return false;
-          }
-          break;
-
-          // EC Presets get value
-        case id_custom_get_value:
-          switch (value_id) {
-            case id_ec_preset_actuation_mode:
-              *value_ptr = ec_eeprom_config.presets[preset_index].actuation_mode;
-              return false;
-            case id_ec_preset_actuation_threshold:
-              writeUInt16BE(value_ptr, ec_eeprom_config.presets[preset_index].actuation_threshold);
-              return false;
-            case id_ec_preset_actuation_travel:
-              writeUInt16BE(value_ptr, ec_eeprom_config.presets[preset_index].actuation_travel);
-              return false;
-            case id_ec_preset_release_mode:
-              *value_ptr = ec_eeprom_config.presets[preset_index].release_mode;
-              return false;
-            case id_ec_preset_release_threshold:
-              writeUInt16BE(value_ptr, ec_eeprom_config.presets[preset_index].release_threshold);
-              return false;
-            case id_ec_preset_release_travel:
-              writeUInt16BE(value_ptr, ec_eeprom_config.presets[preset_index].release_travel);
-              return false;
-            case id_ec_preset_deadzone:
-              writeUInt16BE(value_ptr, ec_eeprom_config.presets[preset_index].deadzone);
-              return false;
-          }
-          break;
-
-        case id_custom_save:
-          // nothing to do
-          return false;
-      }
-      break;
-    }
-      // EC Calibration
-    case EC_CALIBRATION_CHANNEL_ID:
-      switch (command_id) {
-        // EC Calibration set value
-        case id_custom_set_value:
-          switch (value_id) {
-            case id_ec_bottoming_calibration:
-              if (value_byte) {
+          switch (command->value_id) {
+            case id_ec_tools_bottoming_calibration:
+              if (via_read_toggle_value(command)) {
                 ec_config_start_calibration();
               } else {
                 ec_config_end_calibration();
               }
               return false;
-            case id_ec_show_calibration_data:
-              if (value_byte) {
+            case id_ec_tools_show_calibration_data:
+              if (via_read_toggle_value(command)) {
                 ec_config_send_calibration_data(3000);
               }
               return false;
 #ifdef EC_DEBUG
-            case id_ec_debug_send_config:
-              if (value_byte) {
+            case id_ec_tools_debug_send_config:
+              if (via_read_toggle_value(command)) {
                 ec_config_debug_send_config(3000);
               }
               return false;
-            case id_ec_bootloader_jump:
-              if (value_byte) {
+            case id_ec_tools_bootloader_jump:
+              if (via_read_toggle_value(command)) {
                 bootloader_jump();
               }
               return false;
@@ -245,14 +154,102 @@ bool via_custom_value_command_user(uint8_t *data, uint8_t length) {
           }
           break;
 
-          // EC Calibration get value
         case id_custom_get_value:
-          *value_ptr = 0;
+          via_write_toggle_value(command, false);
           return false;
+
         case id_custom_save:
           // nothing to do
           return false;
       }
+      // EC Presets
+    case id_ec_preset_channel_start ... id_ec_preset_channel_end: {
+      uint8_t preset_index = command->channel_id - id_ec_preset_channel_start;
+      switch (command->command_id) {
+          // EC Presets set value
+        case id_custom_set_value:
+          switch (command->value_id) {
+            case id_ec_preset_actuation_mode:
+              ec_config_set_actuation_mode(preset_index, via_read_dropdown_value(command));
+              return false;
+            case id_ec_preset_actuation_threshold:
+              ec_config_set_actuation_threshold(preset_index, VIA_READ_EC_RANGE_VALUE(command));
+              return false;
+            case id_ec_preset_actuation_travel:
+              ec_config_set_actuation_travel(preset_index, VIA_READ_EC_HALF_RANGE_VALUE(command));
+              return false;
+            case id_ec_preset_release_mode:
+              ec_config_set_release_mode(preset_index, via_read_dropdown_value(command));
+              return false;
+            case id_ec_preset_release_threshold:
+              ec_config_set_release_threshold(preset_index, VIA_READ_EC_RANGE_VALUE(command));
+              return false;
+            case id_ec_preset_release_travel:
+              ec_config_set_release_travel(preset_index, VIA_READ_EC_HALF_RANGE_VALUE(command));
+              return false;
+            case id_ec_preset_deadzone:
+              ec_config_set_deadzone(preset_index, VIA_READ_EC_HALF_RANGE_VALUE(command));
+              return false;
+            case id_ec_preset_sub_action_enable:
+              ec_config_set_sub_action_enable(preset_index, via_read_toggle_value(command));
+              return false;
+            case id_ec_preset_sub_action_keycode:
+              ec_config_set_sub_action_keycode(preset_index, via_read_keycode_value(command));
+              return false;
+            case id_ec_preset_sub_action_actuation_threshold:
+              ec_config_set_sub_action_actuation_threshold(preset_index, VIA_READ_EC_RANGE_VALUE(command));
+              return false;
+            case id_ec_preset_sub_action_release_threshold:
+              ec_config_set_sub_action_release_threshold(preset_index, VIA_READ_EC_RANGE_VALUE(command));
+              return false;
+          }
+          break;
+
+        case id_custom_get_value: {
+          ec_preset_t *preset = &ec_eeprom_config.presets[preset_index];
+          switch (command->value_id) {
+            case id_ec_preset_actuation_mode:
+              via_write_dropdown_value(command, preset->actuation_mode);
+              return false;
+            case id_ec_preset_actuation_threshold:
+              VIA_WRITE_EC_RANGE_VALUE(command, preset->actuation_threshold);
+              return false;
+            case id_ec_preset_actuation_travel:
+              VIA_WRITE_EC_RANGE_VALUE(command, preset->actuation_travel);
+              return false;
+            case id_ec_preset_release_mode:
+              via_write_dropdown_value(command, preset->release_mode);
+              return false;
+            case id_ec_preset_release_threshold:
+              VIA_WRITE_EC_HALF_RANGE_VALUE(command, preset->release_threshold);
+              return false;
+            case id_ec_preset_release_travel:
+              VIA_WRITE_EC_HALF_RANGE_VALUE(command, preset->release_travel);
+              return false;
+            case id_ec_preset_deadzone:
+              VIA_WRITE_EC_HALF_RANGE_VALUE(command, preset->deadzone);
+              return false;
+            case id_ec_preset_sub_action_enable:
+              via_write_toggle_value(command, preset->sub_action_enable);
+              return false;
+            case id_ec_preset_sub_action_keycode:
+              via_write_keycode_value(command, preset->sub_action_keycode);
+              return false;
+            case id_ec_preset_sub_action_actuation_threshold:
+              VIA_WRITE_EC_RANGE_VALUE(command, preset->sub_action_actuation_threshold);
+              return false;
+            case id_ec_preset_sub_action_release_threshold:
+              VIA_WRITE_EC_RANGE_VALUE(command, preset->sub_action_release_threshold);
+              return false;
+          }
+          break;
+        }
+        case id_custom_save:
+          // nothing to do
+          return false;
+      }
+      break;
+    }
   }
   return true;
 }

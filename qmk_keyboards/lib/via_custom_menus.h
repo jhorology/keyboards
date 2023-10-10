@@ -95,21 +95,32 @@ enum via_custom_non_mac_fn_value_id {
   id_custom_non_mac_fn_right,  // right arrow
 };
 
-bool via_custom_value_command_user(uint8_t *data, uint8_t length);
+typedef struct {
+  uint8_t command_id;
+  uint8_t channel_id;
+  uint8_t value_id;
+  uint8_t *data;
+} via_custom_command_t;
 
-void via_custom_magic_get_value(uint8_t value_id, uint8_t *value_data);
-void via_custom_magic_set_value(uint8_t value_id, uint8_t *value_data);
-#ifdef RADIAL_CONTROLLER_ENABLE
-void via_custom_rc_get_value(uint8_t value_id, uint8_t *value_data);
-void via_custom_rc_set_value(uint8_t value_id, uint8_t *value_data);
-void via_custom_rc_save(void);
-#endif
-void via_custom_td_get_value(uint8_t td_index, uint8_t value_id, uint8_t *value_data);
-void via_custom_td_set_value(uint8_t td_index, uint8_t value_id, uint8_t *value_data);
-void via_custom_td_save(uint8_t td_index);
+#define VIA_CUSTOM_COMMAND(data) \
+  { .command_id = data[0], .channel_id = data[1], .value_id = data[2], .data = &data[3] }
 
-void via_custom_non_mac_fn_get_value(uint8_t value_id, uint8_t *value_data);
-void via_custom_non_mac_fn_set_value(uint8_t value_id, uint8_t *value_data);
+uint8_t via_read_dropdown_value(via_custom_command_t *command);
+void via_write_dropdown_value(via_custom_command_t *command, uint8_t value);
+
+bool via_read_toggle_value(via_custom_command_t *command);
+void via_write_toggle_value(via_custom_command_t *command, bool value);
+
+bool via_read_range_byte_value(via_custom_command_t *command);
+void via_write_range_byte_value(via_custom_command_t *command, uint8_t value);
+
+bool via_read_range_word_value(via_custom_command_t *command);
+void via_write_range_word_value(via_custom_command_t *command, uint16_t value);
+
+bool via_read_keycode_value(via_custom_command_t *command);
+void via_write_keycode_value(via_custom_command_t *command, uint16_t keycode);
+
+bool via_custom_value_command_user(via_custom_command_t *command);
 
 void defer_eeprom_update_byte(uint8_t channel_id, uint8_t value_id, void *adrs, uint8_t value);
 void defer_eeprom_update_word(uint8_t channel_id, uint8_t value_id, void *adrs, uint16_t value);

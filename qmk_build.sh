@@ -678,7 +678,9 @@ fi
 
 # build
 # -----------------------------------
-qmk config user.qmk_home=${PROJECT}/qmk_firmware
+if [[ $(qmk config) != "user.qmk_home=${PROJECT}/qmk_firmware" ]]; then
+  qmk config user.qmk_home=${PROJECT}/qmk_firmware
+fi
 
 $WITH_PATCH && \
   should_apply_qmk_patch && \
