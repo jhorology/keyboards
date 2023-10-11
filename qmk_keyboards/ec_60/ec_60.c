@@ -36,6 +36,32 @@
 #  define VIA_WRITE_EC_HALF_RANGE_VALUE(command, value) via_write_range_byte_value(command, value)
 #endif
 
+static deferred_token send_data_token;  // defer_exec token
+
+typedef void (*send_data_func)(void);
+
+// static routines
+// -----------------------------------------------------------------------------------
+
+uint32_t send_data_cb(uint32_t trigger_time, send_data_func fn) {
+  fn();
+  send_data_token = 0;
+  return 0;
+}
+
+static void cancel_send_data(void) {
+  if (send_data_token) {
+    cancel_deferred_exec(send_data_token);
+  }
+}
+static void send_data(uint32_t delay, void (*send_data_func)(void)) {
+  cancel_send_data();
+  if (send_data_token) {
+    cancel_deferred_exec(send_data_token);
+  }
+  send_data_token = defer_exec(delay, (uint32_t(*)(uint32_t, void *))send_data_cb, send_data_func);
+}
+
 // QMK hook functions
 // -----------------------------------------------------------------------------------
 
@@ -61,14 +87,14 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
     case EC_CALD:
       if (!record->event.pressed) {
-        // 3 secods after release
-        ec_config_send_calibration_data(3000);
+        // 2 secods after release
+        send_data(2000, ec_config_send_calibration_data);
       }
       return false;
     case EC_PSET:
       if (!record->event.pressed) {
-        // 3 secods after release
-        ec_config_send_presets(3000);
+        // 2 secods after release
+        send_data(2000, ec_config_send_presets);
       }
       return false;
     case EC_PRESET_MAP_START ... EC_PRESET_MAP_END:
@@ -81,18 +107,22 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       // not keycode
       return false;
 #ifdef EC_DEBUG
-    case EC_DBG_DT:
+    case EC_DBG0:
       if (!record->event.pressed) {
-        // 3 secods after release
-        ec_config_debug_send_config(3000);
+        // 2 secods after release
+        send_data(2000, ec_config_debug_send_misc_state);
       }
       return false;
-    case EC_DBG_FQ:
-      if (record->event.pressed) {
-        // 3 secods after release
-        uint32_t scan_freq = last_matrix_scan_count;
-        send_string("matrix scan frequency: 0x");
-        send_dword(scan_freq);
+    case EC_DBG1:
+      if (!record->event.pressed) {
+        // 2 secods after release
+        send_data(2000, ec_config_debug_send_calibration);
+      }
+      return false;
+    case EC_DBG2:
+      if (!record->event.pressed) {
+        // 2 secods after release
+        send_data(2000, ec_config_debug_send_config_keys);
       }
       return false;
 #endif
@@ -136,13 +166,13 @@ bool via_custom_value_command_user(via_custom_command_t *command) {
               return false;
             case id_ec_tools_show_calibration_data:
               if (via_read_toggle_value(command)) {
-                ec_config_send_calibration_data(3000);
+                send_data(3000, ec_config_send_calibration_data);
               }
               return false;
 #ifdef EC_DEBUG
             case id_ec_tools_debug_send_config:
               if (via_read_toggle_value(command)) {
-                ec_config_debug_send_config(3000);
+                send_data(3000, ec_config_debug_send_all);
               }
               return false;
             case id_ec_tools_bootloader_jump:

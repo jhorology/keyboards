@@ -1,0 +1,38 @@
+diff --git a/builddefs/common_features.mk b/builddefs/common_features.mk
+index 094eda6f..f0749c56 100644
+--- a/builddefs/common_features.mk
++++ b/builddefs/common_features.mk
+@@ -644,7 +644,9 @@ VALID_CUSTOM_MATRIX_TYPES:= yes lite no
+ 
+ CUSTOM_MATRIX ?= no
+ 
+-ifneq ($(strip $(CUSTOM_MATRIX)), yes)
++ifeq ($(strip $(CUSTOM_MATRIX)), yes)
++    OPT_DEFS += -DCUSTOM_MATRIX
++else
+     ifeq ($(filter $(CUSTOM_MATRIX),$(VALID_CUSTOM_MATRIX_TYPES)),)
+         $(call CATASTROPHIC_ERROR,Invalid CUSTOM_MATRIX,CUSTOM_MATRIX="$(CUSTOM_MATRIX)" is not a valid custom matrix type)
+     endif
+diff --git a/quantum/keyboard.c b/quantum/keyboard.c
+index c2ca15d5..3318f7e8 100644
+--- a/quantum/keyboard.c
++++ b/quantum/keyboard.c
+@@ -497,6 +497,10 @@ static inline void generate_tick_event(void) {
+     }
+ }
+ 
++#ifdef CUSTOM_MATRIX
++extern bool custom_matrix_task(void);
++#    define matrix_task() custom_matrix_task()
++#else
+ /**
+  * @brief This task scans the keyboards matrix and processes any key presses
+  * that occur.
+@@ -558,6 +562,7 @@ static bool matrix_task(void) {
+ 
+     return matrix_changed;
+ }
++#endif
+ 
+ /** \brief Tasks previously located in matrix_scan_quantum
+  *

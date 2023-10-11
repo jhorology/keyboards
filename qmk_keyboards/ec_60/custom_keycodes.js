@@ -41,14 +41,19 @@ module.exports = function (options, defines) {
       ? []
       : [
           {
-            name: 'EC\nD.dt',
-            title: 'Show debug data as keystrokes',
-            shortName: 'EC.Dd'
+            name: 'EC\nDBG0',
+            title: 'Show misc states as keystrokes',
+            shortName: 'EC.D0'
           },
           {
-            name: 'EC\nD.fq',
-            title: 'Show matrix scan frequency as keystrokes',
-            shortName: 'EC.Df'
+            name: 'EC\nDBG1',
+            title: 'Show calibration releated data as keystrokes',
+            shortName: 'EC.D1'
+          },
+          {
+            name: 'EC\nDBG0',
+            title: 'Show current configuraion of matrix as keystrokes',
+            shortName: 'EC.D2'
           }
         ])
   ]

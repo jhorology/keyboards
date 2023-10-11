@@ -17,6 +17,7 @@
 
 #pragma once
 
+#define MATRIX_PAGES 2
 #define MATRIX_ROWS 5
 #define MATRIX_COLS 15
 
@@ -125,3 +126,4 @@ typedef struct {
 // for debugging
 #define CUSTOM_CONFIG_RHID_DEFAULT true
 #define EC_DEBUG 1
+#define DEBUG_MATRIX_SCAN_RATE

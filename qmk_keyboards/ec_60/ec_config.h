@@ -118,10 +118,13 @@ void ec_config_set_sub_action_release_threshold(uint8_t preset_index, uint16_t r
 void ec_config_set_preset_map(uint8_t preset_map_index);
 void ec_config_start_calibration(void);
 void ec_config_end_calibration(void);
-void ec_config_send_calibration_data(uint32_t delay_ms);
-void ec_config_send_presets(uint32_t delay_ms);
+void ec_config_send_calibration_data(void);
+void ec_config_send_presets(void);
 #ifdef EC_DEBUG
-void ec_config_debug_send_config(uint32_t delay_ms);
+void ec_config_debug_send_misc_state(void);
+void ec_config_debug_send_calibration(void);
+void ec_config_debug_send_config_keys(void);
+void ec_config_debug_send_all(void);
 #endif
 
 #define MATRIX_LOOP(...)                              \

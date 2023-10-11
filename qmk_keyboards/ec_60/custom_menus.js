@@ -140,7 +140,7 @@ function createPresetMenu(defines, bank, index, presetIndex, channelId) {
         content: content(7)
       },
       {
-        label: 'Sub Action (*work in progress)',
+        label: 'Sub Action (*exprimental)',
         type: 'toggle',
         content: content(8)
       },

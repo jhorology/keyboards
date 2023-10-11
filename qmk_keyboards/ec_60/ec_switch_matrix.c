@@ -29,7 +29,13 @@ const uint32_t row_pins[] = MATRIX_ROW_PINS;
 const uint32_t amux_sel_pins[] = AMUX_SEL_PINS;
 const uint32_t amux_en_pins[] = AMUX_EN_PINS;
 const uint8_t matrix_col_channels[] = MATRIX_COL_CHANNELS;
-static rtcnt_t key_scan_time;
+static rtcnt_t last_key_scan_time;
+// 3D matrix
+static matrix_row_t matrix[MATRIX_PAGES][MATRIX_ROWS];
+static matrix_row_t matrix_changed[MATRIX_PAGES][MATRIX_ROWS];
+#define PRIMARY_MATRIX_PAGE 0
+#define SUB_ACTION_MATRIX_PAGE 1
+static adc_mux adcMux;
 
 #define AMUX_SEL_PINS_COUNT (sizeof(amux_sel_pins) / sizeof(amux_sel_pins[0]))
 #define EXPECTED_AMUX_SEL_PINS_COUNT ceil(log2(AMUX_MAX_COLS_COUNT)
@@ -44,116 +50,99 @@ _Static_assert(AMUX_SEL_PINS_COUNT == EXPECTED_AMUX_SEL_PINS_COUNT), "AMUX_SEL_P
 
 #define BOTTOMING_READING_THRESHOLD 0xff
 
-#ifdef EC_DEBUG
-static uint32_t matrix_timer = 0;
-static uint32_t matrix_scan_count = 0;
-uint32_t last_matrix_scan_count = 0;
-#endif
+// quantum/keyboard.c
+extern void matrix_scan_perf_task(void);
+extern void switch_events(uint8_t row, uint8_t col, bool pressed);
 
-static adc_mux adcMux;
-
-static void ec_bootoming_reading(void);
-static void init_row(void);
-static void init_amux(void);
-static inline void select_col(uint8_t amux_col_ch);
-static uint16_t ec_readkey_raw(uint8_t row);
-static inline bool ec_update_key(matrix_row_t* current_row, uint8_t col, ec_key_config_t* key, uint16_t sw_value);
-
-#define MATRIX_READ_LOOP(...)                           \
-  for (int col = 0; col < MATRIX_COLS; col++) {         \
-    select_col(matrix_col_channels[col]);               \
-    for (int row = 0; row < MATRIX_ROWS; row++) {       \
-      uint16_t sw_value = ec_readkey_raw(row);          \
-      ec_key_config_t* key = &ec_config_keys[row][col]; \
-      __VA_ARGS__                                       \
-    }                                                   \
+#define MATRIX_READ_LOOP(...)                                   \
+  matrix_row_t col_mask = 1;                                    \
+  for (int col = 0; col < MATRIX_COLS; col++, col_mask <<= 1) { \
+    select_col(matrix_col_channels[col]);                       \
+    for (int row = 0; row < MATRIX_ROWS; row++) {               \
+      uint16_t sw_value = ec_readkey_raw(row);                  \
+      ec_key_config_t* key = &ec_config_keys[row][col];         \
+      __VA_ARGS__                                               \
+    }                                                           \
   }
 
-// QMK hook functions
+//  inline functions
 // -----------------------------------------------------------------------------------
 
-// Initialize the peripherals pins
-void matrix_init_custom(void) {
-  // Initialize ADC
-  palSetLineMode(ANALOG_PORT, PAL_MODE_INPUT_ANALOG);
-  adcMux = pinToMux(ANALOG_PORT);
-
-  // Dummy call to make sure that adcStart() has been called in the appropriate state
-  adc_read(adcMux);
-
-  // Initialize discharge pin as discharge mode
-  writePinLow(DISCHARGE_PIN);
-  setPinOutputOpenDrain(DISCHARGE_PIN);
-
-  // Initialize drive lines
-  init_row();
-
-  // Initialize AMUXs
-  init_amux();
-
-  key_scan_time = chSysGetRealtimeCounterX();
-  ec_calibrate_noise_floor();
+static inline void select_col(uint8_t amux_col_ch) {
+  if ((amux_col_ch & 0xf) == 0) {
+#if AMUX_COUNT >= 1
+    writePin(amux_en_pins[0], amux_col_ch & 0x10);
+#endif
+#if AMUX_COUNT >= 2
+    writePin(amux_en_pins[1], amux_col_ch & 0x20);
+#endif
+#if AMUX_COUNT >= 3
+    writePin(amux_en_pins[2], amux_col_ch & 0x40);
+#endif
+#if AMUX_COUNT >= 4
+    writePin(amux_en_pins[3], amux_col_ch & 0x88);
+#endif
+#if AMUX_COUNT >= 5
+#  error Unsupported AMUX_COUNT, maximum is 4
+#endif
+  }
+  writePin(amux_sel_pins[0], amux_col_ch & 1);
+  writePin(amux_sel_pins[1], amux_col_ch & 2);
+  writePin(amux_sel_pins[2], amux_col_ch & 4);
 }
 
-bool matrix_scan_custom(matrix_row_t current_matrix[]) {
-  bool updated = false;
-
-  // Bottoming calibration mode: update bottoming out values and avoid keycode state change
-  // IF statement is higher in the function to avoid the overhead of the execution of normal operation mode
-  if (bottoming_calibration) {
-    ec_bootoming_reading();
-    // Return false to avoid keycode state change
-    return false;
+static inline bool ec_is_key_pressed(ec_key_config_t* key, uint16_t sw_value) {
+  switch (key->actuation_mode) {
+    case EC_ACTUATION_MODE_STATIC:
+      return sw_value > key->actuation_reference;
+    case EC_ACTUATION_MODE_DYNAMIC:
+      return sw_value > key->extremum && sw_value - key->extremum > key->actuation_reference;
   }
+  return false;
+}
 
-  // Normal operation mode: update key state
-  MATRIX_READ_LOOP(
-#ifdef EC_DEBUG
-    key->sw_value = sw_value;
-#endif
-    updated |= ec_update_key(&current_matrix[row], col, key, sw_value);)
-
-#ifdef EC_DEBUG
-  matrix_scan_count++;
-
-  uint32_t timer_now = timer_read32();
-  if (TIMER_DIFF_32(timer_now, matrix_timer) >= 1000) {
-    last_matrix_scan_count = matrix_scan_count;
-    matrix_timer = timer_now;
-    matrix_scan_count = 0;
+static inline bool ec_is_key_released(ec_key_config_t* key, uint16_t sw_value) {
+  switch (key->release_mode) {
+    case EC_RELEASE_MODE_STATIC:
+      return (sw_value < key->release_reference);
+    case EC_RELEASE_MODE_DYNAMIC:
+      return sw_value < key->deadzone ||
+             (sw_value < key->extremum && key->extremum - sw_value > key->release_reference);
   }
-#endif
-  return updated;
+  return false;
+}
+
+static inline bool ec_is_sub_action_pressed(ec_key_config_t* key, uint16_t sw_value) {
+  return sw_value > key->sub_action_actuation_threshold;
+}
+
+static inline bool ec_is_sub_action_released(ec_key_config_t* key, uint16_t sw_value) {
+  return sw_value < key->sub_action_release_threshold;
 }
 
 // static routines
 // -----------------------------------------------------------------------------------
 
-// Get the noise floor
-void ec_calibrate_noise_floor(void) {
-  // Initialize the noise floor to 0
-  MATRIX_LOOP_WITH_KEY(key->noise_floor = 0; key->extremum = 0;)
+static uint16_t ec_readkey_raw(uint8_t row) {
+  uint16_t sw_value;
 
-  // Get the noise floor
-  // max: ec_config.noise_floor[row][col]
-  // min: ec_config.extremum[row][col]
-  for (uint8_t i = 0; i < NOISE_FLOOR_SAMPLING_COUNT; i++) {
-    wait_ms(5);
-    MATRIX_READ_LOOP(
-      // max value
-      if (sw_value > key->noise_floor) { key->noise_floor = sw_value; }
-      // min value
-      if (key->extremum == 0 || sw_value < key->extremum) { key->extremum = sw_value; })
+  // DISCHARGE_TIME 10us = 850 clock count
+  while (chSysIsCounterWithinX(chSysGetRealtimeCounterX(), last_key_scan_time,
+                               last_key_scan_time + US2RTC(REALTIME_COUNTER_CLOCK, DISCHARGE_TIME))) {
+    ;  // wait loop
   }
-
-  // Average the noise floor
-  MATRIX_LOOP_WITH_KEY(
-    // noise = max - mini
-    key->noise = key->noise_floor - key->extremum;
-    // noise_floor = (max + min) / 2
-    key->noise_floor = (key->noise_floor + key->extremum) / 2;
-    // initilize extremum
-    key->extremum = key->noise_floor;)
+  ATOMIC_BLOCK_FORCEON {
+    // charge peak hold capacitor
+    writePinHigh(DISCHARGE_PIN);
+    writePinHigh(row_pins[row]);
+    // Read the ADC value
+    sw_value = adc_read(adcMux);
+    writePinLow(row_pins[row]);
+    // Discharge peak hold capacitor
+    writePinLow(DISCHARGE_PIN);
+    last_key_scan_time = chSysGetRealtimeCounterX();
+  }
+  return sw_value;
 }
 
 static void ec_bootoming_reading(void) {
@@ -188,103 +177,195 @@ static void init_amux(void) {
   }
 }
 
-static inline void select_col(uint8_t amux_col_ch) {
-  if ((amux_col_ch & 0xf) == 0) {
-#if AMUX_COUNT >= 1
-    writePin(amux_en_pins[0], amux_col_ch & 0x10);
-#endif
-#if AMUX_COUNT >= 2
-    writePin(amux_en_pins[1], amux_col_ch & 0x20);
-#endif
-#if AMUX_COUNT >= 3
-    writePin(amux_en_pins[2], amux_col_ch & 0x40);
-#endif
-#if AMUX_COUNT >= 4
-    writePin(amux_en_pins[3], amux_col_ch & 0x88);
-#endif
-#if AMUX_COUNT >= 5
-#  error Unsupported AMUX_COUNT, maximum is 4
-#endif
+//  implementation of CUSTOM_MATRIX=yes
+// -----------------------------------------------------------------------------------
+
+// Initialize the peripherals pins
+void matrix_init(void) {
+  for (uint8_t page = 0; page < MATRIX_PAGES; page++) {
+    for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
+      matrix[page][row] = 0;
+      matrix_changed[page][row] = 0;
+    }
   }
-  writePin(amux_sel_pins[0], amux_col_ch & 1);
-  writePin(amux_sel_pins[1], amux_col_ch & 2);
-  writePin(amux_sel_pins[2], amux_col_ch & 4);
+
+  // Initialize ADC
+  palSetLineMode(ANALOG_PORT, PAL_MODE_INPUT_ANALOG);
+  adcMux = pinToMux(ANALOG_PORT);
+
+  // Dummy call to make sure that adcStart() has been called in the appropriate state
+  adc_read(adcMux);
+
+  // Initialize discharge pin as discharge mode
+  writePinLow(DISCHARGE_PIN);
+  setPinOutputOpenDrain(DISCHARGE_PIN);
+
+  // Initialize drive lines
+  init_row();
+
+  // Initialize AMUXs
+  init_amux();
+
+  last_key_scan_time = chSysGetRealtimeCounterX();
+  ec_calibrate_noise_floor();
 }
 
-// Read the capacitive sensor value
-static uint16_t ec_readkey_raw(uint8_t row) {
-  uint16_t sw_value;
+inline matrix_row_t matrix_get_row(uint8_t row) { return matrix[0][row]; }
 
-  // DISCHARGE_TIME 10us = 850 clock count
-  while (chSysIsCounterWithinX(chSysGetRealtimeCounterX(), key_scan_time,
-                               key_scan_time + US2RTC(REALTIME_COUNTER_CLOCK, DISCHARGE_TIME))) {
+uint8_t matrix_scan(void) {
+  bool changed = false;
+
+  // Bottoming calibration mode: update bottoming out values and avoid keycode state change
+  // IF statement is higher in the function to avoid the overhead of the execution of normal operation mode
+  if (bottoming_calibration) {
+    ec_bootoming_reading();
+    // Return false to avoid keycode state change
+    return false;
   }
-  ATOMIC_BLOCK_FORCEON {
-    // charge peak hold capacitor
-    writePinHigh(DISCHARGE_PIN);
-    writePinHigh(row_pins[row]);
-    // Read the ADC value
-    sw_value = adc_read(adcMux);
-    writePinLow(row_pins[row]);
-    // Discharge peak hold capacitor
-    writePinLow(DISCHARGE_PIN);
-    key_scan_time = chSysGetRealtimeCounterX();
-  }
-  return sw_value;
+
+  // Normal operation mode: update key state
+  MATRIX_READ_LOOP(
+#ifdef EC_DEBUG
+    key->sw_value = sw_value;
+#endif
+    uint16_t extremum = sw_value < key->deadzone ? key->deadzone : sw_value;  //
+    matrix_row_t* matrix_row = &matrix[PRIMARY_MATRIX_PAGE][row];             //
+    if (*matrix_row & col_mask) {
+      if (ec_is_key_released(key, sw_value)) {
+        *matrix_row &= ~col_mask;
+        matrix_changed[PRIMARY_MATRIX_PAGE][row] |= col_mask;
+        key->extremum = extremum;
+        changed = true;
+      } else {
+        matrix_changed[PRIMARY_MATRIX_PAGE][row] &= ~col_mask;
+        // Is key still moving down
+        if (extremum > key->extremum) {
+          key->extremum = extremum;
+        }
+      }
+    } else {
+      if (ec_is_key_pressed(key, sw_value)) {
+        *matrix_row |= col_mask;
+        matrix_changed[PRIMARY_MATRIX_PAGE][row] |= col_mask;
+        key->extremum = extremum;
+        changed = true;
+      } else {
+        matrix_changed[PRIMARY_MATRIX_PAGE][row] &= ~col_mask;
+        // Is key still moving up
+        if (extremum < key->extremum) {
+          key->extremum = extremum;
+        }
+      }
+    }
+    // sub action
+    if (key->sub_action_keycode != KC_NO) {
+      matrix_row_t* matrix_row = &matrix[SUB_ACTION_MATRIX_PAGE][row];  //
+      if (*matrix_row & col_mask) {
+        if (ec_is_sub_action_released(key, sw_value)) {
+          *matrix_row &= ~col_mask;
+          matrix_changed[SUB_ACTION_MATRIX_PAGE][row] |= col_mask;
+          changed = true;
+        } else {
+          matrix_changed[SUB_ACTION_MATRIX_PAGE][row] &= ~col_mask;
+        }
+      } else {
+        if (ec_is_sub_action_pressed(key, sw_value)) {
+          *matrix_row |= col_mask;
+          matrix_changed[SUB_ACTION_MATRIX_PAGE][row] |= col_mask;
+          changed = true;
+        } else {
+          matrix_changed[SUB_ACTION_MATRIX_PAGE][row] &= ~col_mask;
+        }
+      }
+    } else {
+      matrix_changed[SUB_ACTION_MATRIX_PAGE][row] &= ~col_mask;  //
+    })
+  return changed;
 }
 
-// Update press/release state of key
-static inline bool ec_update_key(matrix_row_t* current_row, uint8_t col, ec_key_config_t* key, uint16_t sw_value) {
-  uint16_t extremum = sw_value < key->deadzone ? key->deadzone : sw_value;
-  if ((*current_row >> col) & 1) {
-    // key pressed
-    switch (key->release_mode) {
-      case EC_RELEASE_MODE_STATIC:
-        if (sw_value < key->release_reference) {
-          key->extremum = extremum;
-          *current_row &= ~(1 << col);
-          return true;
-        }
-        break;
-      case EC_RELEASE_MODE_DYNAMIC:
-        if (sw_value < key->deadzone ||
-            (sw_value < key->extremum && key->extremum - sw_value > key->release_reference)) {
-          key->extremum = extremum;
-          *current_row &= ~(1 << col);
-          return true;
-        }
-        break;
-    }
-    // Is key still moving down?
-    if (extremum > key->extremum) {
-      key->extremum = extremum;
-    }
+bool custom_matrix_task(void) {
+  bool changed = matrix_scan();
 
-  } else {
-    // key released
-
-    // 14-15 bit: actuation_mode
-    switch (key->actuation_mode) {
-      case EC_ACTUATION_MODE_STATIC:
-        if (sw_value > key->actuation_reference) {
-          *current_row |= (1 << col);
-          key->extremum = extremum;
-          return true;
-        }
-        break;
-      case EC_ACTUATION_MODE_DYNAMIC:
-        if (sw_value > key->extremum && sw_value - key->extremum > key->actuation_reference) {
-          // Has key moved down enough to be pressed?
-          key->extremum = extremum;
-          *current_row |= (1 << col);
-          return true;
-        }
-        break;
+#if defined(DEBUG_MATRIX_SCAN_RATE)
+  // in keyboard.c
+  matrix_scan_perf_task();
+#endif
+  // Short-circuit the complete matrix processing if it is not necessary
+  if (!changed) {
+    // in quantum/keyboard.c
+    // static inline void generate_tick_event(void)
+    static uint16_t last_tick = 0;
+    const uint16_t now = timer_read();
+    if (TIMER_DIFF_16(now, last_tick) != 0) {
+      action_exec(MAKE_TICK_EVENT);
+      last_tick = now;
     }
-    // Is key still moving up
-    if (extremum < key->extremum) {
-      key->extremum = extremum;
+    return false;
+  }
+
+  for (uint8_t page = 0; page < MATRIX_PAGES; page++) {
+    for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
+      const matrix_row_t current_row = matrix[page][row];
+      const matrix_row_t row_changes = matrix_changed[page][row];
+      if (!row_changes) continue;
+
+      matrix_row_t col_mask = 1;
+      for (uint8_t col = 0; col < MATRIX_COLS; col++, col_mask <<= 1) {
+        if (!(row_changes & col_mask)) continue;
+
+        const bool key_pressed = current_row & col_mask;
+        switch (page) {
+          case PRIMARY_MATRIX_PAGE: {
+            action_exec(MAKE_KEYEVENT(row, col, key_pressed));
+            // in quantum/keyboard.c
+            switch_events(row, col, key_pressed);
+            break;
+          }
+          case SUB_ACTION_MATRIX_PAGE: {
+            // TODO experimental
+            /*
+            ec_key_config_t* key = &ec_config_keys[row][col];
+            keyrecord_t record = {
+              .event = MAKE_COMBOEVENT(key_pressed),
+              .keycode = key->sub_action_keycode,
+            };
+            process_record(&record);
+            */
+            break;
+          }
+        }
+      }
     }
   }
-  return false;
+  return changed;
+}
+
+// export functions
+// -----------------------------------------------------------------------------------
+
+// Get the noise floor
+void ec_calibrate_noise_floor(void) {
+  // Initialize the noise floor to 0
+  MATRIX_LOOP_WITH_KEY(key->noise_floor = 0; key->extremum = 0;)
+
+  // Get the noise floor
+  // max: ec_config.noise_floor[row][col]
+  // min: ec_config.extremum[row][col]
+  for (uint8_t i = 0; i < NOISE_FLOOR_SAMPLING_COUNT; i++) {
+    wait_ms(5);
+    MATRIX_READ_LOOP(
+      // max value
+      if (sw_value > key->noise_floor) { key->noise_floor = sw_value; }
+      // min value
+      if (key->extremum == 0 || sw_value < key->extremum) { key->extremum = sw_value; })
+  }
+
+  // Average the noise floor
+  MATRIX_LOOP_WITH_KEY(
+    // noise = max - mini
+    key->noise = key->noise_floor - key->extremum;
+    // noise_floor = (max + min) / 2
+    key->noise_floor = (key->noise_floor + key->extremum) / 2;
+    // initilize extremum
+    key->extremum = key->noise_floor;)
 }

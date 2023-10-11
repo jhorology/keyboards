@@ -1,4 +1,4 @@
-CUSTOM_MATRIX = lite
+CUSTOM_MATRIX = yes
 QUANTUM_LIB_SRC += analog.c
 SRC += ec_config.c ec_switch_matrix.c
 

@@ -17,11 +17,13 @@
 #include QMK_KEYBOARD_H
 
 #ifdef EC_DEBUG
-#  define _EC_DBG0 EC_DBG_DT
-#  define _EC_DBG1 EC_DBG_FQ
+#  define _EC_DBG0 EC_DBG0
+#  define _EC_DBG1 EC_DBG1
+#  define _EC_DBG2 EC_DBG2
 #else
 #  define _EC_DBG0 _______
 #  define _EC_DBG1 _______
+#  define _EC_DBG2 _______
 #endif
 
 // tap dance
@@ -98,7 +100,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   // row 3: normal settings, +shift key for unusual reversed setting
   [3] = LAYOUT_60_tsangan(
     QK_BOOT, KC_F13,  KC_F14,  KC_F15,  KC_F16,  KC_F17,  KC_F18,  KC_F19,  KC_F20,  KC_F21,  KC_F22,  KC_F23,  KC_F24,  _______, TERM_LCK,
-    _______, EC_CALD, EC_PSET, _______, _EC_DBG0,_EC_DBG1,_______, _______, _______, _______, _______, _______, TEST_OS,          _______,
+    _______, EC_CALD, EC_PSET, _______, _EC_DBG0,_EC_DBG1,_EC_DBG2,_______, _______, _______, _______, _______, TEST_OS,          _______,
     _______, ECM(0),  ECM(1),  ECM(2),  ECM(3),  _______, _______, _______, _______, _______, _______, _______,                   _______,
     _______,          RHID_OFF,AUT_ON,  MAC_ON,  USJ_OFF, NK_ON,   CL_NORM, AG_NORM, BS_NORM, _______, _______,          _______, _______,
     _______, _______, _______,                            _______,                                              _______, _______, _______

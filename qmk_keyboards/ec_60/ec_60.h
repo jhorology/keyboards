@@ -12,12 +12,13 @@ enum ec_keycodes {
   EC_PRESET_START = EC_PRESET_MAP_END + 1,  // send calibration data as keystrokes
   EC_PRESET_END = EC_PRESET_START + EC_NUM_PRESETS - 1,
 #ifdef EC_DEBUG
-  EC_DBG_DT,
-  EC_DBG_FQ
+  EC_DBG0,  // debug send misc state
+  EC_DBG1,  // debug send calibration data
+  EC_DBG2,  // debug send key config
 #endif
 };
 
-// EC preset map
+// custom keycode for selecting EC preset map
 #define ECM(preset_map_index) (EC_PRESET_MAP_START + preset_map_index)
 
 // EC preset
