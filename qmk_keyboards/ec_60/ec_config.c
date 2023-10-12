@@ -17,8 +17,16 @@ static int8_t ec_eeprom_config_error;
 
 // if defined in ec_60/config.h or ec_60/keymaps/<keymap name>/config.h
 
-#define KEY_TRAVEL(noise_floor, bottoming, x) (x * (bottoming - noise_floor) / EC_SCALE_RANGE)
+#define KEY_TRAVEL(noise_floor, bottoming, x) ((uint32_t)x * (bottoming - noise_floor) / EC_SCALE_RANGE)
 #define KEY_THRESHOLD(noise_floor, bottoming, x) (KEY_TRAVEL(noise_floor, bottoming, x) + noise_floor)
+
+#define UPDATE_PRESET_PARAM(preset_index, member, value) \
+  ec_preset_t* preset = get_preset(preset_index);        \
+  if (preset->member != value) {                         \
+    preset->member = value;                              \
+    update_matrix(preset_index);                         \
+    defer_eeprom_update_preset(preset_index);            \
+  }
 
 static uint8_t get_key_preset_index(uint8_t row, uint8_t col);
 
@@ -168,102 +176,38 @@ void ec_config_update_key(uint8_t row, uint8_t col) {
   update_key(&ec_config_keys[row][col], get_key_preset(row, col), ec_eeprom_config.bottoming_reading[row][col]);
 }
 
-void ec_config_set_actuation_mode(uint8_t preset_index, ec_actuation_mode_t actuation_mode) {
-  ec_preset_t* preset = get_preset(preset_index);
-  if (preset->actuation_mode != actuation_mode) {
-    preset->actuation_mode = actuation_mode;
-    update_matrix(preset_index);
-    defer_eeprom_update_preset(preset_index);
-  }
+void ec_config_set_actuation_mode(uint8_t preset_index, ec_actuation_mode_t value) {
+  UPDATE_PRESET_PARAM(preset_index, actuation_mode, value)
 }
-
-void ec_config_set_release_mode(uint8_t preset_index, ec_release_mode_t release_mode) {
-  ec_preset_t* preset = get_preset(preset_index);
-  if (preset->release_mode != release_mode) {
-    preset->release_mode = release_mode;
-    update_matrix(preset_index);
-    defer_eeprom_update_preset(preset_index);
-  }
+void ec_config_set_release_mode(uint8_t preset_index, ec_release_mode_t value) {
+  UPDATE_PRESET_PARAM(preset_index, release_mode, value);
 }
-void ec_config_set_actuation_threshold(uint8_t preset_index, uint16_t actuation_threshold) {
-  ec_preset_t* preset = get_preset(preset_index);
-  if (preset->actuation_threshold != actuation_threshold) {
-    preset->actuation_threshold = actuation_threshold;
-    update_matrix(preset_index);
-    defer_eeprom_update_preset(preset_index);
-  }
+void ec_config_set_actuation_threshold(uint8_t preset_index, uint16_t value) {
+  UPDATE_PRESET_PARAM(preset_index, actuation_threshold, value);
 }
-
-void ec_config_set_release_threshold(uint8_t preset_index, uint16_t release_threshold) {
-  ec_preset_t* preset = get_preset(preset_index);
-  if (preset->release_threshold != release_threshold) {
-    preset->release_threshold = release_threshold;
-    update_matrix(preset_index);
-    defer_eeprom_update_preset(preset_index);
-  }
+void ec_config_set_release_threshold(uint8_t preset_index, uint16_t value) {
+  UPDATE_PRESET_PARAM(preset_index, release_threshold, value);
 }
-
-void ec_config_set_actuation_travel(uint8_t preset_index, uint16_t actuation_travel) {
-  ec_preset_t* preset = get_preset(preset_index);
-  if (preset->actuation_travel != actuation_travel) {
-    preset->actuation_travel = actuation_travel;
-    update_matrix(preset_index);
-    defer_eeprom_update_preset(preset_index);
-  }
+void ec_config_set_actuation_travel(uint8_t preset_index, uint16_t value) {
+  UPDATE_PRESET_PARAM(preset_index, actuation_travel, value);
 }
-
-void ec_config_set_release_travel(uint8_t preset_index, uint16_t release_travel) {
-  ec_preset_t* preset = get_preset(preset_index);
-  if (preset->release_travel != release_travel) {
-    preset->release_travel = release_travel;
-    update_matrix(preset_index);
-    defer_eeprom_update_preset(preset_index);
-  }
+void ec_config_set_release_travel(uint8_t preset_index, uint16_t value) {
+  UPDATE_PRESET_PARAM(preset_index, release_travel, value);
 }
-
-void ec_config_set_deadzone(uint8_t preset_index, uint16_t deadzone) {
-  ec_preset_t* preset = get_preset(preset_index);
-  if (preset->deadzone != deadzone) {
-    preset->deadzone = deadzone;
-    update_matrix(preset_index);
-    defer_eeprom_update_preset(preset_index);
-  }
+void ec_config_set_deadzone(uint8_t preset_index, uint16_t value) {
+  UPDATE_PRESET_PARAM(preset_index, deadzone, value);
 }
-
-void ec_config_set_sub_action_enable(uint8_t preset_index, bool enable) {
-  ec_preset_t* preset = get_preset(preset_index);
-  if (preset->sub_action_enable != enable) {
-    preset->sub_action_enable = enable;
-    update_matrix(preset_index);
-    defer_eeprom_update_preset(preset_index);
-  }
+void ec_config_set_sub_action_enable(uint8_t preset_index, bool value) {
+  UPDATE_PRESET_PARAM(preset_index, sub_action_enable, value);
 }
-
-void ec_config_set_sub_action_keycode(uint8_t preset_index, uint16_t keycode) {
-  ec_preset_t* preset = get_preset(preset_index);
-  if (preset->sub_action_keycode != keycode) {
-    preset->sub_action_keycode = keycode;
-    update_matrix(preset_index);
-    defer_eeprom_update_preset(preset_index);
-  }
+void ec_config_set_sub_action_keycode(uint8_t preset_index, uint16_t value) {
+  UPDATE_PRESET_PARAM(preset_index, sub_action_keycode, value);
 }
-
-void ec_config_set_sub_action_actuation_threshold(uint8_t preset_index, uint16_t actuation_threshold) {
-  ec_preset_t* preset = get_preset(preset_index);
-  if (preset->sub_action_actuation_threshold != actuation_threshold) {
-    preset->sub_action_actuation_threshold = actuation_threshold;
-    update_matrix(preset_index);
-    defer_eeprom_update_preset(preset_index);
-  }
+void ec_config_set_sub_action_actuation_threshold(uint8_t preset_index, uint16_t value) {
+  UPDATE_PRESET_PARAM(preset_index, sub_action_actuation_threshold, value);
 }
-
-void ec_config_set_sub_action_release_threshold(uint8_t preset_index, uint16_t release_threshold) {
-  ec_preset_t* preset = get_preset(preset_index);
-  if (preset->sub_action_release_threshold != release_threshold) {
-    preset->sub_action_release_threshold = release_threshold;
-    update_matrix(preset_index);
-    defer_eeprom_update_preset(preset_index);
-  }
+void ec_config_set_sub_action_release_threshold(uint8_t preset_index, uint16_t value) {
+  UPDATE_PRESET_PARAM(preset_index, sub_action_release_threshold, value);
 }
 
 void ec_config_set_preset_map(uint8_t preset_map_index) {

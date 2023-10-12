@@ -20,20 +20,20 @@
 #include "ec_config.h"
 #include "ec_switch_matrix.h"
 
-#if EC_SCALE_RANGE >= 0x100
-#  define VIA_READ_EC_RANGE_VALUE(command) via_read_range_word_value(command)
-#  define VIA_WRITE_EC_RANGE_VALUE(command, value) via_write_range_word_value(command, value)
-#else
+#if EC_SCALE_RANGE < 0x100
 #  define VIA_READ_EC_RANGE_VALUE(command) via_read_range_byte_value(command)
 #  define VIA_WRITE_EC_RANGE_VALUE(command, value) via_write_range_byte_value(command, value)
+#else
+#  define VIA_READ_EC_RANGE_VALUE(command) via_read_range_word_value(command)
+#  define VIA_WRITE_EC_RANGE_VALUE(command, value) via_write_range_word_value(command, value)
 #endif
 
-#if EC_SCALE_RANGE >= 0x200
-#  define VIA_READ_EC_HALF_RANGE_VALUE(command) via_read_range_word_value(command)
-#  define VIA_WRITE_EC_HALF_RANGE_VALUE(command, value) via_write_range_word_value(command, value)
-#else
+#if EC_SCALE_RANGE < 0x200
 #  define VIA_READ_EC_HALF_RANGE_VALUE(command) via_read_range_byte_value(command)
 #  define VIA_WRITE_EC_HALF_RANGE_VALUE(command, value) via_write_range_byte_value(command, value)
+#else
+#  define VIA_READ_EC_HALF_RANGE_VALUE(command) via_read_range_word_value(command)
+#  define VIA_WRITE_EC_HALF_RANGE_VALUE(command, value) via_write_range_word_value(command, value)
 #endif
 
 static deferred_token send_data_token;  // defer_exec token
@@ -245,13 +245,13 @@ bool via_custom_value_command_user(via_custom_command_t *command) {
               VIA_WRITE_EC_RANGE_VALUE(command, preset->actuation_threshold);
               return false;
             case id_ec_preset_actuation_travel:
-              VIA_WRITE_EC_RANGE_VALUE(command, preset->actuation_travel);
+              VIA_WRITE_EC_HALF_RANGE_VALUE(command, preset->actuation_travel);
               return false;
             case id_ec_preset_release_mode:
               via_write_dropdown_value(command, preset->release_mode);
               return false;
             case id_ec_preset_release_threshold:
-              VIA_WRITE_EC_HALF_RANGE_VALUE(command, preset->release_threshold);
+              VIA_WRITE_EC_RANGE_VALUE(command, preset->release_threshold);
               return false;
             case id_ec_preset_release_travel:
               VIA_WRITE_EC_HALF_RANGE_VALUE(command, preset->release_travel);
