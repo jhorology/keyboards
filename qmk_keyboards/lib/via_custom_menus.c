@@ -72,6 +72,10 @@ static inline void via_writeUInt16BE(via_custom_command_t *command, uint16_t val
 // VIA custom hook function
 void via_custom_value_command_kb(uint8_t *data, uint8_t length) {
   via_custom_command_t command = VIA_CUSTOM_COMMAND(data);
+#ifdef CONSOLE_ENABLE
+  uprintf("via_custom_value_command_kb:command_id:%02X channel_id:%02X value_id:%02X data:%02X, %02X\n",
+          command.command_id, command.channel_id, command.value_id, command.data[0], command.data[1]);
+#endif  // ONSOLE_ENABLE
   // data = [ command_id, channel_id, value_id, value_data ]
   switch (command.channel_id) {
     case id_custom_magic_channel:
@@ -343,10 +347,10 @@ static void defer_eeprom_update(uint16_t id, defer_eeprom_update_value_type_t va
     defer_eeprom_update_item_t *item = &defer_eeprom_update_items[i];
     if (id == item->id) {
       if (value_type == BLOCK) {
-        new_item->src.data.adrs = block_adrs;
-        new_item->src.data.size = block_size;
+        item->src.data.adrs = block_adrs;
+        item->src.data.size = block_size;
       } else {
-        new_item->src.value = value;
+        item->src.value = value;
       }
       extend_deferred_exec(item->token, DEFER_EEPROM_UPDATE_DELAY_MILLIS);
       return;
@@ -403,11 +407,17 @@ static uint32_t defer_eeprom_update_callback(uint32_t trigger_time, defer_eeprom
       eeprom_update_block(item->src.data.adrs, item->eeprom_adrs, item->src.data.size);
       break;
   }
-#ifdef CONSOLE_ENABLE
-  uprintf("defer_eeprom_update_callback:id:%04X value:%d\n", item->id, item->value);
-#endif  // ONSOLE_ENABLE
   // release item
   item->id = 0;
+#ifdef CONSOLE_ENABLE
+  if (item->value_type == BLOCK) {
+    uprintf("defer_eeprom_update_callback:id:%04X block_adrs:0x%04X-%04X block_size:%d\n", item->id,
+            (uint16_t)((uint32_t)item->src.data.adrs >> 16), (uint16_t)((uint32_t)item->src.data.adrs & 0xffff),
+            item->src.data.size);
+  } else {
+    uprintf("defer_eeprom_update_callback:id:%04X value:%ld\n", item->id, item->src.value);
+  }
+#endif  // CONSOLE_ENABLE
   return 0;
 }
 
@@ -417,11 +427,11 @@ uint8_t via_read_dropdown_value(via_custom_command_t *command) { return via_read
 void via_write_dropdown_value(via_custom_command_t *command, uint8_t value) { via_writeUInt8(command, value); }
 bool via_read_toggle_value(via_custom_command_t *command) { return via_readUInt8(command); }
 void via_write_toggle_value(via_custom_command_t *command, bool value) { via_writeUInt8(command, value); }
-bool via_read_range_byte_value(via_custom_command_t *command) { return via_readUInt8(command); }
+uint8_t via_read_range_byte_value(via_custom_command_t *command) { return via_readUInt8(command); }
 void via_write_range_byte_value(via_custom_command_t *command, uint8_t value) { via_writeUInt8(command, value); }
-bool via_read_range_word_value(via_custom_command_t *command) { return via_readUInt16BE(command); }
+uint16_t via_read_range_word_value(via_custom_command_t *command) { return via_readUInt16BE(command); }
 void via_write_range_word_value(via_custom_command_t *command, uint16_t value) { via_writeUInt16BE(command, value); }
-bool via_read_keycode_value(via_custom_command_t *command) { return via_readUInt16BE(command); }
+uint16_t via_read_keycode_value(via_custom_command_t *command) { return via_readUInt16BE(command); }
 void via_write_keycode_value(via_custom_command_t *command, uint16_t keycode) { via_writeUInt16BE(command, keycode); }
 
 void defer_eeprom_update_byte(uint8_t channel_id, uint8_t value_id, void *eeprom_adrs, uint8_t value) {

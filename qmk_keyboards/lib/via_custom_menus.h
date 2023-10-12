@@ -111,13 +111,13 @@ void via_write_dropdown_value(via_custom_command_t *command, uint8_t value);
 bool via_read_toggle_value(via_custom_command_t *command);
 void via_write_toggle_value(via_custom_command_t *command, bool value);
 
-bool via_read_range_byte_value(via_custom_command_t *command);
+uint8_t via_read_range_byte_value(via_custom_command_t *command);
 void via_write_range_byte_value(via_custom_command_t *command, uint8_t value);
 
-bool via_read_range_word_value(via_custom_command_t *command);
+uint16_t via_read_range_word_value(via_custom_command_t *command);
 void via_write_range_word_value(via_custom_command_t *command, uint16_t value);
 
-bool via_read_keycode_value(via_custom_command_t *command);
+uint16_t via_read_keycode_value(via_custom_command_t *command);
 void via_write_keycode_value(via_custom_command_t *command, uint16_t keycode);
 
 bool via_custom_value_command_user(via_custom_command_t *command);
