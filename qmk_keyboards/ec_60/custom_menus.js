@@ -137,7 +137,7 @@ function createPresetMenu(defines, bank, index, presetIndex, channelId) {
       },
       {
         showIf: `{${ref(1)}} == 1 || {${ref(4)}} == 1`,
-        label: `Deadzone Travel (${rangeMinPerc}% | 50%)`,
+        label: `Deadzone (${rangeMinPerc}% | 50%)`,
         type: 'range',
         options: [rangeMin, rangeMax >> 1],
         content: content(7)
