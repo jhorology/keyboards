@@ -104,17 +104,19 @@ extern bool bottoming_calibration;
 void ec_config_reset(void);
 void ec_config_init(void);
 void ec_config_update_key(uint8_t row, uint8_t col);
-void ec_config_set_actuation_mode(uint8_t preset_index, ec_actuation_mode_t actuation_mode);
-void ec_config_set_release_mode(uint8_t preset_index, ec_release_mode_t release_mode);
-void ec_config_set_actuation_threshold(uint8_t preset_index, uint16_t actuation_threshold);
-void ec_config_set_release_threshold(uint8_t preset_index, uint16_t release_threshold);
-void ec_config_set_actuation_travel(uint8_t preset_index, uint16_t actuation_travel);
-void ec_config_set_release_travel(uint8_t preset_index, uint16_t release_travel);
-void ec_config_set_deadzone(uint8_t preset_index, uint16_t deadzone);
-void ec_config_set_sub_action_enable(uint8_t preset_index, bool enable);
-void ec_config_set_sub_action_keycode(uint8_t preset_index, uint16_t keycode);
-void ec_config_set_sub_action_actuation_threshold(uint8_t preset_index, uint16_t actuation_threshold);
-void ec_config_set_sub_action_release_threshold(uint8_t preset_index, uint16_t release_threshold);
+
+void ec_config_set_actuation_mode(uint8_t preset_index, ec_actuation_mode_t value);
+void ec_config_set_release_mode(uint8_t preset_index, ec_release_mode_t value);
+void ec_config_set_actuation_threshold(uint8_t preset_index, uint16_t value);
+void ec_config_set_release_threshold(uint8_t preset_index, uint16_t value);
+void ec_config_set_actuation_travel(uint8_t preset_index, uint16_t value);
+void ec_config_set_release_travel(uint8_t preset_index, uint16_t value);
+void ec_config_set_deadzone(uint8_t preset_index, uint16_t value);
+void ec_config_set_sub_action_enable(uint8_t preset_index, bool value);
+void ec_config_set_sub_action_keycode(uint8_t preset_index, uint16_t value);
+void ec_config_set_sub_action_actuation_threshold(uint8_t preset_index, uint16_t value);
+void ec_config_set_sub_action_release_threshold(uint8_t preset_index, uint16_t value);
+
 void ec_config_set_preset_map(uint8_t preset_map_index);
 void ec_config_start_calibration(void);
 void ec_config_end_calibration(void);
@@ -141,6 +143,11 @@ void ec_config_debug_send_all(void);
       __VA_ARGS__                                       \
     }                                                   \
   }
+
+#define EC_HALF_SCALE_RANGE (EC_SCALE_RANGE >> 1)
+#define EC_SAFETY_MARGIN (EC_SAFETY_MARGIN_PERC * EC_SCALE_RANGE / 100)
+#define EC_WITHIN_SCALE_RANGE(v) (v >= EC_SAFETY_MARGIN && v <= EC_SCALE_RANGE)
+#define EC_WITHIN_HALF_SCALE_RANGE(v) (v >= EC_SAFETY_MARGIN && v <= EC_HALF_SCALE_RANGE)
 
 // convtert a percentage of tatal travel into preset
 #define EC_PERC(perc) ((perc) * EC_SCALE_RANGE / 100)

@@ -80,7 +80,10 @@ module.exports = function (options, defines) {
 
 function createPresetMenu(defines, bank, index, presetIndex, channelId) {
   const ref = (id) => `id_ec_preset_${presetIndex}_${PRESET_VALUE_IDs[id]}`,
-    content = (id) => [ref(id), channelId, id]
+    content = (id) => [ref(id), channelId, id],
+    rangeMax = defines.EC_SCALE_RANGE,
+    rangeMinPerc = defines.EC_SAFETY_MARGIN_PERC,
+    rangeMin = ((rangeMax * rangeMinPerc) / 100) | 0
   return {
     label: `Preset ${bank}${index} ${
       emoji[bank % emoji.length][index % emoji[bank].length]
@@ -97,16 +100,16 @@ function createPresetMenu(defines, bank, index, presetIndex, channelId) {
       },
       {
         showIf: `{${ref(1)}} == 0`,
-        label: 'Actuation Threshold (0% | 100%)',
+        label: `Actuation Threshold (${rangeMinPerc}% | 100%)`,
         type: 'range',
-        options: [0, defines.EC_SCALE_RANGE],
+        options: [rangeMin, rangeMax],
         content: content(2)
       },
       {
         showIf: `{${ref(1)}} == 1`,
-        label: 'Actuation Travel (0% | 50%)',
+        label: `Actuation Travel (${rangeMinPerc}% | 50%)`,
         type: 'range',
-        options: [0, defines.EC_SCALE_RANGE >> 1],
+        options: [rangeMin, rangeMax >> 1],
         content: content(3)
       },
       {
@@ -120,23 +123,23 @@ function createPresetMenu(defines, bank, index, presetIndex, channelId) {
       },
       {
         showIf: `{${ref(4)}} == 0`,
-        label: 'Release Threshold (0% | 100%)',
+        label: `Release Threshold (${rangeMinPerc}% | 100%)`,
         type: 'range',
-        options: [0, defines.EC_SCALE_RANGE],
+        options: [rangeMin, rangeMax],
         content: content(5)
       },
       {
         showIf: `{${ref(4)}} == 1`,
-        label: 'Release Travel (0% | 50%)',
+        label: `Release Travel (${rangeMinPerc}% | 50%)`,
         type: 'range',
-        options: [0, defines.EC_SCALE_RANGE >> 1],
+        options: [rangeMin, rangeMax >> 1],
         content: content(6)
       },
       {
         showIf: `{${ref(1)}} == 1 || {${ref(4)}} == 1`,
-        label: 'Deadzone (0% | 50%)',
+        label: `Deadzone Travel (${rangeMinPerc}% | 50%)`,
         type: 'range',
-        options: [0, defines.EC_SCALE_RANGE >> 1],
+        options: [rangeMin, rangeMax >> 1],
         content: content(7)
       },
       {
@@ -152,16 +155,16 @@ function createPresetMenu(defines, bank, index, presetIndex, channelId) {
       },
       {
         showIf: `{${ref(8)}} == 1`,
-        label: 'Sub Action Actuation Threshold (0% | 100%)',
+        label: `Sub Action Actuation Threshold (${rangeMinPerc}% | 100%)`,
         type: 'range',
-        options: [0, defines.EC_SCALE_RANGE],
+        options: [rangeMin, rangeMax],
         content: content(10)
       },
       {
         showIf: `{${ref(8)}} == 1`,
-        label: 'Sub Action Release Threshold (0% | 100%)',
+        label: `Sub Action Release Threshold (${rangeMinPerc}% | 100%)`,
         type: 'range',
-        options: [0, defines.EC_SCALE_RANGE],
+        options: [rangeMin, rangeMax],
         content: content(11)
       }
     ]

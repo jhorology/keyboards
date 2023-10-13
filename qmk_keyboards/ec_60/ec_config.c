@@ -15,8 +15,6 @@ static bool ec_eeprom_config_reseted;
 static int8_t ec_eeprom_config_error;
 #endif /* EC_DEBUG  */
 
-// if defined in ec_60/config.h or ec_60/keymaps/<keymap name>/config.h
-
 #define KEY_TRAVEL(noise_floor, bottoming, x) ((uint32_t)x * (bottoming - noise_floor) / EC_SCALE_RANGE)
 #define KEY_THRESHOLD(noise_floor, bottoming, x) (KEY_TRAVEL(noise_floor, bottoming, x) + noise_floor)
 
@@ -56,19 +54,13 @@ static uint8_t get_key_preset_index(uint8_t row, uint8_t col) {
 static int is_preset_valid(ec_preset_t* preset) {
   if (preset->actuation_mode > EC_ACTUATION_MODE_DYNAMIC) return -1;
   if (preset->release_mode > EC_RELEASE_MODE_DYNAMIC) return -2;
-  if (preset->actuation_threshold > EC_SCALE_RANGE) return -3;
-  if (preset->release_threshold > EC_SCALE_RANGE) return -4;
-  if (preset->actuation_travel > (EC_SCALE_RANGE >> 1)) return -5;
-  if (preset->release_travel > (EC_SCALE_RANGE >> 1)) return -6;
-  if (preset->deadzone > (EC_SCALE_RANGE >> 1)) return -7;
-  if (preset->sub_action_actuation_threshold > EC_SCALE_RANGE) return -8;
-  if (preset->sub_action_release_threshold > EC_SCALE_RANGE) return -9;
-
-  // EC_PRESETS_DEFAUL_USER may not have bean defined all presets.
-  if (preset->actuation_threshold == 0 && preset->actuation_travel == 0 && preset->release_threshold == 0 &&
-      preset->release_travel == 0 && preset->deadzone == 0) {
-    return -10;
-  }
+  if (!EC_WITHIN_SCALE_RANGE(preset->actuation_threshold)) return -3;
+  if (!EC_WITHIN_SCALE_RANGE(preset->release_threshold)) return -4;
+  if (!EC_WITHIN_HALF_SCALE_RANGE(preset->actuation_travel)) return -5;
+  if (!EC_WITHIN_HALF_SCALE_RANGE(preset->release_travel)) return -5;
+  if (!EC_WITHIN_HALF_SCALE_RANGE(preset->deadzone)) return -5;
+  if (!EC_WITHIN_SCALE_RANGE(preset->sub_action_actuation_threshold)) return -8;
+  if (!EC_WITHIN_SCALE_RANGE(preset->sub_action_release_threshold)) return -9;
   return 0;
 }
 
@@ -87,6 +79,8 @@ static int is_eeprom_valid(void) {
 static void update_key(ec_key_config_t* key, ec_preset_t* preset, uint16_t bottoming) {
   uint8_t prev_actuation_mode = key->actuation_mode;
   uint8_t prev_release_mode = key->release_mode;
+
+  //
   // actuation
   key->actuation_mode = preset->actuation_mode;
   switch (preset->actuation_mode) {
@@ -177,7 +171,7 @@ void ec_config_update_key(uint8_t row, uint8_t col) {
 }
 
 void ec_config_set_actuation_mode(uint8_t preset_index, ec_actuation_mode_t value) {
-  UPDATE_PRESET_PARAM(preset_index, actuation_mode, value)
+  UPDATE_PRESET_PARAM(preset_index, actuation_mode, value);
 }
 void ec_config_set_release_mode(uint8_t preset_index, ec_release_mode_t value) {
   UPDATE_PRESET_PARAM(preset_index, release_mode, value);
@@ -268,7 +262,7 @@ void ec_config_send_presets(void) {
         SEND_C_ENUM_PROP_VALUE(release_mode, EC_ACTUATION_MODE_STATIC, true);
         break;
       case EC_ACTUATION_MODE_DYNAMIC:
-        SEND_C_ENUM_PROP_VALUE(release_mod, EC_ACTUATION_MODE_DUNAMIC, true);
+        SEND_C_ENUM_PROP_VALUE(release_mod, EC_ACTUATION_MODE_DYNAMIC, true);
         break;
     }
     SEND_C_ARROW_PROP_VALUE(preset, release_threshold, WORD, true);

@@ -303,38 +303,41 @@ bool custom_matrix_task(void) {
     return false;
   }
 
-  for (uint8_t page = 0; page < MATRIX_PAGES; page++) {
-    for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
-      const matrix_row_t current_row = matrix[page][row];
-      const matrix_row_t row_changes = matrix_changed[page][row];
-      if (!row_changes) continue;
+  for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
+    const matrix_row_t current_row = matrix[PRIMARY_MATRIX_PAGE][row];
+    const matrix_row_t row_changes = matrix_changed[PRIMARY_MATRIX_PAGE][row];
+    if (!row_changes) continue;
 
-      matrix_row_t col_mask = 1;
-      for (uint8_t col = 0; col < MATRIX_COLS; col++, col_mask <<= 1) {
-        if (!(row_changes & col_mask)) continue;
+    matrix_row_t col_mask = 1;
+    for (uint8_t col = 0; col < MATRIX_COLS; col++, col_mask <<= 1) {
+      if (!(row_changes & col_mask)) continue;
 
-        const bool key_pressed = current_row & col_mask;
-        switch (page) {
-          case PRIMARY_MATRIX_PAGE: {
-            action_exec(MAKE_KEYEVENT(row, col, key_pressed));
-            // in quantum/keyboard.c
-            switch_events(row, col, key_pressed);
-            break;
-          }
-          case SUB_ACTION_MATRIX_PAGE: {
-            // TODO experimental
-            /*
-            ec_key_config_t* key = &ec_config_keys[row][col];
-            keyrecord_t record = {
-              .event = MAKE_COMBOEVENT(key_pressed),
-              .keycode = key->sub_action_keycode,
-            };
-            process_record(&record);
-            */
-            break;
-          }
-        }
-      }
+      const bool key_pressed = current_row & col_mask;
+      action_exec(MAKE_KEYEVENT(row, col, key_pressed));
+      // in quantum/keyboard.c
+      switch_events(row, col, key_pressed);
+      break;
+    }
+  }
+
+  // Sub action
+  for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
+    const matrix_row_t current_row = matrix[SUB_ACTION_MATRIX_PAGE][row];
+    const matrix_row_t row_changes = matrix_changed[SUB_ACTION_MATRIX_PAGE][row];
+    if (!row_changes) continue;
+
+    matrix_row_t col_mask = 1;
+    for (uint8_t col = 0; col < MATRIX_COLS; col++, col_mask <<= 1) {
+      if (!(row_changes & col_mask)) continue;
+
+      const bool key_pressed = current_row & col_mask;
+      // TODO experimental
+      ec_key_config_t* key = &ec_config_keys[row][col];
+      keyrecord_t record = {
+        .event = MAKE_KEYEVENT(row, col, key_pressed),
+        .keycode = key->sub_action_keycode,
+      };
+      process_record(&record);
     }
   }
   return changed;

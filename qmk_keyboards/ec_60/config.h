@@ -56,6 +56,9 @@
 
 // Total Travel resolutoion 0 | 100% 10bit
 #define EC_SCALE_RANGE 1023
+// safety parameter limits (percentage of total travcel)
+#define EC_SAFETY_MARGIN_PERC 10
+
 // 2 - 16
 #define EC_NUM_PRESETS 16
 // 1 - 8

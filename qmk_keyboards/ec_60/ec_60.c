@@ -281,5 +281,6 @@ bool via_custom_value_command_user(via_custom_command_t *command) {
       break;
     }
   }
+  // unhandled
   return true;
 }
