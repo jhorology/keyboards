@@ -458,6 +458,7 @@ EOS
 }
 
 dot_dir_locals() {
+  local target=$1
   cat <<EOS > $PROJECT/.dir-locals.el
 ((nil . (
   (lsp-completion-enable-additional-text-edit . nil)
@@ -465,6 +466,7 @@ dot_dir_locals() {
   (projectile-git-use-fd . t)
   (projectile-git-fd-args . "--hidden --no-ignore -0 --exclude '\.*' --type f --strip-cwd-prefix")
   (counsel-rg-base-command . ("rg" "--no-ignore" "--max-columns" "240" "--with-filename" "--no-heading" "--line-number" "--color" "never" "%s"))
+  (compile-command . "cd $PROJECT/qmk_firmware; qmk_build.sh -w -p $target")
 )))
 EOS
 }
@@ -697,7 +699,7 @@ for target in $TARGETS; do
     compile_db $target
     dot_clangd
     if $WITH_EMACS; then
-      dot_dir_locals
+      dot_dir_locals $target
       dot_projectile
     fi
   fi
