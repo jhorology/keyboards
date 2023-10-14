@@ -34,6 +34,7 @@ static rtcnt_t last_key_scan_time;
 // 3D matrix
 static matrix_row_t matrix[MATRIX_PAGES][MATRIX_ROWS];
 static matrix_row_t matrix_changed[MATRIX_PAGES][MATRIX_ROWS];
+static matrix_row_t matrix_used[MATRIX_ROWS];
 static adc_mux adcMux;
 
 #define PRIMARY_MATRIX_PAGE 0
@@ -63,9 +64,11 @@ extern void switch_events(uint8_t row, uint8_t col, bool pressed);
   for (int col = 0; col < MATRIX_COLS; col++, col_mask <<= 1) { \
     select_col(matrix_col_channels[col]);                       \
     for (int row = 0; row < MATRIX_ROWS; row++) {               \
-      uint16_t sw_value = ec_readkey_raw(row);                  \
-      ec_key_config_t* key = &ec_config_keys[row][col];         \
-      __VA_ARGS__                                               \
+      if (matrix_used[row] & col_mask) {                        \
+        uint16_t sw_value = ec_readkey_raw(row);                \
+        ec_key_config_t* key = &ec_config_keys[row][col];       \
+        __VA_ARGS__                                             \
+      }                                                         \
     }                                                           \
   }
 
@@ -265,15 +268,20 @@ void matrix_init(void) {
 
   memset(matrix, 0, sizeof(matrix));
   memset(matrix_changed, 0, sizeof(matrix_changed));
+  memset(matrix_used, 0, sizeof(matrix_used));
 
   // TODO
   // debounce_init(ROWS_PER_HAND);
+
+  // scan rate increase 780 -> 950
+  // but when layout changed, restart is needed.
+  MATRIX_LOOP(if (dynamic_keymap_get_keycode(0, row, col)) { matrix_used[row] |= (1 << col); });
 
   last_key_scan_time = chSysGetRealtimeCounterX();
   ec_calibrate_noise_floor();
 }
 
-inline matrix_row_t matrix_get_row(uint8_t row) { return matrix[0][row]; }
+inline matrix_row_t matrix_get_row(uint8_t row) { return matrix[PRIMARY_MATRIX_PAGE][row]; }
 
 uint8_t matrix_scan(void) {
   bool changed = false;
