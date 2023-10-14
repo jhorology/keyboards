@@ -295,10 +295,13 @@ uint8_t matrix_scan(void) {
   if (ec_bottoming_calibration_enable) {
     ec_bootoming_reading();
     return false;
-  } else if (ec_test_discharge_enable) {
+  }
+#ifdef EC_DEBUG_ENABLE
+  if (ec_test_discharge_enable) {
     ec_test_discharge();
     return false;
   }
+#endif
 
   // Normal operation mode: update key state
   MATRIX_READ_LOOP(
