@@ -7,7 +7,6 @@
 #define LOCKING_RESYNC_ENABLE
 #define USB_POLLING_INTERVAL_MS 1
 #define FORCE_NKRO
-#define COMBO_COUNT 0
 #define TAPPING_TERM_PER_KEY
 
 // The default behavior of mod-taps will change to mimic IGNORE_MOD_TAP_INTERRUPT in the future.

@@ -1,0 +1,39 @@
+diff --git a/quantum/action.c b/quantum/action.c
+index 6368f739..65645fd5 100644
+--- a/quantum/action.c
++++ b/quantum/action.c
+@@ -285,7 +285,7 @@ void process_record(keyrecord_t *record) {
+ }
+ 
+ void process_record_handler(keyrecord_t *record) {
+-#if defined(COMBO_ENABLE) || defined(REPEAT_KEY_ENABLE)
++#if defined(COMBO_ENABLE) || defined(REPEAT_KEY_ENABLE) || defined(ACTION_FOR_KEYCODE_ENABLE)
+     action_t action;
+     if (record->keycode) {
+         action = action_for_keycode(record->keycode);
+diff --git a/quantum/action.h b/quantum/action.h
+index d5b15c6f..e2109329 100644
+--- a/quantum/action.h
++++ b/quantum/action.h
+@@ -50,7 +50,7 @@ typedef struct {
+ #ifndef NO_ACTION_TAPPING
+     tap_t tap;
+ #endif
+-#if defined(COMBO_ENABLE) || defined(REPEAT_KEY_ENABLE)
++#if defined(COMBO_ENABLE) || defined(REPEAT_KEY_ENABLE) || defined(ACTION_FOR_KEYCODE_ENABLE)
+     uint16_t keycode;
+ #endif
+ } keyrecord_t;
+diff --git a/quantum/quantum.c b/quantum/quantum.c
+index 3323a5ad..22d34988 100644
+--- a/quantum/quantum.c
++++ b/quantum/quantum.c
+@@ -212,7 +212,7 @@ void soft_reset_keyboard(void) {
+ 
+ /* Convert record into usable keycode via the contained event. */
+ uint16_t get_record_keycode(keyrecord_t *record, bool update_layer_cache) {
+-#if defined(COMBO_ENABLE) || defined(REPEAT_KEY_ENABLE)
++#if defined(COMBO_ENABLE) || defined(REPEAT_KEY_ENABLE) || defined(ACTION_FOR_KEYCODE_ENABLE)
+     if (record->keycode) {
+         return record->keycode;
+     }

@@ -24,9 +24,6 @@ const tap_dance_entry_t PROGMEM tap_dance_predefined_entries[NUM_TAP_DANCE_PREDE
   {KC_APP, KC_APP, KC_APP, MO(3), TAPPING_TERM},
 };
 
-// unused place holder for getting a keyrecord_t#keyccode field.
-combo_t key_combos[COMBO_COUNT] = {};
-
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   // mac base layer

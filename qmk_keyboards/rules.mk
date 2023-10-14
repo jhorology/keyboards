@@ -13,8 +13,12 @@ NKRO_ENABLE = yes
 APPLE_FN_ENABLE = yes
 SECURE_ENABLE = yes
 TAP_DANCE_ENABLE = yes
-COMBO_ENABLE = yes
 DEFERRED_EXEC_ENABLE = yes
+# activate keycode field of keyrecord_t
+ACTION_FOR_KEYCODE_ENABLE = yes
+ifeq ($(strip $(ACTION_FOR_KEYCODE_ENABLE)), yes)
+    OPT_DEFS += -DACTION_FOR_KEYCODE_ENABLE
+endif
 
 # debounce
 DEBOUNCE_TYPE = sym_eager_pk

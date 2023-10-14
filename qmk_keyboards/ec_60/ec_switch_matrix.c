@@ -409,7 +409,7 @@ bool custom_matrix_task(void) {
       ec_key_config_t* key = &ec_config_keys[row][col];
       keyrecord_t record = {
         .event = MAKE_KEYEVENT(row, col, key_pressed),
-        // requires COMBO_ENABLE = yes
+        // requires ACTION_FOR_KEYCODE_ENABLE = yes
         .keycode = key->sub_action_keycode,
       };
       process_record(&record);
