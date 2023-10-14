@@ -254,7 +254,7 @@ function createNonMacFnMenu(hasDipSwitch) {
             ]
           },
           {
-            label: 'When mac mode is disable, fn🌐 key apply to F1-12 keys',
+            label: 'When mac mode is disabled, fn🌐 key apply to F1-12 keys',
             type: 'toggle',
             content: [
               'id_custom_non_mac_fn_fkey',
@@ -263,7 +263,7 @@ function createNonMacFnMenu(hasDipSwitch) {
             ]
           },
           {
-            label: 'When mac mode is disable, fn🌐 key apply to alpha keys',
+            label: 'When mac mode is disabled, fn🌐 key apply to alpha keys',
             type: 'toggle',
             content: [
               'id_custom_non_mac_fn_alpha',
