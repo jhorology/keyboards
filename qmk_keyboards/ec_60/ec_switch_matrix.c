@@ -99,7 +99,7 @@ static inline void select_col(uint8_t amux_col_ch) {
 }
 
 static inline bool ec_is_key_pressed(ec_key_config_t* key, uint16_t sw_value) {
-  switch (key->actuation_mode) {
+  switch (key->modes.actuation_mode) {
     case EC_ACTUATION_MODE_STATIC:
       return sw_value > key->actuation_reference;
     case EC_ACTUATION_MODE_DYNAMIC:
@@ -109,7 +109,7 @@ static inline bool ec_is_key_pressed(ec_key_config_t* key, uint16_t sw_value) {
 }
 
 static inline bool ec_is_key_released(ec_key_config_t* key, uint16_t sw_value) {
-  switch (key->release_mode) {
+  switch (key->modes.release_mode) {
     case EC_RELEASE_MODE_STATIC:
       return (sw_value < key->release_reference);
     case EC_RELEASE_MODE_DYNAMIC:
@@ -123,8 +123,14 @@ static inline bool ec_is_sub_action_pressed(ec_key_config_t* key, uint16_t sw_va
   return sw_value > key->sub_action_actuation_threshold;
 }
 
-static inline bool ec_is_sub_action_released(ec_key_config_t* key, uint16_t sw_value) {
-  return sw_value < key->sub_action_release_threshold;
+static inline bool ec_is_sub_action_released(ec_key_config_t* key, uint16_t sw_value, bool primary_pressed) {
+  switch (key->modes.sub_action_release_mode) {
+    case EC_SUB_ACTION_RELEASE_MODE_SYNC_PRIMARY:
+      return !primary_pressed;
+    case EC_SUB_ACTION_RELEASE_MODE_USE_THRESHOLD:
+      return sw_value < key->sub_action_release_threshold;
+  }
+  return false;
 }
 
 // static routines
@@ -300,10 +306,10 @@ uint8_t matrix_scan(void) {
     key->sw_value = sw_value;
 #endif
     uint16_t extremum = sw_value < key->deadzone ? key->deadzone : sw_value;  //
-    matrix_row_t* matrix_row = &matrix[PRIMARY_MATRIX_PAGE][row];             //
-    if (*matrix_row & col_mask) {
+    matrix_row_t* primary_matrix_row = &matrix[PRIMARY_MATRIX_PAGE][row];     //
+    if (*primary_matrix_row & col_mask) {
       if (ec_is_key_released(key, sw_value)) {
-        *matrix_row &= ~col_mask;
+        *primary_matrix_row &= ~col_mask;
         matrix_changed[PRIMARY_MATRIX_PAGE][row] |= col_mask;
         key->extremum = extremum;
         changed = true;
@@ -316,7 +322,7 @@ uint8_t matrix_scan(void) {
       }
     } else {
       if (ec_is_key_pressed(key, sw_value)) {
-        *matrix_row |= col_mask;
+        *primary_matrix_row |= col_mask;
         matrix_changed[PRIMARY_MATRIX_PAGE][row] |= col_mask;
         key->extremum = extremum;
         changed = true;
@@ -330,10 +336,10 @@ uint8_t matrix_scan(void) {
     }
     // sub action
     if (key->sub_action_keycode != KC_NO) {
-      matrix_row_t* matrix_row = &matrix[SUB_ACTION_MATRIX_PAGE][row];  //
-      if (*matrix_row & col_mask) {
-        if (ec_is_sub_action_released(key, sw_value)) {
-          *matrix_row &= ~col_mask;
+      matrix_row_t* sub_matrix_row = &matrix[SUB_ACTION_MATRIX_PAGE][row];  //
+      if (*sub_matrix_row & col_mask) {
+        if (ec_is_sub_action_released(key, sw_value, *primary_matrix_row & col_mask)) {
+          *sub_matrix_row &= ~col_mask;
           matrix_changed[SUB_ACTION_MATRIX_PAGE][row] |= col_mask;
           changed = true;
         } else {
@@ -341,7 +347,7 @@ uint8_t matrix_scan(void) {
         }
       } else {
         if (ec_is_sub_action_pressed(key, sw_value)) {
-          *matrix_row |= col_mask;
+          *sub_matrix_row |= col_mask;
           matrix_changed[SUB_ACTION_MATRIX_PAGE][row] |= col_mask;
           changed = true;
         } else {

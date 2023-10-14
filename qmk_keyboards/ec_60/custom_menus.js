@@ -11,7 +11,8 @@ const emoji = require('./preset_emoji'),
     8: 'sub_action_enable',
     9: 'sub_action_keycode',
     10: 'sub_action_actuation_threshold',
-    11: 'sub_action_release_threshold'
+    11: 'sub_action_release_mode',
+    12: 'sub_action_release_threshold'
   }
 
 module.exports = function (options, defines) {
@@ -187,10 +188,20 @@ function createPresetMenu(defines, bank, index, presetIndex, channelId) {
       },
       {
         showIf: `{${ref(8)}} == 1`,
+        label: `Sub Action Release Mode`,
+        type: 'dropdown',
+        options: [
+          ['Sync Primary', 0],
+          ['Use Threshold', 1]
+        ],
+        content: content(11)
+      },
+      {
+        showIf: `{${ref(8)}} == 1 && {${ref(11)}} == 1`,
         label: `Sub Action Release Threshold (${rangeMinPerc}% | 100%)`,
         type: 'range',
         options: [rangeMin, rangeMax],
-        content: content(11)
+        content: content(12)
       }
     ]
   }

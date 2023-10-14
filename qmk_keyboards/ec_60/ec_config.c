@@ -23,7 +23,7 @@ static int8_t ec_eeprom_config_error;
 #define KEY_TRAVEL(noise_floor, bottoming, x) ((uint32_t)x * (bottoming - noise_floor) / EC_SCALE_RANGE)
 #define KEY_THRESHOLD(noise_floor, bottoming, x) (KEY_TRAVEL(noise_floor, bottoming, x) + noise_floor)
 
-#define DECLARE_PRESET_PARAM_SETTER(member, param_type)                 \
+#define IMPLEMENT_PRESET_PARAM_SETTER(member, param_type)               \
   void ec_config_set_##member(uint8_t preset_index, param_type value) { \
     ec_preset_t* preset = get_preset(preset_index);                     \
     if (preset->member != value) {                                      \
@@ -84,12 +84,12 @@ static int is_eeprom_valid(void) {
 }
 
 static void update_key(ec_key_config_t* key, ec_preset_t* preset, uint16_t bottoming) {
-  uint8_t prev_actuation_mode = key->actuation_mode;
-  uint8_t prev_release_mode = key->release_mode;
+  ec_actuation_mode_t prev_actuation_mode = key->modes.actuation_mode;
+  ec_release_mode_t prev_release_mode = key->modes.release_mode;
 
   //
   // actuation
-  key->actuation_mode = preset->actuation_mode;
+  key->modes.actuation_mode = preset->actuation_mode;
   switch (preset->actuation_mode) {
     case EC_ACTUATION_MODE_STATIC:
       key->actuation_reference = KEY_THRESHOLD(key->noise_floor, bottoming, preset->actuation_threshold);
@@ -99,7 +99,7 @@ static void update_key(ec_key_config_t* key, ec_preset_t* preset, uint16_t botto
       break;
   }
   // release
-  key->release_mode = preset->release_mode;
+  key->modes.release_mode = preset->release_mode;
   switch (preset->release_mode) {
     case EC_RELEASE_MODE_STATIC:
       key->release_reference = KEY_THRESHOLD(key->noise_floor, bottoming, preset->release_threshold);
@@ -115,6 +115,7 @@ static void update_key(ec_key_config_t* key, ec_preset_t* preset, uint16_t botto
   key->sub_action_keycode = preset->sub_action_enable ? preset->sub_action_keycode : KC_NO;
   key->sub_action_actuation_threshold =
     KEY_THRESHOLD(key->noise_floor, bottoming, preset->sub_action_actuation_threshold);
+  key->modes.sub_action_release_mode = preset->sub_action_release_mode;
   key->sub_action_release_threshold = KEY_THRESHOLD(key->noise_floor, bottoming, preset->sub_action_release_threshold);
 
   // reset extremum
@@ -178,17 +179,18 @@ void ec_config_update_key(uint8_t row, uint8_t col) {
   update_key(&ec_config_keys[row][col], get_key_preset(row, col), ec_eeprom_config.bottoming_reading[row][col]);
 }
 
-DECLARE_PRESET_PARAM_SETTER(actuation_mode, ec_actuation_mode_t)
-DECLARE_PRESET_PARAM_SETTER(release_mode, ec_release_mode_t)
-DECLARE_PRESET_PARAM_SETTER(actuation_threshold, uint16_t)
-DECLARE_PRESET_PARAM_SETTER(release_threshold, uint16_t)
-DECLARE_PRESET_PARAM_SETTER(actuation_travel, uint16_t)
-DECLARE_PRESET_PARAM_SETTER(release_travel, uint16_t)
-DECLARE_PRESET_PARAM_SETTER(deadzone, uint16_t)
-DECLARE_PRESET_PARAM_SETTER(sub_action_enable, bool)
-DECLARE_PRESET_PARAM_SETTER(sub_action_keycode, uint16_t)
-DECLARE_PRESET_PARAM_SETTER(sub_action_actuation_threshold, uint16_t)
-DECLARE_PRESET_PARAM_SETTER(sub_action_release_threshold, uint16_t)
+IMPLEMENT_PRESET_PARAM_SETTER(actuation_mode, ec_actuation_mode_t)
+IMPLEMENT_PRESET_PARAM_SETTER(release_mode, ec_release_mode_t)
+IMPLEMENT_PRESET_PARAM_SETTER(actuation_threshold, uint16_t)
+IMPLEMENT_PRESET_PARAM_SETTER(release_threshold, uint16_t)
+IMPLEMENT_PRESET_PARAM_SETTER(actuation_travel, uint16_t)
+IMPLEMENT_PRESET_PARAM_SETTER(release_travel, uint16_t)
+IMPLEMENT_PRESET_PARAM_SETTER(deadzone, uint16_t)
+IMPLEMENT_PRESET_PARAM_SETTER(sub_action_enable, bool)
+IMPLEMENT_PRESET_PARAM_SETTER(sub_action_keycode, uint16_t)
+IMPLEMENT_PRESET_PARAM_SETTER(sub_action_actuation_threshold, uint16_t)
+IMPLEMENT_PRESET_PARAM_SETTER(sub_action_release_mode, ec_sub_action_release_mode_t)
+IMPLEMENT_PRESET_PARAM_SETTER(sub_action_release_threshold, uint16_t)
 
 void ec_config_set_preset_map(uint8_t preset_map_index) {
   if (ec_eeprom_config.selected_preset_map_index != preset_map_index) {
@@ -289,9 +291,9 @@ void ec_config_debug_send_calibration(void) {
 
 void ec_config_debug_send_config_keys(void) {
   send_string("const key_config = {\n");
-  SEND_EC_CONFIG_KEY_MATRIX(actuation_mode, NIBBLE, true);
+  SEND_EC_CONFIG_KEY_MATRIX(modes.actuation_mode, NIBBLE, true);
   SEND_EC_CONFIG_KEY_MATRIX(actuation_reference, WORD, true);
-  SEND_EC_CONFIG_KEY_MATRIX(release_mode, NIBBLE, true);
+  SEND_EC_CONFIG_KEY_MATRIX(modes.release_mode, NIBBLE, true);
   SEND_EC_CONFIG_KEY_MATRIX(release_reference, WORD, true);
   SEND_EC_CONFIG_KEY_MATRIX(deadzone, WORD, true);
   SEND_EC_CONFIG_KEY_MATRIX(sub_action_keycode, WORD, true);

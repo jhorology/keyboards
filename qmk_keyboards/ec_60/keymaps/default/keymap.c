@@ -50,7 +50,7 @@ const ec_preset_t PROGMEM ec_presets_default[EC_NUM_PRESETS] = {
   // EC Preset 0 ⬜️ - default
   [0] = EC_STATIC_PRESET_DEFAULT,
   // EC Preset 1 🟩 - alphas
-  [1] = EC_DYNAMIC_PRESET_PERC(10, 10, 10),
+  [1] = EC_DYNAMIC_PRESET_PERC(15, 15, 15),
   // EC Preset 2 🟨 - none-alphas
   [2] = EC_DYNAMIC_PRESET_DEFAULT,
   // EC Preset 3 🟧 - mods

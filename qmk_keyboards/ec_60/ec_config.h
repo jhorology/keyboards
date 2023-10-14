@@ -9,6 +9,11 @@ typedef enum ec_actuation_mode { EC_ACTUATION_MODE_STATIC = 0, EC_ACTUATION_MODE
 
 // mode max 4 modes
 typedef enum ec_release_mode { EC_RELEASE_MODE_STATIC = 0, EC_RELEASE_MODE_DYNAMIC } ec_release_mode_t;
+// mode max 4 modes
+typedef enum ec_sub_action_release_mode {
+  EC_SUB_ACTION_RELEASE_MODE_SYNC_PRIMARY = 0,
+  EC_SUB_ACTION_RELEASE_MODE_USE_THRESHOLD
+} ec_sub_action_release_mode_t;
 
 typedef struct {
   ec_actuation_mode_t actuation_mode : 2;  // +0
@@ -24,9 +29,10 @@ typedef struct {
   uint8_t _reserved_1 : 1;                       // +53
   uint16_t sub_action_actuation_threshold : 10;  // +54 0 | 100% (1023) of Total Travel
 
-  uint16_t sub_action_keycode : 16;            // +64
-  uint16_t sub_action_release_threshold : 10;  // +80 0 | 100% (1023) of Total Travel
-  uint8_t _reserved_2 : 6;                     // +90
+  uint16_t sub_action_keycode : 16;                          // +64
+  uint16_t sub_action_release_threshold : 10;                // +80 0 | 100% (1023) of Total Travel
+  ec_sub_action_release_mode_t sub_action_release_mode : 2;  // +90
+  uint8_t _reserved_2 : 4;                                   // +92
   // total 96bit = dword x 3 = 12bytes
 } __attribute__((packed)) ec_preset_t;
 
@@ -49,10 +55,14 @@ _Static_assert(sizeof(ec_eeprom_config_t) == (VIA_EEPROM_CUSTOM_CONFIG_SIZE - VI
                "Mismatch in keyboard eeprom configuration");
 
 typedef struct {
-  ec_actuation_mode_t actuation_mode;
+  struct {
+    ec_actuation_mode_t actuation_mode : 2;
+    ec_release_mode_t release_mode : 2;
+    ec_sub_action_release_mode_t sub_action_release_mode : 2;
+    uint16_t _reserved : 10;
+  } __attribute__((packed)) modes;
   uint16_t actuation_reference;  // threshold or travel
-  ec_release_mode_t release_mode;
-  uint16_t release_reference;  // threshold or travel
+  uint16_t release_reference;    // threshold or travel
   uint16_t deadzone;
   uint16_t extremum;
   uint16_t sub_action_keycode;
@@ -80,17 +90,23 @@ void ec_config_reset(void);
 void ec_config_init(void);
 void ec_config_update_key(uint8_t row, uint8_t col);
 
-void ec_config_set_actuation_mode(uint8_t preset_index, ec_actuation_mode_t value);
-void ec_config_set_release_mode(uint8_t preset_index, ec_release_mode_t value);
-void ec_config_set_actuation_threshold(uint8_t preset_index, uint16_t value);
-void ec_config_set_release_threshold(uint8_t preset_index, uint16_t value);
-void ec_config_set_actuation_travel(uint8_t preset_index, uint16_t value);
-void ec_config_set_release_travel(uint8_t preset_index, uint16_t value);
-void ec_config_set_deadzone(uint8_t preset_index, uint16_t value);
-void ec_config_set_sub_action_enable(uint8_t preset_index, bool value);
-void ec_config_set_sub_action_keycode(uint8_t preset_index, uint16_t value);
-void ec_config_set_sub_action_actuation_threshold(uint8_t preset_index, uint16_t value);
-void ec_config_set_sub_action_release_threshold(uint8_t preset_index, uint16_t value);
+#define DECLARE_PRESET_PARAM_SETTER(member, param_type) \
+  void ec_config_set_##member(uint8_t preset_index, param_type value);
+
+DECLARE_PRESET_PARAM_SETTER(actuation_mode, ec_actuation_mode_t)
+DECLARE_PRESET_PARAM_SETTER(release_mode, ec_release_mode_t)
+DECLARE_PRESET_PARAM_SETTER(actuation_threshold, uint16_t)
+DECLARE_PRESET_PARAM_SETTER(release_threshold, uint16_t)
+DECLARE_PRESET_PARAM_SETTER(actuation_travel, uint16_t)
+DECLARE_PRESET_PARAM_SETTER(release_travel, uint16_t)
+DECLARE_PRESET_PARAM_SETTER(deadzone, uint16_t)
+DECLARE_PRESET_PARAM_SETTER(sub_action_enable, bool)
+DECLARE_PRESET_PARAM_SETTER(sub_action_keycode, uint16_t)
+DECLARE_PRESET_PARAM_SETTER(sub_action_actuation_threshold, uint16_t)
+DECLARE_PRESET_PARAM_SETTER(sub_action_release_mode, ec_sub_action_release_mode_t)
+DECLARE_PRESET_PARAM_SETTER(sub_action_release_threshold, uint16_t)
+
+#define SET_PRESET_PARAM(member, preset_index, value) ec_config_set_##member(preset_index, value);
 
 void ec_config_set_preset_map(uint8_t preset_map_index);
 void ec_config_calibration_start(void);
@@ -133,12 +149,13 @@ void ec_config_debug_send_all(void);
   .release_mode = EC_RELEASE_MODE_STATIC,        \
   .actuation_threshold = a,                      \
   .release_threshold = r,                        \
-  .actuation_travel = EC_PERC(15),               \
-  .release_travel = EC_PERC(15),                 \
+  .actuation_travel = EC_PERC(20),               \
+  .release_travel = EC_PERC(20),                 \
   .deadzone = EC_PERC(15),                       \
   .sub_action_enable = false,                    \
   .sub_action_keycode = KC_NO,                   \
   .sub_action_actuation_threshold = EC_PERC(90), \
+  .sub_action_release_mode = EC_SUB_ACTION_RELEASE_MODE_SYNC_PRIMARY, \
   .sub_action_release_threshold = EC_PERC(75)    \
 }
 #define EC_STATIC_PRESET_PERC(a, r) EC_STATIC_PRESET(EC_PERC(a), EC_PERC(r))
@@ -156,6 +173,7 @@ void ec_config_debug_send_all(void);
   .sub_action_enable = false,                    \
   .sub_action_keycode = KC_NO,                   \
   .sub_action_actuation_threshold = EC_PERC(90), \
+  .sub_action_release_mode = EC_SUB_ACTION_RELEASE_MODE_SYNC_PRIMARY, \
   .sub_action_release_threshold = EC_PERC(75)    \
 }
 #define EC_DYNAMIC_PRESET_PERC(a, r, d) EC_DYNAMIC_PRESET(EC_PERC(a), EC_PERC(r), EC_PERC(d))

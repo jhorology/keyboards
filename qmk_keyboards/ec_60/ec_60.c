@@ -65,6 +65,7 @@ enum via_ec_preset_value_id {
   id_ec_preset_sub_action_enable,
   id_ec_preset_sub_action_keycode,
   id_ec_preset_sub_action_actuation_threshold,
+  id_ec_preset_sub_action_release_mode,
   id_ec_preset_sub_action_release_threshold
   // clang-format on
 };
@@ -246,37 +247,40 @@ bool via_custom_value_command_user(via_custom_command_t *command) {
         case id_custom_set_value:
           switch (command->value_id) {
             case id_ec_preset_actuation_mode:
-              ec_config_set_actuation_mode(preset_index, via_read_dropdown_value(command));
+              SET_PRESET_PARAM(actuation_mode, preset_index, via_read_dropdown_value(command));
               return false;
             case id_ec_preset_actuation_threshold:
-              ec_config_set_actuation_threshold(preset_index, VIA_READ_EC_RANGE_VALUE(command));
+              SET_PRESET_PARAM(actuation_threshold, preset_index, VIA_READ_EC_RANGE_VALUE(command));
               return false;
             case id_ec_preset_actuation_travel:
-              ec_config_set_actuation_travel(preset_index, VIA_READ_EC_HALF_RANGE_VALUE(command));
+              SET_PRESET_PARAM(actuation_travel, preset_index, VIA_READ_EC_HALF_RANGE_VALUE(command));
               return false;
             case id_ec_preset_release_mode:
-              ec_config_set_release_mode(preset_index, via_read_dropdown_value(command));
+              SET_PRESET_PARAM(release_mode, preset_index, via_read_dropdown_value(command));
               return false;
             case id_ec_preset_release_threshold:
-              ec_config_set_release_threshold(preset_index, VIA_READ_EC_RANGE_VALUE(command));
+              SET_PRESET_PARAM(release_threshold, preset_index, VIA_READ_EC_RANGE_VALUE(command));
               return false;
             case id_ec_preset_release_travel:
-              ec_config_set_release_travel(preset_index, VIA_READ_EC_HALF_RANGE_VALUE(command));
+              SET_PRESET_PARAM(release_travel, preset_index, VIA_READ_EC_HALF_RANGE_VALUE(command));
               return false;
             case id_ec_preset_deadzone:
-              ec_config_set_deadzone(preset_index, VIA_READ_EC_HALF_RANGE_VALUE(command));
+              SET_PRESET_PARAM(deadzone, preset_index, VIA_READ_EC_HALF_RANGE_VALUE(command));
               return false;
             case id_ec_preset_sub_action_enable:
-              ec_config_set_sub_action_enable(preset_index, via_read_toggle_value(command));
+              SET_PRESET_PARAM(sub_action_enable, preset_index, via_read_toggle_value(command));
               return false;
             case id_ec_preset_sub_action_keycode:
-              ec_config_set_sub_action_keycode(preset_index, via_read_keycode_value(command));
+              SET_PRESET_PARAM(sub_action_keycode, preset_index, via_read_keycode_value(command));
               return false;
             case id_ec_preset_sub_action_actuation_threshold:
-              ec_config_set_sub_action_actuation_threshold(preset_index, VIA_READ_EC_RANGE_VALUE(command));
+              SET_PRESET_PARAM(sub_action_actuation_threshold, preset_index, VIA_READ_EC_RANGE_VALUE(command));
+              return false;
+            case id_ec_preset_sub_action_release_mode:
+              SET_PRESET_PARAM(sub_action_release_threshold, preset_index, via_read_dropdown_value(command));
               return false;
             case id_ec_preset_sub_action_release_threshold:
-              ec_config_set_sub_action_release_threshold(preset_index, VIA_READ_EC_RANGE_VALUE(command));
+              SET_PRESET_PARAM(sub_action_release_threshold, preset_index, VIA_READ_EC_RANGE_VALUE(command));
               return false;
           }
           break;
@@ -313,6 +317,9 @@ bool via_custom_value_command_user(via_custom_command_t *command) {
               return false;
             case id_ec_preset_sub_action_actuation_threshold:
               VIA_WRITE_EC_RANGE_VALUE(command, preset->sub_action_actuation_threshold);
+              return false;
+            case id_ec_preset_sub_action_release_mode:
+              via_write_dropdown_value(command, preset->sub_action_release_mode);
               return false;
             case id_ec_preset_sub_action_release_threshold:
               VIA_WRITE_EC_RANGE_VALUE(command, preset->sub_action_release_threshold);
