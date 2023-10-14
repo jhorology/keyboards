@@ -83,7 +83,9 @@ bool report_buffer_is_empty() { return report_buffer_queue_head == report_buffer
 
 void report_buffer_update_timer(void) { report_timer_buffer = sync_timer_read32(); }
 
-bool report_buffer_next_inverval(void) { return sync_timer_elapsed32(report_timer_buffer) > report_interval; }
+bool report_buffer_next_inverval(void) {
+  return sync_timer_elapsed32(report_timer_buffer) > report_interval;
+}
 
 void report_buffer_set_inverval(uint8_t interval) { report_interval = interval; }
 

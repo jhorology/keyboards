@@ -39,7 +39,7 @@ static uint32_t wlengths = 0;
 static deferred_token timeout_token;
 static os_variant_t detected_os;
 
-static uint32_t os_fingerprint_timeout_callback(uint32_t trigger_time, void* cb_arg);
+static uint32_t os_fingerprint_timeout_callback(uint32_t trigger_time, void *cb_arg);
 
 __attribute__((weak)) void os_fingerprint_update_kb(os_variant_t os) {}
 
@@ -79,12 +79,13 @@ void trace_usb_get_descriptor(const uint8_t dtype, const uint16_t w_length) {
     if (timeout_token) {
       extend_deferred_exec(timeout_token, OS_FINGERPRINT_TIMEOUT_MILLIS);
     } else {
-      timeout_token = defer_exec(OS_FINGERPRINT_TIMEOUT_MILLIS, os_fingerprint_timeout_callback, NULL);
+      timeout_token =
+        defer_exec(OS_FINGERPRINT_TIMEOUT_MILLIS, os_fingerprint_timeout_callback, NULL);
     }
   }
 }
 
-static uint32_t os_fingerprint_timeout_callback(uint32_t trigger_time, void* cb_arg) {
+static uint32_t os_fingerprint_timeout_callback(uint32_t trigger_time, void *cb_arg) {
 #ifdef OS_FINGERPRINT_DEBUG_ENABLE
   if (request_cnt < NUM_DESCRIPTOR_REQUESTS) {
     // end of request sequence

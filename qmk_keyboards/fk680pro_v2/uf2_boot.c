@@ -23,7 +23,7 @@
 #define CMD_BOOT 0x544F4F42UL
 #define CMD_APP 0x3f82722aUL
 
-#define MAGIC_REG *(volatile uint32_t*)0x20004000
+#define MAGIC_REG *(volatile uint32_t *)0x20004000
 
 void bootloader_jump(void) {
   MAGIC_REG = CMD_BOOT;

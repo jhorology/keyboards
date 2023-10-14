@@ -262,7 +262,8 @@ void factory_test_rx(uint8_t *data, uint8_t length) {
         }
         break;
       case FACTORY_TEST_CMD_JUMP_TO_BL:
-        // if (memcmp(&data[2], "JumpToBootloader", strlen("JumpToBootloader")) == 0) bootloader_jump();
+        // if (memcmp(&data[2], "JumpToBootloader", strlen("JumpToBootloader")) == 0)
+        // bootloader_jump();
         break;
 #ifdef KC_BLUETOOTH_ENABLE
       case FACTORY_TEST_CMD_INT_PIN:

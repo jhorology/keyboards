@@ -39,7 +39,9 @@ typedef struct {
   deferred_token token;  // defer_exec token
 } defer_eeprom_update_item_t;
 
-__attribute__((weak)) bool via_custom_value_command_user(via_custom_command_t *command) { return true; }
+__attribute__((weak)) bool via_custom_value_command_user(via_custom_command_t *command) {
+  return true;
+}
 
 static defer_eeprom_update_item_t defer_eeprom_update_items[DEFER_EEPROM_UPDATE_ITEM_SIZE];
 
@@ -55,12 +57,16 @@ static void via_custom_td_set_value(via_custom_command_t *command);
 static void via_custom_non_mac_fn_get_value(via_custom_command_t *command);
 static void via_custom_non_mac_fn_set_value(via_custom_command_t *command);
 
-static void defer_eeprom_update(uint16_t id, defer_eeprom_update_value_type_t value_type, void *eeprom_adrs,
-                                uint32_t value, void *block_adrs, size_t block_size);
-static uint32_t defer_eeprom_update_callback(uint32_t trigger_time, defer_eeprom_update_item_t *item);
+static void defer_eeprom_update(uint16_t id, defer_eeprom_update_value_type_t value_type,
+                                void *eeprom_adrs, uint32_t value, void *block_adrs,
+                                size_t block_size);
+static uint32_t defer_eeprom_update_callback(uint32_t trigger_time,
+                                             defer_eeprom_update_item_t *item);
 
 static inline uint8_t via_readUInt8(via_custom_command_t *command) { return command->data[0]; }
-static inline void via_writeUInt8(via_custom_command_t *command, uint8_t value) { command->data[0] = value; }
+static inline void via_writeUInt8(via_custom_command_t *command, uint8_t value) {
+  command->data[0] = value;
+}
 static inline uint16_t via_readUInt16BE(via_custom_command_t *command) {
   return ((uint16_t)(command->data[0]) << 8) + command->data[1];
 }
@@ -73,8 +79,9 @@ static inline void via_writeUInt16BE(via_custom_command_t *command, uint16_t val
 void via_custom_value_command_kb(uint8_t *data, uint8_t length) {
   via_custom_command_t command = VIA_CUSTOM_COMMAND(data);
 #ifdef CONSOLE_ENABLE
-  uprintf("via_custom_value_command_kb:command_id:%02X channel_id:%02X value_id:%02X data:%02X, %02X\n",
-          command.command_id, command.channel_id, command.value_id, command.data[0], command.data[1]);
+  uprintf(
+    "via_custom_value_command_kb:command_id:%02X channel_id:%02X value_id:%02X data:%02X, %02X\n",
+    command.command_id, command.channel_id, command.value_id, command.data[0], command.data[1]);
 #endif  // ONSOLE_ENABLE
   // data = [ command_id, channel_id, value_id, value_data ]
   switch (command.channel_id) {
@@ -231,8 +238,10 @@ static void via_custom_rc_get_value(via_custom_command_t *command) {
       via_write_dropdown_value(command, rc_config.fine_tune_ratio);
       break;
     case id_custom_rc_fine_tune_mod_ctrl ... id_custom_rc_fine_tune_mod_apple_fn:
-      via_write_toggle_value(
-        command, (rc_config.fine_tune_mods & (1 << (command->value_id - id_custom_rc_fine_tune_mod_ctrl))) ? 1 : 0);
+      via_write_toggle_value(command, (rc_config.fine_tune_mods &
+                                       (1 << (command->value_id - id_custom_rc_fine_tune_mod_ctrl)))
+                                        ? 1
+                                        : 0);
       break;
   }
 }
@@ -258,7 +267,8 @@ static void via_custom_rc_set_value(via_custom_command_t *command) {
       break;
     }
   }
-  defer_eeprom_update_dword(id_custom_rc_channel, 0, (void *)RADIAL_CONTROLLER_EEPROM_ADDR, rc_config.raw);
+  defer_eeprom_update_dword(id_custom_rc_channel, 0, (void *)RADIAL_CONTROLLER_EEPROM_ADDR,
+                            rc_config.raw);
 }
 
 #endif  // RADIAL_CONTROLLER_ENABLE
@@ -279,14 +289,16 @@ static void via_custom_td_get_value(via_custom_command_t *command) {
 
 static void via_custom_td_set_value(via_custom_command_t *command) {
   uint8_t td_index = command->channel_id - id_custom_td_channel_start;
-  uint16_t *adrs = (uint16_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + 10 * td_index + (command->value_id - 1) * 2);
+  uint16_t *adrs =
+    (uint16_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + 10 * td_index + (command->value_id - 1) * 2);
   if (td_index < TAP_DANCE_ENTRIES) {
     switch (command->value_id) {
       case id_custom_td_single_tap ... id_custom_td_tap_hold:
         eeprom_update_word(adrs, via_read_keycode_value(command));
         break;
       case id_custom_td_tapping_term:
-        defer_eeprom_update_word(command->channel_id, command->value_id, adrs, via_read_range_word_value(command));
+        defer_eeprom_update_word(command->channel_id, command->value_id, adrs,
+                                 via_read_range_word_value(command));
         break;
     }
   }
@@ -309,8 +321,8 @@ static void via_custom_non_mac_fn_get_value(via_custom_command_t *command) {
       via_write_toggle_value(command, custom_config_non_mac_fn_cursor_is_enable());
       break;
     case id_custom_non_mac_fn_f1 ... id_custom_non_mac_fn_right: {
-      via_write_keycode_value(command,
-                              dynamic_non_mac_fn_keycode(FN_F1 + (command->value_id - id_custom_non_mac_fn_f1)));
+      via_write_keycode_value(
+        command, dynamic_non_mac_fn_keycode(FN_F1 + (command->value_id - id_custom_non_mac_fn_f1)));
       break;
     }
   }
@@ -331,17 +343,18 @@ static void via_custom_non_mac_fn_set_value(via_custom_command_t *command) {
       custom_config_non_mac_fn_set_cursor(via_read_toggle_value(command));
       break;
     case id_custom_non_mac_fn_f1 ... id_custom_non_mac_fn_right:
-      eeprom_update_word(
-        (uint16_t *)(DYNAMIC_NON_MAC_FN_EEPROM_ADDR + (command->value_id - id_custom_non_mac_fn_f1) * 2),
-        via_read_keycode_value(command));
+      eeprom_update_word((uint16_t *)(DYNAMIC_NON_MAC_FN_EEPROM_ADDR +
+                                      (command->value_id - id_custom_non_mac_fn_f1) * 2),
+                         via_read_keycode_value(command));
       break;
   }
 }
 
 // utility routine
 
-static void defer_eeprom_update(uint16_t id, defer_eeprom_update_value_type_t value_type, void *eeprom_adrs,
-                                uint32_t value, void *block_adrs, size_t block_size) {
+static void defer_eeprom_update(uint16_t id, defer_eeprom_update_value_type_t value_type,
+                                void *eeprom_adrs, uint32_t value, void *block_adrs,
+                                size_t block_size) {
   defer_eeprom_update_item_t *new_item = NULL;
   for (uint8_t i = 0; i < DEFER_EEPROM_UPDATE_ITEM_SIZE; i++) {
     defer_eeprom_update_item_t *item = &defer_eeprom_update_items[i];
@@ -367,8 +380,9 @@ static void defer_eeprom_update(uint16_t id, defer_eeprom_update_value_type_t va
     } else {
       new_item->src.value = value;
     }
-    new_item->token = defer_exec(DEFER_EEPROM_UPDATE_DELAY_MILLIS,
-                                 (uint32_t(*)(uint32_t, void *))defer_eeprom_update_callback, new_item);
+    new_item->token =
+      defer_exec(DEFER_EEPROM_UPDATE_DELAY_MILLIS,
+                 (uint32_t(*)(uint32_t, void *))defer_eeprom_update_callback, new_item);
     if (new_item->token) {
       new_item->id = id;
     }
@@ -392,7 +406,8 @@ static void defer_eeprom_update(uint16_t id, defer_eeprom_update_value_type_t va
   }
 }
 
-static uint32_t defer_eeprom_update_callback(uint32_t trigger_time, defer_eeprom_update_item_t *item) {
+static uint32_t defer_eeprom_update_callback(uint32_t trigger_time,
+                                             defer_eeprom_update_item_t *item) {
   switch (item->value_type) {
     case BYTE:
       eeprom_update_byte(item->eeprom_adrs, item->src.value);
@@ -412,8 +427,8 @@ static uint32_t defer_eeprom_update_callback(uint32_t trigger_time, defer_eeprom
 #ifdef CONSOLE_ENABLE
   if (item->value_type == BLOCK) {
     uprintf("defer_eeprom_update_callback:id:%04X block_adrs:0x%04X-%04X block_size:%d\n", item->id,
-            (uint16_t)((uint32_t)item->src.data.adrs >> 16), (uint16_t)((uint32_t)item->src.data.adrs & 0xffff),
-            item->src.data.size);
+            (uint16_t)((uint32_t)item->src.data.adrs >> 16),
+            (uint16_t)((uint32_t)item->src.data.adrs & 0xffff), item->src.data.size);
   } else {
     uprintf("defer_eeprom_update_callback:id:%04X value:%ld\n", item->id, item->src.value);
   }
@@ -424,29 +439,44 @@ static uint32_t defer_eeprom_update_callback(uint32_t trigger_time, defer_eeprom
 // export functions
 
 uint8_t via_read_dropdown_value(via_custom_command_t *command) { return via_readUInt8(command); }
-void via_write_dropdown_value(via_custom_command_t *command, uint8_t value) { via_writeUInt8(command, value); }
+void via_write_dropdown_value(via_custom_command_t *command, uint8_t value) {
+  via_writeUInt8(command, value);
+}
 bool via_read_toggle_value(via_custom_command_t *command) { return via_readUInt8(command); }
-void via_write_toggle_value(via_custom_command_t *command, bool value) { via_writeUInt8(command, value); }
+void via_write_toggle_value(via_custom_command_t *command, bool value) {
+  via_writeUInt8(command, value);
+}
 uint8_t via_read_range_byte_value(via_custom_command_t *command) { return via_readUInt8(command); }
-void via_write_range_byte_value(via_custom_command_t *command, uint8_t value) { via_writeUInt8(command, value); }
-uint16_t via_read_range_word_value(via_custom_command_t *command) { return via_readUInt16BE(command); }
-void via_write_range_word_value(via_custom_command_t *command, uint16_t value) { via_writeUInt16BE(command, value); }
+void via_write_range_byte_value(via_custom_command_t *command, uint8_t value) {
+  via_writeUInt8(command, value);
+}
+uint16_t via_read_range_word_value(via_custom_command_t *command) {
+  return via_readUInt16BE(command);
+}
+void via_write_range_word_value(via_custom_command_t *command, uint16_t value) {
+  via_writeUInt16BE(command, value);
+}
 uint16_t via_read_keycode_value(via_custom_command_t *command) { return via_readUInt16BE(command); }
-void via_write_keycode_value(via_custom_command_t *command, uint16_t keycode) { via_writeUInt16BE(command, keycode); }
+void via_write_keycode_value(via_custom_command_t *command, uint16_t keycode) {
+  via_writeUInt16BE(command, keycode);
+}
 
-void defer_eeprom_update_byte(uint8_t channel_id, uint8_t value_id, void *eeprom_adrs, uint8_t value) {
+void defer_eeprom_update_byte(uint8_t channel_id, uint8_t value_id, void *eeprom_adrs,
+                              uint8_t value) {
   defer_eeprom_update((channel_id << 8) + value_id, BYTE, eeprom_adrs, value, 0, 0);
 }
 
-void defer_eeprom_update_word(uint8_t channel_id, uint8_t value_id, void *eeprom_adrs, uint16_t value) {
+void defer_eeprom_update_word(uint8_t channel_id, uint8_t value_id, void *eeprom_adrs,
+                              uint16_t value) {
   defer_eeprom_update((channel_id << 8) + value_id, WORD, eeprom_adrs, value, 0, 0);
 }
 
-void defer_eeprom_update_dword(uint8_t channel_id, uint8_t value_id, void *eeprom_adrs, uint32_t value) {
+void defer_eeprom_update_dword(uint8_t channel_id, uint8_t value_id, void *eeprom_adrs,
+                               uint32_t value) {
   defer_eeprom_update((channel_id << 8) + value_id, DWORD, eeprom_adrs, value, 0, 0);
 }
 
-void defer_eeprom_update_block(uint8_t channel_id, uint8_t value_id, void *block_adrs, void *eeprom_adrs,
-                               uint32_t block_size) {
+void defer_eeprom_update_block(uint8_t channel_id, uint8_t value_id, void *block_adrs,
+                               void *eeprom_adrs, uint32_t block_size) {
   defer_eeprom_update((channel_id << 8) + value_id, BLOCK, eeprom_adrs, 0, block_adrs, block_size);
 }

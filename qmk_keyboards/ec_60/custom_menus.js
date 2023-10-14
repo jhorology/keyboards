@@ -16,8 +16,7 @@ const emoji = require('./preset_emoji'),
   }
 
 module.exports = function (options, defines) {
-  const NUM_PRESET_BANKS =
-      (((defines.EC_NUM_PRESETS - 1) / PRESET_BANK_SIZE) | 0) + 1,
+  const NUM_PRESET_BANKS = (((defines.EC_NUM_PRESETS - 1) / PRESET_BANK_SIZE) | 0) + 1,
     EC_TOOLS_CHANNEL_ID = defines.EC_VIA_CUSTOM_CHANNEL_ID_START,
     EC_PRESET_CHANNEL_ID_START = defines.EC_VIA_CUSTOM_CHANNEL_ID_START + 1
 
@@ -31,21 +30,13 @@ module.exports = function (options, defines) {
             {
               label: 'Bottoming Calibration',
               type: 'toggle',
-              content: [
-                'id_ec_tools_bottoming_calibration',
-                EC_TOOLS_CHANNEL_ID,
-                1
-              ]
+              content: ['id_ec_tools_bottoming_calibration', EC_TOOLS_CHANNEL_ID, 1]
             },
             {
               label:
                 'Show Calibration Data *(In 3 sconds after click, It will send data as keystrokes.)',
               type: 'toggle',
-              content: [
-                'id_ec_tools_show_calibration_data',
-                EC_TOOLS_CHANNEL_ID,
-                2
-              ]
+              content: ['id_ec_tools_show_calibration_data', EC_TOOLS_CHANNEL_ID, 2]
             },
             ...(options.EC_DEBUG_ENABLE !== 'yes'
               ? []
@@ -53,30 +44,18 @@ module.exports = function (options, defines) {
                   {
                     label: 'Test Discharge Time',
                     type: 'toggle',
-                    content: [
-                      'id_ec_tools_test_discharge',
-                      EC_TOOLS_CHANNEL_ID,
-                      3
-                    ]
+                    content: ['id_ec_tools_test_discharge', EC_TOOLS_CHANNEL_ID, 3]
                   },
                   {
                     label:
                       'Show Debug Data *(In 3 sconds after click, It will send data as keystrokes.)',
                     type: 'toggle',
-                    content: [
-                      'id_ec_tools_debug_send_config',
-                      EC_TOOLS_CHANNEL_ID,
-                      4
-                    ]
+                    content: ['id_ec_tools_debug_send_config', EC_TOOLS_CHANNEL_ID, 4]
                   },
                   {
                     label: 'Bootloader Jump',
                     type: 'toggle',
-                    content: [
-                      'id_ec_tools_bootloader_jump',
-                      EC_TOOLS_CHANNEL_ID,
-                      5
-                    ]
+                    content: ['id_ec_tools_bootloader_jump', EC_TOOLS_CHANNEL_ID, 5]
                   }
                 ])
           ]
@@ -111,9 +90,7 @@ function createPresetMenu(defines, bank, index, presetIndex, channelId) {
     rangeMinPerc = defines.EC_SAFETY_MARGIN_PERC,
     rangeMin = ((rangeMax * rangeMinPerc) / 100) | 0
   return {
-    label: `Preset ${bank}${index} ${
-      emoji[bank % emoji.length][index % emoji[bank].length]
-    }`,
+    label: `Preset ${bank}${index} ${emoji[bank % emoji.length][index % emoji[bank].length]}`,
     content: [
       {
         label: 'Actuation Mode',

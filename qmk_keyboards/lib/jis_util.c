@@ -42,17 +42,17 @@ static layout_conversion_item_t ansi_under_jis_table[] = {
 #ifdef USJ_APPLE_JIS_BSLS
   {KC_BSLS, LALT(JP_YEN), JP_PIPE},  // "\", "|"
                                      // TODO
-                                     // some applications (eg.emacs) interprets backslash as Alt + JP_YEN
-                                     // see https://qiita.com/hirokisince1998/items/029741559d7ba7078523
-                                     //
-                                     // for emacs init.el:
-                                     //
-                                     // (define-key global-map [?\M-¥] [?\\])
-                                     // (define-key global-map [?\C-\M-¥] [?\C-\\])
-                                     // (defun isearch-add-backslash()
-                                     // (interactive)
-                                     // (isearch-printing-char ?\\ 1))
-                                     // (define-key isearch-mode-map [?\M-¥] 'isearch-add-backslash)
+// some applications (eg.emacs) interprets backslash as Alt + JP_YEN
+// see https://qiita.com/hirokisince1998/items/029741559d7ba7078523
+//
+// for emacs init.el:
+//
+// (define-key global-map [?\M-¥] [?\\])
+// (define-key global-map [?\C-\M-¥] [?\C-\\])
+// (defun isearch-add-backslash()
+// (interactive)
+// (isearch-printing-char ?\\ 1))
+// (define-key isearch-mode-map [?\M-¥] 'isearch-add-backslash)
 #else
   {KC_BSLS, JP_BSLS, JP_PIPE},  // "\", "|"
 #endif
@@ -65,8 +65,8 @@ static layout_conversion_item_t ansi_under_jis_table[] = {
   {KC_QUOT, JP_QUOT, JP_DQUO}  // '
 };
 
-static bool process_layout_conversion(layout_conversion_item_t *table, uint16_t table_length, uint16_t keycode,
-                                      keyrecord_t *record);
+static bool process_layout_conversion(layout_conversion_item_t *table, uint16_t table_length,
+                                      uint16_t keycode, keyrecord_t *record);
 
 // globl functions
 //------------------------------------------
@@ -87,7 +87,8 @@ bool process_jis_util(uint16_t keycode, keyrecord_t *record) {
     default:
       if (custom_config_usj_is_enable()) {
         return process_layout_conversion(
-          ansi_under_jis_table, sizeof(ansi_under_jis_table) / sizeof(layout_conversion_item_t), keycode, record);
+          ansi_under_jis_table, sizeof(ansi_under_jis_table) / sizeof(layout_conversion_item_t),
+          keycode, record);
       }
   }
   return true;
@@ -96,8 +97,8 @@ bool process_jis_util(uint16_t keycode, keyrecord_t *record) {
 // local functions
 //------------------------------------------
 
-static bool process_layout_conversion(layout_conversion_item_t *table, uint16_t table_length, uint16_t keycode,
-                                      keyrecord_t *record) {
+static bool process_layout_conversion(layout_conversion_item_t *table, uint16_t table_length,
+                                      uint16_t keycode, keyrecord_t *record) {
   static uint16_t override_key_flags;
   static uint16_t override_shift_flags;
   uint16_t flag;

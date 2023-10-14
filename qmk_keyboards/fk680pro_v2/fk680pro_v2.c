@@ -103,8 +103,8 @@ void board_init(void) {
   // JTAG-DP Disabled and SW-DP Enabled
   // TIM2 remap PA15, PB3, PA2, PA3
   // FK680ProV2 use PA15 as PWM for WS2812 LEDs
-  AFIO->MAPR =
-    (AFIO->MAPR & ~(AFIO_MAPR_SWJ_CFG | AFIO_MAPR_TIM2_REMAP)) | AFIO_MAPR_SWJ_CFG_JTAGDISABLE | AFIO_MAPR_TIM2_REMAP_0;
+  AFIO->MAPR = (AFIO->MAPR & ~(AFIO_MAPR_SWJ_CFG | AFIO_MAPR_TIM2_REMAP)) |
+               AFIO_MAPR_SWJ_CFG_JTAGDISABLE | AFIO_MAPR_TIM2_REMAP_0;
 }
 
 void eeconfig_init_user(void) {
@@ -125,7 +125,7 @@ void keyboard_post_init_user(void) {
   process_rgb_enable_changed();
 }
 
-bool process_record_user(uint16_t keycode, keyrecord_t* record) {
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
     case RGB_TOGX:
       if (record->event.pressed) {

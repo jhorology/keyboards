@@ -36,12 +36,13 @@
 #define MATRIX_COL_CHANNEL(amux, ch) ((~(1 << (amux + 4)) & 0xf0) + ch)
 // hi 4bits: amux_en_pins
 // lo 4bits: amus_sel_pins
-#define MATRIX_COL_CHANNELS                                                                                   \
-  {                                                                                                           \
-    MATRIX_COL_CHANNEL(0, 0), MATRIX_COL_CHANNEL(0, 3), MATRIX_COL_CHANNEL(0, 1), MATRIX_COL_CHANNEL(0, 2),   \
-      MATRIX_COL_CHANNEL(0, 5), MATRIX_COL_CHANNEL(0, 7), MATRIX_COL_CHANNEL(0, 6), MATRIX_COL_CHANNEL(0, 4), \
-      MATRIX_COL_CHANNEL(1, 0), MATRIX_COL_CHANNEL(1, 3), MATRIX_COL_CHANNEL(1, 1), MATRIX_COL_CHANNEL(1, 2), \
-      MATRIX_COL_CHANNEL(1, 5), MATRIX_COL_CHANNEL(1, 7), MATRIX_COL_CHANNEL(1, 6)                            \
+#define MATRIX_COL_CHANNELS                                                         \
+  {                                                                                 \
+    MATRIX_COL_CHANNEL(0, 0), MATRIX_COL_CHANNEL(0, 3), MATRIX_COL_CHANNEL(0, 1),   \
+      MATRIX_COL_CHANNEL(0, 2), MATRIX_COL_CHANNEL(0, 5), MATRIX_COL_CHANNEL(0, 7), \
+      MATRIX_COL_CHANNEL(0, 6), MATRIX_COL_CHANNEL(0, 4), MATRIX_COL_CHANNEL(1, 0), \
+      MATRIX_COL_CHANNEL(1, 3), MATRIX_COL_CHANNEL(1, 1), MATRIX_COL_CHANNEL(1, 2), \
+      MATRIX_COL_CHANNEL(1, 5), MATRIX_COL_CHANNEL(1, 7), MATRIX_COL_CHANNEL(1, 6)  \
   }
 
 #define DISCHARGE_PIN A6
@@ -89,8 +90,9 @@ typedef struct {
 } __attribute__((packed)) ec_eeprom_config_t;
 */
 #define VIA_EC_PRESET_SIZE 12
-#define VIA_EEPROM_CUSTOM_CONFIG_SIZE \
-  (VIA_EEPROM_CUSTOM_CONFIG_COMMON_SIZE + EC_NUM_PRESETS * VIA_EC_PRESET_SIZE + MATRIX_COLS * MATRIX_ROWS * 2 + 2)
+#define VIA_EEPROM_CUSTOM_CONFIG_SIZE                                           \
+  (VIA_EEPROM_CUSTOM_CONFIG_COMMON_SIZE + EC_NUM_PRESETS * VIA_EC_PRESET_SIZE + \
+   MATRIX_COLS * MATRIX_ROWS * 2 + 2)
 
 /* ViA layout options */
 /*  7 bit */

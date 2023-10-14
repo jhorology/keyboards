@@ -19,18 +19,18 @@
 #include "custom_config.h"
 #include "custom_keycodes.h"
 
-static void process_dial(int16_t direction, keyrecord_t* record);
+static void process_dial(int16_t direction, keyrecord_t *record);
 static void process_dial_encoder(int16_t direction);
 static void process_dial_keyswitch(int16_t direction, bool pressed);
 static void report_dial_keyswitch(void);
-static uint32_t dial_rotation_service(uint32_t trigger_time, void* cb_arg);
+static uint32_t dial_rotation_service(uint32_t trigger_time, void *cb_arg);
 
 static report_radial_controller_t radial_controller_report;
 static int16_t rotating_direction;
 static deferred_token dial_service_token;
 static bool fine_tune;
 
-bool process_radial_controller(uint16_t keycode, keyrecord_t* record) {
+bool process_radial_controller(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
     case RC_BTN:
       radial_controller_report.button = record->event.pressed;
@@ -49,7 +49,7 @@ bool process_radial_controller(uint16_t keycode, keyrecord_t* record) {
   return true;
 }
 
-static void process_dial(int16_t direction, keyrecord_t* record) {
+static void process_dial(int16_t direction, keyrecord_t *record) {
   if (IS_ENCODEREVENT(record->event)) {
     if (record->event.pressed) {
       process_dial_encoder(direction);
@@ -97,19 +97,20 @@ static void process_dial_keyswitch(int16_t direction, bool pressed) {
   }
   if (!dial_service_token) {
     report_dial_keyswitch();
-    dial_service_token = defer_exec(RADIAL_CONTROLLER_REPORT_INTERVAL_MILLIS, &dial_rotation_service, NULL);
+    dial_service_token =
+      defer_exec(RADIAL_CONTROLLER_REPORT_INTERVAL_MILLIS, &dial_rotation_service, NULL);
   }
 }
 
 /**
  * @typedef Callback to execute.
- * @param trigger_time[in] the intended trigger time to execute the callback -- equivalent time-space as
- * timer_read32()
+ * @param trigger_time[in] the intended trigger time to execute the callback -- equivalent
+ * time-space as timer_read32()
  * @param cb_arg[in] the callback argument specified when enqueueing the deferred executor
- * @return non-zero re-queues the callback to execute after the returned number of milliseconds. Zero cancels repeated
- * execution.
+ * @return non-zero re-queues the callback to execute after the returned number of milliseconds.
+ * Zero cancels repeated execution.
  */
-static uint32_t dial_rotation_service(uint32_t trigger_time, void* cb_arg) {
+static uint32_t dial_rotation_service(uint32_t trigger_time, void *cb_arg) {
   if (rotating_direction) {
     report_dial_keyswitch();
     return RADIAL_CONTROLLER_REPORT_INTERVAL_MILLIS;
@@ -119,7 +120,8 @@ static uint32_t dial_rotation_service(uint32_t trigger_time, void* cb_arg) {
 }
 
 static void report_dial_keyswitch() {
-  int16_t speed = custom_config_rc_get_key_angular_speed() * RADIAL_CONTROLLER_REPORT_INTERVAL_MILLIS / 100;
+  int16_t speed =
+    custom_config_rc_get_key_angular_speed() * RADIAL_CONTROLLER_REPORT_INTERVAL_MILLIS / 100;
   if (speed > 3600) {
     speed = 3600;
   }

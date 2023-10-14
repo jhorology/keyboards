@@ -145,7 +145,8 @@ static inline void enter_low_power_mode_prepare(void) {
   usbDisconnectBus(&USBD1);
 
   /* Isolate USB to save power.*/
-  PWR->CR2 &= ~PWR_CR2_USV; /*PWR_CR2_USV is available on STM32L4x2xx and STM32L4x3xx devices only. */
+  PWR->CR2 &=
+    ~PWR_CR2_USV; /*PWR_CR2_USV is available on STM32L4x2xx and STM32L4x3xx devices only. */
 #endif
 
   palEnableLineEvent(BLUETOOTH_INT_INPUT_PIN, PAL_EVENT_MODE_FALLING_EDGE);
@@ -206,7 +207,8 @@ static inline void lpm_wakeup(void) {
   if (usb_power_connected()) {
     hsi48_init();
     /* Remove USB isolation.*/
-    // PWR->CR2 |= PWR_CR2_USV; /* PWR_CR2_USV is available on STM32L4x2xx and STM32L4x3xx devices only. */
+    // PWR->CR2 |= PWR_CR2_USV; /* PWR_CR2_USV is available on STM32L4x2xx and STM32L4x3xx devices
+    // only. */
     usb_power_connect();
     usb_start(&USBD1);
   }

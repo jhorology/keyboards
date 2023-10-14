@@ -306,7 +306,7 @@ format() {
   cd $PROJECT
   find qmk_keyboards -name "*.h" -exec clang-format -i {} \;
   find qmk_keyboards -name "*.c" -exec clang-format -i {} \;
-  # npx prettier --write qmk_keyboards/**/*.{json,js} dist/**/*.json
+  npx prettier --write qmk_keyboards/**/*.{json,js} dist/**/*.json
 }
 
 # return bool: whether should apply patches or not

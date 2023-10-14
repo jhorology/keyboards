@@ -4,15 +4,7 @@
     "Split LShift",
     ["Split RShift", "Unified", "1U | 1.75U", "1.75U | 1U"],
     ["Enter Cluster", "JIS/ISO", "ANSI"],
-    [
-      "Bottom Row",
-      "JIS",
-      "True HHKB",
-      "True HHKB (3U | 3U)",
-      "RF 6U",
-      "7U",
-      "7U HHKB"
-    ]
+    ["Bottom Row", "JIS", "True HHKB", "True HHKB (3U | 3U)", "RF 6U", "7U", "7U HHKB"]
   ],
   "keymap": [
     [

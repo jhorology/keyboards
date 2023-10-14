@@ -107,8 +107,9 @@ static uint8_t payload[PACKET_MAX_LEN];
 static uint8_t reg_offset = 0xFF;
 
 bluetooth_transport_t bluetooth_transport = {
-  ckbt51_init,      ckbt51_connect,       ckbt51_become_discoverable, ckbt51_disconnect, ckbt51_send_keyboard,
-  ckbt51_send_nkro, ckbt51_send_consumer, ckbt51_send_system,         ckbt51_send_mouse, ckbt51_task};
+  ckbt51_init,          ckbt51_connect,   ckbt51_become_discoverable, ckbt51_disconnect,
+  ckbt51_send_keyboard, ckbt51_send_nkro, ckbt51_send_consumer,       ckbt51_send_system,
+  ckbt51_send_mouse,    ckbt51_task};
 
 void ckbt51_init(bool wakeup_from_low_power_mode) {
 #if (HAL_USE_SERIAL == TRUE)
@@ -122,15 +123,17 @@ void ckbt51_init(bool wakeup_from_low_power_mode) {
   }
 
   sdStart(&BT_DRIVER, &config);
-  palSetPadMode(BT_DRIVER_UART_TX_BANK, BT_DRIVER_UART_TX, PAL_MODE_ALTERNATE(BT_DRIVER_UART_TX_PAL_MODE));
-  palSetPadMode(BT_DRIVER_UART_RX_BANK, BT_DRIVER_UART_RX, PAL_MODE_ALTERNATE(BT_DRIVER_UART_RX_PAL_MODE));
+  palSetPadMode(BT_DRIVER_UART_TX_BANK, BT_DRIVER_UART_TX,
+                PAL_MODE_ALTERNATE(BT_DRIVER_UART_TX_PAL_MODE));
+  palSetPadMode(BT_DRIVER_UART_RX_BANK, BT_DRIVER_UART_RX,
+                PAL_MODE_ALTERNATE(BT_DRIVER_UART_RX_PAL_MODE));
 #endif
 
   setPinOutput(CKBT51_INT_INPUT_PIN);
   writePinHigh(CKBT51_INT_INPUT_PIN);
 }
 
-void ckbt51_send_cmd(uint8_t* payload, uint8_t len, bool ack_enable, bool retry) {
+void ckbt51_send_cmd(uint8_t *payload, uint8_t len, bool ack_enable, bool retry) {
   static uint8_t sn = 0;
   uint8_t i;
   uint8_t pkt[PACKET_MAX_LEN] = {0};
@@ -166,7 +169,7 @@ void ckbt51_send_cmd(uint8_t* payload, uint8_t len, bool ack_enable, bool retry)
   sdWrite(&BT_DRIVER, pkt, i);
 }
 
-void ckbt51_send_keyboard(uint8_t* report) {
+void ckbt51_send_keyboard(uint8_t *report) {
   uint8_t i = 0;
   memset(payload, 0, PACKET_MAX_LEN);
 
@@ -177,7 +180,7 @@ void ckbt51_send_keyboard(uint8_t* report) {
   ckbt51_send_cmd(payload, i, true, false);
 }
 
-void ckbt51_send_nkro(uint8_t* report) {
+void ckbt51_send_nkro(uint8_t *report) {
   uint8_t i = 0;
   memset(payload, 0, PACKET_MAX_LEN);
 
@@ -210,7 +213,7 @@ void ckbt51_send_system(uint16_t report) {
   ckbt51_send_cmd(payload, i, true, false);
 }
 
-void ckbt51_send_mouse(uint8_t* report) {
+void ckbt51_send_mouse(uint8_t *report) {
   uint8_t i = 0;
   memset(payload, 0, PACKET_MAX_LEN);
 
@@ -236,16 +239,17 @@ void ckbt51_send_conn_evt_ack(void) {
   ckbt51_send_cmd(payload, i, false, false);
 }
 
-void ckbt51_become_discoverable(uint8_t host_idx, void* param) {
+void ckbt51_become_discoverable(uint8_t host_idx, void *param) {
   uint8_t i = 0;
   memset(payload, 0, PACKET_MAX_LEN);
 
-  pairing_param_t default_pairing_param = {0, 0, PAIRING_MODE_LESC_OR_SSP, BT_MODE_CLASSIC, 0, NULL};
+  pairing_param_t default_pairing_param = {0, 0,   PAIRING_MODE_LESC_OR_SSP, BT_MODE_CLASSIC,
+                                           0, NULL};
 
   if (param == NULL) {
     param = &default_pairing_param;
   }
-  pairing_param_t* p = (pairing_param_t*)param;
+  pairing_param_t *p = (pairing_param_t *)param;
 
   payload[i++] = CKBT51_CMD_PAIRING;  // Cmd type
   payload[i++] = host_idx;            // Host Index
@@ -307,7 +311,7 @@ void ckbt51_read_state_reg(uint8_t reg, uint8_t len) {
   ckbt51_send_cmd(payload, i, false, false);
 }
 
-void ckbt51_get_info(module_info_t* info) {
+void ckbt51_get_info(module_info_t *info) {
   uint8_t i = 0;
   memset(payload, 0, PACKET_MAX_LEN);
 
@@ -315,7 +319,7 @@ void ckbt51_get_info(module_info_t* info) {
   ckbt51_send_cmd(payload, i, false, false);
 }
 
-void ckbt51_set_param(module_param_t* param) {
+void ckbt51_set_param(module_param_t *param) {
   uint8_t i = 0;
   memset(payload, 0, PACKET_MAX_LEN);
 
@@ -326,7 +330,7 @@ void ckbt51_set_param(module_param_t* param) {
   ckbt51_send_cmd(payload, i, true, false);
 }
 
-void ckbt51_get_param(module_param_t* param) {
+void ckbt51_get_param(module_param_t *param) {
   uint8_t i = 0;
   memset(payload, 0, PACKET_MAX_LEN);
 
@@ -335,7 +339,7 @@ void ckbt51_get_param(module_param_t* param) {
   ckbt51_send_cmd(payload, i, true, false);
 }
 
-void ckbt51_set_local_name(const char* name) {
+void ckbt51_set_local_name(const char *name) {
   uint8_t i = 0;
   uint8_t len = strlen(name);
   memset(payload, 0, PACKET_MAX_LEN);
@@ -383,7 +387,7 @@ void ckbt51_radio_test(uint8_t channel) {
   ckbt51_send_cmd(payload, i, false, false);
 }
 
-void ckbt51_dfu_tx(uint8_t rsp, uint8_t* data, uint8_t len, uint8_t sn) {
+void ckbt51_dfu_tx(uint8_t rsp, uint8_t *data, uint8_t len, uint8_t sn) {
   uint16_t checksum = 0;
   uint8_t buf[RAW_EPSIZE] = {0};
   uint8_t i = 0;
@@ -412,7 +416,7 @@ void ckbt51_dfu_tx(uint8_t rsp, uint8_t* data, uint8_t len, uint8_t sn) {
   }
 }
 
-void ckbt51_dfu_rx(uint8_t* data, uint8_t length) {
+void ckbt51_dfu_rx(uint8_t *data, uint8_t length) {
   if (data[0] == 0xAA && (data[1] == 0x55 || data[1] == 0x56) && data[2] == (~data[3] & 0xFF)) {
     uint16_t checksum = 0;
     uint8_t payload_len = data[2];
@@ -420,14 +424,15 @@ void ckbt51_dfu_rx(uint8_t* data, uint8_t length) {
     /* Check payload_len validity */
     if (payload_len > RAW_EPSIZE - PACKECT_HEADER_LEN) return;
 
-    uint8_t* payload = &data[PACKECT_HEADER_LEN];
+    uint8_t *payload = &data[PACKECT_HEADER_LEN];
 
     for (uint8_t i = 0; i < payload_len - 2; i++) {
       checksum += payload[i];
     }
 
     /* Verify checksum */
-    if ((checksum & 0xFF) != payload[payload_len - 2] || checksum >> 8 != payload[payload_len - 1]) return;
+    if ((checksum & 0xFF) != payload[payload_len - 2] || checksum >> 8 != payload[payload_len - 1])
+      return;
     static uint8_t sn = 0;
 
     bool retry = true;
@@ -442,9 +447,9 @@ void ckbt51_dfu_rx(uint8_t* data, uint8_t length) {
   }
 }
 
-__attribute__((weak)) void ckbt51_default_ack_handler(uint8_t* data, uint8_t len){};
+__attribute__((weak)) void ckbt51_default_ack_handler(uint8_t *data, uint8_t len){};
 
-static void ack_handler(uint8_t* data, uint8_t len) {
+static void ack_handler(uint8_t *data, uint8_t len) {
   switch (data[1]) {
     case CKBT51_CMD_SEND_KB:
     case CKBT51_CMD_SEND_KB_NKRO:
@@ -471,7 +476,7 @@ static void ack_handler(uint8_t* data, uint8_t len) {
   }
 }
 
-static void query_rsp_handler(uint8_t* data, uint8_t len) {
+static void query_rsp_handler(uint8_t *data, uint8_t len) {
   if (data[2]) return;
 
   switch (data[1]) {
@@ -488,7 +493,7 @@ static void query_rsp_handler(uint8_t* data, uint8_t len) {
   }
 }
 
-static void ckbt51_event_handler(uint8_t evt_type, uint8_t* data, uint8_t len, uint8_t sn) {
+static void ckbt51_event_handler(uint8_t evt_type, uint8_t *data, uint8_t len, uint8_t sn) {
   bluetooth_event_t event = {0};
 
   switch (evt_type) {

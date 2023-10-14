@@ -219,7 +219,9 @@ void custom_config_mac_set_enable_without_reset(bool enable) {
 
 bool custom_config_auto_detect_is_enable() { return kb_config.auto_detect; }
 
-void custom_config_auto_detect_toggle_enable() { custom_config_auto_detect_set_enable(!kb_config.auto_detect); }
+void custom_config_auto_detect_toggle_enable() {
+  custom_config_auto_detect_set_enable(!kb_config.auto_detect);
+}
 
 void custom_config_auto_detect_set_enable(bool enable) {
   if (enable != kb_config.auto_detect) {
@@ -295,7 +297,8 @@ void dynamic_tap_dance_reset() {
     } else {
       data = initial_data;
     }
-    eeprom_update_block((uint8_t *)&data, (uint8_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + sizeof(tap_dance_entry_t) * i),
+    eeprom_update_block((uint8_t *)&data,
+                        (uint8_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + sizeof(tap_dance_entry_t) * i),
                         sizeof(tap_dance_entry_t));
   }
 }
@@ -305,7 +308,8 @@ uint16_t dynamic_tap_dance_keycode(uint8_t index, tap_dance_event_t event) {
   if (index < TAP_DANCE_ENTRIES) {
     switch (event) {
       case TD_SINGLE_TAP ... TD_TAP_HOLD:
-        keycode = eeprom_read_word((uint16_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + sizeof(tap_dance_entry_t) * index +
+        keycode = eeprom_read_word((uint16_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR +
+                                                sizeof(tap_dance_entry_t) * index +
                                                 (event - TD_SINGLE_TAP) * 2));
       default:
         break;
@@ -319,8 +323,9 @@ uint16_t dynamic_tap_dance_keycode(uint8_t index, tap_dance_event_t event) {
 
 uint16_t dynamic_tap_dance_tapping_term(uint8_t index) {
   uint16_t tapping_term =
-    (index < TAP_DANCE_ENTRIES ? eeprom_read_word((uint16_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + 8 + 10 * index))
-                               : TAPPING_TERM) &
+    (index < TAP_DANCE_ENTRIES
+       ? eeprom_read_word((uint16_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + 8 + 10 * index))
+       : TAPPING_TERM) &
     0x03ff;  // highest 6bits are reserved for future use
 #ifdef CONSOLE_ENABLE
   uprintf("dynamic_tap_dance_tapping_term:td_index:%d tapping_term:%d\n", index, tapping_term);

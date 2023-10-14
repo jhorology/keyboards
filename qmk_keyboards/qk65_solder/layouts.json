@@ -1,10 +1,5 @@
 {
-  "labels": [
-    "Split Backspace",
-    "ISO Enter",
-    "Split Left Shift",
-    ["Bottom Row", "6.25U", "7U"]
-  ],
+  "labels": ["Split Backspace", "ISO Enter", "Split Left Shift", ["Bottom Row", "6.25U", "7U"]],
   "keymap": [
     [
       { "x": 2.5 },

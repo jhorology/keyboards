@@ -23,12 +23,13 @@
 #define RTC_MAX_TIME (24 * 3600 * 1000)  // Set to 1 day
 
 #if 0
-#  define TIMER_DIFF(a, b, max)       \
-    ((max == UINT8_MAX)               \
-       ? ((uint8_t)((a) - (b)))       \
-       : ((max == UINT16_MAX)         \
-            ? ((uint16_t)((a) - (b))) \
-            : ((max == UINT32_MAX) ? ((uint32_t)((a) - (b))) : ((a) >= (b) ? (a) - (b) : (max) + 1 - (b) + (a)))))
+#  define TIMER_DIFF(a, b, max)                              \
+    ((max == UINT8_MAX)                                      \
+       ? ((uint8_t)((a) - (b)))                              \
+       : ((max == UINT16_MAX)                                \
+            ? ((uint16_t)((a) - (b)))                        \
+            : ((max == UINT32_MAX) ? ((uint32_t)((a) - (b))) \
+                                   : ((a) >= (b) ? (a) - (b) : (max) + 1 - (b) + (a)))))
 #  define TIMER_DIFF_8(a, b) TIMER_DIFF(a, b, UINT8_MAX)
 #  define TIMER_DIFF_16(a, b) TIMER_DIFF(a, b, UINT16_MAX)
 #  define TIMER_DIFF_32(a, b) TIMER_DIFF(a, b, UINT32_MAX)

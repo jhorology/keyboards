@@ -9,9 +9,10 @@ LOG_MODULE_REGISTER(evil, CONFIG_EVIL_LOG_LEVEL);
 
 #define USB_SETUP_LOG_MAX 64
 #define USB_SETUP_TIMEOUT_MS 1000
-#define IS_GET_DEVICE_DESCRIPTOR(setup)                                                                               \
-  (setup->RequestType.recipient == USB_REQTYPE_RECIPIENT_DEVICE &&                                                    \
-   setup->RequestType.type == USB_REQTYPE_TYPE_STANDARD && setup->RequestType.direction == USB_REQTYPE_DIR_TO_HOST && \
+#define IS_GET_DEVICE_DESCRIPTOR(setup)                            \
+  (setup->RequestType.recipient == USB_REQTYPE_RECIPIENT_DEVICE && \
+   setup->RequestType.type == USB_REQTYPE_TYPE_STANDARD &&         \
+   setup->RequestType.direction == USB_REQTYPE_DIR_TO_HOST &&      \
    setup->bRequest == USB_SREQ_GET_DESCRIPTOR)
 
 static usb_host_os_callback user_cb;

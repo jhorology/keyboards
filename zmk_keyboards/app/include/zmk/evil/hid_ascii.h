@@ -107,7 +107,8 @@ inline static uint32_t ascii2keycode(char c) {
   if (c == 0x0d) return RET;
   if (c >= 0x20 && c <= 0x7e) {
     uint8_t usage = hid_ascii_table[c - 0x20];
-    return usage & 0x80 ? LS(ZMK_HID_USAGE(HID_USAGE_KEY, usage & 0x7f)) : ZMK_HID_USAGE(HID_USAGE_KEY, usage);
+    return usage & 0x80 ? LS(ZMK_HID_USAGE(HID_USAGE_KEY, usage & 0x7f))
+                        : ZMK_HID_USAGE(HID_USAGE_KEY, usage);
   }
   return 0;
 }

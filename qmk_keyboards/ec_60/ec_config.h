@@ -5,10 +5,16 @@
 #include "lib/via_custom_menus.h"
 
 // mode max 4 modes
-typedef enum ec_actuation_mode { EC_ACTUATION_MODE_STATIC = 0, EC_ACTUATION_MODE_DYNAMIC } ec_actuation_mode_t;
+typedef enum ec_actuation_mode {
+  EC_ACTUATION_MODE_STATIC = 0,
+  EC_ACTUATION_MODE_DYNAMIC
+} ec_actuation_mode_t;
 
 // mode max 4 modes
-typedef enum ec_release_mode { EC_RELEASE_MODE_STATIC = 0, EC_RELEASE_MODE_DYNAMIC } ec_release_mode_t;
+typedef enum ec_release_mode {
+  EC_RELEASE_MODE_STATIC = 0,
+  EC_RELEASE_MODE_DYNAMIC
+} ec_release_mode_t;
 // mode max 4 modes
 typedef enum ec_sub_action_release_mode {
   EC_SUB_ACTION_RELEASE_MODE_SYNC_PRIMARY = 0,
@@ -46,12 +52,16 @@ typedef struct {
 
 /* eeprom address */
 #define EC_VIA_EEPROM_PRESETS VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR
-#define EC_VIA_EEPROM_BOTTOMING_READING (EC_VIA_EEPROM_PRESETS + sizeof(ec_preset_t) * EC_NUM_PRESETS)
+#define EC_VIA_EEPROM_BOTTOMING_READING \
+  (EC_VIA_EEPROM_PRESETS + sizeof(ec_preset_t) * EC_NUM_PRESETS)
 #define EC_VIA_EEPROM_PRESET_MAP (EC_VIA_EEPROM_BOTTOMING_READING + 2 * MATRIX_ROWS * MATRIX_COLS)
 
-// Check if the size of the reserved persistent memory is the same as the size of struct eeprom_ec_config_t
-_Static_assert(sizeof(ec_preset_t) == VIA_EC_PRESET_SIZE, "Mismatch in keyboard eeprom confiiguration");
-_Static_assert(sizeof(ec_eeprom_config_t) == (VIA_EEPROM_CUSTOM_CONFIG_SIZE - VIA_EEPROM_CUSTOM_CONFIG_COMMON_SIZE),
+// Check if the size of the reserved persistent memory is the same as the size of struct
+// eeprom_ec_config_t
+_Static_assert(sizeof(ec_preset_t) == VIA_EC_PRESET_SIZE,
+               "Mismatch in keyboard eeprom confiiguration");
+_Static_assert(sizeof(ec_eeprom_config_t) ==
+                 (VIA_EEPROM_CUSTOM_CONFIG_SIZE - VIA_EEPROM_CUSTOM_CONFIG_COMMON_SIZE),
                "Mismatch in keyboard eeprom configuration");
 
 typedef struct {

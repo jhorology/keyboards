@@ -2,5 +2,5 @@ BasedOnStyle: Google
 IndentWidth: '2'
 ContinuationIndentWidth: 2
 UseTab: Never
-ColumnLimit: '120'
+ColumnLimit: '100'
 IndentPPDirectives: AfterHash

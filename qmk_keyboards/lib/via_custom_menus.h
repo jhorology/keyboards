@@ -21,9 +21,9 @@
 #define VIA_CUSTTOM_CHANNEL_ID_START 5
 enum via_custom_channel_id {
   id_custom_magic_channel = VIA_CUSTTOM_CHANNEL_ID_START,
-  id_custom_rc_channel,                                                           // Radial Controller
-  id_custom_non_mac_fn_channel,                                                   // none mac fn functions
-  id_custom_td_channel_start,                                                     // Tap Dance start
+  id_custom_rc_channel,          // Radial Controller
+  id_custom_non_mac_fn_channel,  // none mac fn functions
+  id_custom_td_channel_start,    // Tap Dance start
   id_custom_td_channel_end = id_custom_td_channel_start + TAP_DANCE_ENTRIES - 1,  // Tap Dance end
   id_custom_channel_user_range
 };
@@ -125,5 +125,5 @@ bool via_custom_value_command_user(via_custom_command_t *command);
 void defer_eeprom_update_byte(uint8_t channel_id, uint8_t value_id, void *adrs, uint8_t value);
 void defer_eeprom_update_word(uint8_t channel_id, uint8_t value_id, void *adrs, uint16_t value);
 void defer_eeprom_update_dword(uint8_t channel_id, uint8_t value_id, void *adrs, uint32_t value);
-void defer_eeprom_update_block(uint8_t channel_id, uint8_t value_id, void *block_adrs, void *eeprom_adrs,
-                               uint32_t block_size);
+void defer_eeprom_update_block(uint8_t channel_id, uint8_t value_id, void *block_adrs,
+                               void *eeprom_adrs, uint32_t block_size);

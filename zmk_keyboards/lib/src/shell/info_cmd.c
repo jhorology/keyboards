@@ -153,10 +153,12 @@ static int cmd_get_usb_setup_log(const struct shell *sh, size_t argc, char **arg
                   "    direction: '%d:%s'\n"
                   "  },\n"
                   "  bRequest: '%d:%s',\n",
-                  setup->RequestType.recipient, strRecipiente(setup), setup->RequestType.type, strType(setup),
-                  setup->RequestType.direction, usb_reqtype_is_to_host(setup) ? "TO_HOST" : "TO_DEVICE",
-                  setup->bRequest, strRequest(setup));
-    if (setup->RequestType.type == USB_REQTYPE_TYPE_STANDARD && setup->bRequest == USB_SREQ_GET_DESCRIPTOR) {
+                  setup->RequestType.recipient, strRecipiente(setup), setup->RequestType.type,
+                  strType(setup), setup->RequestType.direction,
+                  usb_reqtype_is_to_host(setup) ? "TO_HOST" : "TO_DEVICE", setup->bRequest,
+                  strRequest(setup));
+    if (setup->RequestType.type == USB_REQTYPE_TYPE_STANDARD &&
+        setup->bRequest == USB_SREQ_GET_DESCRIPTOR) {
       shell_fprintf(sh, SHELL_NORMAL,
                     "  descType: '%d:%s',\n"
                     "  descIndex: %d,\n",
@@ -175,13 +177,14 @@ static int cmd_get_usb_setup_log(const struct shell *sh, size_t argc, char **arg
 }
 #endif  // CONFIG_USB_DETECT_HOST_OS_DEBUG
 
-SHELL_STATIC_SUBCMD_SET_CREATE(sub_info, SHELL_CMD_ARG(hello, NULL, "Hello", cmd_hello, 1, 0),
+SHELL_STATIC_SUBCMD_SET_CREATE(
+  sub_info, SHELL_CMD_ARG(hello, NULL, "Hello", cmd_hello, 1, 0),
 #if IS_ENABLED(CONFIG_PICOSDK_USE_FLASH)
-                               SHELL_CMD_ARG(rp2flash, NULL, "show flash chip info", cmd_get_rp2_flash_info, 1, 0),
+  SHELL_CMD_ARG(rp2flash, NULL, "show flash chip info", cmd_get_rp2_flash_info, 1, 0),
 #endif
 #if IS_ENABLED(CONFIG_USB_DETECT_HOST_OS_DEBUG)
-                               SHELL_CMD_ARG(usb_setup, NULL, "show usb setup log", cmd_get_usb_setup_log, 1, 0),
+  SHELL_CMD_ARG(usb_setup, NULL, "show usb setup log", cmd_get_usb_setup_log, 1, 0),
 #endif
-                               SHELL_SUBCMD_SET_END /* Array terminated. */
+  SHELL_SUBCMD_SET_END /* Array terminated. */
 );
 SHELL_CMD_ARG_REGISTER(info, &sub_info, "INFO commands", NULL, 2, 0);

@@ -42,7 +42,8 @@ enum {
   id_ec_preset_channel_end = id_ec_preset_channel_start + EC_NUM_PRESETS - 1,
 };
 
-_Static_assert(id_ec_tools_channel == EC_VIA_CUSTOM_CHANNEL_ID_START, "Mismatch in via custom menu channel");
+_Static_assert(id_ec_tools_channel == EC_VIA_CUSTOM_CHANNEL_ID_START,
+               "Mismatch in via custom menu channel");
 
 enum via_ec_tools_value_id {
   id_ec_tools_bottoming_calibration = 1,
@@ -102,7 +103,8 @@ static void send_data(uint32_t delay, void (*send_data_func)(void)) {
 // Bootmagic overriden to avoid conflicts with EC
 void bootmagic_lite(void) {
 #ifdef EC_BOOTMAGIC_LITE_THRESHOLD
-  if (ec_config_keys[BOOTMAGIC_LITE_ROW][BOOTMAGIC_LITE_COLUMN].noise_floor > EC_BOOTMAGIC_LITE_THRESHOLD) {
+  if (ec_config_keys[BOOTMAGIC_LITE_ROW][BOOTMAGIC_LITE_COLUMN].noise_floor >
+      EC_BOOTMAGIC_LITE_THRESHOLD) {
     eeconfig_disable();
     // Jump to bootloader.
     bootloader_jump();
@@ -253,7 +255,8 @@ bool via_custom_value_command_user(via_custom_command_t *command) {
               SET_PRESET_PARAM(actuation_threshold, preset_index, VIA_READ_EC_RANGE_VALUE(command));
               return false;
             case id_ec_preset_actuation_travel:
-              SET_PRESET_PARAM(actuation_travel, preset_index, VIA_READ_EC_HALF_RANGE_VALUE(command));
+              SET_PRESET_PARAM(actuation_travel, preset_index,
+                               VIA_READ_EC_HALF_RANGE_VALUE(command));
               return false;
             case id_ec_preset_release_mode:
               SET_PRESET_PARAM(release_mode, preset_index, via_read_dropdown_value(command));
@@ -274,13 +277,16 @@ bool via_custom_value_command_user(via_custom_command_t *command) {
               SET_PRESET_PARAM(sub_action_keycode, preset_index, via_read_keycode_value(command));
               return false;
             case id_ec_preset_sub_action_actuation_threshold:
-              SET_PRESET_PARAM(sub_action_actuation_threshold, preset_index, VIA_READ_EC_RANGE_VALUE(command));
+              SET_PRESET_PARAM(sub_action_actuation_threshold, preset_index,
+                               VIA_READ_EC_RANGE_VALUE(command));
               return false;
             case id_ec_preset_sub_action_release_mode:
-              SET_PRESET_PARAM(sub_action_release_threshold, preset_index, via_read_dropdown_value(command));
+              SET_PRESET_PARAM(sub_action_release_threshold, preset_index,
+                               via_read_dropdown_value(command));
               return false;
             case id_ec_preset_sub_action_release_threshold:
-              SET_PRESET_PARAM(sub_action_release_threshold, preset_index, VIA_READ_EC_RANGE_VALUE(command));
+              SET_PRESET_PARAM(sub_action_release_threshold, preset_index,
+                               VIA_READ_EC_RANGE_VALUE(command));
               return false;
           }
           break;

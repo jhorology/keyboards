@@ -110,9 +110,9 @@
   _HID_C_USAGE_PAGE(idx), _HID_C_USAGE(idx), HID_COLLECTION(HID_COLLECTION_LOGICAL), _HID_USAGE(idx)
 #define _START_PAGE(idx) _HID_USAGE_PAGE(idx), _HID_USAGE(idx)
 
-#define _END_COLLECTION(c)                                                                                     \
-  HID_LOGICAL_MIN8(0x00), HID_LOGICAL_MAX8(0x01), HID_REPORT_SIZE(0x01), HID_REPORT_COUNT(c), HID_INPUT(0x02), \
-    HID_END_COLLECTION
+#define _END_COLLECTION(c)                                                                    \
+  HID_LOGICAL_MIN8(0x00), HID_LOGICAL_MAX8(0x01), HID_REPORT_SIZE(0x01), HID_REPORT_COUNT(c), \
+    HID_INPUT(0x02), HID_END_COLLECTION
 #define _END_PAGE(c) HID_REPORT_SIZE(0x01), HID_REPORT_COUNT(c), HID_INPUT(0x02)
 
 // EXTRA_KEY_0

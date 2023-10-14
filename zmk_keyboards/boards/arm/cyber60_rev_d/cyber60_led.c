@@ -40,37 +40,32 @@ static const struct gpio_dt_spec LED_B = GPIO_DT_SPEC_GET(LED_NODE_B, gpios);
 
 void reset_leds() {
     if (!device_is_ready(LED_R.port)) {
-            return;
-    }
-    else
+        return;
+    } else
         gpio_pin_configure_dt(&LED_R, GPIO_DISCONNECTED);
     if (!device_is_ready(LED_G.port)) {
-            return;
-    }
-    else
+        return;
+    } else
         gpio_pin_configure_dt(&LED_G, GPIO_DISCONNECTED);
     if (!device_is_ready(LED_B.port)) {
-            return;
-    }
-    else
+        return;
+    } else
         gpio_pin_configure_dt(&LED_B, GPIO_DISCONNECTED);
 }
 void set_led(size_t index) {
-    if(index == RED){
+    if (index == RED) {
         int ret;
         if (!device_is_ready(LED_R.port)) {
             return;
         }
         ret = gpio_pin_configure_dt(&LED_R, GPIO_OUTPUT_LOW);
-    }
-    else if(index == GREEN){
+    } else if (index == GREEN) {
         int ret;
         if (!device_is_ready(LED_G.port)) {
             return;
         }
         ret = gpio_pin_configure_dt(&LED_G, GPIO_OUTPUT_LOW);
-    }
-    else if(index == BLUE){
+    } else if (index == BLUE) {
         int ret;
         if (!device_is_ready(LED_B.port)) {
             return;

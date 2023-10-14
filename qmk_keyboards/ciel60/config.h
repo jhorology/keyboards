@@ -6,7 +6,8 @@
 #define LAYOUT_OPTION_BOTTOM_ROW_ANSI 0
 #define LAYOUT_OPTION_BOTTOM_ROW_TSANGAN 0x1
 
-// TODO in only this board, when TAP_DANCE_ENTRIES is greater than 2 or 3, sometimes freez on tap dance keys.
+// TODO in only this board, when TAP_DANCE_ENTRIES is greater than 2 or 3, sometimes freez on tap
+// dance keys.
 #undef TAP_DANCE_ENTRIES
 #define TAP_DANCE_ENTRIES 2
 

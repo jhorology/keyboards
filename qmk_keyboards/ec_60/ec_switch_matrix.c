@@ -43,13 +43,13 @@ static adc_mux adcMux;
 #define AMUX_SEL_PINS_COUNT (sizeof(amux_sel_pins) / sizeof(amux_sel_pins[0]))
 #define EXPECTED_AMUX_SEL_PINS_COUNT ceil(log2(AMUX_MAX_COLS_COUNT)
 // Checks for the correctness of the configuration
-_Static_assert(
-  (sizeof(amux_en_pins) / sizeof(amux_en_pins[0])) == AMUX_COUNT,
-  "AMUX_EN_PINS doesn't have the minimum number of bits required to enable all the multiplexers available");
+_Static_assert((sizeof(amux_en_pins) / sizeof(amux_en_pins[0])) == AMUX_COUNT,
+               "AMUX_EN_PINS doesn't have the minimum number of bits required to enable all the "
+               "multiplexers available");
 // Check that number of select pins is enough to select all the channels
 _Static_assert(AMUX_SEL_PINS_COUNT == EXPECTED_AMUX_SEL_PINS_COUNT), "AMUX_SEL_PINS doesn't have the minimum number of bits required address all the channels");
-// Check that number of elements in AMUX_COL_CHANNELS_SIZES is enough to specify the number of chann1els for all the
-// multiplexers available
+// Check that number of elements in AMUX_COL_CHANNELS_SIZES is enough to specify the number of
+// chann1els for all the multiplexers available
 
 #define BOTTOMING_READING_THRESHOLD 0xff
 // 10us = 850 RTC
@@ -66,7 +66,7 @@ extern void switch_events(uint8_t row, uint8_t col, bool pressed);
     for (int row = 0; row < MATRIX_ROWS; row++) {               \
       if (matrix_used[row] & col_mask) {                        \
         uint16_t sw_value = ec_readkey_raw(row);                \
-        ec_key_config_t* key = &ec_config_keys[row][col];       \
+        ec_key_config_t *key = &ec_config_keys[row][col];       \
         __VA_ARGS__                                             \
       }                                                         \
     }                                                           \
@@ -98,7 +98,7 @@ static inline void select_col(uint8_t amux_col_ch) {
   writePin(amux_sel_pins[2], amux_col_ch & 4);
 }
 
-static inline bool ec_is_key_pressed(ec_key_config_t* key, uint16_t sw_value) {
+static inline bool ec_is_key_pressed(ec_key_config_t *key, uint16_t sw_value) {
   switch (key->modes.actuation_mode) {
     case EC_ACTUATION_MODE_STATIC:
       return sw_value > key->actuation_reference;
@@ -108,7 +108,7 @@ static inline bool ec_is_key_pressed(ec_key_config_t* key, uint16_t sw_value) {
   return false;
 }
 
-static inline bool ec_is_key_released(ec_key_config_t* key, uint16_t sw_value) {
+static inline bool ec_is_key_released(ec_key_config_t *key, uint16_t sw_value) {
   switch (key->modes.release_mode) {
     case EC_RELEASE_MODE_STATIC:
       return (sw_value < key->release_reference);
@@ -119,11 +119,12 @@ static inline bool ec_is_key_released(ec_key_config_t* key, uint16_t sw_value) {
   return false;
 }
 
-static inline bool ec_is_sub_action_pressed(ec_key_config_t* key, uint16_t sw_value) {
+static inline bool ec_is_sub_action_pressed(ec_key_config_t *key, uint16_t sw_value) {
   return sw_value > key->sub_action_actuation_threshold;
 }
 
-static inline bool ec_is_sub_action_released(ec_key_config_t* key, uint16_t sw_value, bool primary_pressed) {
+static inline bool ec_is_sub_action_released(ec_key_config_t *key, uint16_t sw_value,
+                                             bool primary_pressed) {
   switch (key->modes.sub_action_release_mode) {
     case EC_SUB_ACTION_RELEASE_MODE_SYNC_PRIMARY:
       return !primary_pressed;
@@ -140,8 +141,8 @@ static uint16_t ec_readkey_raw(uint8_t row) {
   uint16_t sw_value;
 
   // DISCHARGE_TIME 10us = 850 clock count
-  while (
-    chSysIsCounterWithinX(chSysGetRealtimeCounterX(), last_key_scan_time, last_key_scan_time + RTC_DISCHARGE_TIME)) {
+  while (chSysIsCounterWithinX(chSysGetRealtimeCounterX(), last_key_scan_time,
+                               last_key_scan_time + RTC_DISCHARGE_TIME)) {
   }
   ATOMIC_BLOCK_FORCEON {
     // charge peak hold capacitor
@@ -163,7 +164,8 @@ static void ec_bootoming_reading(void) {
     key->sw_value = sw_value;
 #endif
     if (sw_value > BOTTOMING_READING_THRESHOLD &&
-        (key->bottoming_calibration_starter || sw_value > ec_eeprom_config.bottoming_reading[row][col])) {
+        (key->bottoming_calibration_starter ||
+         sw_value > ec_eeprom_config.bottoming_reading[row][col])) {
       ec_eeprom_config.bottoming_reading[row][col] = sw_value;
       key->bottoming_calibration_starter = false;
     })
@@ -196,7 +198,8 @@ static uint16_t ec_test_readkey_raw(uint8_t row, rtcnt_t discharge_time) {
   uint16_t sw_value;
 
   // DISCHARGE_TIME 10us = 850 clock count
-  while (chSysIsCounterWithinX(chSysGetRealtimeCounterX(), last_key_scan_time, last_key_scan_time + discharge_time)) {
+  while (chSysIsCounterWithinX(chSysGetRealtimeCounterX(), last_key_scan_time,
+                               last_key_scan_time + discharge_time)) {
   }
   ATOMIC_BLOCK_FORCEON {
     // charge peak hold capacitor
@@ -309,7 +312,7 @@ uint8_t matrix_scan(void) {
     key->sw_value = sw_value;
 #endif
     uint16_t extremum = sw_value < key->deadzone ? key->deadzone : sw_value;  //
-    matrix_row_t* primary_matrix_row = &matrix[PRIMARY_MATRIX_PAGE][row];     //
+    matrix_row_t *primary_matrix_row = &matrix[PRIMARY_MATRIX_PAGE][row];     //
     if (*primary_matrix_row & col_mask) {
       if (ec_is_key_released(key, sw_value)) {
         *primary_matrix_row &= ~col_mask;
@@ -339,7 +342,7 @@ uint8_t matrix_scan(void) {
     }
     // sub action
     if (key->sub_action_keycode != KC_NO) {
-      matrix_row_t* sub_matrix_row = &matrix[SUB_ACTION_MATRIX_PAGE][row];  //
+      matrix_row_t *sub_matrix_row = &matrix[SUB_ACTION_MATRIX_PAGE][row];  //
       if (*sub_matrix_row & col_mask) {
         if (ec_is_sub_action_released(key, sw_value, *primary_matrix_row & col_mask)) {
           *sub_matrix_row &= ~col_mask;
@@ -415,7 +418,7 @@ bool custom_matrix_task(void) {
 
       const bool key_pressed = current_row & col_mask;
       // TODO experimental
-      ec_key_config_t* key = &ec_config_keys[row][col];
+      ec_key_config_t *key = &ec_config_keys[row][col];
       keyrecord_t record = {
         .event = MAKE_KEYEVENT(row, col, key_pressed),
         // requires ACTION_FOR_KEYCODE_ENABLE = yes

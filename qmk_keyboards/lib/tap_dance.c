@@ -34,7 +34,8 @@ uint16_t tap_dance_get_tapping_term(uint16_t keycode, keyrecord_t *record) {
 void tap_dance_actions_init() {
   for (uint8_t i = 0; i < TAP_DANCE_ENTRIES; i++) {
     tap_dance_datas[i].index = i;
-    tap_dance_actions[i].fn.on_dance_finished = (void (*)(tap_dance_state_t *, void *))on_tap_dance_finished;
+    tap_dance_actions[i].fn.on_dance_finished =
+      (void (*)(tap_dance_state_t *, void *))on_tap_dance_finished;
     tap_dance_actions[i].fn.on_reset = (void (*)(tap_dance_state_t *, void *))on_tap_dance_reset;
     tap_dance_actions[i].user_data = &tap_dance_datas[i];
   }

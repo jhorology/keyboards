@@ -63,7 +63,9 @@ void lpm_timer_stop(void) {
   lpm_timer_buffer = 0;
 }
 
-static inline bool lpm_any_matrix_action(void) { return memcmp(matrix, empty_matrix, sizeof(empty_matrix)); }
+static inline bool lpm_any_matrix_action(void) {
+  return memcmp(matrix, empty_matrix, sizeof(empty_matrix));
+}
 
 /* Implement of entering low power mode and wakeup varies per mcu or platform */
 __attribute__((weak)) void enter_power_mode(pm_t mode) {}

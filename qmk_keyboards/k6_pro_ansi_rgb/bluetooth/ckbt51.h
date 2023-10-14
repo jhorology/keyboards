@@ -62,9 +62,9 @@
 #endif
 
 // Error checking
-#if !STM32_SERIAL_USE_USART1 && !STM32_SERIAL_USE_USART2 && !STM32_SERIAL_USE_USART3 && !STM32_SERIAL_USE_UART4 && \
-  !STM32_SERIAL_USE_UART5 && !STM32_SERIAL_USE_USART6 && !STM32_SERIAL_USE_UART7 && !STM32_SERIAL_USE_UART8 &&     \
-  !STM32_SERIAL_USE_LPUART1
+#if !STM32_SERIAL_USE_USART1 && !STM32_SERIAL_USE_USART2 && !STM32_SERIAL_USE_USART3 && \
+  !STM32_SERIAL_USE_UART4 && !STM32_SERIAL_USE_UART5 && !STM32_SERIAL_USE_USART6 &&     \
+  !STM32_SERIAL_USE_UART7 && !STM32_SERIAL_USE_UART8 && !STM32_SERIAL_USE_LPUART1
 #  error "BT driver activated but no USART/UART peripheral assigned"
 #endif
 
@@ -89,11 +89,11 @@ enum {
 
 typedef struct {
   uint8_t hostIndex;
-  uint16_t timeout;    /* Pairing timeout, valid value range from 30 to 3600 seconds, 0 for default */
+  uint16_t timeout; /* Pairing timeout, valid value range from 30 to 3600 seconds, 0 for default */
   uint8_t pairingMode; /* 0: default, 1: Just Works, 2: Passkey Entry */
   uint8_t BRorLE;      /* Only available for dual mode module. Keep 0 for single mode module */
   uint8_t txPower;     /* Only available for BLE module */
-  const char* leName;  /* Only available for BLE module */
+  const char *leName;  /* Only available for BLE module */
 } pairing_param_t;
 
 typedef struct {
@@ -131,29 +131,29 @@ typedef struct {
 } __attribute__((packed)) module_param_t;
 
 void ckbt51_init(bool wakeup_from_low_power_mode);
-void ckbt51_send_cmd(uint8_t* payload, uint8_t len, bool ack_enable, bool retry);
+void ckbt51_send_cmd(uint8_t *payload, uint8_t len, bool ack_enable, bool retry);
 
-void ckbt51_send_keyboard(uint8_t* report);
-void ckbt51_send_nkro(uint8_t* report);
+void ckbt51_send_keyboard(uint8_t *report);
+void ckbt51_send_nkro(uint8_t *report);
 void ckbt51_send_consumer(uint16_t report);
 void ckbt51_send_system(uint16_t report);
-void ckbt51_send_mouse(uint8_t* report);
+void ckbt51_send_mouse(uint8_t *report);
 
-void ckbt51_become_discoverable(uint8_t host_idx, void* param);
+void ckbt51_become_discoverable(uint8_t host_idx, void *param);
 void ckbt51_connect(uint8_t hostIndex, uint16_t timeout);
 void ckbt51_disconnect(void);
 void ckbt51_switch_host(uint8_t hostIndex);
 void ckbt51_read_state_reg(uint8_t reg, uint8_t len);
 
-void ckbt51_get_info(module_info_t* info);
-void ckbt51_set_param(module_param_t* param);
-void ckbt51_get_param(module_param_t* param);
-void ckbt51_set_local_name(const char* name);
+void ckbt51_get_info(module_info_t *info);
+void ckbt51_set_param(module_param_t *param);
+void ckbt51_get_param(module_param_t *param);
+void ckbt51_set_local_name(const char *name);
 void ckbt51_get_local_name(void);
 
 void ckbt51_factory_reset(void);
 void ckbt51_int_pin_test(bool enable);
-void ckbt51_dfu_rx(uint8_t* data, uint8_t length);
+void ckbt51_dfu_rx(uint8_t *data, uint8_t length);
 void ckbt51_radio_test(uint8_t channel);
 
 void ckbt51_task(void);

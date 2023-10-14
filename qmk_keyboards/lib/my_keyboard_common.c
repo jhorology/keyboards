@@ -104,7 +104,8 @@ void keyboard_post_init_kb(void) {
   tap_dance_actions_init();
   keyboard_post_init_user();
 #if defined(MAC_BASE_LAYER) && defined(NON_MAC_BASE_LAYER)
-  default_layer_set(custom_config_mac_is_enable() ? (1 << MAC_BASE_LAYER) : (1 << NON_MAC_BASE_LAYER));
+  default_layer_set(custom_config_mac_is_enable() ? (1 << MAC_BASE_LAYER)
+                                                  : (1 << NON_MAC_BASE_LAYER));
 #endif
 }
 
@@ -116,8 +117,8 @@ void os_fingerprint_update_kb(os_variant_t os) {
 
 bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
   return process_record_user(keycode, record) && proces_extra_keys(keycode, record) &&
-         process_tap_dance_store_event(keycode, record) && process_record_custom_config(keycode, record) &&
-         process_apple_fn(keycode, record) &&
+         process_tap_dance_store_event(keycode, record) &&
+         process_record_custom_config(keycode, record) && process_apple_fn(keycode, record) &&
 #ifdef RADIAL_CONTROLLER_ENABLE
          process_radial_controller(keycode, record) &&
 #endif

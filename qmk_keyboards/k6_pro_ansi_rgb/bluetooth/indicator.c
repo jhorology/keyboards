@@ -26,7 +26,8 @@
 #include "rtc_timer.h"
 #include "transport.h"
 
-#define DECIDE_TIME(t, duration) (duration == 0 ? RGB_MATRIX_TIMEOUT_INFINITE : ((t > duration) ? t : duration))
+#define DECIDE_TIME(t, duration) \
+  (duration == 0 ? RGB_MATRIX_TIMEOUT_INFINITE : ((t > duration) ? t : duration))
 
 #define LED_ON 0x80
 #define INDICATOR_SET(s) memcpy(&indicator_config, &s##_config, sizeof(indicator_config_t));
@@ -106,7 +107,9 @@ bool indicator_is_enabled(void) { return rgb_matrix_is_enabled(); }
 
 void indicator_eeconfig_reload(void) { LED_DRIVER_EECONFIG_RELOAD(); }
 
-bool indicator_is_running(void) { return bat_low_blink_duration || bat_low_ind_state || !!indicator_config.value; }
+bool indicator_is_running(void) {
+  return bat_low_blink_duration || bat_low_ind_state || !!indicator_config.value;
+}
 
 static void indicator_timer_cb(void *arg) {
   if (*(indicator_type_t *)arg != INDICATOR_LAST) type = *(indicator_type_t *)arg;
@@ -143,7 +146,8 @@ static void indicator_timer_cb(void *arg) {
           next_period = indicator_config.duration - indicator_config.on_time;
         }
 
-        if ((indicator_config.duration == 0 || indicator_config.elapsed <= indicator_config.duration) &&
+        if ((indicator_config.duration == 0 ||
+             indicator_config.elapsed <= indicator_config.duration) &&
             next_period != 0) {
           indicator_config.elapsed += next_period;
         } else {
@@ -162,7 +166,8 @@ static void indicator_timer_cb(void *arg) {
           next_period = indicator_config.on_time;
         }
 
-        if ((indicator_config.duration == 0 || indicator_config.elapsed <= indicator_config.duration) &&
+        if ((indicator_config.duration == 0 ||
+             indicator_config.elapsed <= indicator_config.duration) &&
             next_period != 0) {
           indicator_config.elapsed += next_period;
         } else {
@@ -192,7 +197,8 @@ static void indicator_timer_cb(void *arg) {
 #endif
 
   if (time_up) {
-    /* Set indicator to off on timeup, avoid keeping light up until next update in raindrop effect */
+    /* Set indicator to off on timeup, avoid keeping light up until next update in raindrop effect
+     */
     indicator_config.value = indicator_config.value & 0x0F;
     rgb_matrix_indicators_user();
     indicator_config.value = 0;
@@ -253,7 +259,8 @@ void indicator_set(bluetooth_state_t state, uint8_t host_index) {
         indicator_config.value = (indicator_config.type == INDICATOR_NONE) ? 0 : host_index;
         indicator_timer_cb((void *)&indicator_config.type);
       }
-      indicator_set_backlit_timeout(DECIDE_TIME(CONNECTED_BACKLIGHT_DISABLE_TIMEOUT * 1000, indicator_config.duration));
+      indicator_set_backlit_timeout(
+        DECIDE_TIME(CONNECTED_BACKLIGHT_DISABLE_TIMEOUT * 1000, indicator_config.duration));
       break;
 
     case BLUETOOTH_PARING:
@@ -336,7 +343,8 @@ void indicator_battery_low_backlit_enable(bool enable) {
 }
 
 void indicator_battery_low(void) {
-  if (bat_low_pin_indicator && sync_timer_elapsed32(bat_low_pin_indicator) > (LOW_BAT_LED_BLINK_PERIOD)) {
+  if (bat_low_pin_indicator &&
+      sync_timer_elapsed32(bat_low_pin_indicator) > (LOW_BAT_LED_BLINK_PERIOD)) {
     togglePin(BAT_LOW_LED_PIN);
     bat_low_pin_indicator = sync_timer_read32() | 1;
     // Turn off low battery indication if we reach the duration

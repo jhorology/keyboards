@@ -49,11 +49,14 @@ uint8_t battery_get_percentage(void) {
   if (voltage > FULL_VOLTAGE_VALUE) return 100;
 
   if (voltage > EMPTY_VOLTAGE_VALUE) {
-    return ((uint32_t)voltage - EMPTY_VOLTAGE_VALUE) * 80 / (FULL_VOLTAGE_VALUE - EMPTY_VOLTAGE_VALUE) + 20;
+    return ((uint32_t)voltage - EMPTY_VOLTAGE_VALUE) * 80 /
+             (FULL_VOLTAGE_VALUE - EMPTY_VOLTAGE_VALUE) +
+           20;
   }
 
   if (voltage > SHUTDOWN_VOLTAGE_VALUE) {
-    return ((uint32_t)voltage - SHUTDOWN_VOLTAGE_VALUE) * 20 / (EMPTY_VOLTAGE_VALUE - SHUTDOWN_VOLTAGE_VALUE);
+    return ((uint32_t)voltage - SHUTDOWN_VOLTAGE_VALUE) * 20 /
+           (EMPTY_VOLTAGE_VALUE - SHUTDOWN_VOLTAGE_VALUE);
   } else
     return 0;
 }
@@ -109,7 +112,8 @@ void battery_task(void) {
 
       battery_measure();
       power_on_sample++;
-      if (power_on_sample > VOLTAGE_POWER_ON_MEASURE_COUNT) power_on_sample = VOLTAGE_POWER_ON_MEASURE_COUNT;
+      if (power_on_sample > VOLTAGE_POWER_ON_MEASURE_COUNT)
+        power_on_sample = VOLTAGE_POWER_ON_MEASURE_COUNT;
     }
   }
 
