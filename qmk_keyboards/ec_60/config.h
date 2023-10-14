@@ -127,6 +127,17 @@ typedef struct {
 #endif
 
 // for debugging
-#define CUSTOM_CONFIG_RHID_DEFAULT true
-#define EC_DEBUG 1
-#define DEBUG_MATRIX_SCAN_RATE
+// numeric 1 for via_jason_generatior
+#ifdef EC_DEBUG_ENABLE
+#  define DEBUG_MATRIX_SCAN_RATE
+#  define CUSTOM_CONFIG_RHID_DEFAULT true
+#  define EC_TEST_DISCHARGE_MAX_TIME_US 63
+#  define EC_TEST_DISCHARGE_SAMPLE_COUNT 30
+
+// 'F' key
+#  define EC_TEST_DISCHARGE_FLOOR_ROW 2
+#  define EC_TEST_DISCHARGE_FLOOR_COL 4
+// 'J' key
+#  define EC_TEST_DISCHARGE_BOTTOM_ROW 2
+#  define EC_TEST_DISCHARGE_BOTTOM_COL 7
+#endif

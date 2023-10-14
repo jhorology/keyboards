@@ -36,6 +36,39 @@
 #  define VIA_WRITE_EC_HALF_RANGE_VALUE(command, value) via_write_range_word_value(command, value)
 #endif
 
+enum {
+  id_ec_tools_channel = id_custom_channel_user_range,
+  id_ec_preset_channel_start = id_ec_tools_channel + 1,
+  id_ec_preset_channel_end = id_ec_preset_channel_start + EC_NUM_PRESETS - 1,
+};
+
+_Static_assert(id_ec_tools_channel == EC_VIA_CUSTOM_CHANNEL_ID_START, "Mismatch in via custom menu channel");
+
+enum via_ec_tools_value_id {
+  id_ec_tools_bottoming_calibration = 1,
+  id_ec_tools_show_calibration_data,
+  id_ec_tools_test_discharge,
+  id_ec_tools_debug_send_config,
+  id_ec_tools_bootloader_jump
+};
+
+// Declaring enums for VIA config menu
+enum via_ec_preset_value_id {
+  // clang-format off
+  id_ec_preset_actuation_mode = 1,
+  id_ec_preset_actuation_threshold,
+  id_ec_preset_actuation_travel,
+  id_ec_preset_release_mode,
+  id_ec_preset_release_threshold,
+  id_ec_preset_release_travel,
+  id_ec_preset_deadzone,
+  id_ec_preset_sub_action_enable,
+  id_ec_preset_sub_action_keycode,
+  id_ec_preset_sub_action_actuation_threshold,
+  id_ec_preset_sub_action_release_threshold
+  // clang-format on
+};
+
 static deferred_token send_data_token;  // defer_exec token
 
 typedef void (*send_data_func)(void);
@@ -106,11 +139,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     case EC_PRESET_START ... EC_PRESET_END:
       // not keycode
       return false;
-#ifdef EC_DEBUG
+#ifdef EC_DEBUG_ENABLE
     case EC_DBG0:
       if (!record->event.pressed) {
         // 2 secods after release
-        send_data(2000, ec_config_debug_send_misc_state);
+        send_data(2000, ec_config_debug_send_debug_values);
       }
       return false;
     case EC_DBG1:
@@ -159,9 +192,9 @@ bool via_custom_value_command_user(via_custom_command_t *command) {
           switch (command->value_id) {
             case id_ec_tools_bottoming_calibration:
               if (via_read_toggle_value(command)) {
-                ec_config_start_calibration();
+                ec_config_calibration_start();
               } else {
-                ec_config_end_calibration();
+                ec_config_calibration_end();
               }
               return false;
             case id_ec_tools_show_calibration_data:
@@ -169,7 +202,20 @@ bool via_custom_value_command_user(via_custom_command_t *command) {
                 send_data(3000, ec_config_send_calibration_data);
               }
               return false;
-#ifdef EC_DEBUG
+#ifdef EC_DEBUG_ENABLE
+            case id_ec_tools_test_discharge: {
+              if (via_read_toggle_value(command)) {
+                for (uint8_t i = 0; i <= EC_TEST_DISCHARGE_MAX_TIME_US; i++) {
+                  ec_test_discharge_floor_min[i] = 0x3ff;
+                  ec_test_discharge_floor_max[i] = 0;
+                  ec_test_discharge_bottom_max[i] = 0;
+                }
+                ec_test_discharge_enable = true;
+              } else {
+                ec_test_discharge_enable = false;
+              }
+              return false;
+            }
             case id_ec_tools_debug_send_config:
               if (via_read_toggle_value(command)) {
                 send_data(3000, ec_config_debug_send_all);

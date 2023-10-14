@@ -25,17 +25,19 @@
 #include "ec_config.h"
 
 // Pin and port array
-const uint32_t row_pins[] = MATRIX_ROW_PINS;
-const uint32_t amux_sel_pins[] = AMUX_SEL_PINS;
-const uint32_t amux_en_pins[] = AMUX_EN_PINS;
-const uint8_t matrix_col_channels[] = MATRIX_COL_CHANNELS;
+static const uint32_t row_pins[] = MATRIX_ROW_PINS;
+static const uint32_t amux_sel_pins[] = AMUX_SEL_PINS;
+static const uint32_t amux_en_pins[] = AMUX_EN_PINS;
+static const uint8_t matrix_col_channels[] = MATRIX_COL_CHANNELS;
+
 static rtcnt_t last_key_scan_time;
 // 3D matrix
 static matrix_row_t matrix[MATRIX_PAGES][MATRIX_ROWS];
 static matrix_row_t matrix_changed[MATRIX_PAGES][MATRIX_ROWS];
+static adc_mux adcMux;
+
 #define PRIMARY_MATRIX_PAGE 0
 #define SUB_ACTION_MATRIX_PAGE 1
-static adc_mux adcMux;
 
 #define AMUX_SEL_PINS_COUNT (sizeof(amux_sel_pins) / sizeof(amux_sel_pins[0]))
 #define EXPECTED_AMUX_SEL_PINS_COUNT ceil(log2(AMUX_MAX_COLS_COUNT)
@@ -45,10 +47,12 @@ _Static_assert(
   "AMUX_EN_PINS doesn't have the minimum number of bits required to enable all the multiplexers available");
 // Check that number of select pins is enough to select all the channels
 _Static_assert(AMUX_SEL_PINS_COUNT == EXPECTED_AMUX_SEL_PINS_COUNT), "AMUX_SEL_PINS doesn't have the minimum number of bits required address all the channels");
-// Check that number of elements in AMUX_COL_CHANNELS_SIZES is enough to specify the number of channels for all the
+// Check that number of elements in AMUX_COL_CHANNELS_SIZES is enough to specify the number of chann1els for all the
 // multiplexers available
 
 #define BOTTOMING_READING_THRESHOLD 0xff
+// 10us = 850 RTC
+#define RTC_DISCHARGE_TIME US2RTC(REALTIME_COUNTER_CLOCK, DISCHARGE_TIME)
 
 // quantum/keyboard.c
 extern void matrix_scan_perf_task(void);
@@ -127,9 +131,8 @@ static uint16_t ec_readkey_raw(uint8_t row) {
   uint16_t sw_value;
 
   // DISCHARGE_TIME 10us = 850 clock count
-  while (chSysIsCounterWithinX(chSysGetRealtimeCounterX(), last_key_scan_time,
-                               last_key_scan_time + US2RTC(REALTIME_COUNTER_CLOCK, DISCHARGE_TIME))) {
-    ;  // wait loop
+  while (
+    chSysIsCounterWithinX(chSysGetRealtimeCounterX(), last_key_scan_time, last_key_scan_time + RTC_DISCHARGE_TIME)) {
   }
   ATOMIC_BLOCK_FORCEON {
     // charge peak hold capacitor
@@ -147,7 +150,7 @@ static uint16_t ec_readkey_raw(uint8_t row) {
 
 static void ec_bootoming_reading(void) {
   MATRIX_READ_LOOP(
-#ifdef EC_DEBUG
+#ifdef EC_DEBUG_ENABLE
     key->sw_value = sw_value;
 #endif
     if (sw_value > BOTTOMING_READING_THRESHOLD &&
@@ -177,18 +180,72 @@ static void init_amux(void) {
   }
 }
 
+// debug
+// -----------------------------------------------------------------------------------
+#ifdef EC_DEBUG_ENABLE
+static uint16_t ec_test_readkey_raw(uint8_t row, rtcnt_t discharge_time) {
+  uint16_t sw_value;
+
+  // DISCHARGE_TIME 10us = 850 clock count
+  while (chSysIsCounterWithinX(chSysGetRealtimeCounterX(), last_key_scan_time, last_key_scan_time + discharge_time)) {
+  }
+  ATOMIC_BLOCK_FORCEON {
+    // charge peak hold capacitor
+    writePinHigh(DISCHARGE_PIN);
+    writePinHigh(row_pins[row]);
+    // Read the ADC value
+    sw_value = adc_read(adcMux);
+    writePinLow(row_pins[row]);
+    // Discharge peak hold capacitor
+    writePinLow(DISCHARGE_PIN);
+    last_key_scan_time = chSysGetRealtimeCounterX();
+  }
+  return sw_value;
+}
+
+static void ec_test_discharge(void) {
+  matrix_row_t col_mask = 1;
+  static uint16_t discharge_usec;
+  static uint16_t sample_count;
+
+  discharge_usec %= (EC_TEST_DISCHARGE_MAX_TIME_US + 1);
+  for (int col = 0; col < MATRIX_COLS; col++, col_mask <<= 1) {
+    select_col(matrix_col_channels[col]);
+    for (int row = 0; row < MATRIX_ROWS; row++) {
+      uint16_t sw_value = ec_test_readkey_raw(row, US2RTC(REALTIME_COUNTER_CLOCK, discharge_usec));
+      // ignore first sample
+      if (sample_count) {
+        if (row == EC_TEST_DISCHARGE_FLOOR_ROW && col == EC_TEST_DISCHARGE_FLOOR_COL) {
+          if (sw_value < ec_test_discharge_floor_min[discharge_usec]) {
+            ec_test_discharge_floor_min[discharge_usec] = sw_value;
+          }
+          if (sw_value > ec_test_discharge_floor_max[discharge_usec]) {
+            ec_test_discharge_floor_max[discharge_usec] = sw_value;
+          }
+        }
+        if (row == EC_TEST_DISCHARGE_BOTTOM_ROW && col == EC_TEST_DISCHARGE_BOTTOM_COL) {
+          if (sw_value > ec_test_discharge_bottom_max[discharge_usec]) {
+            ec_test_discharge_bottom_max[discharge_usec] = sw_value;
+          }
+        }
+      }
+    }
+  }
+
+  sample_count++;
+  sample_count %= EC_TEST_DISCHARGE_SAMPLE_COUNT;
+  if (!sample_count) {
+    discharge_usec++;
+    discharge_usec %= (EC_TEST_DISCHARGE_MAX_TIME_US + 1);
+  }
+}
+#endif
+
 //  implementation of CUSTOM_MATRIX=yes
 // -----------------------------------------------------------------------------------
 
 // Initialize the peripherals pins
 void matrix_init(void) {
-  for (uint8_t page = 0; page < MATRIX_PAGES; page++) {
-    for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
-      matrix[page][row] = 0;
-      matrix_changed[page][row] = 0;
-    }
-  }
-
   // Initialize ADC
   palSetLineMode(ANALOG_PORT, PAL_MODE_INPUT_ANALOG);
   adcMux = pinToMux(ANALOG_PORT);
@@ -206,6 +263,12 @@ void matrix_init(void) {
   // Initialize AMUXs
   init_amux();
 
+  memset(matrix, 0, sizeof(matrix));
+  memset(matrix_changed, 0, sizeof(matrix_changed));
+
+  // TODO
+  // debounce_init(ROWS_PER_HAND);
+
   last_key_scan_time = chSysGetRealtimeCounterX();
   ec_calibrate_noise_floor();
 }
@@ -215,17 +278,17 @@ inline matrix_row_t matrix_get_row(uint8_t row) { return matrix[0][row]; }
 uint8_t matrix_scan(void) {
   bool changed = false;
 
-  // Bottoming calibration mode: update bottoming out values and avoid keycode state change
-  // IF statement is higher in the function to avoid the overhead of the execution of normal operation mode
-  if (bottoming_calibration) {
+  if (ec_bottoming_calibration_enable) {
     ec_bootoming_reading();
-    // Return false to avoid keycode state change
+    return false;
+  } else if (ec_test_discharge_enable) {
+    ec_test_discharge();
     return false;
   }
 
   // Normal operation mode: update key state
   MATRIX_READ_LOOP(
-#ifdef EC_DEBUG
+#ifdef EC_DEBUG_ENABLE
     key->sw_value = sw_value;
 #endif
     uint16_t extremum = sw_value < key->deadzone ? key->deadzone : sw_value;  //
@@ -279,7 +342,7 @@ uint8_t matrix_scan(void) {
       }
     } else {
       matrix_changed[SUB_ACTION_MATRIX_PAGE][row] &= ~col_mask;  //
-    })
+    });
   return changed;
 }
 
@@ -314,8 +377,11 @@ bool custom_matrix_task(void) {
 
       const bool key_pressed = current_row & col_mask;
       action_exec(MAKE_KEYEVENT(row, col, key_pressed));
+
+#if defined(LED_MATRIX_ENABLE) || defined(RGB_MATRIX_ENABLE)
       // in quantum/keyboard.c
       switch_events(row, col, key_pressed);
+#endif
       break;
     }
   }
@@ -335,6 +401,7 @@ bool custom_matrix_task(void) {
       ec_key_config_t* key = &ec_config_keys[row][col];
       keyrecord_t record = {
         .event = MAKE_KEYEVENT(row, col, key_pressed),
+        // requires COMBO_ENABLE = yes
         .keycode = key->sub_action_keycode,
       };
       process_record(&record);
@@ -354,13 +421,20 @@ void ec_calibrate_noise_floor(void) {
   // Get the noise floor
   // max: ec_config.noise_floor[row][col]
   // min: ec_config.extremum[row][col]
-  for (uint8_t i = 0; i < NOISE_FLOOR_SAMPLING_COUNT; i++) {
-    wait_ms(5);
+  for (uint8_t sample_count = 0; sample_count < NOISE_FLOOR_SAMPLING_COUNT; sample_count++) {
     MATRIX_READ_LOOP(
-      // max value
-      if (sw_value > key->noise_floor) { key->noise_floor = sw_value; }
-      // min value
-      if (key->extremum == 0 || sw_value < key->extremum) { key->extremum = sw_value; })
+      // ignore first sample
+      if (sample_count) {
+        // max value
+        if (sw_value > key->noise_floor) {
+          key->noise_floor = sw_value;
+        }
+        // min value
+        if (key->extremum == 0 || sw_value < key->extremum) {
+          key->extremum = sw_value;
+        }
+      });
+    wait_us(1);
   }
 
   // Average the noise floor
@@ -370,5 +444,5 @@ void ec_calibrate_noise_floor(void) {
     // noise_floor = (max + min) / 2
     key->noise_floor = (key->noise_floor + key->extremum) / 2;
     // initilize extremum
-    key->extremum = key->noise_floor;)
+    key->extremum = key->noise_floor;);
 }

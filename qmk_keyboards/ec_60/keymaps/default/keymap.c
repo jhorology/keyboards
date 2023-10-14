@@ -16,7 +16,7 @@
 
 #include QMK_KEYBOARD_H
 
-#ifdef EC_DEBUG
+#ifdef EC_DEBUG_ENABLE
 #  define _EC_DBG0 EC_DBG0
 #  define _EC_DBG1 EC_DBG1
 #  define _EC_DBG2 EC_DBG2

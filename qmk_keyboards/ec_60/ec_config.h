@@ -10,38 +10,6 @@ typedef enum ec_actuation_mode { EC_ACTUATION_MODE_STATIC = 0, EC_ACTUATION_MODE
 // mode max 4 modes
 typedef enum ec_release_mode { EC_RELEASE_MODE_STATIC = 0, EC_RELEASE_MODE_DYNAMIC } ec_release_mode_t;
 
-enum {
-  id_ec_tools_channel = id_custom_channel_user_range,
-  id_ec_preset_channel_start = id_ec_tools_channel + 1,
-  id_ec_preset_channel_end = id_ec_preset_channel_start + EC_NUM_PRESETS - 1,
-};
-
-_Static_assert(id_ec_tools_channel == EC_VIA_CUSTOM_CHANNEL_ID_START, "Mismatch in via custom menu channel");
-
-// Declaring enums for VIA config menu
-enum via_ec_preset_value_id {
-  // clang-format off
-  id_ec_preset_actuation_mode = 1,
-  id_ec_preset_actuation_threshold,
-  id_ec_preset_actuation_travel,
-  id_ec_preset_release_mode,
-  id_ec_preset_release_threshold,
-  id_ec_preset_release_travel,
-  id_ec_preset_deadzone,
-  id_ec_preset_sub_action_enable,
-  id_ec_preset_sub_action_keycode,
-  id_ec_preset_sub_action_actuation_threshold,
-  id_ec_preset_sub_action_release_threshold
-  // clang-format on
-};
-
-enum via_ec_tools_value_id {
-  id_ec_tools_bottoming_calibration = 1,
-  id_ec_tools_show_calibration_data,
-  id_ec_tools_debug_send_config,
-  id_ec_tools_bootloader_jump
-};
-
 typedef struct {
   ec_actuation_mode_t actuation_mode : 2;  // +0
   ec_release_mode_t release_mode : 2;      // +2
@@ -66,7 +34,8 @@ typedef struct {
   ec_preset_t presets[EC_NUM_PRESETS];
   uint16_t bottoming_reading[MATRIX_ROWS][MATRIX_COLS];
   uint8_t selected_preset_map_index : 3;  // 0 - 7
-  uint16_t reserved_0 : 13;
+  bool debouncing_enable : 1;
+  uint16_t reserved_0 : 12;
 } __attribute__((packed)) ec_eeprom_config_t;
 
 /* eeprom address */
@@ -91,7 +60,7 @@ typedef struct {
   uint16_t sub_action_release_threshold;
   uint16_t noise_floor;
   uint16_t noise;
-#ifdef EC_DEBUG
+#ifdef EC_DEBUG_ENABLE
   uint16_t sw_value;
 #endif
   bool bottoming_calibration_starter;
@@ -99,7 +68,13 @@ typedef struct {
 
 extern ec_key_config_t ec_config_keys[MATRIX_ROWS][MATRIX_COLS];
 extern ec_eeprom_config_t ec_eeprom_config;
-extern bool bottoming_calibration;
+extern bool ec_bottoming_calibration_enable;
+#ifdef EC_DEBUG_ENABLE
+extern bool ec_test_discharge_enable;
+extern uint16_t ec_test_discharge_floor_min[EC_TEST_DISCHARGE_MAX_TIME_US + 1];
+extern uint16_t ec_test_discharge_floor_max[EC_TEST_DISCHARGE_MAX_TIME_US + 1];
+extern uint16_t ec_test_discharge_bottom_max[EC_TEST_DISCHARGE_MAX_TIME_US + 1];
+#endif
 
 void ec_config_reset(void);
 void ec_config_init(void);
@@ -118,12 +93,12 @@ void ec_config_set_sub_action_actuation_threshold(uint8_t preset_index, uint16_t
 void ec_config_set_sub_action_release_threshold(uint8_t preset_index, uint16_t value);
 
 void ec_config_set_preset_map(uint8_t preset_map_index);
-void ec_config_start_calibration(void);
-void ec_config_end_calibration(void);
+void ec_config_calibration_start(void);
+void ec_config_calibration_end(void);
 void ec_config_send_calibration_data(void);
 void ec_config_send_presets(void);
-#ifdef EC_DEBUG
-void ec_config_debug_send_misc_state(void);
+#ifdef EC_DEBUG_ENABLE
+void ec_config_debug_send_debug_values(void);
 void ec_config_debug_send_calibration(void);
 void ec_config_debug_send_config_keys(void);
 void ec_config_debug_send_all(void);

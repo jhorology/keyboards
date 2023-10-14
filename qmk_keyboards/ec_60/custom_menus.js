@@ -30,27 +30,52 @@ module.exports = function (options, defines) {
             {
               label: 'Bottoming Calibration',
               type: 'toggle',
-              content: ['id_ec_bottoming_calibration', EC_TOOLS_CHANNEL_ID, 1]
+              content: [
+                'id_ec_tools_bottoming_calibration',
+                EC_TOOLS_CHANNEL_ID,
+                1
+              ]
             },
             {
               label:
                 'Show Calibration Data *(In 3 sconds after click, It will send data as keystrokes.)',
               type: 'toggle',
-              content: ['id_ec_show_calibration_data', EC_TOOLS_CHANNEL_ID, 2]
+              content: [
+                'id_ec_tools_show_calibration_data',
+                EC_TOOLS_CHANNEL_ID,
+                2
+              ]
             },
-            ...(!defines.EC_DEBUG
+            ...(options.EC_DEBUG_ENABLE !== 'yes'
               ? []
               : [
+                  {
+                    label: 'Test Discharge Time',
+                    type: 'toggle',
+                    content: [
+                      'id_ec_tools_test_discharge',
+                      EC_TOOLS_CHANNEL_ID,
+                      3
+                    ]
+                  },
                   {
                     label:
                       'Show Debug Data *(In 3 sconds after click, It will send data as keystrokes.)',
                     type: 'toggle',
-                    content: ['id_ec_debug_send_config', EC_TOOLS_CHANNEL_ID, 3]
+                    content: [
+                      'id_ec_tools_debug_send_config',
+                      EC_TOOLS_CHANNEL_ID,
+                      4
+                    ]
                   },
                   {
                     label: 'Bootloader Jump',
                     type: 'toggle',
-                    content: ['id_ec_bootloader_jump', EC_TOOLS_CHANNEL_ID, 4]
+                    content: [
+                      'id_ec_tools_bootloader_jump',
+                      EC_TOOLS_CHANNEL_ID,
+                      5
+                    ]
                   }
                 ])
           ]

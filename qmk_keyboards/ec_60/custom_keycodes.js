@@ -37,12 +37,12 @@ module.exports = function (options, defines) {
           shortName: `${bank}${index} ${icon}`
         }
       }),
-    ...(!defines.EC_DEBUG
+    ...(options.EC_DEBUG_ENABLE !== 'yes'
       ? []
       : [
           {
             name: 'EC\nDBG0',
-            title: 'Show misc states as keystrokes',
+            title: 'Show debug data as keystrokes',
             shortName: 'EC.D0'
           },
           {
