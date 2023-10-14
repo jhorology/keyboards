@@ -436,6 +436,7 @@ EOF
 # $1 board
 build() {
   local board=$1
+  local target=$2
   local opts=()
   (( $#with_logging )) && opts=($opts "-DCONFIG_ZMK_USB_LOGGING=y")
   (( $#with_shell )) && opts=($opts "-DCONFIG_SHELL=y")
@@ -450,7 +451,7 @@ build() {
     mv $PROJECT/build/$board/compile_commands.json $PROJECT
     dot_clangd
     if $WITH_EMACS; then
-      dot_dir_locals
+      dot_dir_locals $target
       dot_projectile
     fi
   fi
@@ -477,10 +478,13 @@ EOS
 }
 
 dot_dir_locals() {
+  local target=$1
   cat <<EOS > $PROJECT/.dir-locals.el
 ((nil . ((projectile-git-use-fd . t)
          (projectile-git-fd-args . "--hidden --no-ignore -0 --exclude '\.*' --type f --strip-cwd-prefix")
-         (counsel-rg-base-command . ("rg" "--no-ignore" "--max-columns" "240" "--with-filename" "--no-heading" "--line-number" "--color" "never" "%s")))))
+         (counsel-rg-base-command . ("rg" "--no-ignore" "--max-columns" "240" "--with-filename" "--no-heading" "--line-number" "--color" "never" "%s"))
+         (compile-command . "zmk_build.sh -w -p $target")
+)))
 EOS
 }
 
@@ -769,9 +773,9 @@ for target in $TARGETS; do
   firmware_ext=$kbd[3]
 
   if (( $#with_docker )); then
-    build_with_docker $board
+    build_with_docker $board $target
   else
-    build $board
+    build $board $target
   fi
   firmware_file=$(dist_firmware $board $firmware_name $firmware_ext)
   if (( $#with_flash )); then
