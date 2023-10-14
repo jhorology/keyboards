@@ -3,9 +3,6 @@
 /* Turn off effects when suspended */
 #define RGB_DISABLE_WHEN_USB_SUSPENDED
 
-/* Set 0 if debouncing isn't needed */
-#define DEBOUNCE 5
-
 /* DIP switch for Mac/win OS switch */
 #define DIP_SWITCH_PINS \
   { A8 }
