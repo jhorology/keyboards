@@ -16,6 +16,10 @@ TAP_DANCE_ENABLE = yes
 COMBO_ENABLE = yes
 DEFERRED_EXEC_ENABLE = yes
 
+# debounce
+DEBOUNCE_TYPE = sym_eager_pk
+
+# common library
 SRC += lib/my_keyboard_common.c
 SRC += lib/custom_config.c
 SRC += lib/apple_fn.c
