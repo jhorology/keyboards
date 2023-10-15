@@ -86,9 +86,22 @@ module.exports = function (options, defines) {
 function createPresetMenu(defines, bank, index, presetIndex, channelId) {
   const ref = (id) => `id_ec_preset_${presetIndex}_${PRESET_VALUE_IDs[id]}`,
     content = (id) => [ref(id), channelId, id],
-    rangeMax = defines.EC_SCALE_RANGE,
-    rangeMinPerc = defines.EC_SAFETY_MARGIN_PERC,
-    rangeMin = ((rangeMax * rangeMinPerc) / 100) | 0
+    perc2rabngeValue = (perc) => ((defines.EC_SCALE_RANGE * perc) / 100) | 0,
+    range = (name) => ({
+      label: `${name} (${defines.EC_SAFETY_MARGIN_PERC}% | ${
+        100 - defines.EC_SAFETY_MARGIN_PERC
+      } %)`,
+      type: 'range',
+      options: [
+        perc2rabngeValue(defines.EC_SAFETY_MARGIN_PERC),
+        perc2rabngeValue(100 - defines.EC_SAFETY_MARGIN_PERC)
+      ]
+    }),
+    halfRange = (name) => ({
+      label: `${name} (${defines.EC_SAFETY_MARGIN_PERC}% | 50 %)`,
+      type: 'range',
+      options: [perc2rabngeValue(defines.EC_SAFETY_MARGIN_PERC), perc2rabngeValue(50)]
+    })
   return {
     label: `Preset ${bank}${index} ${emoji[bank % emoji.length][index % emoji[bank].length]}`,
     content: [
@@ -96,53 +109,44 @@ function createPresetMenu(defines, bank, index, presetIndex, channelId) {
         label: 'Actuation Mode',
         type: 'dropdown',
         options: [
-          ['STATIC', 0],
-          ['DYNAMIC', 1]
+          ['Edge to Bottom', 0],
+          ['Level', 1],
+          ['Dynamic Travel', 2]
         ],
         content: content(1)
       },
       {
-        showIf: `{${ref(1)}} == 0`,
-        label: `Actuation Threshold (${rangeMinPerc}% | 100%)`,
-        type: 'range',
-        options: [rangeMin, rangeMax],
+        showIf: `{${ref(1)}} == 0 || {${ref(1)}} == 1`,
+        ...range('Actuation Threshold'),
         content: content(2)
       },
       {
-        showIf: `{${ref(1)}} == 1`,
-        label: `Actuation Travel (${rangeMinPerc}% | 50%)`,
-        type: 'range',
-        options: [rangeMin, rangeMax >> 1],
+        showIf: `{${ref(1)}} == 2`,
+        ...halfRange('Actuation Travel'),
         content: content(3)
       },
       {
         label: 'Release Mode',
         type: 'dropdown',
         options: [
-          ['STATIC', 0],
-          ['DYNAMIC', 1]
+          ['Edge to Top', 0],
+          ['Level', 1],
+          ['Dynamic Travel', 2]
         ],
         content: content(4)
       },
       {
-        showIf: `{${ref(4)}} == 0`,
-        label: `Release Threshold (${rangeMinPerc}% | 100%)`,
-        type: 'range',
-        options: [rangeMin, rangeMax],
+        showIf: `{${ref(4)}} == 0 || {${ref(4)}} == 1`,
+        ...range('Release Threshold'),
         content: content(5)
       },
       {
-        showIf: `{${ref(4)}} == 1`,
-        label: `Release Travel (${rangeMinPerc}% | 50%)`,
-        type: 'range',
-        options: [rangeMin, rangeMax >> 1],
+        showIf: `{${ref(4)}} == 2`,
+        ...halfRange('Release Travel'),
         content: content(6)
       },
       {
-        showIf: `{${ref(1)}} == 1 || {${ref(4)}} == 1`,
-        label: `Deadzone (${rangeMinPerc}% | 50%)`,
-        type: 'range',
-        options: [rangeMin, rangeMax >> 1],
+        ...halfRange('Deadzone'),
         content: content(7)
       },
       {
@@ -158,9 +162,7 @@ function createPresetMenu(defines, bank, index, presetIndex, channelId) {
       },
       {
         showIf: `{${ref(8)}} == 1`,
-        label: `Sub Action Actuation Threshold (${rangeMinPerc}% | 100%)`,
-        type: 'range',
-        options: [rangeMin, rangeMax],
+        ...range('Sub Action Actuation Threshold'),
         content: content(10)
       },
       {
@@ -175,9 +177,7 @@ function createPresetMenu(defines, bank, index, presetIndex, channelId) {
       },
       {
         showIf: `{${ref(8)}} == 1 && {${ref(11)}} == 1`,
-        label: `Sub Action Release Threshold (${rangeMinPerc}% | 100%)`,
-        type: 'range',
-        options: [rangeMin, rangeMax],
+        ...range('Sub Action Release Threshold'),
         content: content(12)
       }
     ]

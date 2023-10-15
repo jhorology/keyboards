@@ -6,14 +6,16 @@
 
 // mode max 4 modes
 typedef enum ec_actuation_mode {
-  EC_ACTUATION_MODE_STATIC = 0,
-  EC_ACTUATION_MODE_DYNAMIC
+  EC_ACTUATION_MODE_STATIC_EDGE = 0,  // edge trigger
+  EC_ACTUATION_MODE_STATIC_LEVEL,     // level trigger
+  EC_ACTUATION_MODE_DYNAMIC           // movement trigger
 } ec_actuation_mode_t;
 
 // mode max 4 modes
 typedef enum ec_release_mode {
-  EC_RELEASE_MODE_STATIC = 0,
-  EC_RELEASE_MODE_DYNAMIC
+  EC_RELEASE_MODE_STATIC_EDGE = 0,  // edge trigger
+  EC_RELEASE_MODE_STATIC_LEVEL,     // level trigger
+  EC_RELEASE_MODE_DYNAMIC           // movement trigger
 } ec_release_mode_t;
 // mode max 4 modes
 typedef enum ec_sub_action_release_mode {
@@ -146,20 +148,21 @@ void ec_config_debug_send_all(void);
   }
 
 #define EC_HALF_SCALE_RANGE (EC_SCALE_RANGE >> 1)
-#define EC_SAFETY_MARGIN (EC_SAFETY_MARGIN_PERC * EC_SCALE_RANGE / 100)
-#define EC_WITHIN_SCALE_RANGE(v) (v >= EC_SAFETY_MARGIN && v <= EC_SCALE_RANGE)
-#define EC_WITHIN_HALF_SCALE_RANGE(v) (v >= EC_SAFETY_MARGIN && v <= EC_HALF_SCALE_RANGE)
+#define EC_SAFETY_RANGE_MIN (EC_SAFETY_MARGIN_PERC * EC_SCALE_RANGE / 100)
+#define EC_SAFETY_RANGE_MAX ((100 - EC_SAFETY_MARGIN_PERC) * EC_SCALE_RANGE / 100)
+#define EC_WITHIN_SCALE_RANGE(v) (v >= EC_SAFETY_RANGE_MIN && v <= EC_SAFETY_RANGE_MAX)
+#define EC_WITHIN_HALF_SCALE_RANGE(v) (v >= EC_SAFETY_RANGE_MIN && v <= EC_HALF_SCALE_RANGE)
 
 // convtert a percentage of tatal travel into preset
 #define EC_PERC(perc) ((perc) * EC_SCALE_RANGE / 100)
 
 // clang-format off
 #define EC_STATIC_PRESET(a, r) {                 \
-  .actuation_mode = EC_ACTUATION_MODE_STATIC,    \
-  .release_mode = EC_RELEASE_MODE_STATIC,        \
+  .actuation_mode = EC_ACTUATION_MODE_STATIC_EDGE,    \
+  .release_mode = EC_RELEASE_MODE_STATIC_EDGE,        \
   .actuation_threshold = a,                      \
   .release_threshold = r,                        \
-  .actuation_travel = EC_PERC(20),               \
+  .actuation_travel = EC_PERC(20),                   \
   .release_travel = EC_PERC(20),                 \
   .deadzone = EC_PERC(15),                       \
   .sub_action_enable = false,                    \

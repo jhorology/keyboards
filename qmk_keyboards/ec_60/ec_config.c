@@ -97,7 +97,7 @@ static void update_key(ec_key_config_t *key, ec_preset_t *preset, uint16_t botto
   // actuation
   key->modes.actuation_mode = preset->actuation_mode;
   switch (preset->actuation_mode) {
-    case EC_ACTUATION_MODE_STATIC:
+    case EC_ACTUATION_MODE_STATIC_EDGE ... EC_ACTUATION_MODE_STATIC_LEVEL:
       key->actuation_reference =
         KEY_THRESHOLD(key->noise_floor, bottoming, preset->actuation_threshold);
       break;
@@ -108,7 +108,7 @@ static void update_key(ec_key_config_t *key, ec_preset_t *preset, uint16_t botto
   // release
   key->modes.release_mode = preset->release_mode;
   switch (preset->release_mode) {
-    case EC_RELEASE_MODE_STATIC:
+    case EC_RELEASE_MODE_STATIC_EDGE ... EC_RELEASE_MODE_STATIC_LEVEL:
       key->release_reference =
         KEY_THRESHOLD(key->noise_floor, bottoming, preset->release_threshold);
       break;
@@ -247,8 +247,11 @@ void ec_config_send_presets(void) {
     (
       ec_preset_t *preset = get_preset(i);  //
       switch (preset->actuation_mode) {
-        case EC_ACTUATION_MODE_STATIC:
-          SEND_C_ENUM_PROP_VALUE(actuation_mode, EC_ACTUATION_MODE_STATIC, true);
+        case EC_ACTUATION_MODE_STATIC_EDGE:
+          SEND_C_ENUM_PROP_VALUE(actuation_mode, EC_ACTUATION_MODE_STATIC_EDGE, true);
+          break;
+        case EC_ACTUATION_MODE_STATIC_LEVEL:
+          SEND_C_ENUM_PROP_VALUE(actuation_mode, EC_ACTUATION_MODE_STATIC_EDGE, true);
           break;
         case EC_ACTUATION_MODE_DYNAMIC:
           SEND_C_ENUM_PROP_VALUE(actuation_mode, EC_ACTUATION_MODE_DYNAMIC, true);
@@ -256,8 +259,11 @@ void ec_config_send_presets(void) {
       } SEND_C_ARROW_PROP_VALUE(preset, actuation_threshold, WORD, true);
       SEND_C_ARROW_PROP_VALUE(preset, actuation_travel, WORD, true);  //
       switch (preset->release_mode) {
-        case EC_ACTUATION_MODE_STATIC:
-          SEND_C_ENUM_PROP_VALUE(release_mode, EC_ACTUATION_MODE_STATIC, true);
+        case EC_ACTUATION_MODE_STATIC_EDGE:
+          SEND_C_ENUM_PROP_VALUE(release_mode, EC_ACTUATION_MODE_STATIC_EDGE, true);
+          break;
+        case EC_ACTUATION_MODE_STATIC_LEVEL:
+          SEND_C_ENUM_PROP_VALUE(release_mode, EC_ACTUATION_MODE_STATIC_LEVEL, true);
           break;
         case EC_ACTUATION_MODE_DYNAMIC:
           SEND_C_ENUM_PROP_VALUE(release_mod, EC_ACTUATION_MODE_DYNAMIC, true);
@@ -288,6 +294,7 @@ void ec_config_debug_send_debug_values(void) {
   SEND_JS_PROP_VALUE(ec_eeprom_config_error, WORD, true);
   SEND_JS_PROP_VALUE(ec_bottoming_calibration_enable, BOOL, true);
   SEND_EC_CONFIG_KEY_MATRIX(bottoming_calibration_starter, BOOL, true);
+  SEND_EC_CONFIG_KEY_MATRIX(extremum, WORD, true);
   SEND_JS_PROP_ARRAY(ec_test_discharge_floor_min, WORD, 0, EC_TEST_DISCHARGE_MAX_TIME_US + 1, true);
   SEND_JS_PROP_ARRAY(ec_test_discharge_floor_max, WORD, 0, EC_TEST_DISCHARGE_MAX_TIME_US + 1, true);
   SEND_JS_PROP_ARRAY_CODE(
@@ -309,13 +316,19 @@ void ec_config_debug_send_calibration(void) {
 
 void ec_config_debug_send_config_keys(void) {
   send_string("const key_config = {\n");
-  SEND_EC_CONFIG_KEY_MATRIX(modes.actuation_mode, NIBBLE, true);
+  SEND_JS_PROP_MATRIX_ARRAY_CODE("actuation_mode", true,
+                                 (send_nibble(ec_config_keys[row][col].modes.actuation_mode);));
   SEND_EC_CONFIG_KEY_MATRIX(actuation_reference, WORD, true);
-  SEND_EC_CONFIG_KEY_MATRIX(modes.release_mode, NIBBLE, true);
+  SEND_JS_PROP_MATRIX_ARRAY_CODE("release_mode", true,
+                                 (send_nibble(ec_config_keys[row][col].modes.release_mode);));
+
   SEND_EC_CONFIG_KEY_MATRIX(release_reference, WORD, true);
   SEND_EC_CONFIG_KEY_MATRIX(deadzone, WORD, true);
   SEND_EC_CONFIG_KEY_MATRIX(sub_action_keycode, WORD, true);
   SEND_EC_CONFIG_KEY_MATRIX(sub_action_actuation_threshold, WORD, true);
+  SEND_JS_PROP_MATRIX_ARRAY_CODE(
+    "sub_action_release_mode", true,
+    (send_nibble(ec_config_keys[row][col].modes.sub_action_release_mode);));
   SEND_EC_CONFIG_KEY_MATRIX(sub_action_release_threshold, WORD, false);
   send_string("}\n");
 }

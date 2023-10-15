@@ -99,8 +99,12 @@ static inline void select_col(uint8_t amux_col_ch) {
 }
 
 static inline bool ec_is_key_pressed(ec_key_config_t *key, uint16_t sw_value) {
+  if (sw_value <= key->deadzone) return false;
   switch (key->modes.actuation_mode) {
-    case EC_ACTUATION_MODE_STATIC:
+    case EC_ACTUATION_MODE_STATIC_EDGE:
+      // cross the threshold from top to bottom
+      return key->extremum <= key->actuation_reference && sw_value > key->actuation_reference;
+    case EC_ACTUATION_MODE_STATIC_LEVEL:
       return sw_value > key->actuation_reference;
     case EC_ACTUATION_MODE_DYNAMIC:
       return sw_value > key->extremum && sw_value - key->extremum > key->actuation_reference;
@@ -109,22 +113,27 @@ static inline bool ec_is_key_pressed(ec_key_config_t *key, uint16_t sw_value) {
 }
 
 static inline bool ec_is_key_released(ec_key_config_t *key, uint16_t sw_value) {
+  if (sw_value <= key->deadzone) return true;
   switch (key->modes.release_mode) {
-    case EC_RELEASE_MODE_STATIC:
-      return (sw_value < key->release_reference);
+    case EC_RELEASE_MODE_STATIC_EDGE:
+      // cross the threshold from bottom to top
+      return key->extremum >= key->release_reference && sw_value < key->release_reference;
+    case EC_RELEASE_MODE_STATIC_LEVEL:
+      return sw_value < key->release_reference;
     case EC_RELEASE_MODE_DYNAMIC:
-      return sw_value < key->deadzone ||
-             (sw_value < key->extremum && key->extremum - sw_value > key->release_reference);
+      return sw_value < key->extremum && key->extremum - sw_value > key->release_reference;
   }
   return false;
 }
 
 static inline bool ec_is_sub_action_pressed(ec_key_config_t *key, uint16_t sw_value) {
+  if (sw_value <= key->deadzone) return false;
   return sw_value > key->sub_action_actuation_threshold;
 }
 
 static inline bool ec_is_sub_action_released(ec_key_config_t *key, uint16_t sw_value,
                                              bool primary_pressed) {
+  if (sw_value <= key->deadzone) return true;
   switch (key->modes.sub_action_release_mode) {
     case EC_SUB_ACTION_RELEASE_MODE_SYNC_PRIMARY:
       return !primary_pressed;
