@@ -19,14 +19,15 @@ index 0e7bdfa..856f8c9 100644
  source "Kconfig.zephyr"
 -
 diff --git a/app/include/zmk/endpoints.h b/app/include/zmk/endpoints.h
-index c886053..ecd1a94 100644
+index c5964ff..e2e70cf 100644
 --- a/app/include/zmk/endpoints.h
 +++ b/app/include/zmk/endpoints.h
-@@ -13,3 +13,4 @@ int zmk_endpoints_toggle();
- enum zmk_endpoint zmk_endpoints_selected();
+@@ -69,3 +69,5 @@ int zmk_endpoints_toggle_transport(void);
+ struct zmk_endpoint_instance zmk_endpoints_selected(void);
  
  int zmk_endpoints_send_report(uint16_t usage_page);
-+int zmk_endpoints_send_radial_controller_report();
++
++int zmk_endpoints_send_radial_controller_report(void);
 diff --git a/app/include/zmk/hid.h b/app/include/zmk/hid.h
 index ab42ada..a3d60b0 100644
 --- a/app/include/zmk/hid.h
@@ -118,20 +119,20 @@ index 7523fb6..85d1777 100644
  int zmk_hog_send_consumer_report(struct zmk_hid_consumer_report_body *body);
 +int zmk_hog_send_radial_controller_report(struct zmk_hid_radial_controller_report_body *body);
 diff --git a/app/src/endpoints.c b/app/src/endpoints.c
-index 25813e7..a313b61 100644
+index 378a4b7..cdc6163 100644
 --- a/app/src/endpoints.c
 +++ b/app/src/endpoints.c
-@@ -144,6 +144,38 @@ int zmk_endpoints_send_report(uint16_t usage_page) {
-     }
+@@ -193,6 +193,37 @@ int zmk_endpoints_send_report(uint16_t usage_page) {
+     return -ENOTSUP;
  }
  
 +int zmk_endpoints_send_radial_controller_report() {
 +    struct zmk_hid_radial_controller_report *radial_controller_report =
 +        zmk_hid_get_radial_controller_report();
 +
-+    switch (current_endpoint) {
++    switch (current_instance.transport) {
 +#if IS_ENABLED(CONFIG_ZMK_USB)
-+    case ZMK_ENDPOINT_USB: {
++    case ZMK_TRANSPORT_USB: {
 +        int err = zmk_usb_hid_send_report((uint8_t *)radial_controller_report,
 +                                          sizeof(*radial_controller_report));
 +        if (err) {
@@ -142,7 +143,7 @@ index 25813e7..a313b61 100644
 +#endif /* IS_ENABLED(CONFIG_ZMK_USB) */
 +
 +#if IS_ENABLED(CONFIG_ZMK_BLE)
-+    case ZMK_ENDPOINT_BLE: {
++    case ZMK_TRANSPORT_BLE: {
 +        int err = zmk_hog_send_radial_controller_report(&radial_controller_report->body);
 +        if (err) {
 +            LOG_ERR("FAILED TO SEND OVER HOG: %d", err);
@@ -150,17 +151,16 @@ index 25813e7..a313b61 100644
 +        return err;
 +    }
 +#endif /* IS_ENABLED(CONFIG_ZMK_BLE) */
-+
-+    default:
-+        LOG_ERR("Unsupported endpoint %d", current_endpoint);
-+        return -ENOTSUP;
 +    }
++
++    LOG_ERR("Unsupported endpoint transport %d", current_instance.transport);
++    return -ENOTSUP;
 +}
 +
  #if IS_ENABLED(CONFIG_SETTINGS)
  
  static int endpoints_handle_set(const char *name, size_t len, settings_read_cb read_cb,
-@@ -228,9 +260,11 @@ static enum zmk_endpoint get_selected_endpoint() {
+@@ -297,9 +328,11 @@ static int zmk_endpoints_init(void) {
  static void disconnect_current_endpoint() {
      zmk_hid_keyboard_clear();
      zmk_hid_consumer_clear();
@@ -171,7 +171,7 @@ index 25813e7..a313b61 100644
 +    zmk_endpoints_send_radial_controller_report();
  }
  
- static void update_current_endpoint() {
+ static void update_current_endpoint(void) {
 diff --git a/app/src/hid.c b/app/src/hid.c
 index 2a6b5d3..6118bb7 100644
 --- a/app/src/hid.c

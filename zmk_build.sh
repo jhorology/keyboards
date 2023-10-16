@@ -390,8 +390,8 @@ update() {
 
     # temporary remove
     # build failed with warning: LV_Z_DPI defined without a type
-    rm -rf zmk/app/boards/shields/leeloo_micro
-    rm -rf zmk/app/boards/shields/nice_view
+    # rm -rf zmk/app/boards/shields/leeloo_micro
+    # rm -rf zmk/app/boards/shields/nice_view
 
     west zephyr-export
   fi
