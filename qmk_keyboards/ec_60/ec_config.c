@@ -11,10 +11,8 @@ ec_key_config_t ec_config_keys[MATRIX_ROWS][MATRIX_COLS];
 bool ec_bottoming_calibration_enable;
 
 #ifdef EC_DEBUG_ENABLE
-bool ec_test_discharge_enable;
-uint16_t ec_test_discharge_floor_min[EC_TEST_DISCHARGE_MAX_TIME_US + 1];
-uint16_t ec_test_discharge_floor_max[EC_TEST_DISCHARGE_MAX_TIME_US + 1];
-uint16_t ec_test_discharge_bottom_max[EC_TEST_DISCHARGE_MAX_TIME_US + 1];
+bool ec_matrix_scan_test_enable;
+ec_test_result_t ec_test_result[EC_TEST_CHARGE_PLOT_COUNT][EC_TEST_DISCHARGE_PLOT_COUNT];
 
 static bool ec_eeprom_config_reseted;
 static int8_t ec_eeprom_config_error;
@@ -234,55 +232,64 @@ void ec_config_calibration_end(void) {
 
 void ec_config_send_calibration_data(void) {
   send_string("// clang-format off\n");
-  SEND_C_MATRIX_ARRAY_CODE(
-    "nconst uint16_t PROGMEM ec_bottoming_reading_default[MATRIX_ROWS][MATRIX_COLS]",
-    (SEND_WORD(ec_eeprom_config.bottoming_reading[row][col]);));
+  send_string("const uint16_t PROGMEM ec_bottoming_reading_default[MATRIX_ROWS][MATRIX_COLS] = ");
+  SEND_C_2D_ARRAY(ec_eeprom_config.bottoming_reading, MATRIX_ROWS, MATRIX_COLS, WORD, false);
   send_string("// clang-format on\n");
 }
 
 void ec_config_send_presets(void) {
   send_string("// clang-format off\n");
-  SEND_C_OBJECT_ARRAY_CODE(
-    "const ec_preset_t PROGMEM ec_presets_default[EC_NUM_PRESETS]", 0, EC_NUM_PRESETS,
+  send_string("const ec_preset_t PROGMEM ec_presets_default[EC_NUM_PRESETS] = ");
+  SEND_C_INDEXED_ARRAY_CODE(
+    EC_NUM_PRESETS, false,
     (
       ec_preset_t *preset = get_preset(i);  //
       switch (preset->actuation_mode) {
         case EC_ACTUATION_MODE_STATIC_EDGE:
-          SEND_C_ENUM_PROP_VALUE(actuation_mode, EC_ACTUATION_MODE_STATIC_EDGE, true);
+          SEND_C_SYMBOL_PROP_SYMBOL_VALUE(actuation_mode, EC_ACTUATION_MODE_STATIC_EDGE, true);
           break;
         case EC_ACTUATION_MODE_STATIC_LEVEL:
-          SEND_C_ENUM_PROP_VALUE(actuation_mode, EC_ACTUATION_MODE_STATIC_EDGE, true);
+          SEND_C_SYMBOL_PROP_SYMBOL_VALUE(actuation_mode, EC_ACTUATION_MODE_STATIC_EDGE, true);
           break;
         case EC_ACTUATION_MODE_DYNAMIC:
-          SEND_C_ENUM_PROP_VALUE(actuation_mode, EC_ACTUATION_MODE_DYNAMIC, true);
-          break;
-      } SEND_C_ARROW_PROP_VALUE(preset, actuation_threshold, WORD, true);
-      SEND_C_ARROW_PROP_VALUE(preset, actuation_travel, WORD, true);  //
-      switch (preset->release_mode) {
-        case EC_ACTUATION_MODE_STATIC_EDGE:
-          SEND_C_ENUM_PROP_VALUE(release_mode, EC_ACTUATION_MODE_STATIC_EDGE, true);
-          break;
-        case EC_ACTUATION_MODE_STATIC_LEVEL:
-          SEND_C_ENUM_PROP_VALUE(release_mode, EC_ACTUATION_MODE_STATIC_LEVEL, true);
-          break;
-        case EC_ACTUATION_MODE_DYNAMIC:
-          SEND_C_ENUM_PROP_VALUE(release_mod, EC_ACTUATION_MODE_DYNAMIC, true);
+          SEND_C_SYMBOL_PROP_SYMBOL_VALUE(actuation_mode, EC_ACTUATION_MODE_DYNAMIC, true);
           break;
       }  //
-      SEND_C_ARROW_PROP_VALUE(preset, release_threshold, WORD, true);
-      SEND_C_ARROW_PROP_VALUE(preset, release_travel, WORD, true);
-      SEND_C_ARROW_PROP_VALUE(preset, deadzone, WORD, true);
-      SEND_C_ARROW_PROP_VALUE(preset, sub_action_keycode, WORD, true);
-      SEND_C_ARROW_PROP_VALUE(preset, sub_action_actuation_threshold, WORD, true);
-      SEND_C_ARROW_PROP_VALUE(preset, sub_action_release_threshold, WORD, false);
+      SEND_C_PROP_ARROW_VALUE(preset, actuation_threshold, WORD, true);
+      SEND_C_PROP_ARROW_VALUE(preset, actuation_travel, WORD, true);  //
+      switch (preset->release_mode) {
+        case EC_ACTUATION_MODE_STATIC_EDGE:
+          SEND_C_SYMBOL_PROP_SYMBOL_VALUE(release_mode, EC_ACTUATION_MODE_STATIC_EDGE, true);
+          break;
+        case EC_ACTUATION_MODE_STATIC_LEVEL:
+          SEND_C_SYMBOL_PROP_SYMBOL_VALUE(release_mode, EC_ACTUATION_MODE_STATIC_LEVEL, true);
+          break;
+        case EC_ACTUATION_MODE_DYNAMIC:
+          SEND_C_SYMBOL_PROP_SYMBOL_VALUE(release_mod, EC_ACTUATION_MODE_DYNAMIC, true);
+          break;
+      }  //
+      SEND_C_PROP_ARROW_VALUE(preset, release_threshold, WORD, true);
+      SEND_C_PROP_ARROW_VALUE(preset, release_travel, WORD, true);
+      SEND_C_PROP_ARROW_VALUE(preset, deadzone, WORD, true);
+      SEND_C_PROP_ARROW_VALUE(preset, sub_action_keycode, WORD, true);
+      SEND_C_PROP_ARROW_VALUE(preset, sub_action_actuation_threshold, WORD, true);
+      SEND_C_PROP_ARROW_VALUE(preset, sub_action_release_threshold, WORD, false);
       //
       ));
   send_string("// clang-format on\n");
 }
 
 #ifdef EC_DEBUG_ENABLE
-#  define SEND_EC_CONFIG_KEY_MATRIX(prop, type, sep) \
-    SEND_JS_PROP_MATRIX_ARRAY_CODE(#prop, sep, (SEND_##type(ec_config_keys[row][col].prop);));
+#  define SEND_EC_CONFIG_KEY_MATRIX(prop, type, sep)                      \
+    SEND_JS_NAME_PROP_2D_ARRAY_CODE(#prop, MATRIX_ROWS, MATRIX_COLS, sep, \
+                                    (SEND_##type(ec_config_keys[i][j].prop);));
+#  define SEND_EC_CONFIG_KEY_MATRIX_MODE(prop, sep)                       \
+    SEND_JS_NAME_PROP_2D_ARRAY_CODE(#prop, MATRIX_ROWS, MATRIX_COLS, sep, \
+                                    (SEND_DEC1(ec_config_keys[i][j].modes.prop);));
+#  define SEND_JS_TEST_RESULT(prop, type, sep)                         \
+    SEND_JS_NAME_PROP_2D_ARRAY_CODE(#prop, EC_TEST_CHARGE_PLOT_COUNT,  \
+                                    EC_TEST_DISCHARGE_PLOT_COUNT, sep, \
+                                    (SEND_##type(ec_test_result[i][j].prop);));
 
 void ec_config_debug_send_debug_values(void) {
   send_string("const misc_state = {\n");
@@ -295,13 +302,14 @@ void ec_config_debug_send_debug_values(void) {
   SEND_JS_PROP_VALUE(ec_bottoming_calibration_enable, BOOL, true);
   SEND_EC_CONFIG_KEY_MATRIX(bottoming_calibration_starter, BOOL, true);
   SEND_EC_CONFIG_KEY_MATRIX(extremum, WORD, true);
-  SEND_JS_PROP_ARRAY(ec_test_discharge_floor_min, WORD, 0, EC_TEST_DISCHARGE_MAX_TIME_US + 1, true);
-  SEND_JS_PROP_ARRAY(ec_test_discharge_floor_max, WORD, 0, EC_TEST_DISCHARGE_MAX_TIME_US + 1, true);
-  SEND_JS_PROP_ARRAY_CODE(
-    "ec_test_discharge_noise", 0, EC_TEST_DISCHARGE_MAX_TIME_US + 1, true,
-    (SEND_WORD(ec_test_discharge_floor_max[i] - ec_test_discharge_floor_min[i]);));
-  SEND_JS_PROP_ARRAY(ec_test_discharge_bottom_max, WORD, 0, EC_TEST_DISCHARGE_MAX_TIME_US + 1,
-                     false);
+  send_string("scan_test_result: {\n");
+  SEND_JS_TEST_RESULT(floor_min, WORD, true);
+  SEND_JS_TEST_RESULT(floor_max, WORD, true);
+  SEND_JS_NAME_PROP_2D_ARRAY_CODE(
+    "floor_noise", EC_TEST_CHARGE_PLOT_COUNT, EC_TEST_DISCHARGE_PLOT_COUNT, true,
+    (SEND_WORD(ec_test_result[i][j].floor_max - ec_test_result[i][j].floor_min)))
+  SEND_JS_TEST_RESULT(bottom_max, WORD, false);
+  send_string("}\n");
   send_string("}\n");
 }
 
@@ -309,26 +317,25 @@ void ec_config_debug_send_calibration(void) {
   send_string("const calibrtion = {\n");
   SEND_EC_CONFIG_KEY_MATRIX(noise, WORD, true);
   SEND_EC_CONFIG_KEY_MATRIX(noise_floor, WORD, true);
-  SEND_JS_PROP_MATRIX_ARRAY_CODE("bottoming_readiong", false,
-                                 (SEND_WORD(ec_eeprom_config.bottoming_reading[row][col]);));
+  SEND_JS_NAME_PROP_2D_ARRAY("bottoming_readiong", ec_eeprom_config.bottoming_reading, MATRIX_ROWS,
+                             MATRIX_COLS, WORD, true);
+  SEND_JS_NAME_PROP_2D_ARRAY_CODE(
+    "SNR_percentage", MATRIX_ROWS, MATRIX_COLS, false,
+    (SEND_WORD(ec_config_keys[i][j].noise * 100 /
+               (ec_eeprom_config.bottoming_reading[i][j] - ec_config_keys[i][j].noise_floor));));
   send_string("}\n");
 }
 
 void ec_config_debug_send_config_keys(void) {
   send_string("const key_config = {\n");
-  SEND_JS_PROP_MATRIX_ARRAY_CODE("actuation_mode", true,
-                                 (send_nibble(ec_config_keys[row][col].modes.actuation_mode);));
+  SEND_EC_CONFIG_KEY_MATRIX_MODE(actuation_mode, true);
   SEND_EC_CONFIG_KEY_MATRIX(actuation_reference, WORD, true);
-  SEND_JS_PROP_MATRIX_ARRAY_CODE("release_mode", true,
-                                 (send_nibble(ec_config_keys[row][col].modes.release_mode);));
-
+  SEND_EC_CONFIG_KEY_MATRIX_MODE(release_mode, true);
   SEND_EC_CONFIG_KEY_MATRIX(release_reference, WORD, true);
   SEND_EC_CONFIG_KEY_MATRIX(deadzone, WORD, true);
   SEND_EC_CONFIG_KEY_MATRIX(sub_action_keycode, WORD, true);
   SEND_EC_CONFIG_KEY_MATRIX(sub_action_actuation_threshold, WORD, true);
-  SEND_JS_PROP_MATRIX_ARRAY_CODE(
-    "sub_action_release_mode", true,
-    (send_nibble(ec_config_keys[row][col].modes.sub_action_release_mode);));
+  SEND_EC_CONFIG_KEY_MATRIX_MODE(sub_action_release_mode, true);
   SEND_EC_CONFIG_KEY_MATRIX(sub_action_release_threshold, WORD, false);
   send_string("}\n");
 }
@@ -338,4 +345,4 @@ void ec_config_debug_send_all(void) {
   ec_config_debug_send_calibration();
   ec_config_debug_send_config_keys();
 }
-#endif
+#endif  // EC_DEBUG_ENABLE

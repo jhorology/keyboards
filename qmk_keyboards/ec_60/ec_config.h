@@ -76,15 +76,12 @@ typedef struct {
   uint16_t actuation_reference;  // threshold or travel
   uint16_t release_reference;    // threshold or travel
   uint16_t deadzone;
-  uint16_t extremum;
   uint16_t sub_action_keycode;
   uint16_t sub_action_actuation_threshold;
   uint16_t sub_action_release_threshold;
   uint16_t noise_floor;
   uint16_t noise;
-#ifdef EC_DEBUG_ENABLE
-  uint16_t sw_value;
-#endif
+  uint16_t extremum;
   bool bottoming_calibration_starter;
 } ec_key_config_t;
 
@@ -92,10 +89,13 @@ extern ec_key_config_t ec_config_keys[MATRIX_ROWS][MATRIX_COLS];
 extern ec_eeprom_config_t ec_eeprom_config;
 extern bool ec_bottoming_calibration_enable;
 #ifdef EC_DEBUG_ENABLE
-extern bool ec_test_discharge_enable;
-extern uint16_t ec_test_discharge_floor_min[EC_TEST_DISCHARGE_MAX_TIME_US + 1];
-extern uint16_t ec_test_discharge_floor_max[EC_TEST_DISCHARGE_MAX_TIME_US + 1];
-extern uint16_t ec_test_discharge_bottom_max[EC_TEST_DISCHARGE_MAX_TIME_US + 1];
+extern bool ec_matrix_scan_test_enable;
+typedef struct {
+  uint16_t floor_min;
+  uint16_t floor_max;
+  uint16_t bottom_max;
+} ec_test_result_t;
+extern ec_test_result_t ec_test_result[EC_TEST_CHARGE_PLOT_COUNT][EC_TEST_DISCHARGE_PLOT_COUNT];
 #endif
 
 void ec_config_reset(void);

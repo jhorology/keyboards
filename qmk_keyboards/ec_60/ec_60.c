@@ -48,9 +48,11 @@ _Static_assert(id_ec_tools_channel == EC_VIA_CUSTOM_CHANNEL_ID_START,
 enum via_ec_tools_value_id {
   id_ec_tools_bottoming_calibration = 1,
   id_ec_tools_show_calibration_data,
-  id_ec_tools_test_discharge,
+#if EC_DEBUG_ENABLE
+  id_ec_tools_matrix_scan_test,
   id_ec_tools_debug_send_config,
   id_ec_tools_bootloader_jump
+#endif
 };
 
 // Declaring enums for VIA config menu
@@ -206,16 +208,11 @@ bool via_custom_value_command_user(via_custom_command_t *command) {
               }
               return false;
 #ifdef EC_DEBUG_ENABLE
-            case id_ec_tools_test_discharge: {
+            case id_ec_tools_matrix_scan_test: {
               if (via_read_toggle_value(command)) {
-                for (uint8_t i = 0; i <= EC_TEST_DISCHARGE_MAX_TIME_US; i++) {
-                  ec_test_discharge_floor_min[i] = 0x3ff;
-                  ec_test_discharge_floor_max[i] = 0;
-                  ec_test_discharge_bottom_max[i] = 0;
-                }
-                ec_test_discharge_enable = true;
+                ec_matrix_scan_test_enable = true;
               } else {
-                ec_test_discharge_enable = false;
+                ec_matrix_scan_test_enable = false;
               }
               return false;
             }

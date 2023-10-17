@@ -52,20 +52,24 @@ _Static_assert(AMUX_SEL_PINS_COUNT == EXPECTED_AMUX_SEL_PINS_COUNT), "AMUX_SEL_P
 // chann1els for all the multiplexers available
 
 #define BOTTOMING_READING_THRESHOLD 0xff
+
 // 10us = 850 RTC
 #define RTC_DISCHARGE_TIME US2RTC(REALTIME_COUNTER_CLOCK, DISCHARGE_TIME)
+#define RTC_CHARGE_TIME 20UL
 
 // quantum/keyboard.c
 extern void matrix_scan_perf_task(void);
 extern void switch_events(uint8_t row, uint8_t col, bool pressed);
 
+// if row = 0 col =0, dummy reading for equalize discharge time
 #define MATRIX_READ_LOOP(...)                                   \
   matrix_row_t col_mask = 1;                                    \
   for (int col = 0; col < MATRIX_COLS; col++, col_mask <<= 1) { \
     select_col(matrix_col_channels[col]);                       \
     for (int row = 0; row < MATRIX_ROWS; row++) {               \
+      if (col == 0 && row == 0) ec_readkey(row);                \
       if (matrix_used[row] & col_mask) {                        \
-        uint16_t sw_value = ec_readkey_raw(row);                \
+        uint16_t sw_value = ec_readkey(row);                    \
         ec_key_config_t *key = &ec_config_keys[row][col];       \
         __VA_ARGS__                                             \
       }                                                         \
@@ -125,14 +129,13 @@ static inline bool ec_is_key_released(ec_key_config_t *key, uint16_t sw_value) {
   }
   return false;
 }
-
-static inline bool ec_is_sub_action_pressed(ec_key_config_t *key, uint16_t sw_value) {
+static inline bool is_sub_action_pressed(ec_key_config_t *key, uint16_t sw_value) {
   if (sw_value <= key->deadzone) return false;
   return sw_value > key->sub_action_actuation_threshold;
 }
 
-static inline bool ec_is_sub_action_released(ec_key_config_t *key, uint16_t sw_value,
-                                             bool primary_pressed) {
+static inline bool is_sub_action_released(ec_key_config_t *key, uint16_t sw_value,
+                                          bool primary_pressed) {
   if (sw_value <= key->deadzone) return true;
   switch (key->modes.sub_action_release_mode) {
     case EC_SUB_ACTION_RELEASE_MODE_SYNC_PRIMARY:
@@ -146,17 +149,23 @@ static inline bool ec_is_sub_action_released(ec_key_config_t *key, uint16_t sw_v
 // static routines
 // -----------------------------------------------------------------------------------
 
-static uint16_t ec_readkey_raw(uint8_t row) {
+static uint16_t ec_readkey(uint8_t row) {
   uint16_t sw_value;
 
-  // DISCHARGE_TIME 10us = 850 clock count
-  while (chSysIsCounterWithinX(chSysGetRealtimeCounterX(), last_key_scan_time,
-                               last_key_scan_time + RTC_DISCHARGE_TIME)) {
-  }
   ATOMIC_BLOCK_FORCEON {
+    // DISCHARGE_TIME 10us = 850 clock count
+    while (TIMER_DIFF_32(chSysGetRealtimeCounterX(), last_key_scan_time) <
+           (uint32_t)RTC_DISCHARGE_TIME) {
+    }
     // charge peak hold capacitor
     writePinHigh(DISCHARGE_PIN);
     writePinHigh(row_pins[row]);
+
+    last_key_scan_time = chSysGetRealtimeCounterX();
+    while (TIMER_DIFF_32(chSysGetRealtimeCounterX(), last_key_scan_time) <
+           (uint32_t)RTC_CHARGE_TIME) {
+    }
+    // wait_us(CHARGE_TIME);
     // Read the ADC value
     sw_value = adc_read(adcMux);
     writePinLow(row_pins[row]);
@@ -167,11 +176,8 @@ static uint16_t ec_readkey_raw(uint8_t row) {
   return sw_value;
 }
 
-static void ec_bootoming_reading(void) {
-  MATRIX_READ_LOOP(
-#ifdef EC_DEBUG_ENABLE
-    key->sw_value = sw_value;
-#endif
+static void matrix_scan_bottom(void) {
+  MATRIX_READ_LOOP(  //
     if (sw_value > BOTTOMING_READING_THRESHOLD &&
         (key->bottoming_calibration_starter ||
          sw_value > ec_eeprom_config.bottoming_reading[row][col])) {
@@ -203,19 +209,31 @@ static void init_amux(void) {
 // debug
 // -----------------------------------------------------------------------------------
 #ifdef EC_DEBUG_ENABLE
-static uint16_t ec_test_readkey_raw(uint8_t row, rtcnt_t discharge_time) {
+// 1us = 850 count
+#  define CHARGE_STEP(plot_index) (rtcnt_t)(10UL * (plot_index))
+#  define DISCHARGE_STEP(plot_index) (rtcnt_t)(850UL * (plot_index))
+static uint16_t ec_test_readkey(uint8_t row, uint32_t charge_index, uint32_t discharge_index) {
   uint16_t sw_value;
 
-  // DISCHARGE_TIME 10us = 850 clock count
-  while (chSysIsCounterWithinX(chSysGetRealtimeCounterX(), last_key_scan_time,
-                               last_key_scan_time + discharge_time)) {
-  }
   ATOMIC_BLOCK_FORCEON {
+    // DISCHARGE_TIME 10us = 850 clock count
+    while (TIMER_DIFF_32(chSysGetRealtimeCounterX(), last_key_scan_time) <
+           DISCHARGE_STEP(discharge_index)) {
+    }
     // charge peak hold capacitor
     writePinHigh(DISCHARGE_PIN);
     writePinHigh(row_pins[row]);
+
+    if (charge_index) {
+      last_key_scan_time = chSysGetRealtimeCounterX();
+      while (TIMER_DIFF_32(chSysGetRealtimeCounterX(), last_key_scan_time) <
+             CHARGE_STEP(charge_index)) {
+      }
+    }
+
     // Read the ADC value
     sw_value = adc_read(adcMux);
+
     writePinLow(row_pins[row]);
     // Discharge peak hold capacitor
     writePinLow(DISCHARGE_PIN);
@@ -224,41 +242,50 @@ static uint16_t ec_test_readkey_raw(uint8_t row, rtcnt_t discharge_time) {
   return sw_value;
 }
 
-static void ec_test_discharge(void) {
-  matrix_row_t col_mask = 1;
-  static uint16_t discharge_usec;
-  static uint16_t sample_count;
+static void matrix_scan_test_init(void) {
+  for (uint8_t i = 0; i < EC_TEST_CHARGE_PLOT_COUNT; i++) {
+    for (uint8_t j = 0; j < EC_TEST_DISCHARGE_PLOT_COUNT; j++) {
+      ec_test_result_t *result = &ec_test_result[i][j];
+      result->floor_min = 0xffff;
+      result->floor_max = 0;
+      result->bottom_max = 0;
+    }
+  }
+}
 
-  discharge_usec %= (EC_TEST_DISCHARGE_MAX_TIME_US + 1);
+static void matrix_scan_test(void) {
+  static uint8_t charge_index;
+  static uint8_t discharge_index;
+
+  matrix_row_t col_mask = 1;
   for (int col = 0; col < MATRIX_COLS; col++, col_mask <<= 1) {
     select_col(matrix_col_channels[col]);
     for (int row = 0; row < MATRIX_ROWS; row++) {
-      uint16_t sw_value = ec_test_readkey_raw(row, US2RTC(REALTIME_COUNTER_CLOCK, discharge_usec));
-      // ignore first sample
-      if (sample_count) {
-        if (row == EC_TEST_DISCHARGE_FLOOR_ROW && col == EC_TEST_DISCHARGE_FLOOR_COL) {
-          if (sw_value < ec_test_discharge_floor_min[discharge_usec]) {
-            ec_test_discharge_floor_min[discharge_usec] = sw_value;
-          }
-          if (sw_value > ec_test_discharge_floor_max[discharge_usec]) {
-            ec_test_discharge_floor_max[discharge_usec] = sw_value;
-          }
+      uint16_t sw_value = ec_test_readkey(row, charge_index, discharge_index);
+      ec_test_result_t *result = &ec_test_result[charge_index][discharge_index];
+      if (row == EC_TEST_FLOOR_ROW && col == EC_TEST_FLOOR_COL) {
+        if (sw_value < result->floor_min) {
+          result->floor_min = sw_value;
         }
-        if (row == EC_TEST_DISCHARGE_BOTTOM_ROW && col == EC_TEST_DISCHARGE_BOTTOM_COL) {
-          if (sw_value > ec_test_discharge_bottom_max[discharge_usec]) {
-            ec_test_discharge_bottom_max[discharge_usec] = sw_value;
-          }
+        if (sw_value > result->floor_max) {
+          result->floor_max = sw_value;
+        }
+      }
+      if (row == EC_TEST_BOTTOM_ROW && col == EC_TEST_BOTTOM_COL) {
+        if (sw_value > result->bottom_max) {
+          result->bottom_max = sw_value;
         }
       }
     }
   }
 
-  sample_count++;
-  sample_count %= EC_TEST_DISCHARGE_SAMPLE_COUNT;
-  if (!sample_count) {
-    discharge_usec++;
-    discharge_usec %= (EC_TEST_DISCHARGE_MAX_TIME_US + 1);
+  charge_index++;
+  charge_index %= EC_TEST_CHARGE_PLOT_COUNT;
+  if (charge_index == 0) {
+    discharge_index++;
+    discharge_index %= EC_TEST_DISCHARGE_PLOT_COUNT;
   }
+  wait_us(100);
 }
 #endif
 
@@ -305,21 +332,24 @@ uint8_t matrix_scan(void) {
   bool changed = false;
 
   if (ec_bottoming_calibration_enable) {
-    ec_bootoming_reading();
+    matrix_scan_bottom();
     return false;
   }
 #ifdef EC_DEBUG_ENABLE
-  if (ec_test_discharge_enable) {
-    ec_test_discharge();
+  static bool test_last_state;
+  if (ec_matrix_scan_test_enable) {
+    if (!test_last_state) {
+      matrix_scan_test_init();
+    }
+    test_last_state = ec_matrix_scan_test_enable;
+    matrix_scan_test();
     return false;
   }
+  test_last_state = ec_matrix_scan_test_enable;
 #endif
 
   // Normal operation mode: update key state
   MATRIX_READ_LOOP(
-#ifdef EC_DEBUG_ENABLE
-    key->sw_value = sw_value;
-#endif
     uint16_t extremum = sw_value < key->deadzone ? key->deadzone : sw_value;  //
     matrix_row_t *primary_matrix_row = &matrix[PRIMARY_MATRIX_PAGE][row];     //
     if (*primary_matrix_row & col_mask) {
@@ -353,7 +383,7 @@ uint8_t matrix_scan(void) {
     if (key->sub_action_keycode != KC_NO) {
       matrix_row_t *sub_matrix_row = &matrix[SUB_ACTION_MATRIX_PAGE][row];  //
       if (*sub_matrix_row & col_mask) {
-        if (ec_is_sub_action_released(key, sw_value, *primary_matrix_row & col_mask)) {
+        if (is_sub_action_released(key, sw_value, *primary_matrix_row & col_mask)) {
           *sub_matrix_row &= ~col_mask;
           matrix_changed[SUB_ACTION_MATRIX_PAGE][row] |= col_mask;
           changed = true;
@@ -361,7 +391,7 @@ uint8_t matrix_scan(void) {
           matrix_changed[SUB_ACTION_MATRIX_PAGE][row] &= ~col_mask;
         }
       } else {
-        if (ec_is_sub_action_pressed(key, sw_value)) {
+        if (is_sub_action_pressed(key, sw_value)) {
           *sub_matrix_row |= col_mask;
           matrix_changed[SUB_ACTION_MATRIX_PAGE][row] |= col_mask;
           changed = true;
@@ -452,18 +482,11 @@ void ec_calibrate_noise_floor(void) {
   // min: ec_config.extremum[row][col]
   for (uint8_t sample_count = 0; sample_count < NOISE_FLOOR_SAMPLING_COUNT; sample_count++) {
     MATRIX_READ_LOOP(
-      // ignore first sample
-      if (sample_count) {
-        // max value
-        if (sw_value > key->noise_floor) {
-          key->noise_floor = sw_value;
-        }
-        // min value
-        if (key->extremum == 0 || sw_value < key->extremum) {
-          key->extremum = sw_value;
-        }
-      });
-    wait_us(1);
+      // max value
+      if (sw_value > key->noise_floor) { key->noise_floor = sw_value; }
+      // min value
+      if (key->extremum == 0 || sw_value < key->extremum) { key->extremum = sw_value; });
+    wait_us(100);
   }
 
   // Average the noise floor

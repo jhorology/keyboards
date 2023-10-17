@@ -47,7 +47,7 @@
 
 #define DISCHARGE_PIN A6
 #define ANALOG_PORT A3
-#define DISCHARGE_TIME 10
+#define DISCHARGE_TIME 6
 #define NOISE_FLOOR_SAMPLING_COUNT 30
 
 #define EC_BOTTOMING_READING_DEFAULT 1023
@@ -58,7 +58,7 @@
 // Total Travel resolutoion 0 | 100% 10bit
 #define EC_SCALE_RANGE 1023
 // safety parameter limits (percentage of total travcel)
-#define EC_SAFETY_MARGIN_PERC 10
+#define EC_SAFETY_MARGIN_PERC 5
 
 // 2 - 16
 #define EC_NUM_PRESETS 16
@@ -129,17 +129,23 @@ typedef struct {
 #endif
 
 // for debugging
-// numeric 1 for via_jason_generatior
 #ifdef EC_DEBUG_ENABLE
 #  define DEBUG_MATRIX_SCAN_RATE
 #  define CUSTOM_CONFIG_RHID_DEFAULT true
-#  define EC_TEST_DISCHARGE_MAX_TIME_US 63
-#  define EC_TEST_DISCHARGE_SAMPLE_COUNT 30
+
+// 0 -> 2us
+#  define EC_TEST_CHARGE_PLOT_COUNT 9
+// 0.25us
+#  define EC_TEST_CHARGE_TIME_STEP (US2RTC(REALTIME_COUNTER_CLOCK, 1) >> 2)
+// 0 -> 16us
+#  define EC_TEST_DISCHARGE_PLOT_COUNT 33
+// 0.5us
+#  define EC_TEST_DISCHARGE_TIME_STEP (US2RTC(REALTIME_COUNTER_CLOCK, 1) >> 1)
 
 // 'F' key
-#  define EC_TEST_DISCHARGE_FLOOR_ROW 2
-#  define EC_TEST_DISCHARGE_FLOOR_COL 4
+#  define EC_TEST_FLOOR_ROW 2
+#  define EC_TEST_FLOOR_COL 4
 // 'J' key
-#  define EC_TEST_DISCHARGE_BOTTOM_ROW 2
-#  define EC_TEST_DISCHARGE_BOTTOM_COL 7
+#  define EC_TEST_BOTTOM_ROW 2
+#  define EC_TEST_BOTTOM_COL 7
 #endif

@@ -42,9 +42,9 @@ module.exports = function (options, defines) {
               ? []
               : [
                   {
-                    label: 'Test Discharge Time',
+                    label: 'Keyscan Test',
                     type: 'toggle',
-                    content: ['id_ec_tools_test_discharge', EC_TOOLS_CHANNEL_ID, 3]
+                    content: ['id_ec_tools_matrix_scan_test', EC_TOOLS_CHANNEL_ID, 3]
                   },
                   {
                     label:
