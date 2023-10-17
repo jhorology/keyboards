@@ -209,9 +209,8 @@ static void init_amux(void) {
 // debug
 // -----------------------------------------------------------------------------------
 #ifdef EC_DEBUG_ENABLE
-// 1us = 850 count
 #  define CHARGE_STEP(plot_index) (rtcnt_t)(10UL * (plot_index))
-#  define DISCHARGE_STEP(plot_index) (rtcnt_t)(850UL * (plot_index))
+#  define DISCHARGE_STEP(plot_index) US2RTC(REALTIME_COUNTER_CLOCK, plot_index)
 static uint16_t ec_test_readkey(uint8_t row, uint32_t charge_index, uint32_t discharge_index) {
   uint16_t sw_value;
 
