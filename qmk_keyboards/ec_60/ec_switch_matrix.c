@@ -67,9 +67,9 @@ extern void switch_events(uint8_t row, uint8_t col, bool pressed);
   for (int col = 0; col < MATRIX_COLS; col++, col_mask <<= 1) { \
     select_col(matrix_col_channels[col]);                       \
     for (int row = 0; row < MATRIX_ROWS; row++) {               \
-      if (col == 0 && row == 0) ec_readkey(row);                \
+      if (col == 0 && row == 0) ec_readkey(row_pins[row]);      \
       if (matrix_used[row] & col_mask) {                        \
-        uint16_t sw_value = ec_readkey(row);                    \
+        uint16_t sw_value = ec_readkey(row_pins[row]);          \
         ec_key_config_t *key = &ec_config_keys[row][col];       \
         __VA_ARGS__                                             \
       }                                                         \
@@ -149,7 +149,7 @@ static inline bool is_sub_action_released(ec_key_config_t *key, uint16_t sw_valu
 // static routines
 // -----------------------------------------------------------------------------------
 
-static uint16_t ec_readkey(uint8_t row) {
+static uint16_t ec_readkey(uint32_t row_pin) {
   uint16_t sw_value;
 
   ATOMIC_BLOCK_FORCEON {
@@ -159,7 +159,7 @@ static uint16_t ec_readkey(uint8_t row) {
     }
     // charge peak hold capacitor
     writePinHigh(DISCHARGE_PIN);
-    writePinHigh(row_pins[row]);
+    writePinHigh(row_pin);
 
     last_key_scan_time = chSysGetRealtimeCounterX();
     while (TIMER_DIFF_32(chSysGetRealtimeCounterX(), last_key_scan_time) <
@@ -168,7 +168,7 @@ static uint16_t ec_readkey(uint8_t row) {
     // wait_us(CHARGE_TIME);
     // Read the ADC value
     sw_value = adc_read(adcMux);
-    writePinLow(row_pins[row]);
+    writePinLow(row_pin);
     // Discharge peak hold capacitor
     writePinLow(DISCHARGE_PIN);
     last_key_scan_time = chSysGetRealtimeCounterX();
@@ -211,7 +211,8 @@ static void init_amux(void) {
 #ifdef EC_DEBUG_ENABLE
 #  define CHARGE_STEP(plot_index) (rtcnt_t)(10UL * (plot_index))
 #  define DISCHARGE_STEP(plot_index) US2RTC(REALTIME_COUNTER_CLOCK, plot_index)
-static uint16_t ec_test_readkey(uint8_t row, uint32_t charge_index, uint32_t discharge_index) {
+
+static uint16_t ec_test_readkey(uint32_t row_pin, uint32_t charge_index, uint32_t discharge_index) {
   uint16_t sw_value;
 
   ATOMIC_BLOCK_FORCEON {
@@ -221,7 +222,7 @@ static uint16_t ec_test_readkey(uint8_t row, uint32_t charge_index, uint32_t dis
     }
     // charge peak hold capacitor
     writePinHigh(DISCHARGE_PIN);
-    writePinHigh(row_pins[row]);
+    writePinHigh(row_pin);
 
     if (charge_index) {
       last_key_scan_time = chSysGetRealtimeCounterX();
@@ -233,7 +234,7 @@ static uint16_t ec_test_readkey(uint8_t row, uint32_t charge_index, uint32_t dis
     // Read the ADC value
     sw_value = adc_read(adcMux);
 
-    writePinLow(row_pins[row]);
+    writePinLow(row_pin);
     // Discharge peak hold capacitor
     writePinLow(DISCHARGE_PIN);
     last_key_scan_time = chSysGetRealtimeCounterX();
@@ -260,19 +261,22 @@ static void matrix_scan_test(void) {
   for (int col = 0; col < MATRIX_COLS; col++, col_mask <<= 1) {
     select_col(matrix_col_channels[col]);
     for (int row = 0; row < MATRIX_ROWS; row++) {
-      uint16_t sw_value = ec_test_readkey(row, charge_index, discharge_index);
-      ec_test_result_t *result = &ec_test_result[charge_index][discharge_index];
-      if (row == EC_TEST_FLOOR_ROW && col == EC_TEST_FLOOR_COL) {
-        if (sw_value < result->floor_min) {
-          result->floor_min = sw_value;
+      if (col == 0 && row == 0) ec_readkey(row_pins[row]);
+      uint16_t sw_value = ec_test_readkey(row_pins[row], charge_index, discharge_index);
+      if (matrix_used[row] & col_mask) {
+        ec_test_result_t *result = &ec_test_result[charge_index][discharge_index];
+        if (row == EC_TEST_FLOOR_ROW && col == EC_TEST_FLOOR_COL) {
+          if (sw_value < result->floor_min) {
+            result->floor_min = sw_value;
+          }
+          if (sw_value > result->floor_max) {
+            result->floor_max = sw_value;
+          }
         }
-        if (sw_value > result->floor_max) {
-          result->floor_max = sw_value;
-        }
-      }
-      if (row == EC_TEST_BOTTOM_ROW && col == EC_TEST_BOTTOM_COL) {
-        if (sw_value > result->bottom_max) {
-          result->bottom_max = sw_value;
+        if (row == EC_TEST_BOTTOM_ROW && col == EC_TEST_BOTTOM_COL) {
+          if (sw_value > result->bottom_max) {
+            result->bottom_max = sw_value;
+          }
         }
       }
     }
@@ -485,7 +489,6 @@ void ec_calibrate_noise_floor(void) {
       if (sw_value > key->noise_floor) { key->noise_floor = sw_value; }
       // min value
       if (key->extremum == 0 || sw_value < key->extremum) { key->extremum = sw_value; });
-    wait_us(100);
   }
 
   // Average the noise floor

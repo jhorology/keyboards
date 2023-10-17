@@ -48,8 +48,7 @@ typedef struct {
   ec_preset_t presets[EC_NUM_PRESETS];
   uint16_t bottoming_reading[MATRIX_ROWS][MATRIX_COLS];
   uint8_t selected_preset_map_index : 3;  // 0 - 7
-  bool debouncing_enable : 1;
-  uint16_t reserved_0 : 12;
+  uint16_t _reserved_0 : 13;
 } __attribute__((packed)) ec_eeprom_config_t;
 
 /* eeprom address */
@@ -90,6 +89,7 @@ extern ec_eeprom_config_t ec_eeprom_config;
 extern bool ec_bottoming_calibration_enable;
 #ifdef EC_DEBUG_ENABLE
 extern bool ec_matrix_scan_test_enable;
+extern uint32_t ec_key_scan_dead_time;
 typedef struct {
   uint16_t floor_min;
   uint16_t floor_max;

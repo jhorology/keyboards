@@ -18,7 +18,8 @@
 #include "os_fingerprint.h"
 
 #include <deferred_exec.h>
-#include <send_string.h>
+
+#include "send_string_macro.h"
 
 #ifndef OS_FINGERPRINT_TIMEOUT_MILLIS
 #  define OS_FINGERPRINT_TIMEOUT_MILLIS 1000
@@ -109,32 +110,20 @@ static uint32_t os_fingerprint_timeout_callback(uint32_t trigger_time, void *cb_
 
 #ifdef OS_FINGERPRINT_DEBUG_ENABLE
 void send_os_fingerprint() {
-  send_string("wlengths: 0x");
-  send_dword(wlengths);
-  send_string(",\ndetected_os: ");
+  send_string("const os_fingerprint = {\n");
+  SEND_JS_PROP_VALUE(wlengths, WORD, ",\n");
   switch (detected_os) {
     case UNSURE:
-      send_string("'UNSURE'");
+      SEND_JS_SYMBOL_PROP_VALUE(detected_os, "'UNSURE'", STRING, ",\n");
       break;
     case DARWIN:
-      send_string("'DARWIN'");
+      SEND_JS_SYMBOL_PROP_VALUE(detected_os, "'DARWIN'", STRING, ",\n");
       break;
     case NOT_DARWIN:
-      send_string("'NOT_DARWIN'");
+      SEND_JS_SYMBOL_PROP_VALUE(detected_os, "'NOT_DARWIN'", STRING, ",\n");
       break;
   }
-  send_string(",\nfingerprint: [");
-  for (uint8_t i = 0; i < request_cnt; i++) {
-    if (i >= NUM_DESCRIPTOR_REQUESTS) break;
-    if (i > 0) {
-      send_string(", ");
-    }
-    send_string("[0x");
-    send_byte(fingerprint[i][0]);
-    send_string(", 0x");
-    send_byte(fingerprint[i][1]);
-    send_string("]");
-  }
-  send_string("]\n");
+  SEND_JS_PROP_2D_ARRAY(fingerprint, request_cnt, 2, BYTE, "\n");
+  send_string("}\n");
 }
 #endif
