@@ -445,15 +445,20 @@ build() {
     opts=($opts -DCONFIG_CBPRINTF_COMPLETE=y -DCONFIG_SHELL_BACKEND_SERIAL=y)
   (( $#with_compile_db )) && opts=($opts "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON")
   (( $#with_pp )) && opts=($opts "-DEXTRA_CFLAGS=-save-temps=obj")
-  west build --pristine --board $board --build-dir build/$board zmk/app -- \
-       -DZMK_CONFIG=$PROJECT/zmk_keyboards $opts[*]
+
   if (( $#with_compile_db )); then
-    mv $PROJECT/build/$board/compile_commands.json $PROJECT
     dot_clangd
     if $WITH_EMACS; then
       dot_dir_locals $target
       dot_projectile
     fi
+  fi
+
+  west build --pristine --board $board --build-dir build/$board zmk/app -- \
+       -DZMK_CONFIG=$PROJECT/zmk_keyboards $opts[*]
+
+  if (( $#with_compile_db )); then
+    mv $PROJECT/build/$board/compile_commands.json $PROJECT
   fi
 }
 
