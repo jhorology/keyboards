@@ -31,19 +31,34 @@ enum custom_user_keycodes {
   MAC_OFF,  // Disable true apple mode with switching base layer 1.
             // +Shift: same as MAC_ON
 #endif
-  AUT_ON,          // Enable auto detection of mac mode
-                   // +Shift: same as MAC_AUT_OFF
-  AUT_OFF,         // Disable auto detection of mac mode.
-                   // +Shift: same as MAC_AUT_ON
-  USJ_ON,          // Enable key overrides for ANSI layout on JIS.
-                   // +Shift: same as USJ_OFF
-  USJ_OFF,         // Disable key overrides for ANSI layout on JIS.
-                   // +Shift: same as USJ_ON
-  APPLE_FN,        // Apple fn/globe key
-  APPLE_FF,        // Apple fn/globe with remapping F1-12
-  APPLE_FUNCTION,  // for exprimental purpose
-  EISU_KANA,       // Toggle send 英数(KC_LNG2) and かな(KC_LNG1)
-  TERM_LCK,        // Terminal Lock
+  AUT_ON,    // Enable auto detection of mac mode
+             // +Shift: same as MAC_AUT_OFF
+  AUT_OFF,   // Disable auto detection of mac mode.
+             // +Shift: same as MAC_AUT_ON
+  USJ_ON,    // Enable key overrides for ANSI layout on JIS.
+             // +Shift: same as USJ_OFF
+  USJ_OFF,   // Disable key overrides for ANSI layout on JIS.
+             // +Shift: same as USJ_ON
+  APPLE_FN,  // Apple fn/globe key
+  APPLE_FF,  // Apple fn/globe with remapping F1-12
+#ifdef APPLE_EXTRA_KEY_ENABLE
+  AVT_ILLUMINATION_UP,         // 1
+  AVT_ILLUMINATION_DOWN,       // 2
+  AVK_SPOTLIGHT,               // 3
+  AVK_DASHBOARD,               // 4
+  AVK_FUNCTION,                // 5
+  AVK_LAUNCHPAD,               // 6
+  AVK_RESERVED,                // 7
+  AVK_CAPS_LOCK_DELAY_ENABLE,  // 8
+  AVK_EXPOSE_POWER_STATE,      // 9
+  AVK_EXPOSE_ALL,              // 10
+  AVK_EXPOSE_DESKTOP,          // 11
+  AVK_BRIGHTNESS_UP,           // 12
+  AVK_BRIGHTNESS_DOWN,         // 13
+  AVK_LANGUAGE,                // 14
+#endif
+  EISU_KANA,  // Toggle send 英数(KC_LNG2) and かな(KC_LNG1)
+  TERM_LCK,   // Terminal Lock
 #ifdef RADIAL_CONTROLLER_ENABLE
   RC_BTN,   // State of the button located on radial controller
   RC_CCW,   // counter clock wise rotation of the radial controller

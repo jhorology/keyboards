@@ -14,6 +14,13 @@ APPLE_FN_ENABLE = yes
 SECURE_ENABLE = yes
 TAP_DANCE_ENABLE = yes
 DEFERRED_EXEC_ENABLE = yes
+
+# activate apple extra usages
+APPLE_EXTRA_KEY_ENABLE = yes
+ifeq ($(strip $(APPLE_EXTRA_KEY_ENABLE)), yes)
+    OPT_DEFS += -DAPPLE_EXTRA_KEY_ENABLE
+endif
+
 # activate keycode field of keyrecord_t
 ACTION_FOR_KEYCODE_ENABLE = yes
 ifeq ($(strip $(ACTION_FOR_KEYCODE_ENABLE)), yes)

@@ -27,19 +27,25 @@ static void send_dictation(bool pressed);
 static void send_do_not_disturb(bool pressed);
 static uint8_t apple_ff_cnt;
 
+#define IS_FN_PRESSED() host_apple_is_pressed(1 << USAGE_INDEX_AVT_KEYBOARD_FN)
+
+#define SEND_FN(pressed) host_apple_send(pressed, USAGE_INDEX_AVT_KEYBOARD_FN)
+
 bool process_apple_fn(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
     case APPLE_FN:
-      host_apple_send(record->event.pressed, USAGE_INDEX_APPLE_KEYBOARD_FN);
+      SEND_FN(record->event.pressed);
       return false;
     case APPLE_FF:
       apple_ff_cnt += record->event.pressed ? 1 : -1;
-      host_apple_send(record->event.pressed, USAGE_INDEX_APPLE_KEYBOARD_FN);
-      if (!host_apple_is_pressed(REPORT_MASK_APPLE_KEYBOARD_FN)) apple_ff_cnt = 0;
+      SEND_FN(record->event.pressed);
+      if (!IS_FN_PRESSED()) apple_ff_cnt = 0;
       return false;
-    case APPLE_FUNCTION:
-      host_apple_send(record->event.pressed, USAGE_INDEX_APPLE_FUNCTION);
+#ifdef APPLE_EXTRA_KEY_ENABLE
+    case AVT_ILLUMINATION_UP ... AVK_LANGUAGE:
+      host_apple_send(record->event.pressed, AVT_ILLUMINATION_UP + keycode - AVT_ILLUMINATION_UP);
       return false;
+#endif
     default:
       return (
 #ifdef APPLE_FN_OVERRIDE_F456
@@ -105,7 +111,7 @@ static bool process_non_mac_fn(uint16_t keycode, keyrecord_t *record) {
   // ignore generated key
   if (record->keycode) return true;
 
-  if (!host_apple_is_pressed(REPORT_MASK_APPLE_KEYBOARD_FN) && record->event.pressed) return true;
+  if (!IS_FN_PRESSED() && record->event.pressed) return true;
   if (!fn_override_flags && !record->event.pressed) return true;
 
   non_mac_fn_key_t fn_key = FN_UNKNOWN;
@@ -190,10 +196,10 @@ static bool process_non_mac_fn(uint16_t keycode, keyrecord_t *record) {
 
 #ifdef APPLE_FN_OVERRIDE_F456
 static bool process_override_f456(uint8_t keycode, keyrecord_t *record) {
-  if (custom_config_mac_is_enable() && host_apple_is_pressed(REPORT_MASK_APPLE_KEYBOARD_FN)) {
+  if (custom_config_mac_is_enable() && IS_FN_PRESSED()) {
     switch (keycode) {
       case KC_F4:  // F4 Spotlight
-        host_apple_send(record->event.pressed, USAGE_INDEX_APPLE_SPOTLIGHT);
+        host_apple_send(record->event.pressed, USAGE_INDEX_AVK_SPOTLIGHT);
         return false;
       case KC_F5:  // F5 Dictation
         send_dictation(record->event.pressed);
@@ -208,17 +214,19 @@ static bool process_override_f456(uint8_t keycode, keyrecord_t *record) {
 #endif
 
 static void send_dictation(bool pressed) {
-  bool apple_fn_pressed = host_apple_is_pressed(REPORT_MASK_APPLE_KEYBOARD_FN);
+  // Voice Command doesn't work with apple fn.
+  bool apple_fn_pressed = IS_FN_PRESSED();
   // TODO don't use Fn key Twice in shortcut setting
-  if (pressed && apple_fn_pressed) host_apple_send(false, USAGE_INDEX_APPLE_KEYBOARD_FN);
+  if (pressed && apple_fn_pressed) SEND_FN(false);
   host_consumer_send(pressed ? 0x00cf : 0);
-  if (pressed && apple_fn_pressed) host_apple_send(true, USAGE_INDEX_APPLE_KEYBOARD_FN);
+  if (pressed && apple_fn_pressed) SEND_FN(true);
 }
 
 static void send_do_not_disturb(bool pressed) {
-  bool apple_fn_pressed = host_apple_is_pressed(REPORT_MASK_APPLE_KEYBOARD_FN);
+  // Do Not Disturb doesn't work with apple fn.
+  bool apple_fn_pressed = IS_FN_PRESSED();
   // TODO don't use Fn key Twice in shortcut setting
-  if (pressed && apple_fn_pressed) host_apple_send(false, USAGE_INDEX_APPLE_KEYBOARD_FN);
+  if (pressed && apple_fn_pressed) SEND_FN(false);
   host_system_send(pressed ? 0x009b : 0);
-  if (pressed && apple_fn_pressed) host_apple_send(true, USAGE_INDEX_APPLE_KEYBOARD_FN);
+  if (pressed && apple_fn_pressed) SEND_FN(true);
 }

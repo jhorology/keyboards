@@ -117,103 +117,113 @@ index 9d415a3b..3bf3bdff 100644
      REPORT_ID_NKRO,
      REPORT_ID_JOYSTICK,
 diff --git a/tmk_core/protocol/usb_descriptor.c b/tmk_core/protocol/usb_descriptor.c
-index e215c909..10c5d11a 100644
+index e215c909..8a5e3ec5 100644
 --- a/tmk_core/protocol/usb_descriptor.c
 +++ b/tmk_core/protocol/usb_descriptor.c
-@@ -321,6 +321,46 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
+@@ -321,6 +321,49 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
          HID_RI_REPORT_SIZE(8, 16),
          HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_ARRAY | HID_IOF_ABSOLUTE),
      HID_RI_END_COLLECTION(0),
 +
 +#    ifdef APPLE_FN_ENABLE
 +    // see
-+    // https://github.com/apple-oss-distributions/IOHIDFamily/blob/1ca71a23b43de09cb3968515586840eacf817445/IOHIDFamily/IOHIDEventDriver.cpp#L2342
-+    // https://mybyways.com/blog/script-to-re-map-macbook-pro-function-keys
-+    // https://github.com/pqrs-org/Karabiner-VirtualHIDDevice/blob/master/src/VirtualHIDKeyboard/VirtualHIDKeyboard.cpp
-+    HID_RI_USAGE_PAGE(16, 0xff00),     // Usage Page kHIDPage_AppleVendor)
-+    HID_RI_USAGE(8, 0x01),             // Usage 1
-+    HID_RI_COLLECTION(8, 0x01),        // Application
-+        HID_RI_REPORT_ID(8, REPORT_ID_APPLE),
-+        // AppleVebdorTopCasePage
-+        HID_RI_USAGE_PAGE(8, 0xFF),    // AppleVendor Top Case
-+        HID_RI_LOGICAL_MINIMUM(8, 0x0),
-+        HID_RI_LOGICAL_MAXIMUM(8, 0x1),
-+        HID_RI_USAGE(8, 0x03),         // 0 kHIDUsage_AV_TopCase_KeyboardFn
-+        HID_RI_USAGE(8, 0x06),         // 1 kHIDUsage_AV_TopCase_VideoMirror
-+        HID_RI_USAGE(8, 0x0A),         // 2 kHIDUsage_AV_TopCase_ClamshellLatched
-+        HID_RI_REPORT_COUNT(8, 0x03),
-+        HID_RI_REPORT_SIZE(8, 0x01),
-+        HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_VARIABLE | HID_IOF_ABSOLUTE),
-+        // AppleVebdorKeyboardPage
-+        HID_RI_USAGE_PAGE(16, 0xFF01),  // kHIDPage_AppleVendorKeyboard
-+        HID_RI_LOGICAL_MINIMUM(8, 0x0),
-+        HID_RI_LOGICAL_MAXIMUM(8, 0x1),
-+        HID_RI_USAGE(8, 0x01),          // 3 kHIDUsage_AppleVendorKeyboard_Spotlight
-+        HID_RI_USAGE(8, 0x02),          // 4 kHIDUsage_AppleVendorKeyboard_Dashboard
-+        HID_RI_USAGE(8, 0x03),          // 5 kHIDUsage_AppleVendorKeyboard_Function
-+        HID_RI_USAGE(8, 0x04),          // 6 kHIDUsage_AppleVendorKeyboard_Launchpad
-+        HID_RI_USAGE(8, 0x10),          // 7 kHIDUsage_AppleVendorKeyboard_Expose_All
-+        HID_RI_USAGE(8, 0x11),          // 8 kHIDUsage_AppleVendorKeyboard_Expose_Desktop
-+        HID_RI_USAGE(8, 0x30),          // 9 kHIDUsage_AppleVendorKeyboard_Language
-+        HID_RI_REPORT_COUNT(8, 0x07),
-+        HID_RI_REPORT_SIZE(8, 0x01),
-+        HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_VARIABLE | HID_IOF_ABSOLUTE),
-+        // Reserved (6bits)
-+        HID_RI_REPORT_COUNT(8, 0x06),
-+        HID_RI_REPORT_SIZE(8, 0x01),
-+        HID_RI_INPUT(8, HID_IOF_CONSTANT),
-+    HID_RI_END_COLLECTION(0),
++    // https://github.com/apple-oss-distributions/IOHIDFamily/blob/d077740b771442ed13d8953218018266a90eba73/IOHIDFamily/IOHIDEventDriver.cpp#L2325
++    // https://github.com/apple-oss-distributions/IOHIDFamily/blob/d077740b771442ed13d8953218018266a90eba73/IOHIDFamily/IOHIDEventDriver.cpp#L2338
++    HID_RI_USAGE_PAGE(16, 0xff00),  // Usage Page kHIDPage_AppleVendor)
++      HID_RI_USAGE(8, 0x01),        // Usage 1
++      HID_RI_COLLECTION(8, 0x01),   // Application
++      HID_RI_REPORT_ID(8, REPORT_ID_APPLE),
++      // AppleVebdorTopCasePage
++      HID_RI_USAGE_PAGE(8, 0xFF),     // AppleVendor Top Case
++      HID_RI_LOGICAL_MINIMUM(8, 0x0), HID_RI_LOGICAL_MAXIMUM(8, 0x1),
++      HID_RI_USAGE(8, 0x03),          //  0 kHIDUsage_AV_TopCase_KeyboardFn
++      // HID_RI_USAGE(8, 0x04),       //  _ kHIDUsage_AV_TopCase_BrightnessUp
++      // HID_RI_USAGE(8, 0x05),       //  _ kHIDUsage_AV_TopCase_BrightnessDown
++      HID_RI_USAGE(8, 0x08),          //  1 kHIDUsage_AV_TopCase_IlluminationUp
++      HID_RI_USAGE(8, 0x09),          //  2 kHIDUsage_AV_TopCase_IlluminationDown
++      HID_RI_REPORT_COUNT(8, 0x03),
++      HID_RI_REPORT_SIZE(8, 0x01),
++      HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_VARIABLE | HID_IOF_ABSOLUTE),
++      // AppleVebdorKeyboardPage
++      HID_RI_USAGE_PAGE(16, 0xFF01),  // kHIDPage_AppleVendorKeyboard
++      HID_RI_LOGICAL_MINIMUM(8, 0x0), HID_RI_LOGICAL_MAXIMUM(8, 0x1),
++      HID_RI_USAGE(8, 0x01),          //  3 kHIDUsage_AppleVendorKeyboard_Spotlight
++      HID_RI_USAGE(8, 0x02),          //  4 kHIDUsage_AppleVendorKeyboard_Dashboard
++      HID_RI_USAGE(8, 0x03),          //  5 kHIDUsage_AppleVendorKeyboard_Function
++      HID_RI_USAGE(8, 0x04),          //  6 kHIDUsage_AppleVendorKeyboard_Launchpad
++      HID_RI_USAGE(8, 0x0A),          //  7 kHIDUsage_AppleVendorKeyboard_Reserved
++      HID_RI_USAGE(8, 0x0B),          //  8 kHIDUsage_AppleVendorKeyboard_CapsLockDelayEnable
++      HID_RI_USAGE(8, 0x0C),          //  9 kHIDUsage_AppleVendorKeyboard_PowerState
++      HID_RI_USAGE(8, 0x10),          // 10 kHIDUsage_AppleVendorKeyboard_Expose_All
++      HID_RI_USAGE(8, 0x11),          // 11 kHIDUsage_AppleVendorKeyboard_Expose_Desktop
++      HID_RI_USAGE(8, 0x20),          // 12 kHIDUsage_AppleVendorKeyboard_Brightness_Up
++      HID_RI_USAGE(8, 0x21),          // 13 kHIDUsage_AppleVendorKeyboard_Brightness_Down
++      HID_RI_USAGE(8, 0x30),          // 14  kHIDUsage_AppleVendorKeyboard_Language
++      HID_RI_REPORT_COUNT(8, 12), HID_RI_REPORT_SIZE(8, 0x01),
++      HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_VARIABLE | HID_IOF_ABSOLUTE),
++      // Reserved (1bits)
++      HID_RI_REPORT_COUNT(8, 0x01),
++      HID_RI_REPORT_SIZE(8, 0x01),
++      HID_RI_INPUT(8, HID_IOF_CONSTANT),
++      HID_RI_END_COLLECTION(0),
 +#    endif
  #endif
  
  #ifdef PROGRAMMABLE_BUTTON_ENABLE
 diff --git a/tmk_core/protocol/vusb/vusb.c b/tmk_core/protocol/vusb/vusb.c
-index d74f375f..b73deebe 100644
+index d74f375f..721581dd 100644
 --- a/tmk_core/protocol/vusb/vusb.c
 +++ b/tmk_core/protocol/vusb/vusb.c
-@@ -542,6 +542,46 @@ const PROGMEM uchar shared_hid_report[] = {
+@@ -542,6 +542,53 @@ const PROGMEM uchar shared_hid_report[] = {
      0x75, 0x10,               //   Report Size (16)
      0x81, 0x00,               //   Input (Data, Array, Absolute)
      0xC0,                     // End Collection
 +
 +#    ifdef APPLE_FN_ENABLE
-+    // see
-+    // https://github.com/apple-oss-distributions/IOHIDFamily/blob/1ca71a23b43de09cb3968515586840eacf817445/IOHIDFamily/IOHIDEventDriver.cpp#L2342
-+    // https://mybyways.com/blog/script-to-re-map-macbook-pro-function-keys
-+    // https://github.com/pqrs-org/Karabiner-VirtualHIDDevice/blob/master/src/VirtualHIDKeyboard/VirtualHIDKeyboard.cpp
-+    0x06, 0x00, 0xFF,      // Usage Page (kHIDPage_AppleVendor)
-+    0x09, 0x01,            // Usage 1
-+    0xA1, 0x01,            // Collection (Application)
-+    0x85, REPORT_ID_APPLE, //   Report ID
-+    // Apple Vendor Top Case Page
-+    0x05, 0xFF,            //   Usage Page (AppleVendor Top Case)
-+    0x15, 0x00,            //   Logical Minimum (0)
-+    0x25, 0x01,            //   Logical Maximum (1)
-+    0x09, 0x03,            //   Usage (KeyboardFn) index 0
-+    0x09, 0x06,            //   Usage (VideoMirror) index 1
-+    0x09, 0x0A,            //   Usage (ClamshellLatched) index 2
-+    0x95, 0x03,            //   Report Count (3)
-+    0x75, 0x01,            //   Report Size (1)
-+    0x81, 0x02,            //   Input (Data, Variable, Absolute)
-+    // Apple Vendor Keyboard Page
-+    0x06, 0x01, 0xFF,      //   Usage Page (kHIDPage_AppleVendorKeyboard)
-+    0x15, 0x00,            //   Logical Minimum (0)
-+    0x25, 0x01,            //   Logical Maximum (1)
-+    0x09, 0x01,            //   Usage (kHIDUsage_AppleVendorKeyboard_Spotlight) index 3
-+    0x09, 0x02,            //   Usage (kHIDUsage_AppleVendorKeyboard_Dashboard) index 4
-+    0x09, 0x03,            //   Usage (kHIDUsage_AppleVendorKeyboard_Function) index 5
-+    0x09, 0x04,            //   Usage (kHIDUsage_AppleVendorKeyboard_Launchpad) index 6
-+    0x09, 0x10,            //   Usage (kHIDUsage_AppleVendorKeyboard_Expose_All) index 7
-+    0x09, 0x11,            //   Usage (kHIDUsage_AppleVendorKeyboard_Expose_Desktop) index 8
-+    0x09, 0x30,            //   Usage (kHIDUsage_AppleVendorKeyboard_Expose_Language) index 9
-+    0x95, 0x07,            //   Report Count (7)
-+    0x75, 0x01,            //   Report Size (1)
-+    0x81, 0x02,            //   Input (Data, Variable, Absolute)
-+    // Reserved (6bits)
-+    0x95, 0x06,            //   Report Count (6)
-+    0x75, 0x01,            //   Report Size (1)
-+    0x81, 0x03,            //   Input (Constant)
-+    0xC0,                  // End Collection
++      // see
++      // https://github.com/apple-oss-distributions/IOHIDFamily/blob/d077740b771442ed13d8953218018266a90eba73/IOHIDFamily/IOHIDEventDriver.cpp#L2325
++      // https://github.com/apple-oss-distributions/IOHIDFamily/blob/d077740b771442ed13d8953218018266a90eba73/IOHIDFamily/IOHIDEventDriver.cpp#L2338
++      0x06, 0x00, 0xFF,       // Usage Page (kHIDPage_AppleVendor)
++      0x09, 0x01,             // Usage 1
++      0xA1, 0x01,             // Collection (Application)
++      0x85, REPORT_ID_APPLE,  //   Report ID
++      // Apple Vendor Top Case Page
++      0x05, 0xFF,             //   Usage Page (AppleVendor Top Case)
++      0x15, 0x00,             //   Logical Minimum (0)
++      0x25, 0x01,             //   Logical Maximum (1)
++      0x09, 0x03,             //   0 kHIDUsage_AV_TopCase_KeyboardFn
++      // 0x09, 0x04,          //  __ kHIDUsage_AV_TopCase_BrightnessUp
++      // 0x09, 0x05,          //  __ kHIDUsage_AV_TopCase_BrightnessDown
++      0x09, 0x08,             //   1 kHIDUsage_AV_TopCase_IlluminationUp
++      0x09, 0x09,             //   2  kHIDUsage_AV_TopCase_IlluminationDown
++      0x95, 0x03,             //   Report Count (3)
++      0x75, 0x01,             //   Report Size (1)
++      0x81, 0x02,             //   Input (Data, Variable, Absolute)
++      // Apple Vendor Keyboard Page
++      0x06, 0x01, 0xFF,       //   Usage Page (kHIDPage_AppleVendorKeyboard)
++      0x15, 0x00,             //   Logical Minimum (0)
++      0x25, 0x01,             //   Logical Maximum (1)
++      0x09, 0x01,             //   Usage (kHIDUsage_AppleVendorKeyboard_Spotlight) index 3
++      0x09, 0x01,             //    3 kHIDUsage_AppleVendorKeyboard_Spotlight
++      0x09, 0x02,             //    4 kHIDUsage_AppleVendorKeyboard_Dashboard
++      0x09, 0x03,             //    5 kHIDUsage_AppleVendorKeyboard_Function
++      0x09, 0x04,             //    6 kHIDUsage_AppleVendorKeyboard_Launchpad
++      0x09, 0x0A,             //    7 kHIDUsage_AppleVendorKeyboard_Reserved
++      0x09, 0x0B,             //    8 kHIDUsage_AppleVendorKeyboard_CapsLockDelayEnable
++      0x09, 0x0C,             //    9 kHIDUsage_AppleVendorKeyboard_PowerState
++      0x09, 0x10,             //   10 kHIDUsage_AppleVendorKeyboard_Expose_All
++      0x09, 0x11,             //   11 kHIDUsage_AppleVendorKeyboard_Expose_Desktop
++      0x09, 0x20,             //   12 kHIDUsage_AppleVendorKeyboard_Brightness_Up
++      0x09, 0x21,             //   13 kHIDUsage_AppleVendorKeyboard_Brightness_Down
++      0x09, 0x30,             //   14 kHIDUsage_AppleVendorKeyboard_Language
++      0x95, 0x0C,             //   Report Count (12)
++      0x75, 0x01,             //   Report Size (1)
++      0x81, 0x02,             //   Input (Data, Variable, Absolute)
++      // Reserved (1bits)
++      0x95, 0x01,             //   Report Count (6)
++      0x75, 0x01,             //   Report Size (1)
++      0x81, 0x03,             //   Input (Constant)
++      0xC0,                   // End Collection
 +#    endif
  #endif
  
