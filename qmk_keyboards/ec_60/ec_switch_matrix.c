@@ -65,7 +65,7 @@ extern void switch_events(uint8_t row, uint8_t col, bool pressed);
 #define MATRIX_READ_LOOP(...)                                   \
   matrix_row_t col_mask = 1;                                    \
   for (int col = 0; col < MATRIX_COLS; col++, col_mask <<= 1) { \
-    select_col(matrix_col_channels[col]);                       \
+    select_col(col);                                            \
     for (int row = 0; row < MATRIX_ROWS; row++) {               \
       if (col == 0 && row == 0) ec_readkey(row_pins[row]);      \
       if (matrix_used[row] & col_mask) {                        \
@@ -79,27 +79,29 @@ extern void switch_events(uint8_t row, uint8_t col, bool pressed);
 //  inline functions
 // -----------------------------------------------------------------------------------
 
-static inline void select_col(uint8_t amux_col_ch) {
-  if ((amux_col_ch & 0xf) == 0) {
+static inline void select_col(uint8_t col) {
+  static uint8_t amux_col_ch = 0;
+
+  uint8_t changes = matrix_col_channels[col] ^ amux_col_ch;
+  amux_col_ch = matrix_col_channels[col];
 #if AMUX_COUNT >= 1
-    writePin(amux_en_pins[0], amux_col_ch & 0x10);
+  if (changes & 0x10) writePin(amux_en_pins[0], amux_col_ch & 0x10);
 #endif
 #if AMUX_COUNT >= 2
-    writePin(amux_en_pins[1], amux_col_ch & 0x20);
+  if (changes & 0x20) writePin(amux_en_pins[1], amux_col_ch & 0x20);
 #endif
 #if AMUX_COUNT >= 3
-    writePin(amux_en_pins[2], amux_col_ch & 0x40);
+  if (changes & 0x40) writePin(amux_en_pins[2], amux_col_ch & 0x40);
 #endif
 #if AMUX_COUNT >= 4
-    writePin(amux_en_pins[3], amux_col_ch & 0x88);
+  if (changes & 0x80) writePin(amux_en_pins[3], amux_col_ch & 0x88);
 #endif
 #if AMUX_COUNT >= 5
 #  error Unsupported AMUX_COUNT, maximum is 4
 #endif
-  }
-  writePin(amux_sel_pins[0], amux_col_ch & 1);
-  writePin(amux_sel_pins[1], amux_col_ch & 2);
-  writePin(amux_sel_pins[2], amux_col_ch & 4);
+  if (changes & 1) writePin(amux_sel_pins[0], amux_col_ch & 1);
+  if (changes & 2) writePin(amux_sel_pins[1], amux_col_ch & 2);
+  if (changes & 4) writePin(amux_sel_pins[2], amux_col_ch & 4);
 }
 
 static inline bool ec_is_key_pressed(ec_key_config_t *key, uint16_t sw_value) {
@@ -149,7 +151,7 @@ static inline bool is_sub_action_released(ec_key_config_t *key, uint16_t sw_valu
 // static routines
 // -----------------------------------------------------------------------------------
 
-static uint16_t ec_readkey(uint32_t row_pin) {
+static uint16_t ec_readkey(uint32_t strobe_pin) {
   uint16_t sw_value;
 
   ATOMIC_BLOCK_FORCEON {
@@ -159,7 +161,7 @@ static uint16_t ec_readkey(uint32_t row_pin) {
     }
     // charge peak hold capacitor
     writePinHigh(DISCHARGE_PIN);
-    writePinHigh(row_pin);
+    writePinHigh(strobe_pin);
 
     last_key_scan_time = chSysGetRealtimeCounterX();
     while (TIMER_DIFF_32(chSysGetRealtimeCounterX(), last_key_scan_time) <
@@ -168,7 +170,7 @@ static uint16_t ec_readkey(uint32_t row_pin) {
     // wait_us(CHARGE_TIME);
     // Read the ADC value
     sw_value = adc_read(adcMux);
-    writePinLow(row_pin);
+    writePinLow(strobe_pin);
     // Discharge peak hold capacitor
     writePinLow(DISCHARGE_PIN);
     last_key_scan_time = chSysGetRealtimeCounterX();
@@ -212,7 +214,8 @@ static void init_amux(void) {
 #  define CHARGE_STEP(plot_index) (rtcnt_t)(10UL * (plot_index))
 #  define DISCHARGE_STEP(plot_index) US2RTC(REALTIME_COUNTER_CLOCK, plot_index)
 
-static uint16_t ec_test_readkey(uint32_t row_pin, uint32_t charge_index, uint32_t discharge_index) {
+static uint16_t ec_test_readkey(uint32_t strobe_pin, uint32_t charge_index,
+                                uint32_t discharge_index) {
   uint16_t sw_value;
 
   ATOMIC_BLOCK_FORCEON {
@@ -222,7 +225,7 @@ static uint16_t ec_test_readkey(uint32_t row_pin, uint32_t charge_index, uint32_
     }
     // charge peak hold capacitor
     writePinHigh(DISCHARGE_PIN);
-    writePinHigh(row_pin);
+    writePinHigh(strobe_pin);
 
     if (charge_index) {
       last_key_scan_time = chSysGetRealtimeCounterX();
@@ -234,7 +237,7 @@ static uint16_t ec_test_readkey(uint32_t row_pin, uint32_t charge_index, uint32_
     // Read the ADC value
     sw_value = adc_read(adcMux);
 
-    writePinLow(row_pin);
+    writePinLow(strobe_pin);
     // Discharge peak hold capacitor
     writePinLow(DISCHARGE_PIN);
     last_key_scan_time = chSysGetRealtimeCounterX();
@@ -259,7 +262,7 @@ static void matrix_scan_test(void) {
 
   matrix_row_t col_mask = 1;
   for (int col = 0; col < MATRIX_COLS; col++, col_mask <<= 1) {
-    select_col(matrix_col_channels[col]);
+    select_col(col);
     for (int row = 0; row < MATRIX_ROWS; row++) {
       if (col == 0 && row == 0) ec_readkey(row_pins[row]);
       uint16_t sw_value = ec_test_readkey(row_pins[row], charge_index, discharge_index);
