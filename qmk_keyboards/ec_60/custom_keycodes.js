@@ -40,7 +40,7 @@ module.exports = function (options, defines) {
       }
     }),
     ...ifdef('EC_DEBUG_ENABLE', [
-      ({
+      {
         name: 'EC\nDBG0',
         title: 'Show debug data as keystrokes',
         shortName: 'EC.D0'
@@ -54,7 +54,7 @@ module.exports = function (options, defines) {
         name: 'EC\nDBG0',
         title: 'Show current configuraion of matrix as keystrokes',
         shortName: 'EC.D2'
-      })
+      }
     ])
   ]
 }

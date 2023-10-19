@@ -43,7 +43,8 @@ bool process_apple_fn(uint16_t keycode, keyrecord_t *record) {
       return false;
 #ifdef APPLE_EXTRA_KEY_ENABLE
     case AVT_ILLUMINATION_UP ... AVK_LANGUAGE:
-      host_apple_send(record->event.pressed, AVT_ILLUMINATION_UP + keycode - AVT_ILLUMINATION_UP);
+      host_apple_send(record->event.pressed,
+                      USAGE_INDEX_AVT_ILLUMINATION_UP + (keycode - AVT_ILLUMINATION_UP));
       return false;
 #endif
     default:
