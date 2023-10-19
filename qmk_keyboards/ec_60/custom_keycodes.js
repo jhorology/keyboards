@@ -39,24 +39,22 @@ module.exports = function (options, defines) {
         shortName: `${bank}${index} ${icon}`
       }
     }),
-    ...ifdef(
-      'EC_DEBUG_ENABLE'[
-        ({
-          name: 'EC\nDBG0',
-          title: 'Show debug data as keystrokes',
-          shortName: 'EC.D0'
-        },
-        {
-          name: 'EC\nDBG1',
-          title: 'Show calibration releated data as keystrokes',
-          shortName: 'EC.D1'
-        },
-        {
-          name: 'EC\nDBG0',
-          title: 'Show current configuraion of matrix as keystrokes',
-          shortName: 'EC.D2'
-        })
-      ]
-    )
+    ...ifdef('EC_DEBUG_ENABLE', [
+      ({
+        name: 'EC\nDBG0',
+        title: 'Show debug data as keystrokes',
+        shortName: 'EC.D0'
+      },
+      {
+        name: 'EC\nDBG1',
+        title: 'Show calibration releated data as keystrokes',
+        shortName: 'EC.D1'
+      },
+      {
+        name: 'EC\nDBG0',
+        title: 'Show current configuraion of matrix as keystrokes',
+        shortName: 'EC.D2'
+      })
+    ])
   ]
 }

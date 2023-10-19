@@ -5,7 +5,7 @@ index 094eda6f..4747740f 100644
 @@ -878,6 +878,13 @@ ifeq ($(strip $(JOYSTICK_ENABLE)), yes)
      endif
  endif
- 
+
 +ifeq ($(strip $(APPLE_FN_ENABLE)), yes)
 +    ifeq ($(strip $(EXTRAKEY_ENABLE)), no)
 +        $(error APPLE_FN_ENABLE requires EXTRAKEY_ENABLE)
@@ -47,13 +47,13 @@ index 2c6654e9..c0e0f35c 100644
  static uint16_t       last_system_usage   = 0;
  static uint16_t       last_consumer_usage = 0;
 +static uint16_t       last_apple_usages   = 0;
- 
+
  void host_set_driver(host_driver_t *d) {
      driver = d;
 @@ -159,6 +160,28 @@ void host_consumer_send(uint16_t usage) {
      (*driver->send_extra)(&report);
  }
- 
+
 +void host_apple_send(bool pressed, uint8_t usageIndex) {
 +    uint16_t usage_mask = 1 << usageIndex;
 +    uint16_t usages   = pressed ? (last_apple_usages | usage_mask) : (last_apple_usages & ~usage_mask);
@@ -97,11 +97,11 @@ index add408ca..1cca92b2 100644
  void    host_consumer_send(uint16_t usage);
 +void    host_apple_send(bool pressed, uint8_t usageIndex);
  void    host_programmable_button_send(uint32_t data);
- 
+
  uint16_t host_last_system_usage(void);
  uint16_t host_last_consumer_usage(void);
 +bool     host_apple_is_pressed(uint16_t usage_mask);
- 
+
  #ifdef __cplusplus
  }
 diff --git a/tmk_core/protocol/report.h b/tmk_core/protocol/report.h
@@ -168,7 +168,7 @@ index e215c909..8a5e3ec5 100644
 +      HID_RI_END_COLLECTION(0),
 +#    endif
  #endif
- 
+
  #ifdef PROGRAMMABLE_BUTTON_ENABLE
 diff --git a/tmk_core/protocol/vusb/vusb.c b/tmk_core/protocol/vusb/vusb.c
 index d74f375f..721581dd 100644
@@ -220,11 +220,11 @@ index d74f375f..721581dd 100644
 +      0x75, 0x01,             //   Report Size (1)
 +      0x81, 0x02,             //   Input (Data, Variable, Absolute)
 +      // Reserved (1bits)
-+      0x95, 0x01,             //   Report Count (6)
++      0x95, 0x01,             //   Report Count (1)
 +      0x75, 0x01,             //   Report Size (1)
 +      0x81, 0x03,             //   Input (Constant)
 +      0xC0,                   // End Collection
 +#    endif
  #endif
- 
+
  #ifdef JOYSTICK_ENABLE
