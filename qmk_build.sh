@@ -22,7 +22,6 @@ zparseopts -D -E -F -- \
            {g,-with-compile-db}=with_compile_db \
            {p,-with-pp}=with_pp \
            {-without-patch}=without_patch \
-           {-without-via-json}=without_via_json \
            -without-emacs=without_emacs \
            -with-optimize:=optimize \
   || return
@@ -56,7 +55,6 @@ TARGETS=(n60 c60 b60 d60 ec60 fk68 i68 libra prime_e q60 qk60 qk65 tx60 tf60 w60
 
 WITH_UPDATE=true
 WITH_PATCH=true
-WITH_VIA_JSON=true
 WITH_EMACS=true
 VIA_APP_BRANCH=main
 MAKE_JOBS=$(nproc)
@@ -116,7 +114,6 @@ help_usage() {
         "via/app options:" \
         "  -w,--without-update             don't sync remote repository" \
         "  -p,--without-patch              don't apply patches" \
-        "  --without-via_json              don't generate via JSON, use JSON file in dist folder" \
         "" \
         "build options:" \
         "  -f,--with-flash                 post build flash firmware" \
@@ -124,7 +121,6 @@ help_usage() {
         "  -w,--without-update             don't sync remote repository" \
         "  -p,--with-pp                    save preprocessor output" \
         "  --without-patch                 don't apply patches" \
-        "  --without-via-json              don't generate via JSON, use JSON file in dist folder" \
         "  --without-emacs                 don't generate emacs settings when --with-comile-db" \
         "  --with-optimze=<n>              experimental gcc -O[n] optionn" \
         "" \
@@ -568,11 +564,9 @@ run_via_app() {
   # generate JSON
   #______________________________________
   cd $PROJECT
-  if $WITH_VIA_JSON; then
-    mkdir -p dist
-    build_via_json $target
-    npx prettier --write dist/**/*.json
-  fi
+  mkdir -p dist
+  build_via_json $target
+  npx prettier --write dist/**/${kb}_*.json
 
   # clean JSON files in via-keyboards
   #______________________________________
@@ -668,7 +662,6 @@ if $KEYCHRON_BT; then
 fi
 (( $#without_update )) && WITH_UPDATE=false
 (( $#without_patch )) && WITH_PATCH=false
-(( $#without_via_json )) && WITH_VIA_JSON=false
 (( $#without_emacs )) && WITH_EMACS=false
 
 # via/app
@@ -705,5 +698,3 @@ for target in $TARGETS; do
   fi
   build_firmware $target
 done
-
-$WITH_VIA_JSON && build_via_json_files
