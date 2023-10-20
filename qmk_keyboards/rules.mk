@@ -16,7 +16,7 @@ TAP_DANCE_ENABLE = yes
 DEFERRED_EXEC_ENABLE = yes
 
 # activate apple extra usages
-APPLE_EXTRA_KEY_ENABLE = yes
+APPLE_EXTRA_KEY_ENABLE = no
 ifeq ($(strip $(APPLE_EXTRA_KEY_ENABLE)), yes)
     OPT_DEFS += -DAPPLE_EXTRA_KEY_ENABLE
 endif
