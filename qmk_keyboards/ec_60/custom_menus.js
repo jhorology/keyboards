@@ -15,10 +15,16 @@ const emoji = require('./preset_emoji'),
     12: 'sub_action_release_threshold'
   }
 
+const mapForEachIndex = (count, mapper) =>
+  Array(count)
+    .fill(0)
+    .map((_, index) => mapper(index))
+
 module.exports = function (options, defines) {
   const NUM_PRESET_BANKS = (((defines.EC_NUM_PRESETS - 1) / PRESET_BANK_SIZE) | 0) + 1,
     EC_TOOLS_CHANNEL_ID = defines.EC_VIA_CUSTOM_CHANNEL_ID_START,
-    EC_PRESET_CHANNEL_ID_START = defines.EC_VIA_CUSTOM_CHANNEL_ID_START + 1
+    EC_PRESET_CHANNEL_ID_START = defines.EC_VIA_CUSTOM_CHANNEL_ID_START + 1,
+    ifdef = (key, array) => (options[key] === 'yes' ? array : [])
 
   return [
     {
@@ -38,48 +44,40 @@ module.exports = function (options, defines) {
               type: 'toggle',
               content: ['id_ec_tools_show_calibration_data', EC_TOOLS_CHANNEL_ID, 2]
             },
-            ...(options.EC_DEBUG_ENABLE !== 'yes'
-              ? []
-              : [
-                  {
-                    label: 'Keyscan Test',
-                    type: 'toggle',
-                    content: ['id_ec_tools_matrix_scan_test', EC_TOOLS_CHANNEL_ID, 3]
-                  },
-                  {
-                    label:
-                      'Show Debug Data *(In 3 sconds after click, It will send data as keystrokes.)',
-                    type: 'toggle',
-                    content: ['id_ec_tools_debug_send_config', EC_TOOLS_CHANNEL_ID, 4]
-                  },
-                  {
-                    label: 'Bootloader Jump',
-                    type: 'toggle',
-                    content: ['id_ec_tools_bootloader_jump', EC_TOOLS_CHANNEL_ID, 5]
-                  }
-                ])
+            ...ifdef('EC_DEBUG_ENABLE', [
+              {
+                label: 'Keyscan Test',
+                type: 'toggle',
+                content: ['id_ec_tools_matrix_scan_test', EC_TOOLS_CHANNEL_ID, 3]
+              },
+              {
+                label:
+                  'Show Debug Data *(In 3 sconds after click, It will send data as keystrokes.)',
+                type: 'toggle',
+                content: ['id_ec_tools_debug_send_config', EC_TOOLS_CHANNEL_ID, 4]
+              },
+              {
+                label: 'Bootloader Jump',
+                type: 'toggle',
+                content: ['id_ec_tools_bootloader_jump', EC_TOOLS_CHANNEL_ID, 5]
+              }
+            ])
           ]
         }
       ]
     },
-    ...Array(NUM_PRESET_BANKS)
-      .fill(0)
-      .map((_, bank) => {
-        return {
-          label: 'EC Preset Bank ' + bank,
-          content: Array(PRESET_BANK_SIZE)
-            .fill(0)
-            .map((_, i) =>
-              createPresetMenu(
-                defines,
-                bank,
-                i,
-                bank * PRESET_BANK_SIZE + i,
-                EC_PRESET_CHANNEL_ID_START + bank * PRESET_BANK_SIZE + i
-              )
-            )
-        }
-      })
+    ...mapForEachIndex(NUM_PRESET_BANKS, (bank) => ({
+      label: 'EC Preset Bank ' + bank,
+      content: mapForEachIndex(PRESET_BANK_SIZE, (i) =>
+        createPresetMenu(
+          defines,
+          bank,
+          i,
+          bank * PRESET_BANK_SIZE + i,
+          EC_PRESET_CHANNEL_ID_START + bank * PRESET_BANK_SIZE + i
+        )
+      )
+    }))
   ]
 }
 

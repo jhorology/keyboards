@@ -1,15 +1,16 @@
 const emoji = require('./preset_emoji'),
   PRESET_BANK_SIZE = 8
 
+const mapForEachIndex = (count, mapper) =>
+  Array(count)
+    .fill(0)
+    .map((_, index) => mapper(index))
+
 module.exports = function (options, defines) {
   const presetDesc = `It can be mapped in only EC preset map layers(${
       defines.DYNAMIC_KEYMAP_LAYER_COUNT - defines.EC_NUM_PRESET_MAPS
     } - ${defines.DYNAMIC_KEYMAP_LAYER_COUNT - 1}).`,
-    ifdef = (key, array) => (options[key] === 'yes' ? array : []),
-    mapForEachIndex = (count, mapper) =>
-      Array(count)
-        .fill(0)
-        .map((_, index) => mapper(index))
+    ifdef = (key, array) => (options[key] === 'yes' ? array : [])
 
   return [
     {
