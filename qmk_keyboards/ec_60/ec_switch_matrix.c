@@ -94,7 +94,7 @@ static inline void select_col(uint8_t col) {
   if (changes & 0x40) writePin(amux_en_pins[2], amux_col_ch & 0x40);
 #endif
 #if AMUX_COUNT >= 4
-  if (changes & 0x80) writePin(amux_en_pins[3], amux_col_ch & 0x88);
+  if (changes & 0x80) writePin(amux_en_pins[3], amux_col_ch & 0x80);
 #endif
 #if AMUX_COUNT >= 5
 #  error Unsupported AMUX_COUNT, maximum is 4
