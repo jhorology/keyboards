@@ -108,7 +108,11 @@
 // C : Show Control Center
 // N : Show Notification
 // M : Focus Menubar
-// Backspace : Delete
+// Backspace: Forward delete
+// Right : Scroll to the end of a documen
+// Left :  Scroll to the beginning of a document
+// Down : Scroll down one page
+// UP : Scroll up one page
 #define _FN_F1 &kp C_BRI_DN
 #define _FN_F2 &kp C_BRI_UP
 #define _FN_F3 &kp RG(TAB)
@@ -131,6 +135,10 @@
 #define _FN_N &kp RG(N)
 #define _FN_M &kp RALT
 #define _FN_BS &kp DEL
+#define _FN_RIGHT &kp KC_END
+#define _FN_LEFT &kp KC_HOME
+#define _FN_DOWN &kp KC_PGDN
+#define _FN_UP &kp KC_PGUP
 
 // select output
 //--------------------------------------------
