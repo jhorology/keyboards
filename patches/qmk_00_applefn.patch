@@ -1,8 +1,8 @@
 diff --git a/builddefs/common_features.mk b/builddefs/common_features.mk
-index 094eda6f..4747740f 100644
+index 60f1cbd837..8df2102eec 100644
 --- a/builddefs/common_features.mk
 +++ b/builddefs/common_features.mk
-@@ -878,6 +878,13 @@ ifeq ($(strip $(JOYSTICK_ENABLE)), yes)
+@@ -849,6 +849,13 @@ ifeq ($(strip $(JOYSTICK_ENABLE)), yes)
      endif
  endif
  
@@ -17,7 +17,7 @@ index 094eda6f..4747740f 100644
  VALID_USBPD_DRIVER_TYPES = custom vendor
  USBPD_DRIVER ?= vendor
 diff --git a/drivers/bluetooth/bluetooth.c b/drivers/bluetooth/bluetooth.c
-index d5382401..96e854ad 100644
+index d5382401e7..96e854ad5e 100644
 --- a/drivers/bluetooth/bluetooth.c
 +++ b/drivers/bluetooth/bluetooth.c
 @@ -60,3 +60,7 @@ void bluetooth_send_consumer(uint16_t usage) {
@@ -29,7 +29,7 @@ index d5382401..96e854ad 100644
 +// TODO not implemented yet
 +}
 diff --git a/drivers/bluetooth/bluetooth.h b/drivers/bluetooth/bluetooth.h
-index 2e4d0df5..fa95a758 100644
+index 2e4d0df538..fa95a758f8 100644
 --- a/drivers/bluetooth/bluetooth.h
 +++ b/drivers/bluetooth/bluetooth.h
 @@ -50,3 +50,5 @@ void bluetooth_send_mouse(report_mouse_t *report);
@@ -39,7 +39,7 @@ index 2e4d0df5..fa95a758 100644
 +
 +void bluetooth_send_apple(bool pressed, uint8_t usageIndex);
 diff --git a/tmk_core/protocol/host.c b/tmk_core/protocol/host.c
-index 2c6654e9..c0e0f35c 100644
+index 732fbdc37d..7b09b6a89c 100644
 --- a/tmk_core/protocol/host.c
 +++ b/tmk_core/protocol/host.c
 @@ -43,6 +43,7 @@ extern keymap_config_t keymap_config;
@@ -50,7 +50,7 @@ index 2c6654e9..c0e0f35c 100644
  
  void host_set_driver(host_driver_t *d) {
      driver = d;
-@@ -159,6 +160,28 @@ void host_consumer_send(uint16_t usage) {
+@@ -162,6 +163,28 @@ void host_consumer_send(uint16_t usage) {
      (*driver->send_extra)(&report);
  }
  
@@ -79,7 +79,7 @@ index 2c6654e9..c0e0f35c 100644
  #ifdef JOYSTICK_ENABLE
  void host_joystick_send(joystick_t *joystick) {
      if (!driver) return;
-@@ -253,3 +276,7 @@ uint16_t host_last_system_usage(void) {
+@@ -256,3 +279,7 @@ uint16_t host_last_system_usage(void) {
  uint16_t host_last_consumer_usage(void) {
      return last_consumer_usage;
  }
@@ -88,10 +88,10 @@ index 2c6654e9..c0e0f35c 100644
 +    return (last_apple_usages & usage_mask) != 0;
 +}
 diff --git a/tmk_core/protocol/host.h b/tmk_core/protocol/host.h
-index add408ca..1cca92b2 100644
+index 959753ae02..2e222f55e9 100644
 --- a/tmk_core/protocol/host.h
 +++ b/tmk_core/protocol/host.h
-@@ -44,10 +44,12 @@ void    host_keyboard_send(report_keyboard_t *report);
+@@ -42,10 +42,12 @@ void    host_nkro_send(report_nkro_t *report);
  void    host_mouse_send(report_mouse_t *report);
  void    host_system_send(uint16_t usage);
  void    host_consumer_send(uint16_t usage);
@@ -105,10 +105,10 @@ index add408ca..1cca92b2 100644
  #ifdef __cplusplus
  }
 diff --git a/tmk_core/protocol/report.h b/tmk_core/protocol/report.h
-index 9d415a3b..3bf3bdff 100644
+index 3028cf9426..6d59306472 100644
 --- a/tmk_core/protocol/report.h
 +++ b/tmk_core/protocol/report.h
-@@ -29,6 +29,7 @@ enum hid_report_ids {
+@@ -30,6 +30,7 @@ enum hid_report_ids {
      REPORT_ID_MOUSE,
      REPORT_ID_SYSTEM,
      REPORT_ID_CONSUMER,
@@ -117,7 +117,7 @@ index 9d415a3b..3bf3bdff 100644
      REPORT_ID_NKRO,
      REPORT_ID_JOYSTICK,
 diff --git a/tmk_core/protocol/usb_descriptor.c b/tmk_core/protocol/usb_descriptor.c
-index e215c909..c796c1d9 100644
+index eb214c0492..17e8eb86a8 100644
 --- a/tmk_core/protocol/usb_descriptor.c
 +++ b/tmk_core/protocol/usb_descriptor.c
 @@ -321,6 +321,52 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
@@ -174,10 +174,10 @@ index e215c909..c796c1d9 100644
  
  #ifdef PROGRAMMABLE_BUTTON_ENABLE
 diff --git a/tmk_core/protocol/vusb/vusb.c b/tmk_core/protocol/vusb/vusb.c
-index d74f375f..0d9cb385 100644
+index d09b2f19b7..55f7ebc72c 100644
 --- a/tmk_core/protocol/vusb/vusb.c
 +++ b/tmk_core/protocol/vusb/vusb.c
-@@ -542,6 +542,52 @@ const PROGMEM uchar shared_hid_report[] = {
+@@ -562,6 +562,52 @@ const PROGMEM uchar shared_hid_report[] = {
      0x75, 0x10,               //   Report Size (16)
      0x81, 0x00,               //   Input (Data, Array, Absolute)
      0xC0,                     // End Collection

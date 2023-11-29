@@ -1,5 +1,5 @@
 diff --git a/tmk_core/protocol/usb_descriptor.c b/tmk_core/protocol/usb_descriptor.c
-index e215c909..73d91afa 100644
+index eb214c0492..80f5527550 100644
 --- a/tmk_core/protocol/usb_descriptor.c
 +++ b/tmk_core/protocol/usb_descriptor.c
 @@ -1091,6 +1091,10 @@ const USB_Descriptor_String_t PROGMEM SerialNumberString = {
@@ -23,7 +23,7 @@ index e215c909..73d91afa 100644
  
              break;
 diff --git a/tmk_core/protocol/usb_descriptor.h b/tmk_core/protocol/usb_descriptor.h
-index ed84f4c9..6dc23a5e 100644
+index 1268bdae73..d4498fdfe1 100644
 --- a/tmk_core/protocol/usb_descriptor.h
 +++ b/tmk_core/protocol/usb_descriptor.h
 @@ -309,3 +309,6 @@ enum usb_endpoints {
