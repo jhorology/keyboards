@@ -272,7 +272,7 @@ docker_exec() {
 fedora_install_packages() {
   # https://docs.zephyrproject.org/3.2.0/develop/getting_started/index.html#select-and-update-os
   sudo dnf update
-  sudo dnf install wget git cmake ninja-build gperf python3 ccache dtc wget xz file \
+  sudo dnf install wget git cmake ninja-build gperf python3 dtc wget xz file \
        make gcc SDL2-devel file-libs \
        tio fd-find ripgrep
   # gcc-multilib g++-multilib
@@ -292,7 +292,7 @@ macos_install_packages() {
   # https://docs.zephyrproject.org/3.2.0/develop/getting_started/index.html#select-and-update-os
   # https://docs.zephyrproject.org/3.2.0/contribute/documentation/generation.html
   brew update
-  brew install wget git cmake ninja gperf python3 ccache qemu dtc libmagic \
+  brew install wget git cmake ninja gperf python3 qemu dtc libmagic \
        doxygen graphviz librsvg \
        tio fd rg
 
