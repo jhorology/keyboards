@@ -22,7 +22,7 @@ if [[ -z $dfu_device ]]; then
   exit 1
 fi
 
-33if [[ $dfu_device =~ "Shared" ]]; then
+if [[ $dfu_device =~ "Shared" ]]; then
   win_usbipd_path=$(wslpath -w "$WIN_USBIPD")
   $WIN_GSUDO $win_usbipd_path attach --wsl --hardware-id $DFU_HARDWARE_ID
   exit 1
