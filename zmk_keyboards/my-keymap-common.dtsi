@@ -99,7 +99,7 @@
 // F10 : mute audio
 // F11 : decrease audio volume
 // F12 : increase audio volume
-// SPC : Hey Siri TODO
+// SPC : Hey Siri -> Copilot
 // Q : Quck Notes
 // E : Emoji & Symbols
 // A : Focus Dock
@@ -125,7 +125,7 @@
 #define _FN_F10 &kp C_MUTE
 #define _FN_F11 &kp C_VOL_DN
 #define _FN_F12 &kp C_VOL_UP
-#define _FN_SPC &kp SPC
+#define _FN_SPC &kp RG(C)
 #define _FN_Q &kp RG(RA(N))
 #define _FN_E &kp RG(DOT)
 #define _FN_A &kp RG(B)
