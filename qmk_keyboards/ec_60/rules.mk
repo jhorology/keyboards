@@ -1,5 +1,5 @@
 CUSTOM_MATRIX = yes
-QUANTUM_LIB_SRC += analog.c
+ANALOG_DRIVER_REQUIRED = yes
 SRC += ec_config.c ec_switch_matrix.c
 
 SEND_STRING_ENABLE = yes
