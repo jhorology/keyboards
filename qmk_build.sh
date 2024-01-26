@@ -40,7 +40,6 @@ local -A KEYBOARDS=(
   ec60       ec_60:default:bin:0483:df11
   fk68       fk680pro_v2:default:uf2:"ZhaQian DFU":none
   i68        ikki68_aurora:default:hex:03eb:2ff4
-  k6         k6_pro_ansi_rgb:default:bin:0483:df11
   libra      libra_mini:default:hex:2341:0036
   prime_e    prime_e_rgb:default:hex:03eb:2ff4
   q60        q60_ansi:default:bin:0483:df11
@@ -308,15 +307,6 @@ format() {
 # return bool: whether should apply patches or not
 should_apply_qmk_patch() {
   cd $PROJECT/qmk_firmware
-  if $KEYCHRON_BT; then
-    if [[ ! -f keychron_bluetooth_playground ]]; then
-      true; return
-    fi
-  else
-    if [[ -f keychron_bluetooth_playground ]]; then
-      true; return
-    fi
-  fi
   for patch in $(ls -v $PROJECT/patches/qmk_*.patch); do
     patched=${${patch##*/}%.*}
     if [[ ! -f $patched ]]; then
@@ -328,15 +318,6 @@ should_apply_qmk_patch() {
 
 apply_qmk_patch() {
   cd $PROJECT/qmk_firmware
-  if $KEYCHRON_BT; then
-    if [[ ! -f keychron_bluetooth_playground ]]; then
-      git apply -3 --verbose $PROJECT/patches/keychron_bluetooth_playground.patch
-      touch keychron_bluetooth_playground
-    fi
-    if [[ $TARGETS[(I)$TARGETS[-1]] -ge 2 ]]; then
-      error_exit 1 "Error: Can't compile k6 together with other keyboards."
-    fi
-  fi
   for patch in $(ls -v $PROJECT/patches/qmk_*.patch); do
     patched=${${patch##*/}%.*}
     if [[ ! -f $patched ]]; then
@@ -649,16 +630,9 @@ fi
 # -----------------------------------
 (( $#@ )) && TARGETS=("$@")
 
-[[ ${TARGETS[(I)k6]} != 0 ]] && KEYCHRON_BT=true || KEYCHRON_BT=false
-
 if (( $#via_app )) || (( $#with_flash )); then
   [[ $# = 0 ]] && error_exit 1 "Missing target argument."
   [[ $# != 1 ]] && error_exit 1 "Only one target is allowed."
-fi
-# keychron bluetooth playground
-if $KEYCHRON_BT; then
-  [[ $# -ge 2 ]] && \
-    error_exit 1 "Can't compile k6 together with other keyboards."
 fi
 (( $#without_update )) && WITH_UPDATE=false
 (( $#without_patch )) && WITH_PATCH=false
