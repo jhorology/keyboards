@@ -22,6 +22,8 @@ struct behavior_rc_dial_config {
   int degrees_per_click_x10;
 };
 
+static int behavior_rc_dial_init(const struct device *dev) { return 0; }
+
 static int on_keymap_binding_pressed(struct zmk_behavior_binding *binding,
                                      struct zmk_behavior_binding_event event) {
   const struct device *dev = device_get_binding(binding->behavior_dev);
@@ -33,17 +35,15 @@ static int on_keymap_binding_pressed(struct zmk_behavior_binding *binding,
   return ret;
 }
 
-static int behavior_rc_dial_init(const struct device *dev) { return 0; }
-
 static const struct behavior_driver_api behavior_rc_dial_driver_api = {.binding_pressed =
                                                                          on_keymap_binding_pressed};
 
-#  define RC_DIAL_INST(n)                                                                     \
-    static const struct behavior_rc_dial_config behavior_rc_dial_config_##n = {               \
-      .degrees_per_click_x10 = DT_INST_PROP(n, degrees_per_click_x10)};                       \
-    DEVICE_DT_INST_DEFINE(n, behavior_rc_dial_init, NULL, NULL, &behavior_rc_dial_config_##n, \
-                          APPLICATION, CONFIG_KERNEL_INIT_PRIORITY_DEFAULT,                   \
-                          &behavior_rc_dial_driver_api);
+#  define RC_DIAL_INST(n)                                                                       \
+    static const struct behavior_rc_dial_config behavior_rc_dial_config_##n = {                 \
+      .degrees_per_click_x10 = DT_INST_PROP(n, degrees_per_click_x10)};                         \
+    BEHAVIOR_DT_INST_DEFINE(n, behavior_rc_dial_init, NULL, NULL, &behavior_rc_dial_config_##n, \
+                            POST_KERNEL, CONFIG_KERNEL_INIT_PRIORITY_DEFAULT,                   \
+                            &behavior_rc_dial_driver_api);
 
 DT_INST_FOREACH_STATUS_OKAY(RC_DIAL_INST)
 

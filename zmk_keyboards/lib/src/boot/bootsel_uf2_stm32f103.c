@@ -1,4 +1,4 @@
-#include <zephyr/arch/arm/aarch32/cortex_m/cmsis.h>
+#include <cmsis_core.h>
 #include <zephyr/kernel.h>
 
 // uf2-stm32f103 bootloader

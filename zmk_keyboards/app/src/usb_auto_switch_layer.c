@@ -2,8 +2,8 @@
 #include <stdint.h>
 #include <zephyr/kernel.h>
 
-#include <zmk/evil/usb_host_os.h>
-#include <zmk/evil/events/usb_host_os_changed.h>
+#include <zmk/usb_host_os.h>
+#include <zmk/events/usb_host_os_changed.h>
 
 #include <zmk/event_manager.h>
 #include <zmk/keymap.h>

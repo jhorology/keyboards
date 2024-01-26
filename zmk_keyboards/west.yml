@@ -9,7 +9,7 @@ manifest:
       # remote: zmkfirmware
       # revision: main
       remote: petejohanson
-      revision: core/zephyr-3.4-update
+      revision: core/zephyr-3.5-update
       clone-depth: 1
       import: app/west.yml
   self:

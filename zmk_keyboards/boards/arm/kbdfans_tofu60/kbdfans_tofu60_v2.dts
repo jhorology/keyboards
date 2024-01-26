@@ -134,7 +134,6 @@
 	    compatible = "gpio-leds";
 	    caps_lock_led: caps_lock_led {
 		    gpios = <&gpio0 28 GPIO_ACTIVE_LOW>;
-		    label = "CAPS_LOCK_LED";
 	    };
     };
 };
@@ -142,7 +141,7 @@
 &flash0 {
     /*
      * Winbond W25Q16 16Mbit 2Mbytes
-     * jecd-id EF,40,15
+     * jeced-id EF,40,15
      */
     reg = <0x10000000 DT_SIZE_M(2)>;
 
@@ -153,7 +152,6 @@
 
         /* Reserved memory for the second stage bootloader */
         second_stage_bootloader: partition@0 {
-            label = "second_stage_bootloader";
             reg = <0x00000000 0x100>;
             read-only;
         };
@@ -163,7 +161,6 @@
          * size is 16MB minus the 0x100 bytes taken by the bootloader.
          */
         code_partition: partition@100 {
-            label = "code";
             reg = <0x100 (DT_SIZE_M(2) - 0x100)>;
             read-only;
         };

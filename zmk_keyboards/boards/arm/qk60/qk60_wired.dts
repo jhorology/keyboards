@@ -130,7 +130,6 @@
 	    compatible = "gpio-leds";
 	    caps_led: caps_led {
 		    gpios = <&gpioa 0 GPIO_ACTIVE_LOW>;
-		    label = "Caps Lock LED";
 	    };
     };
 };
@@ -165,13 +164,11 @@
          * unknown bootloader
          */
         boot_partition: partition@0 {
-            label = "bootloader";
             reg = <0x0 DT_SIZE_K(24)>;
             read-only;
         };
 
         code_partition: partition@6000 {
-            label = "code";
             reg = <DT_SIZE_K(24) (DT_SIZE_K(128) - DT_SIZE_K(24))>;
             read-only;
         };

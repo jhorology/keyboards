@@ -1,5 +1,5 @@
 diff --git a/subsys/usb/device/usb_device.c b/subsys/usb/device/usb_device.c
-index 5baac77c..4fd5d269 100644
+index aeb4df1a..2d636c91 100644
 --- a/subsys/usb/device/usb_device.c
 +++ b/subsys/usb/device/usb_device.c
 @@ -151,6 +151,10 @@ struct usb_setup_packet_packed {

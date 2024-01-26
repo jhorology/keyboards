@@ -148,7 +148,13 @@
 #define _BT_WIN1 &ble 2 _WIN_BASE_LAYER
 #define _BT_MAC3 &ble 3 _MAC_BASE_LAYER
 #define _BT_WIN2 &ble 4 _WIN_BASE_LAYER
+#define _BT_OFF0 &bt BT_DISC 0
+#define _BT_OFF1 &bt BT_DISC 1
+#define _BT_OFF2 &bt BT_DISC 2
+#define _BT_OFF3 &bt BT_DISC 3
+#define _BT_OFF4 &bt BT_DISC 4
 #define _BT_CLR &bt BT_CLR
+#define _BT_CLR_ALL &bt BT_CLR_ALL
 #define _USB &out OUT_USB
 
 // macro / behavior
@@ -161,7 +167,6 @@
     // double -> APPLE_FNn + MO(1)
     /omit-if-no-ref/ hhkb_mac_l_opt: hhkb_mac_l_opt {
       compatible = "zmk,behavior-tap-dance";
-      label = "HHKB_MAC_LEFT_OPT";
       #binding-cells = <0>;
       tapping-term-ms = <200>;
       bindings = <&kp LALT>, <&fn_globe>;
@@ -171,7 +176,6 @@
     // double -> MO(1)
     /omit-if-no-ref/ hhkb_win_l_opt: hhkb_win_l_opt {
       compatible = "zmk,behavior-tap-dance";
-      label = "HHKB_WIN_LEFT_OPT";
       #binding-cells = <0>;
       tapping-term-ms = <200>;
       bindings = <&kp LALT>, <&mo _WIN_FN_LAYER>;
@@ -180,7 +184,6 @@
     // double -> MO(3)
     /omit-if-no-ref/ hhkb_r_opt: hhkb_r_opt {
       compatible = "zmk,behavior-tap-dance";
-      label = "HHKB_RIGHT_OPT";
       #binding-cells = <0>;
       tapping-term-ms = <200>;
       bindings = <&kp RALT>, <&mo _SETTING_LAYER>;
@@ -189,20 +192,17 @@
     // double -> MO(3)
     /omit-if-no-ref/ ansi_app: ansi_app {
       compatible = "zmk,behavior-tap-dance";
-      label = "ANSI_APP";
       #binding-cells = <0>;
       tapping-term-ms = <200>;
       bindings = <&kp K_APP>, <&mo _SETTING_LAYER>;
     };
     /omit-if-no-ref/ ota_bootloader: ota_bootloader {
       compatible = "zmk,behavior-reset";
-      label = "OTA_BOOTLOADER";
       type = <0xA8>;
       #binding-cells = <0>;
     };
     /omit-if-no-ref/ mac_win: switch_mac_win {
       compatible = "zmk,behavior-mod-morph";
-      label = "SWITCH_MAC_WIN";
       #binding-cells = <0>;
       bindings = <&to _MAC_BASE_LAYER>, <&to _WIN_BASE_LAYER>;
       mods = <(MOD_LSFT|MOD_RSFT)>;
@@ -214,7 +214,6 @@
     // param_1: index number(0-4) of bt profile
     // param_2: base layer
     /omit-if-no-ref/ ble: ble {
-      label = "SELECT_BT_PROFILE_OUTPUT";
       compatible = "zmk,behavior-macro-two-param";
       #binding-cells = <2>;
       bindings
@@ -227,7 +226,6 @@
     };
     // fn_globe key with momentaly apple fn layer
     /omit-if-no-ref/ fn_globe: fn_globe {
-      label = "FN_GLOBE_MO_FN_LAYER";
       compatible = "zmk,behavior-macro";
       #binding-cells = <0>;
       bindings
@@ -240,7 +238,6 @@
     //  *some consumer or system control keys dosen't work with fn/globe key
     // param_1: keycode
     /omit-if-no-ref/ de_fn_kp: de_fn_kp {
-      label = "SEND_KEY_WHEN_FN_GLOBE_IS_HELD";
       compatible = "zmk,behavior-macro-one-param";
       #binding-cells = <1>;
       bindings
@@ -255,7 +252,6 @@
     };
     // keychron dip-sw
     /omit-if-no-ref/ kc_dip_sw: kc_dip_sw {
-      label = "KEYCHRON_DIP_SW";
       compatible = "zmk,behavior-macro";
       #binding-cells = <0>;
       bindings
@@ -266,22 +262,25 @@
     };
   };
 
-  // raqdial controller
   /omit-if-no-ref/ volume_encoder: volume_encoder {
     compatible = "zmk,behavior-sensor-rotate";
-    label = "VOLUME_ENCODER";
     #sensor-binding-cells = <0>;
     bindings = <&kp C_VOL_UP>, <&kp C_VOL_DN>;
   };
+  // radial controller
   /omit-if-no-ref/ radial_controller: radial_controller {
     compatible = "zmk,behavior-sensor-rotate";
-    label = "RADIAL_CONTROLLER";
     #sensor-binding-cells = <0>;
     bindings = <&rc_cw>, <&rc_ccw>;
   };
+  // radial controller 1/4 fine
+  /omit-if-no-ref/ radial_controller_fine: radial_controller_fine {
+    compatible = "zmk,behavior-sensor-rotate";
+    #sensor-binding-cells = <0>;
+    bindings = <&rc_cw_fine>, <&rc_ccw_fine>;
+  };
   /omit-if-no-ref/ trans_encoder: trans_encoder {
     compatible = "zmk,behavior-sensor-rotate";
-    label = "TRANSPARENT_ENCODER";
     #sensor-binding-cells = <0>;
     bindings = <&trans>, <&trans>;
   };

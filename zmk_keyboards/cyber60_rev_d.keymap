@@ -81,8 +81,8 @@
     setting_layer {
       bindings = <
       &bootloader  &kp F13   &kp F14   &kp F15   &kp F16   &kp F17   &kp F18  &kp F19  &kp F20  &kp F21  &kp F22  &kp F23  &kp F24  &ota_bootloader  &sys_reset
-      &trans       _BT_MAC1  _BT_MAC2  _BT_WIN1  _BT_MAC3  _BT_WIN2  &trans   _USB     &trans   &trans   &trans   &trans   &trans                    _BT_CLR
-      &trans       &trans    &trans    &trans    &trans    &trans    &trans   &trans   &trans   &trans   &trans   &trans                             &trans
+      &trans       _BT_MAC1  _BT_MAC2  _BT_WIN1  _BT_MAC3  _BT_WIN2  &trans   _USB     &trans   &trans   &trans   &trans   _BT_CLR                   _BT_CLR_ALL
+      &trans       _BT_OFF0  _BT_OFF1  _BT_OFF2  _BT_OFF3  _BT_OFF4  &trans   &trans   &trans   &trans   &trans   &trans                             &trans
       &trans       _MAC_WIN  &trans    &trans    &trans    &trans    &trans   &trans   &trans   &trans   &trans            &trans                    &trans
       &trans       &trans    &trans                                  &trans                                       &trans   &trans                    &trans
       >;

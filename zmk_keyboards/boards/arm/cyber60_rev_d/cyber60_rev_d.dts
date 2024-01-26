@@ -27,7 +27,6 @@
 
 	vbatt: vbatt {
 		compatible = "zmk,battery-voltage-divider";
-		label = "VBATT";
 		io-channels = <&adc 1>; // P0.03
 		output-ohms = <2000000>;
 		full-ohms = <(1000000 + 2000000)>;
@@ -41,7 +40,6 @@
 
 	encoder: encoder_1 {
         compatible = "alps,ec11";
-        label = "ENCODER";
         a-gpios = <&gpio1 1 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>; // P1.01
         b-gpios = <&gpio1 3 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>; // P1.03
         //resolution = <2>;
@@ -51,7 +49,6 @@
     buzzer: pwm_buzzer {
         compatible = "pwm-buzzer";
 		pwms = <&pwm0 0 1000 PWM_POLARITY_NORMAL>;
-		label = "PWM BUZZER";
 		status = "okay";
     };
 
@@ -59,17 +56,14 @@
 			compatible = "gpio-leds";
 			led_0: led_green { // P0.05
 				gpios = <&gpio0 5 GPIO_ACTIVE_LOW>;
-				label = "Green LED";
 				status = "okay";
 			};
 			led_1: led_red { // P0.07
 				gpios = <&gpio0 7 GPIO_ACTIVE_LOW>;
-				label = "Red LED";
-				status = "okay";
+ 				status = "okay";
 			};
 			led_2: led_blue { // P1.09
 				gpios = <&gpio1 9 GPIO_ACTIVE_LOW>;
-				label = "Blue LED";
 				status = "okay";
 			};
 		};
@@ -84,7 +78,6 @@
 
 	ext-power {
 		compatible = "zmk,ext-power-generic";
-		label = "EXT_POWER";
 		control-gpios = <&gpio0 31 GPIO_ACTIVE_HIGH>; // P0.31
 	};
 
@@ -104,7 +97,6 @@
 
 	kscan0: kscan {
 		compatible = "zmk,kscan-gpio-matrix";
-		label = "KSCAN";
 
 		diode-direction = "col2row";
 		row-gpios
@@ -148,7 +140,6 @@
     status = "okay";
     cdc_acm_uart: cdc_acm_uart {
         compatible = "zephyr,cdc-acm-uart";
-        label = "CDC_ACM_0";
     };
 };
 &pwm0 {
@@ -167,7 +158,6 @@
 	pinctrl-names = "default", "sleep";
 	led_strip: ws2812@0 {
 		compatible = "worldsemi,ws2812-spi";
-		label = "WS2812";
 		/* SPI */
 		reg = <0>; /* ignored, but necessary for SPI bindings */
 		spi-max-frequency = <4000000>;
@@ -190,11 +180,9 @@
 		#size-cells = <1>;
 
 		sd_partition: partition@0 {
-			label = "softdevice";
 			reg = <0x00000000 0x00026000>;
 		};
 		code_partition: partition@26000 {
-			label = "code_partition";
 			reg = <0x00026000 0x000c6000>;
 		};
 
@@ -208,12 +196,10 @@
 		 * if enabled.
 		 */
 		storage_partition: partition@ec000 {
-			label = "storage";
 			reg = <0x000ec000 0x00008000>;
 		};
 
 		boot_partition: partition@f4000 {
-			label = "adafruit_boot";
 			reg = <0x000f4000 0x0000c000>;
 		};
 	};

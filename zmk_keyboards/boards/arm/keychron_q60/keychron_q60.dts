@@ -112,7 +112,6 @@
          * size is 16MB minus the 0x100 bytes taken by the bootloader.
          */
         code_partition: partition@0 {
-            label = "code";
             reg = <0x0 (DT_SIZE_M(256) - DT_SIZE_K(16))>;
             read-only;
         };
@@ -121,7 +120,6 @@
 		 * Reserve the final 16 KiB for file system partition
 		 */
 		storage_partition: partition@3c000 {
-			label = "storage";
 			reg = <(DT_SIZE_K(256) - DT_SIZE_K(16)) DT_SIZE_K(16)>;
 		};
 	};

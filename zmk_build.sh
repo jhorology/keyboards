@@ -10,7 +10,7 @@ HOST_OS=$(uname)
 [[ $HOST_OS = Linux ]] && HOST_OS=linux
 HOST_ARCHITECTURE=$(uname -m)
 [[ $HOST_OS = macos ]] && [[ $HOST_ARCHITECTURE = arm64 ]] && HOST_ARCHITECTURE=aarch64
-ZEPHYR_VERSION=3.4.0
+ZEPHYR_VERSION=3.5.0
 ZEPHYR_SDK_VERSION=0.16.4
 
 # it is recommended to extract the Zephyr SDK bundle at one of the following default locations:
@@ -313,10 +313,8 @@ pip_install() {
   fi
   source .venv/bin/activate
   pip3 install west
-  pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v$ZEPHYR_VERSION/scripts/requirements-base.txt
-  pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v$ZEPHYR_VERSION/scripts/requirements-build-test.txt
-  pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v$ZEPHYR_VERSION/scripts/requirements-run-test.txt
-  pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v$ZEPHYR_VERSION/scripts/requirements-doc.txt
+  pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v$ZEPHYR_VERSION/scripts/requirements.txt
+  pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v$ZEPHYR_VERSION/doc/requirements.txt
   pip3 install pip-review
   pip3 install doc2dash
   pip3 cache purge

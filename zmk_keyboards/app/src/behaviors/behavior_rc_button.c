@@ -19,6 +19,8 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #if DT_HAS_COMPAT_STATUS_OKAY(DT_DRV_COMPAT)
 
+static int behavior_rc_button_init(const struct device *dev) { return 0; }
+
 static int on_keymap_binding_pressed(struct zmk_behavior_binding *binding,
                                      struct zmk_behavior_binding_event event) {
   LOG_DBG("radial controller button pressed");
@@ -33,12 +35,10 @@ static int on_keymap_binding_released(struct zmk_behavior_binding *binding,
   return zmk_endpoints_send_radial_controller_report();
 }
 
-static int behavior_rc_button_init(const struct device *dev) { return 0; }
-
 static const struct behavior_driver_api behavior_rc_button_driver_api = {
   .binding_pressed = on_keymap_binding_pressed, .binding_released = on_keymap_binding_released};
 
-DEVICE_DT_INST_DEFINE(0, behavior_rc_button_init, NULL, NULL, NULL, APPLICATION,
-                      CONFIG_KERNEL_INIT_PRIORITY_DEFAULT, &behavior_rc_button_driver_api);
+BEHAVIOR_DT_INST_DEFINE(0, behavior_rc_button_init, NULL, NULL, NULL, POST_KERNEL,
+                        CONFIG_KERNEL_INIT_PRIORITY_DEFAULT, &behavior_rc_button_driver_api);
 
 #endif /* DT_HAS_COMPAT_STATUS_OKAY(DT_DRV_COMPAT) */

@@ -1,13 +1,5 @@
 menu "ZMK Extends"
 
-if ZMK_HID_REPORT_TYPE_NKRO
-
-config ZMK_HID_KEYBOARD_NKRO_MAX_USAGE
-    hex "# Maximum Usage ID Reportable"
-    default 0x97
-
-endif # ZMK_HID_REPORT_TYPE_NKRO
-
 # TODO maybe better to define in device-tree as property of keymap
 config ZMK_HID_EXTRA_KEYS
     bool "Enable extra keys"
@@ -78,5 +70,18 @@ config ZMK_USB_AUTO_SWITCH_LAYER_UNLESS_DARWIN
     default 1
 
 endif # ZMK_AUTO_SWITCH_LAYER
+
+
+config ZMK_RADIAL_CONTROLLER
+    bool "Enable ZMK Radial Controller"
+    default n
+
+if ZMK_RADIAL_CONTROLLER
+
+config ZMK_BLE_RADIAL_CONTROLLER_REPORT_QUEUE_SIZE
+    int "Max number of radial controller HID reports to queue for sending over BLE"
+    default 5
+
+endif # ZMK_RADIAL_CONTROLLER
 
 endmenu
