@@ -270,11 +270,11 @@ docker_exec() {
 }
 
 fedora_install_packages() {
-  # https://docs.zephyrproject.org/3.2.0/develop/getting_started/index.html#select-and-update-os
+  # https://docs.zephyrproject.org/3.5.0/develop/getting_started/index.html#select-and-update-os
   sudo dnf update
-  sudo dnf install wget git cmake ninja-build gperf python3 dtc wget xz file \
+  sudo dnf install wget git cmake gperf python3 dtc wget xz file \
        make gcc SDL2-devel file-libs \
-       tio fd-find ripgrep
+       tio fd-find ripgrep fzf
   # gcc-multilib g++-multilib
   sudo dnf autoremove
   sudo dnf clean all
@@ -289,12 +289,11 @@ fedora_install_packages() {
 }
 
 macos_install_packages() {
-  # https://docs.zephyrproject.org/3.2.0/develop/getting_started/index.html#select-and-update-os
-  # https://docs.zephyrproject.org/3.2.0/contribute/documentation/generation.html
+  # https://docs.zephyrproject.org/3.5.0/develop/getting_started/index.html#select-and-update-os
   brew update
-  brew install wget git cmake ninja gperf python3 qemu dtc libmagic \
+  brew install wget git cmake gperf python3 qemu dtc libmagic \
        doxygen graphviz librsvg \
-       tio fd rg
+       clangd tio fd rg fzf
 
   # if PDF is needed
   # brew install mactex
@@ -315,6 +314,7 @@ pip_install() {
   pip3 install west
   pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v$ZEPHYR_VERSION/scripts/requirements.txt
   pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v$ZEPHYR_VERSION/doc/requirements.txt
+  pip3 install ninja
   pip3 install pip-review
   pip3 install doc2dash
   pip3 cache purge
@@ -656,8 +656,19 @@ zephyr_doc2dash() {
   if [ ! -d zephyr ]; then
     update
   fi
+
+  # cleanup
+  cd $PROJECT/zephyr
+  git reset --hard
+  git clean -dfx
+
+  # see https://docs.zephyrproject.org/3.5.0/contribute/documentation/generation.html
   cd $PROJECT/zephyr/doc
-  make html
+  cmake -GNinja -B_build .
+  cd _build
+  # at first time failed on too many errors
+  ninja -v html || ninja -v html
+
   mkdir -p $DOCSETS_DIR
   doc2dash --name Zephyr \
            --icon $PROJECT/zephyr/doc/_static/images/kite.png \
@@ -666,12 +677,15 @@ zephyr_doc2dash() {
            --destination $DOCSETS_DIR \
            --enable-js \
            --online-redirect-url https://docs.zephyrproject.org/$ZEPHYR_VERSION \
-           _build/html
+           html
   # hide left sidebar
   cat <<EOF >> $DOCSETS_DIR/Zephyr.docset/Contents/Resources/Documents/_static/css/theme.css
 .wy-nav-side{display:none}
 .wy-nav-content-wrap{margin-left:unset}
 EOF
+
+  # cleanup
+  cd $PROJECT/zephyr
   git clean -dfx .
 }
 
