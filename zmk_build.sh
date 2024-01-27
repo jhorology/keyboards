@@ -293,7 +293,7 @@ macos_install_packages() {
   brew update
   brew install wget git cmake gperf python3 qemu dtc libmagic \
        doxygen graphviz librsvg \
-       clangd tio fd rg fzf
+       tio fd rg fzf
 
   # if PDF is needed
   # brew install mactex
