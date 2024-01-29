@@ -14,10 +14,6 @@ CONFIG_PINCTRL=y
 # Code partition needed to target the correct flash range
 CONFIG_USE_DT_CODE_PARTITION=y
 
-# use polling instead of interrupt
-# stm32 dosen't support level trigger interrupt
-CONFIG_ZMK_KSCAN_MATRIX_POLLING=y
-
 # Output UF2
 CONFIG_BUILD_OUTPUT_UF2=y
 
@@ -33,6 +29,11 @@ CONFIG_ZMK_KSCAN_MATRIX_WAIT_BEFORE_INPUTS=1
 # default 0
 # CONFIG_ZMK_KSCAN_MATRIX_WAIT_BETWEEN_OUTPUTS=1
 
-# Enable USB CDC ACM logging for debugging
-# Can't usable beacuase memory usage exceed.
-# CONFIG_ZMK_USB_LOGGING=y
+# if NKRO and MAX_USAGE > 0x67, it should be increased.
+# probably it's caluculated from (MAX_USAGE + 1) / 8 + 3
+#  - report id 1byte
+#  - modifier input 1byte
+#  - reserved inout 1byte
+#  - nkro input (MAX_USAGE + 1) / 8 bytes
+# default: 16
+CONFIG_HID_INTERRUPT_EP_MPS=22

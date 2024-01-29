@@ -23,5 +23,11 @@ CONFIG_USB_SELF_POWERED=n
 # some gpio input pins are exists on same EXTI line.
 CONFIG_ZMK_KSCAN_MATRIX_POLLING=y
 
-# Enable USB CDC ACM logging for debugging
-# CONFIG_ZMK_USB_LOGGING=y
+# if NKRO and MAX_USAGE > 0x67, it should be increased.
+# probably it's caluculated from (MAX_USAGE + 1) / 8 + 3
+#  - report id 1byte
+#  - modifier input 1byte
+#  - reserved inout 1byte
+#  - nkro input (MAX_USAGE + 1) / 8 bytes
+# default: 16
+CONFIG_HID_INTERRUPT_EP_MPS=22

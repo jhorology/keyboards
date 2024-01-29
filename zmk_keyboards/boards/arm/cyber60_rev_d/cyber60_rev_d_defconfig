@@ -50,3 +50,13 @@ CONFIG_PINCTRL=y
 
 # Enable reboot type for Adafruit_nRF52_Bootloader
 CONFIG_NRF_STORE_REBOOT_TYPE_GPREGRET=y
+
+# if NKRO and MAX_USAGE > 0x67, it should be increased.
+# probably it's caluculated from (MAX_USAGE + 1) / 8 + 3
+#  - report id 1byte
+#  - modifier input 1byte
+#  - reserved inout 1byte
+#  - nkro input (MAX_USAGE + 1) / 8 bytes
+# default: 16
+# nrf seem to msut be power of 2
+CONFIG_HID_INTERRUPT_EP_MPS=32

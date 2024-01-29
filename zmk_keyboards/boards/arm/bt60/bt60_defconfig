@@ -40,3 +40,13 @@ CONFIG_PWM=y
 CONFIG_LED_PWM=y
 CONFIG_ZMK_BACKLIGHT=y
 CONFIG_BUILD_OUTPUT_UF2=y
+
+# if NKRO and MAX_USAGE > 0x67, it should be increased.
+# probably it's caluculated from (MAX_USAGE + 1) / 8 + 3
+#  - report id 1byte
+#  - modifier input 1byte
+#  - reserved inout 1byte
+#  - nkro input (MAX_USAGE + 1) / 8 bytes
+# default: 16
+# nrf seem to msut be power of 2
+CONFIG_HID_INTERRUPT_EP_MPS=32
