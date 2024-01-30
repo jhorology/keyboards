@@ -84,4 +84,9 @@ config ZMK_BLE_RADIAL_CONTROLLER_REPORT_QUEUE_SIZE
 
 endif # ZMK_RADIAL_CONTROLLER
 
+config ZMK_INDICATOR_LED
+    bool "Enable indicator LEDs"
+    select LED
+    select ZMK_HID_INDICATORS
+
 endmenu

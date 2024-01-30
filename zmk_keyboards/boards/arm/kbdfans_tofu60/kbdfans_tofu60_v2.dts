@@ -132,7 +132,7 @@
 
     leds {
 	    compatible = "gpio-leds";
-	    caps_lock: caps_lock {
+	    caps_lock_led: caps_lock_led {
 		    gpios = <&gpio0 28 GPIO_ACTIVE_HIGH>;
 	    };
     };
