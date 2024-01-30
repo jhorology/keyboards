@@ -6,8 +6,8 @@
 #define NUM_LOCK_IDX 0
 #define CAPS_LOCK_IDX 1
 #define SCROLL_LOCK_IDX 2
-#define COMPOSE_MASK_IDX 3
-#define KANA_MASK_IDX 4
+#define COMPOSE_IDX 3
+#define KANA_IDX 4
 
 #define DT_HAS_INDICATOR_LED(id) \
   DT_NODE_HAS_COMPAT_STATUS(DT_PARENT(DT_NODELABEL(id##_led)), gpio_leds, okay)
