@@ -6,6 +6,9 @@
     "pid": "0x1321",
     "device_version": "0.0.3"
   },
+  "rgb_matrix": {
+    "driver": "is31fl3733"
+  },
   "processor": "atmega32u4",
   "bootloader": "atmel-dfu",
   "diode_direction": "COL2ROW",
