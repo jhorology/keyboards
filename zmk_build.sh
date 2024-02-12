@@ -486,7 +486,7 @@ dot_dir_locals() {
 ((nil . ((projectile-git-use-fd . t)
          (projectile-git-fd-args . "--hidden --no-ignore -0 --exclude '\.*' --type f --strip-cwd-prefix")
          (counsel-rg-base-command . ("rg" "--no-ignore" "--max-columns" "240" "--with-filename" "--no-heading" "--line-number" "--color" "never" "%s"))
-         (compile-command . "zmk_build.sh -w -p $target")
+         (compile-command . "zmk_build.sh -wp $target")
 )))
 EOS
 }

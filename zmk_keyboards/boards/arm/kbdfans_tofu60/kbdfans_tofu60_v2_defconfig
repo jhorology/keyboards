@@ -7,13 +7,8 @@ CONFIG_BOARD_KBDFANS_TOFU60_V2=y
 
 CONFIG_SYS_CLOCK_HW_CYCLES_PER_SEC=125000000
 
-# Enable USB CDC ACM logging for debugging
-# CONFIG_ZMK_USB_LOGGING=y
-
 # Enable reset by default
 CONFIG_RESET=y
-
-# CONFIG_FLASH_LOAD_OFFSET=0x100
 
 # Code partition needed to target the correct flash range
 CONFIG_USE_DT_CODE_PARTITION=y
@@ -21,8 +16,9 @@ CONFIG_USE_DT_CODE_PARTITION=y
 # Output UF2 by default, native bootloader supports it.
 CONFIG_BUILD_OUTPUT_UF2=y
 
+# USB
+CONFIG_ZMK_USB=y
 CONFIG_USB_SELF_POWERED=n
-
 # if NKRO and MAX_USAGE > 0x67, it should be increased.
 # probably it's caluculated from (MAX_USAGE + 1) / 8 + 3
 #  - report id 1byte
@@ -30,4 +26,4 @@ CONFIG_USB_SELF_POWERED=n
 #  - reserved inout 1byte
 #  - nkro input (MAX_USAGE + 1) / 8 bytes
 # default: 16
-CONFIG_HID_INTERRUPT_EP_MPS=22
+CONFIG_HID_INTERRUPT_EP_MPS=32

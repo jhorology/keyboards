@@ -9,7 +9,8 @@ CONFIG_BOARD_KEYCHRON_Q60=y
 CONFIG_ARM_MPU=y
 
 # Enable HW stack protection
-CONFIG_HW_STACK_PROTECTION=y
+# ??? this option cause problems with tap-dance since zephyr 3.5
+# CONFIG_HW_STACK_PROTECTION=y
 
 # enable clock control
 CONFIG_CLOCK_CONTROL=y
@@ -17,12 +18,16 @@ CONFIG_CLOCK_CONTROL=y
 # enable pin controller
 CONFIG_PINCTRL=y
 
-CONFIG_USB_SELF_POWERED=n
-
-# use polling instead of intrrupt for kscan
+# Use polling instead of intrrupt for kscan
 # some gpio input pins are exists on same EXTI line.
 CONFIG_ZMK_KSCAN_MATRIX_POLLING=y
 
+# USB
+CONFIG_ZMK_USB=y
+CONFIG_USB_SELF_POWERED=n
+
+# USB HID Device Interrupt Endpoint size
+#
 # if NKRO and MAX_USAGE > 0x67, it should be increased.
 # probably it's caluculated from (MAX_USAGE + 1) / 8 + 3
 #  - report id 1byte
@@ -30,4 +35,4 @@ CONFIG_ZMK_KSCAN_MATRIX_POLLING=y
 #  - reserved inout 1byte
 #  - nkro input (MAX_USAGE + 1) / 8 bytes
 # default: 16
-CONFIG_HID_INTERRUPT_EP_MPS=22
+CONFIG_HID_INTERRUPT_EP_MPS=32

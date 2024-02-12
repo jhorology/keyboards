@@ -6,26 +6,14 @@ if BOARD_CYBER60_REV_D
 config ZMK_KEYBOARD_NAME
 	default "cyber60 Rev D"
 
-if USB
+if USB_DEVICE_STACK
 
 config USB_NRFX
-	default y
+    default y
 
-config USB_DEVICE_STACK
-	default y
-
-endif # USB
+endif # USB_DEVICE_STACK
 
 config BT_CTLR
-	default BT
-
-config ZMK_BLE
-	default y
-
-config ZMK_USB
-	default y
-
-config ZMK_BATTERY_VOLTAGE_DIVIDER
-	default y
+    default BT
 
 endif # BOARD_CYBER60_REV_D

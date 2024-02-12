@@ -6,7 +6,4 @@ if BOARD_QK60_WIRED
 config ZMK_KEYBOARD_NAME
     default "QK60 Wired"
 
-config ZMK_USB
-    default y
-
 endif # BOARD_QK60_WIRED
