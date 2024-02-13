@@ -11,7 +11,7 @@ HOST_OS=$(uname)
 HOST_ARCHITECTURE=$(uname -m)
 [[ $HOST_OS = macos ]] && [[ $HOST_ARCHITECTURE = arm64 ]] && HOST_ARCHITECTURE=aarch64
 ZEPHYR_VERSION=3.5.0
-ZEPHYR_SDK_VERSION=0.16.4
+ZEPHYR_SDK_VERSION=0.16.5
 
 # it is recommended to extract the Zephyr SDK bundle at one of the following default locations:
 #
@@ -536,7 +536,7 @@ macos_uf2_flash() {
     echo ""
     echo "copying firmware [$firmware] to volume [$dfu_volume]..."
     sleep 1
-    cp $firmware $dfu_volume
+    cp -X $firmware $dfu_volume
     true
   else
     false
