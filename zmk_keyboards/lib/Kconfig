@@ -2,7 +2,7 @@ menu "Zephyr Extends"
 
 config BOOTSEL_STM32
     bool "Enable bootsel for stm32 SYSTEM_MEMORY bootloader"
-    default y if BOARD_KEYCHRON_Q60
+    default n
     help
       see details on https://www.st.com/resource/en/application_note/an2606-stm32-microcontroller-system-memory-boot-mode-stmicroelectronics.pdf
 
@@ -26,13 +26,14 @@ config BOOTSEL_STM32_REBOOT_TYPE_MASK
 
 config BOOTSEL_STM32_ON_FATAL_ERROR
     bool "Reset to bootlader on fatal error"
+    default n
 
 endif # BOOTSEL_STM32
 
 config BOOTSEL_UF2_STM32F103
     bool "Enable bootsel for uf2-stm32f103 bootlader"
     depends on SOC_SERIES_STM32F1X
-    default y if BOARD_FK680PRO_V2
+    default n
     help
       see details on https://github.com/mmoskal/uf2-stm32f103
 
@@ -52,13 +53,13 @@ config BOOTSEL_UF2_STM32F103_MAGIC_UF2_REBOOT_TYPE_MASK
 
 config BOOTSEL_UF2_STM32F103_ON_FATAL_ERROR
     bool "Reset to bootlader on fatal error"
-    default y if BOARD_FK680PRO_V2
+    default n
 
 endif # BOOTSEL_UF2_STM32F103
 
 config BOOTSEL_VIA_DOUBLE_RESET
     bool "Enable bootsel via double-tap reset"
-    default y if BOARD_KBDFANS_TOFU60_V2
+    default n
 
 if BOOTSEL_VIA_DOUBLE_RESET
 

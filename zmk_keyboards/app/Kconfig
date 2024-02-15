@@ -3,7 +3,7 @@ menu "ZMK Extends"
 # TODO maybe better to define in device-tree as property of keymap
 config ZMK_HID_EXTRA_KEYS
     bool "Enable extra keys"
-    default y
+    default n
 
 if ZMK_HID_EXTRA_KEYS
 
@@ -21,10 +21,10 @@ if ZMK_HID_EXTRA_KEYS
 
 config ZMK_HID_EXTRA_KEY_0
     hex "Extra key code 0"
-    default 0x00ff0003
+    default 0x0
 config ZMK_HID_EXTRA_KEY_1
     hex "Extra key code 1"
-    default 0x0180009b
+    default 0x0
 config ZMK_HID_EXTRA_KEY_2
     hex "Extra key code 2"
     default 0x0
@@ -54,7 +54,7 @@ config ZMK_USB_HOST_OS
 # TODO maybe better to define in device-tree as property of keymap
 config ZMK_USB_AUTO_SWITCH_LAYER
     bool "Enable uato switch layer"
-    default y if ZMK_USB
+    default n
     select ZMK_USB_HOST_OS
 
 if ZMK_USB_AUTO_SWITCH_LAYER
@@ -62,12 +62,10 @@ if ZMK_USB_AUTO_SWITCH_LAYER
 # TODO maybe better to define in device-tree
 config ZMK_USB_AUTO_SWITCH_LAYER_IF_DARWIN
     int "Mac layer"
-    default 0
 
 # TODO maybe better to define in device-tree
 config ZMK_USB_AUTO_SWITCH_LAYER_UNLESS_DARWIN
     int "Win layer"
-    default 1
 
 endif # ZMK_AUTO_SWITCH_LAYER
 
