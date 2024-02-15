@@ -31,7 +31,9 @@
  *
  *   0x05, 0xFF,        //   Usage Page (Reserved 0xFF)
  *   0x09, 0x03,        //   Usage (0x03)
- *   0x09, 0x03,        //   Usage (0x04)
+ *   0x09, 0x04,        //   Usage (0x04)
+ *   0x15, 0x00,        //   Logical Minimum (0)
+ *   0x25, 0x01,        //   Logical Maximum (1)
  *   0x75, 0x01,        //   Report Size (1)
  *   0x95, 0x01,        //   Report Count (2)
  *   0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
@@ -113,7 +115,9 @@
 #define _END_COLLECTION(c)                                                                    \
   HID_LOGICAL_MIN8(0x00), HID_LOGICAL_MAX8(0x01), HID_REPORT_SIZE(0x01), HID_REPORT_COUNT(c), \
     HID_INPUT(0x02), HID_END_COLLECTION
-#define _END_PAGE(c) HID_REPORT_SIZE(0x01), HID_REPORT_COUNT(c), HID_INPUT(0x02)
+#define _END_PAGE(c)                                                                          \
+  HID_LOGICAL_MIN8(0x00), HID_LOGICAL_MAX8(0x01), HID_REPORT_SIZE(0x01), HID_REPORT_COUNT(c), \
+    HID_INPUT(0x02)
 
 // EXTRA_KEY_0
 #if _C_USAGE_PAGE(0)
