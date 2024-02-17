@@ -36,7 +36,7 @@ SYS_INIT(bootsel_stm32_check, PRE_KERNEL_1, CONFIG_BOOTSEL_STM32_INIT_PRIORITY);
 #if IS_ENABLED(CONFIG_BOOTSEL_STM32_ON_FATAL_ERROR)
 void k_sys_fatal_error_handler(unsigned int reason, const z_arch_esf_t *esf) {
   ARG_UNUSED(reason);
-  ARG_UNUSED(osf);
+  ARG_UNUSED(esf);
 
   magic = CONFIG_BOOTSEL_STM32_MAGIC;
   NVIC_SystemReset();
