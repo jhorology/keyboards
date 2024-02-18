@@ -361,12 +361,14 @@ update() {
 
   if $WITH_UPDATE; then
     rm -rf build
-    if [ -d zmk ]; then
+    if [ -d zephyr ]; then
       # revert changes
       cd zephyr
       git reset --hard HEAD
       git clean -dfx
       cd ..
+    fi
+    if [ -d zmk ]; then
       cd zmk
       git reset --hard HEAD
       git clean -dfx
@@ -403,12 +405,14 @@ update_with_docker() {
     fi
     if $WITH_UPDATE; then
         rm -rf build
-        if [ -d zmk ]; then
+        if [ -d zephyr ]; then
             # revert changes
             cd zephyr
             git reset --hard HEAD
             git clean -dfx
             cd ..
+        fi
+        if [ -d zmk ]; then
             cd zmk
             git reset --hard HEAD
             git clean -dfx
@@ -529,44 +533,41 @@ dist_firmware() {
 
 macos_uf2_flash() {
   local firmware=$1
-  local volume_name=$2
-
+  local boaed=$2
+  local volume_name=$3
   local dfu_volume=/Volumes/$volume_name
-  if [[ -d $dfu_volume  ]]; then
+
+  echo -n "waiting for DFU volume [$dfu_volume] to be mounted..."
+  while true; do
+  if [[ -d $dfu_volume ]]; then
     echo ""
     echo "copying firmware [$firmware] to volume [$dfu_volume]..."
     sleep 1
     cp -X $firmware $dfu_volume
-    true
+    # useless west flash for uf2
+    # west flash --build-dir build/$board || true
+    echo "flashing firmware finished successfully."
+    return
   else
-    false
+    echo -n "."
+    sleep 1
   fi
+  done
 }
 
 fedora_uf2_flash() {
   local firmware=$1
-  local volume_name=$2
-
-  dfu_drive=$(/mnt/c/Windows/System32/wbem/WMIC.exe logicaldisk get deviceid, volumename | grep $volume_name | awk '{print $1}')
-  if [[ ! -z $dfu_drive ]]; then
-    echo ""
-    echo "copying firmware [$firmware] to drive [$dfu_drive]..."
-    sleep 1
-    $WIN_GSUDO c:\\Windows\\System32\\xcopy.exe "$(wslpath -w $firmware)" $dfu_drive\\
-    true
-  else
-    false
-  fi
-}
-
-flash_uf2_firmware() {
-  local firmware=$1
-  local board=$2
-  local volume_name=$5
+  local boaed=$2
+  local volume_name=$3
 
   echo -n "waiting for DFU volume to be mounted..."
   while true; do
-    if ${os}_uf2_flash $firmware $volume_name; then
+    dfu_drive=$(/mnt/c/Windows/System32/wbem/WMIC.exe logicaldisk get deviceid, volumename | grep $volume_name | awk '{print $1}')
+    if [[ ! -z $dfu_drive ]]; then
+      echo ""
+      echo "copying firmware [$firmware] to drive [$dfu_drive]..."
+      sleep 1
+      $WIN_GSUDO c:\\Windows\\System32\\xcopy.exe "$(wslpath -w $firmware)" $dfu_drive\\
       echo "flashing firmware finished successfully."
       break
     else
@@ -574,6 +575,13 @@ flash_uf2_firmware() {
       sleep 1
     fi
   done
+}
+
+flash_uf2_firmware() {
+  local firmware=$1
+  local board=$2
+  local volume_name=$5
+  ${os}_uf2_flash $firmware $board $volume_name
 }
 
 flash_bin_firmware() {
