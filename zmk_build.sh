@@ -440,7 +440,7 @@ build() {
   local board=$1
   local target=$2
   local opts=()
-  (( $#with_logging )) && opts=($opts "-DCONFIG_ZMK_USB_LOGGING=y")
+  (( $#with_logging )) && opts=($opts "-DCONFIG_ZMK_USB_LOGGING=y" "-DCONFIG_LOG_THREAD_ID_PREFIX=y")
   (( $#with_shell )) && opts=($opts "-DCONFIG_SHELL=y")
   #  temporarily fix dependencie issue for nrf boards
   (( $#with_shell )) && [[ $board = "bt60" || $board == "cyber60_rev_d" ]] && \
