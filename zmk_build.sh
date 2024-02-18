@@ -539,18 +539,18 @@ macos_uf2_flash() {
 
   echo -n "waiting for DFU volume [$dfu_volume] to be mounted..."
   while true; do
-  if [[ -d $dfu_volume ]]; then
-    echo ""
-    echo "copying firmware [$firmware] to volume [$dfu_volume]..."
-    sleep 1
-    # cp -X $firmware $dfu_volume
-    west flash --build-dir build/$board
-    echo "flashing firmware finished successfully."
-    return
-  else
-    echo -n "."
-    sleep 1
-  fi
+    if [[ -d $dfu_volume ]]; then
+      echo ""
+      echo "copying firmware [$firmware] to volume [$dfu_volume]..."
+      sleep 1
+      # cp -X $firmware $dfu_volume
+      west flash --build-dir build/$board
+      echo "flashing firmware finished successfully."
+      return
+    else
+      echo -n "."
+      sleep 1
+    fi
   done
 }
 
