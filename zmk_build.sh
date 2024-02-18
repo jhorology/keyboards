@@ -533,7 +533,7 @@ dist_firmware() {
 
 macos_uf2_flash() {
   local firmware=$1
-  local boaed=$2
+  local board=$2
   local volume_name=$3
   local dfu_volume=/Volumes/$volume_name
 
@@ -543,9 +543,8 @@ macos_uf2_flash() {
     echo ""
     echo "copying firmware [$firmware] to volume [$dfu_volume]..."
     sleep 1
-    cp -X $firmware $dfu_volume
-    # useless west flash for uf2
-    # west flash --build-dir build/$board || true
+    # cp -X $firmware $dfu_volume
+    west flash --build-dir build/$board
     echo "flashing firmware finished successfully."
     return
   else
