@@ -592,9 +592,12 @@ flash_bin_firmware() {
     while true; do
       dfu_device=$($WIN_USBIPD list 2> /dev/null | grep "$hardware_id" || echo -n "")
       if [[ ! -z $dfu_device ]]; then
-        if [[ $dfu_device =~ "Shared" ]]; then
+        if [[ $dfu_device =~ "Not shared" ]]; then
+          win_usbipd_path=
+          $WIN_GSUDO "$(wslpath -w $WIN_USBIPD)" bind --hardware-id $hardware_id
+        elif [[ $dfu_device =~ "Shared" ]]; then
           win_usbipd_path=$(wslpath -w "$WIN_USBIPD")
-          $WIN_GSUDO $win_usbipd_path attach --wsl --hardware-id $hardware_id
+          $WIN_GSUDO "$(wslpath -w $WIN_USBIPD)" attach --wsl --hardware-id $hardware_id
         elif [[ $dfu_device =~ "Attached" ]]; then
           sudo chmod -R 777 /dev/bus/usb
           west flash --build-dir build/$board || true
