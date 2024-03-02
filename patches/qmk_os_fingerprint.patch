@@ -1,9 +1,147 @@
+diff --git a/quantum/process_keycode/process_magic.c b/quantum/process_keycode/process_magic.c
+index 3b35884d68..c4ce1022b6 100644
+--- a/quantum/process_keycode/process_magic.c
++++ b/quantum/process_keycode/process_magic.c
+@@ -17,6 +17,7 @@
+ #include "keycode_config.h"
+ #include "keycodes.h"
+ #include "eeconfig.h"
++#include "action_util.h"
+ 
+ #ifdef AUDIO_ENABLE
+ #    include "audio.h"
+@@ -46,97 +47,99 @@ bool process_magic(uint16_t keycode, keyrecord_t *record) {
+     // skip anything that isn't a keyup
+     if (record->event.pressed) {
+         if (IS_MAGIC_KEYCODE(keycode)) {
++            bool normal_true = get_mods() & MOD_MASK_SHIFT ? false : true;
++            bool normal_false = !normal_true;
+             /* keymap config */
+             keymap_config.raw = eeconfig_read_keymap();
+             switch (keycode) {
+                 case QK_MAGIC_SWAP_CONTROL_CAPS_LOCK:
+-                    keymap_config.swap_control_capslock = true;
++                    keymap_config.swap_control_capslock = normal_true;
+                     break;
+                 case QK_MAGIC_SWAP_ESCAPE_CAPS_LOCK:
+-                    keymap_config.swap_escape_capslock = true;
++                    keymap_config.swap_escape_capslock = normal_true;
+                     break;
+                 case QK_MAGIC_CAPS_LOCK_AS_CONTROL_ON:
+-                    keymap_config.capslock_to_control = true;
++                    keymap_config.capslock_to_control = normal_true;
+                     break;
+                 case QK_MAGIC_SWAP_LALT_LGUI:
+-                    keymap_config.swap_lalt_lgui = true;
++                    keymap_config.swap_lalt_lgui = normal_true;
+                     break;
+                 case QK_MAGIC_SWAP_RALT_RGUI:
+-                    keymap_config.swap_ralt_rgui = true;
++                    keymap_config.swap_ralt_rgui = normal_true;
+                     break;
+                 case QK_MAGIC_SWAP_LCTL_LGUI:
+-                    keymap_config.swap_lctl_lgui = true;
++                    keymap_config.swap_lctl_lgui = normal_true;
+                     break;
+                 case QK_MAGIC_SWAP_RCTL_RGUI:
+-                    keymap_config.swap_rctl_rgui = true;
++                    keymap_config.swap_rctl_rgui = normal_true;
+                     break;
+                 case QK_MAGIC_GUI_OFF:
+-                    keymap_config.no_gui = true;
++                    keymap_config.no_gui = normal_true;
+                     break;
+                 case QK_MAGIC_SWAP_GRAVE_ESC:
+-                    keymap_config.swap_grave_esc = true;
++                    keymap_config.swap_grave_esc = normal_true;
+                     break;
+                 case QK_MAGIC_SWAP_BACKSLASH_BACKSPACE:
+-                    keymap_config.swap_backslash_backspace = true;
++                    keymap_config.swap_backslash_backspace = normal_true;
+                     break;
+                 case QK_MAGIC_NKRO_ON:
+                     clear_keyboard(); // clear first buffer to prevent stuck keys
+-                    keymap_config.nkro = true;
++                    keymap_config.nkro = normal_true;
+                     break;
+                 case QK_MAGIC_SWAP_ALT_GUI:
+-                    keymap_config.swap_lalt_lgui = keymap_config.swap_ralt_rgui = true;
++                    keymap_config.swap_lalt_lgui = keymap_config.swap_ralt_rgui = normal_true;
+ #ifdef AUDIO_ENABLE
+                     PLAY_SONG(ag_swap_song);
+ #endif
+                     break;
+                 case QK_MAGIC_SWAP_CTL_GUI:
+-                    keymap_config.swap_lctl_lgui = keymap_config.swap_rctl_rgui = true;
++                    keymap_config.swap_lctl_lgui = keymap_config.swap_rctl_rgui = normal_true;
+ #ifdef AUDIO_ENABLE
+                     PLAY_SONG(cg_swap_song);
+ #endif
+                     break;
+                 case QK_MAGIC_UNSWAP_CONTROL_CAPS_LOCK:
+-                    keymap_config.swap_control_capslock = false;
++                    keymap_config.swap_control_capslock = normal_false;
+                     break;
+                 case QK_MAGIC_UNSWAP_ESCAPE_CAPS_LOCK:
+-                    keymap_config.swap_escape_capslock = false;
++                    keymap_config.swap_escape_capslock = normal_false;
+                     break;
+                 case QK_MAGIC_CAPS_LOCK_AS_CONTROL_OFF:
+-                    keymap_config.capslock_to_control = false;
++                    keymap_config.capslock_to_control = normal_false;
+                     break;
+                 case QK_MAGIC_UNSWAP_LALT_LGUI:
+-                    keymap_config.swap_lalt_lgui = false;
++                    keymap_config.swap_lalt_lgui = normal_false;
+                     break;
+                 case QK_MAGIC_UNSWAP_RALT_RGUI:
+-                    keymap_config.swap_ralt_rgui = false;
++                    keymap_config.swap_ralt_rgui = normal_false;
+                     break;
+                 case QK_MAGIC_UNSWAP_LCTL_LGUI:
+-                    keymap_config.swap_lctl_lgui = false;
++                    keymap_config.swap_lctl_lgui = normal_false;
+                     break;
+                 case QK_MAGIC_UNSWAP_RCTL_RGUI:
+-                    keymap_config.swap_rctl_rgui = false;
++                    keymap_config.swap_rctl_rgui = normal_false;
+                     break;
+                 case QK_MAGIC_GUI_ON:
+-                    keymap_config.no_gui = false;
++                    keymap_config.no_gui = normal_false;
+                     break;
+                 case QK_MAGIC_UNSWAP_GRAVE_ESC:
+-                    keymap_config.swap_grave_esc = false;
++                    keymap_config.swap_grave_esc = normal_false;
+                     break;
+                 case QK_MAGIC_UNSWAP_BACKSLASH_BACKSPACE:
+-                    keymap_config.swap_backslash_backspace = false;
++                    keymap_config.swap_backslash_backspace = normal_false;
+                     break;
+                 case QK_MAGIC_NKRO_OFF:
+                     clear_keyboard(); // clear first buffer to prevent stuck keys
+-                    keymap_config.nkro = false;
++                    keymap_config.nkro = normal_false;
+                     break;
+                 case QK_MAGIC_UNSWAP_ALT_GUI:
+-                    keymap_config.swap_lalt_lgui = keymap_config.swap_ralt_rgui = false;
++                    keymap_config.swap_lalt_lgui = keymap_config.swap_ralt_rgui = normal_false;
+ #ifdef AUDIO_ENABLE
+                     PLAY_SONG(ag_norm_song);
+ #endif
+                     break;
+                 case QK_MAGIC_UNSWAP_CTL_GUI:
+-                    keymap_config.swap_lctl_lgui = keymap_config.swap_rctl_rgui = false;
++                    keymap_config.swap_lctl_lgui = keymap_config.swap_rctl_rgui = normal_false;
+ #ifdef AUDIO_ENABLE
+                     PLAY_SONG(cg_norm_song);
+ #endif
 diff --git a/tmk_core/protocol/chibios/usb_main.c b/tmk_core/protocol/chibios/usb_main.c
-index 66f9ad0318..5d850cb780 100644
+index 7b1e641213..b714d26964 100644
 --- a/tmk_core/protocol/chibios/usb_main.c
 +++ b/tmk_core/protocol/chibios/usb_main.c
-@@ -51,6 +51,8 @@
- extern keymap_config_t keymap_config;
+@@ -56,6 +56,8 @@ extern keymap_config_t keymap_config;
+ #    include "ring_buffer.h"
  #endif
  
 +__attribute__((weak)) void trace_usb_get_descriptor(const uint8_t dtype, const uint16_t w_length) {}
@@ -11,7 +149,7 @@ index 66f9ad0318..5d850cb780 100644
  /* ---------------------------------------------------------
   *       Global interface variables and declarations
   * ---------------------------------------------------------
-@@ -107,6 +109,8 @@ union {
+@@ -112,6 +114,8 @@ union {
  static const USBDescriptor *usb_get_descriptor_cb(USBDriver *usbp, uint8_t dtype, uint8_t dindex, uint16_t wIndex) {
      usb_control_request_t *setup = (usb_control_request_t *)usbp->setup;
  
@@ -21,7 +159,7 @@ index 66f9ad0318..5d850cb780 100644
      descriptor.ud_string = NULL;
      descriptor.ud_size   = get_usb_descriptor(setup->wValue.word, setup->wIndex, setup->wLength, (const void **const) & descriptor.ud_string);
 diff --git a/tmk_core/protocol/lufa/lufa.c b/tmk_core/protocol/lufa/lufa.c
-index 553f69b1e4..4d3c054bee 100644
+index 22cc0db8ce..94d3c72d49 100644
 --- a/tmk_core/protocol/lufa/lufa.c
 +++ b/tmk_core/protocol/lufa/lufa.c
 @@ -67,6 +67,8 @@
@@ -33,7 +171,7 @@ index 553f69b1e4..4d3c054bee 100644
  uint8_t keyboard_idle = 0;
  /* 0: Boot Protocol, 1: Report Protocol(default) */
  uint8_t        keyboard_protocol  = 1;
-@@ -895,5 +897,8 @@ void protocol_post_task(void) {
+@@ -875,5 +877,8 @@ void protocol_post_task(void) {
  }
  
  uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue, const uint16_t wIndex, const void **const DescriptorAddress) {
@@ -43,7 +181,7 @@ index 553f69b1e4..4d3c054bee 100644
      return get_usb_descriptor(wValue, wIndex, USB_ControlRequest.wLength, DescriptorAddress);
  }
 diff --git a/tmk_core/protocol/vusb/vusb.c b/tmk_core/protocol/vusb/vusb.c
-index d09b2f19b7..5a0e3423e5 100644
+index cfeeed3712..e6551bd885 100644
 --- a/tmk_core/protocol/vusb/vusb.c
 +++ b/tmk_core/protocol/vusb/vusb.c
 @@ -48,6 +48,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -56,7 +194,7 @@ index d09b2f19b7..5a0e3423e5 100644
  /*
   * Interface indexes
   */
-@@ -1009,6 +1012,8 @@ const PROGMEM usbConfigurationDescriptor_t usbConfigurationDescriptor = {
+@@ -992,6 +995,8 @@ const PROGMEM usbConfigurationDescriptor_t usbConfigurationDescriptor = {
  USB_PUBLIC usbMsgLen_t usbFunctionDescriptor(struct usbRequest *rq) {
      usbMsgLen_t len = 0;
  

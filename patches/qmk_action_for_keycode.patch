@@ -1,5 +1,5 @@
 diff --git a/quantum/action.c b/quantum/action.c
-index 29822c39e9..93e0700fc0 100644
+index 8dae32b2cb..bb7f9ede3f 100644
 --- a/quantum/action.c
 +++ b/quantum/action.c
 @@ -285,7 +285,7 @@ void process_record(keyrecord_t *record) {

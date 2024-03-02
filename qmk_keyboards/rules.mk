@@ -27,9 +27,6 @@ ifeq ($(strip $(ACTION_FOR_KEYCODE_ENABLE)), yes)
     OPT_DEFS += -DACTION_FOR_KEYCODE_ENABLE
 endif
 
-# debounce
-DEBOUNCE_TYPE = sym_eager_pk
-
 # common library
 SRC += lib/my_keyboard_common.c
 SRC += lib/custom_config.c

@@ -16,85 +16,9 @@
 
 #include "fk680pro_v2.h"
 
-#define xx NO_LED
-
 static void process_rgb_enable_changed(void);
 
 user_config_t g_user_config;
-
-// clang-format off
-led_config_t g_led_config = {
-  // Key Matrix to LED Index
-  {
-    {55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69},
-    {40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54},
-    {26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, xx, 38, 39},
-    {12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, xx, 23, 24, 25},
-    { 0,  1,  2, xx, xx,  4, xx, xx, xx,  6,  7,  8,  9, 10, 11}
-  },
-  // LED Index to Physical Position
-  {
-    // key matrix south to north
-    { 9,61},{26,61},{44,61},     {75,55},   {96,61},     {115,55},             {147,61},{161,61},{175,61},{189,61},{203,61},{217,61},
-    {16,48},{38,48},{52,48},{66,48},{80,48},{94,48},{108,48},{122,48},{136,48},{150,48},{164,48},         {184,48},{203,48},{217,48},
-    {12,35},{32,35},{46,35},{60,35},{74,35},{88,35},{102,35},{116,35},{130,35},{144,35},{158,35},{172,35},         {194,35},{217,35},
-    {10,23},{28,23},{42,23},{56,23},{70,23},{84,23},{ 98,23},{112,23},{126,23},{140,23},{154,23},{168,23},{182,23},{200,23},{217,23},
-    { 7,10},{21,10},{35,10},{49,10},{63,10},{77,10},{ 91,10},{105,10},{119,10},{133,10},{147,10},{161,10},{175,10},{196,10},{217,10},
-
-    // underglow
-    // east side, north to south
-    // LED01   LED02    LED03    LED04    LED05
-    {223,12},{223,25},{223,37},{223,50},{223,61},
-
-    // south side, east to west
-
-    //LED06    LED07    LED08    LED09    LED10    LED11    LED12    LED13    LED14   LED15   LED16   LED17    LE18    LE19    LE20
-    {210,63},{196,63},{182,63},{168,63},{154,63},{140,63},{126,63},{112,63},{102,63},{90,63},{76,63},{62,63},{49,63},{35,63},{18,63},
-
-    // west side south to north
-    // LED21 LED22 LED23 LED24  LED25
-    {1,63},{1,52},{1,39},{1,27},{1,14},
-
-    // north side, west to east
-    //LED26  LED27   LED28   LED29   LED30   LED31   LED32    LED33    LED34    LED35    LED36    LED37    LED38    LED39    LED40
-    {14,12},{28,12},{42,12},{56,12},{70,12},{84,12},{98,12},{112,12},{126,12},{140,12},{154,12},{168,12},{182,12},{202,12},{210,12}
-  },
-  /*
-    LED Index to Flag
-
-    HAS_FLAGS(bits, flags)     n/a  Evaluates to true if bits has all flags set
-    HAS_ANY_FLAGS(bits, flags) n/a  Evaluates to true if bits has any flags set
-    LED_FLAG_NONE              0x00 If this LED has no flags
-    LED_FLAG_ALL               0xFF If this LED has all flags
-    LED_FLAG_MODIFIER          0x01 If the LED is on a modifier key
-    LED_FLAG_UNDERGLOW         0x02 If the LED is for underglow
-    LED_FLAG_KEYLIGHT          0x04 If the LED is for key backlight
-    LED_FLAG_INDICATOR         0x08 If the LED is for keyboard state indication
-  */
-  {
-    // key matrix
-    // key matrix south to north
-    5,5,6, 4, 4, 4,   5,5,5,4,4,4,
-    5,4,4,4,4,4,4,4,4,4,4,  5,5,4,
-    4,4,4,4,4,4,4,4,4,4,4,4,  4,4,
-    4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
-    4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
-
-    // underglow
-    // east side, north to south
-    2,2,2,2,2,
-
-    // south side, east to west
-    2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
-
-    // west side south to north
-    2,2,2,2,2,
-
-    // north side, west to east
-    2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
-  }
-};
-// clang-format on
 
 //  qmk/vial/my_keyboard custom hook functsions
 //------------------------------------------

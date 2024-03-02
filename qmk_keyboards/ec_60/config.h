@@ -17,6 +17,8 @@
 
 #pragma once
 
+#define CUSTOM_MATRIX_TASK
+
 #define MATRIX_PAGES 2
 #define MATRIX_ROWS 5
 #define MATRIX_COLS 15

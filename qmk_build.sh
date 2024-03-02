@@ -79,11 +79,13 @@ error_exit() {
 case $PLATFORM in
   Darwin )
     os=macos
+    MAKE=gmake
     ;;
   Linux )
     if [[ -f /etc/fedora-release ]] && env | grep -q WSL_INTEROP; then
       # fedora on WSL2
       os=fedora
+      MAKE=make
     else
       # TODO
       error_exit 1 'unsupported platform.'
@@ -266,7 +268,7 @@ pip_upgrade() {
 revert_qmk_changes() {
   cd $PROJECT/qmk_firmware
   rm -rf keyboards
-  make clean
+  $MAKE clean
   git reset --hard HEAD
   git clean -dfx
   git submodule foreach --recursive git reset --hard HEAD
@@ -392,9 +394,9 @@ build_firmware() {
     opts=($opts DFU_UTIL=$PROJECT/util/dfu_util_wsl_helper DFU_PROGRAMMER=$PROJECT/util/dfu_programmer_wsl_helper)
     # sudo for later use
     sudo echo -n
-    DFU_HARDWARE_ID=$kbd[4]:$kbd[5] make -j $MAKE_JOBS $make_target $opts[*]
+    DFU_HARDWARE_ID=$kbd[4]:$kbd[5] $MAKE -j $MAKE_JOBS $make_target $opts[*]
   else
-    make -j $MAKE_JOBS $make_target $opts[*]
+    $MAKE -j $MAKE_JOBS $make_target $opts[*]
   fi
 
   # <build date>_qmk_<qmk version>_<qnk revision>

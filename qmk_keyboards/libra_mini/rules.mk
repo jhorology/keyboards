@@ -2,7 +2,8 @@
 POINTING_DEVICE_ENABLE = yes
 POINTING_DEVICE_DRIVER = analog_joystick
 
-SRC += analog.c
+# debounce
+# DEBOUNCE_TYPE = sym_eager_pk
 
 # gcc optimization
 OPT = s  # optimize for size

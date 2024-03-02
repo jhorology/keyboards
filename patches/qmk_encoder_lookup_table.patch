@@ -1,14 +1,15 @@
-diff --git a/quantum/encoder.c b/quantum/encoder.c
-index 7ab194ed52..bafa8c2f5b 100644
---- a/quantum/encoder.c
-+++ b/quantum/encoder.c
-@@ -57,7 +57,10 @@ static uint8_t encoder_resolutions[NUM_ENCODERS] = ENCODER_RESOLUTIONS;
+diff --git a/drivers/encoder/encoder_quadrature.c b/drivers/encoder/encoder_quadrature.c
+index cd589bf1e2..34a302d050 100644
+--- a/drivers/encoder/encoder_quadrature.c
++++ b/drivers/encoder/encoder_quadrature.c
+@@ -69,7 +69,11 @@ static uint8_t encoder_resolutions[NUM_ENCODERS] = ENCODER_RESOLUTIONS;
  #    define ENCODER_CLOCKWISE false
  #    define ENCODER_COUNTER_CLOCKWISE true
  #endif
 -static int8_t encoder_LUT[] = {0, -1, 1, 0, 1, 0, 0, -1, -1, 0, 0, 1, 0, 1, -1, 0};
 +#ifndef ENCODER_LOOKUP_TABLE
-+#    define ENCODER_LOOKUP_TABLE {0, -1, 1, 0, 1, 0, 0, -1, -1, 0, 0, 1, 0, 1, -1, 0}
++#    define ENCODER_LOOKUP_TABLE \
++        { 0, -1, 1, 0, 1, 0, 0, -1, -1, 0, 0, 1, 0, 1, -1, 0 }
 +#endif
 +static int8_t encoder_LUT[] = ENCODER_LOOKUP_TABLE;
  

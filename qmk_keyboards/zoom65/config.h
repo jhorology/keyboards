@@ -1,5 +1,7 @@
 #pragma once
 
+#define DEBOUNCE 12
+
 /*
   encoder lookup table
 

@@ -23,7 +23,6 @@
 // Toggle keylight on/off, toggle underglow on/off when shift is held.
 #define RGB_TOGX CUSTOM_KEYCODES_SAFE_RANGE
 
-#ifdef RGB_MATRIX_ENABLE
 typedef union {
   uint32_t raw;
   struct {
@@ -35,4 +34,3 @@ extern user_config_t g_user_config;
 
 void set_keylight_enable(bool enable);
 void set_underglow_enable(bool enable);
-#endif

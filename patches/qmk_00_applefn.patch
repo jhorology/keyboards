@@ -1,8 +1,8 @@
 diff --git a/builddefs/common_features.mk b/builddefs/common_features.mk
-index 60f1cbd837..8df2102eec 100644
+index 7227a5558e..afa5e0ca5d 100644
 --- a/builddefs/common_features.mk
 +++ b/builddefs/common_features.mk
-@@ -849,6 +849,13 @@ ifeq ($(strip $(JOYSTICK_ENABLE)), yes)
+@@ -836,6 +836,13 @@ ifeq ($(strip $(JOYSTICK_ENABLE)), yes)
      endif
  endif
  
@@ -105,10 +105,10 @@ index 959753ae02..2e222f55e9 100644
  #ifdef __cplusplus
  }
 diff --git a/tmk_core/protocol/report.h b/tmk_core/protocol/report.h
-index 3028cf9426..6d59306472 100644
+index 47bc4f2f2b..98b9d6555d 100644
 --- a/tmk_core/protocol/report.h
 +++ b/tmk_core/protocol/report.h
-@@ -30,6 +30,7 @@ enum hid_report_ids {
+@@ -34,6 +34,7 @@ enum hid_report_ids {
      REPORT_ID_MOUSE,
      REPORT_ID_SYSTEM,
      REPORT_ID_CONSUMER,
@@ -117,7 +117,7 @@ index 3028cf9426..6d59306472 100644
      REPORT_ID_NKRO,
      REPORT_ID_JOYSTICK,
 diff --git a/tmk_core/protocol/usb_descriptor.c b/tmk_core/protocol/usb_descriptor.c
-index eb214c0492..17e8eb86a8 100644
+index 0e2e63ad8e..5dcba18806 100644
 --- a/tmk_core/protocol/usb_descriptor.c
 +++ b/tmk_core/protocol/usb_descriptor.c
 @@ -321,6 +321,52 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
@@ -174,7 +174,7 @@ index eb214c0492..17e8eb86a8 100644
  
  #ifdef PROGRAMMABLE_BUTTON_ENABLE
 diff --git a/tmk_core/protocol/vusb/vusb.c b/tmk_core/protocol/vusb/vusb.c
-index d09b2f19b7..55f7ebc72c 100644
+index cfeeed3712..aa8e06a4fb 100644
 --- a/tmk_core/protocol/vusb/vusb.c
 +++ b/tmk_core/protocol/vusb/vusb.c
 @@ -562,6 +562,52 @@ const PROGMEM uchar shared_hid_report[] = {

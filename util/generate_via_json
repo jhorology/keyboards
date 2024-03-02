@@ -31,12 +31,12 @@ async function build(target, targetDir) {
       options.BACKLIGHT_ENABLE === 'yes' && options.RGBLIGHT_ENABLE === 'yes'
         ? 'qmk_backlight_rgblight'
         : options.BACKLIGHT_ENABLE === 'yes'
-        ? 'qmk_backlight'
-        : options.RGBLIGHT_ENABLE === 'yes'
-        ? 'qmk_rgblight'
-        : options.RGB_MATRIX_ENABLE === 'yes'
-        ? await getRgbMatrixEffects(targetDir)
-        : undefined,
+          ? 'qmk_backlight'
+          : options.RGBLIGHT_ENABLE === 'yes'
+            ? 'qmk_rgblight'
+            : options.RGB_MATRIX_ENABLE === 'yes'
+              ? await getRgbMatrixEffects(targetDir, info)
+              : undefined,
     customMenus = await getCustomMenus(targetDir, options, defines)
 
   if (lighting) {
@@ -67,16 +67,11 @@ async function build(target, targetDir) {
   validate(target, via)
 
   // output JSON
-  await fs.writeFile(
-    path.join(OUTPUT_DIR, `${target}_via.json`),
-    JSON.stringify(via, null, 2)
-  )
+  await fs.writeFile(path.join(OUTPUT_DIR, `${target}_via.json`), JSON.stringify(via, null, 2))
   // alternate device ID
   if (defines.ALTERNATE_VENDOR_ID && defines.ALTERNATE_PRODUCT_ID) {
-    via.vendorId =
-      '0x' + defines.ALTERNATE_VENDOR_ID.toString(16).padStart(4, '0')
-    via.productId =
-      '0x' + defines.ALTERNATE_PRODUCT_ID.toString(16).padStart(4, '0')
+    via.vendorId = '0x' + defines.ALTERNATE_VENDOR_ID.toString(16).padStart(4, '0')
+    via.productId = '0x' + defines.ALTERNATE_PRODUCT_ID.toString(16).padStart(4, '0')
     await fs.writeFile(
       path.join(OUTPUT_DIR, `${target}_via_mac.json`),
       JSON.stringify(via, null, 2)
@@ -85,28 +80,15 @@ async function build(target, targetDir) {
 }
 
 async function getInfo(targetDir, options, defines) {
-  return await readJson(
-    path.join(targetDir, 'info.json'),
-    options,
-    defines,
-    undefined
-  )
+  return await readJson(path.join(targetDir, 'info.json'), options, defines, undefined)
 }
 
 async function getLayouts(targetDir, options, defines) {
-  return await readJson(
-    path.join(targetDir, 'layouts.json'),
-    options,
-    defines,
-    undefined
-  )
+  return await readJson(path.join(targetDir, 'layouts.json'), options, defines, undefined)
 }
 
 async function getDefineValues(targetDir) {
-  const files = [
-      path.join(KEYBOARDS_DIR, 'config.h'),
-      path.join(targetDir, 'config.h')
-    ],
+  const files = [path.join(KEYBOARDS_DIR, 'config.h'), path.join(targetDir, 'config.h')],
     secureConfig = path.join(targetDir, 'secure_config.h')
   if (await readable(secureConfig)) {
     files.push(secureConfig)
@@ -131,48 +113,29 @@ async function getMakeOptions(targetDir) {
 
 async function getCustomKeycodes(targetDir, options, defines) {
   return [
-    ...(await readJsOrJson(
-      path.join(LIB_DIR, 'custom_keycodes'),
-      options,
-      defines,
-      []
-    )),
-    ...(await readJsOrJson(
-      path.join(targetDir, 'custom_keycodes'),
-      options,
-      defines,
-      []
-    ))
+    ...(await readJsOrJson(path.join(LIB_DIR, 'custom_keycodes'), options, defines, [])),
+    ...(await readJsOrJson(path.join(targetDir, 'custom_keycodes'), options, defines, []))
   ]
 }
 
 async function getCustomMenus(targetDir, options, defines) {
   return [
-    ...(await readJsOrJson(
-      path.join(LIB_DIR, 'custom_menus'),
-      options,
-      defines,
-      []
-    )),
-    ...(await readJsOrJson(
-      path.join(targetDir, 'custom_menus'),
-      options,
-      defines,
-      []
-    ))
+    ...(await readJsOrJson(path.join(LIB_DIR, 'custom_menus'), options, defines, [])),
+    ...(await readJsOrJson(path.join(targetDir, 'custom_menus'), options, defines, []))
   ]
 }
 
-async function getRgbMatrixEffects(targetDir) {
-  const enabledEffects = await find_all(
-      path.join(targetDir, 'config.h'),
-      /^\s*#\s*define\s+ENABLE_RGB_MATRIX_(\w+)\b/gm
-    ),
+async function getRgbMatrixEffects(targetDir, info) {
+  const enabledEffects = info.rgb_matrix.animations
+      ? Object.keys(info.rgb_matrix.animations)
+          .filter((k) => info.rgb_matrix.animations[k])
+          .map((k) => k.toUpperCase())
+      : await find_all(
+          path.join(targetDir, 'config.h'),
+          /^\s*#\s*define\s+ENABLE_RGB_MATRIX_(\w+)\b/gm
+        ),
     effectFiles = await find_all(
-      path.join(
-        QMK_HOME,
-        'quantum/rgb_matrix/animations/rgb_matrix_effects.inc'
-      ),
+      path.join(QMK_HOME, 'quantum/rgb_matrix/animations/rgb_matrix_effects.inc'),
       /^#include\s*"(\w+\.h)"/gm,
       (match) => path.join(QMK_HOME, 'quantum/rgb_matrix/animations', match[1])
     ),
@@ -180,10 +143,7 @@ async function getRgbMatrixEffects(targetDir) {
       'ALL_OFF',
       ...(await find_all(effectFiles, /^\s*RGB_MATRIX_EFFECT\(\s*(\w+)\s*\)/gm))
     ]
-      .filter(
-        (e) =>
-          e === 'ALL_OFF' || e === 'SOLID_COLOR' || enabledEffects.includes(e)
-      )
+      .filter((e) => e === 'ALL_OFF' || e === 'SOLID_COLOR' || enabledEffects.includes(e))
       .map((e, index) => [
         e
           .split('_')
@@ -292,16 +252,11 @@ async function find_all(fileOrFiles, regexp, mapper = (match) => match[1]) {
   if (Array.isArray(fileOrFiles)) {
     const result = []
     for (let i = 0; i < fileOrFiles.length; i++) {
-      Array.prototype.push.apply(
-        result,
-        await find_all(fileOrFiles[i], regexp, mapper)
-      )
+      Array.prototype.push.apply(result, await find_all(fileOrFiles[i], regexp, mapper))
     }
     return result
   }
-  return [...(await fs.readFile(fileOrFiles, 'utf-8')).matchAll(regexp)].map(
-    mapper
-  )
+  return [...(await fs.readFile(fileOrFiles, 'utf-8')).matchAll(regexp)].map(mapper)
 }
 
 async function find_all_with_reduce(
@@ -316,12 +271,7 @@ async function find_all_with_reduce(
   if (Array.isArray(fileOrFiles)) {
     let result = initialValue
     for (let i = 0; i < fileOrFiles.length; i++) {
-      result = await find_all_with_reduce(
-        fileOrFiles[i],
-        regexp,
-        reducer,
-        result
-      )
+      result = await find_all_with_reduce(fileOrFiles[i], regexp, reducer, result)
     }
     return result
   }
@@ -335,8 +285,7 @@ Promise.all(
   TARGETS.map((target) => {
     let kb_km = target.split(':')
     build(
-      (kb_km.length == 2 && kb_km[1] === 'default' ? kb_km[0] : target)
-        .replaceAll(/[/:]/g, '_'),
+      (kb_km.length == 2 && kb_km[1] === 'default' ? kb_km[0] : target).replaceAll(/[/:]/g, '_'),
       path.join(KEYBOARDS_DIR, kb_km[0])
     )
   })

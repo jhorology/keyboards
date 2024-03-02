@@ -14,10 +14,10 @@ index fd5342d637..ae0e0b1e3c 100644
      OPT_DEFS += -DSHARED_EP_ENABLE
  endif
 diff --git a/tmk_core/protocol/chibios/usb_main.c b/tmk_core/protocol/chibios/usb_main.c
-index 66f9ad0318..5a3b56a267 100644
+index 7b1e641213..bcb5923964 100644
 --- a/tmk_core/protocol/chibios/usb_main.c
 +++ b/tmk_core/protocol/chibios/usb_main.c
-@@ -217,6 +217,24 @@ static const USBEndpointConfig digitizer_ep_config = {
+@@ -240,6 +240,24 @@ static const USBEndpointConfig console_ep_config = {
  };
  #endif
  
@@ -42,17 +42,17 @@ index 66f9ad0318..5a3b56a267 100644
  #ifdef USB_ENDPOINTS_ARE_REORDERABLE
  typedef struct {
      size_t              queue_capacity_in;
-@@ -509,6 +527,9 @@ static void usb_event_cb(USBDriver *usbp, usbevent_t event) {
- #endif
+@@ -523,6 +541,9 @@ static void usb_event_cb(USBDriver *usbp, usbevent_t event) {
  #if defined(DIGITIZER_ENABLE) && !defined(DIGITIZER_SHARED_EP)
              usbInitEndpointI(usbp, DIGITIZER_IN_EPNUM, &digitizer_ep_config);
-+#endif
+ #endif
 +#ifdef RADIAL_CONTROLLER_ENABLE
 +            usbInitEndpointI(usbp, RADIAL_CONTROLLER_IN_EPNUM, &radial_controller_ep_config);
++#endif
+ #ifdef CONSOLE_ENABLE
+             usbInitEndpointI(usbp, CONSOLE_IN_EPNUM, &console_ep_config);
  #endif
-             for (int i = 0; i < NUM_USB_DRIVERS; i++) {
- #ifdef USB_ENDPOINTS_ARE_REORDERABLE
-@@ -907,6 +928,30 @@ void send_digitizer(report_digitizer_t *report) {
+@@ -923,6 +944,30 @@ void send_digitizer(report_digitizer_t *report) {
  #endif
  }
  
@@ -123,10 +123,10 @@ index 8aa38b6dee..3b4d2e6193 100644
  void send_programmable_button(report_programmable_button_t *report);
 +void send_radial_controller(report_radial_controller_t *report);
 diff --git a/tmk_core/protocol/lufa/lufa.c b/tmk_core/protocol/lufa/lufa.c
-index 553f69b1e4..e707e52d39 100644
+index 22cc0db8ce..e1b789658f 100644
 --- a/tmk_core/protocol/lufa/lufa.c
 +++ b/tmk_core/protocol/lufa/lufa.c
-@@ -409,6 +409,11 @@ void EVENT_USB_Device_ConfigurationChanged(void) {
+@@ -385,6 +385,11 @@ void EVENT_USB_Device_ConfigurationChanged(void) {
      ConfigSuccess &= Endpoint_ConfigureEndpoint((DIGITIZER_IN_EPNUM | ENDPOINT_DIR_IN), EP_TYPE_INTERRUPT, DIGITIZER_EPSIZE, 1);
  #endif
  
@@ -138,7 +138,7 @@ index 553f69b1e4..e707e52d39 100644
      usb_device_state_set_configuration(USB_DeviceState == DEVICE_STATE_Configured, USB_Device_ConfigurationNumber);
  }
  
-@@ -612,6 +617,12 @@ void send_digitizer(report_digitizer_t *report) {
+@@ -588,6 +593,12 @@ void send_digitizer(report_digitizer_t *report) {
  #endif
  }
  
@@ -152,10 +152,10 @@ index 553f69b1e4..e707e52d39 100644
   * sendchar
   ******************************************************************************/
 diff --git a/tmk_core/protocol/report.h b/tmk_core/protocol/report.h
-index 3028cf9426..802833967a 100644
+index 47bc4f2f2b..1a9aedf983 100644
 --- a/tmk_core/protocol/report.h
 +++ b/tmk_core/protocol/report.h
-@@ -224,6 +224,11 @@ typedef int16_t joystick_axis_t;
+@@ -228,6 +228,11 @@ typedef int16_t joystick_axis_t;
  typedef int8_t joystick_axis_t;
  #endif
  
@@ -168,7 +168,7 @@ index 3028cf9426..802833967a 100644
  #ifdef JOYSTICK_SHARED_EP
      uint8_t report_id;
 diff --git a/tmk_core/protocol/usb_descriptor.c b/tmk_core/protocol/usb_descriptor.c
-index eb214c0492..018c476027 100644
+index 0e2e63ad8e..3da1861385 100644
 --- a/tmk_core/protocol/usb_descriptor.c
 +++ b/tmk_core/protocol/usb_descriptor.c
 @@ -384,6 +384,38 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
@@ -210,7 +210,7 @@ index eb214c0492..018c476027 100644
  #ifdef RAW_ENABLE
  const USB_Descriptor_HIDReport_Datatype_t PROGMEM RawReport[] = {
      HID_RI_USAGE_PAGE(16, RAW_USAGE_PAGE), // Vendor Defined
-@@ -1050,6 +1082,46 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor = {
+@@ -1032,6 +1064,46 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor = {
          .PollingIntervalMS      = USB_POLLING_INTERVAL_MS
      },
  #endif
@@ -257,7 +257,7 @@ index eb214c0492..018c476027 100644
  };
  
  /*
-@@ -1198,6 +1270,12 @@ uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const
+@@ -1180,6 +1252,12 @@ uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const
  
                      break;
  #endif
@@ -270,7 +270,7 @@ index eb214c0492..018c476027 100644
              }
  
              break;
-@@ -1253,6 +1331,12 @@ uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const
+@@ -1235,6 +1313,12 @@ uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const
                      Address = &DigitizerReport;
                      Size    = sizeof(DigitizerReport);
                      break;
@@ -284,10 +284,10 @@ index eb214c0492..018c476027 100644
              }
  
 diff --git a/tmk_core/protocol/usb_descriptor.h b/tmk_core/protocol/usb_descriptor.h
-index 1268bdae73..2c25e25745 100644
+index 2469990f4d..a5165dee00 100644
 --- a/tmk_core/protocol/usb_descriptor.h
 +++ b/tmk_core/protocol/usb_descriptor.h
-@@ -145,6 +145,13 @@ typedef struct {
+@@ -144,6 +144,13 @@ typedef struct {
      USB_HID_Descriptor_HID_t   Digitizer_HID;
      USB_Descriptor_Endpoint_t  Digitizer_INEndpoint;
  #endif
@@ -301,7 +301,7 @@ index 1268bdae73..2c25e25745 100644
  } USB_Descriptor_Configuration_t;
  
  /*
-@@ -194,6 +201,10 @@ enum usb_interfaces {
+@@ -193,6 +200,10 @@ enum usb_interfaces {
  #if defined(DIGITIZER_ENABLE) && !defined(DIGITIZER_SHARED_EP)
      DIGITIZER_INTERFACE,
  #endif
@@ -312,7 +312,7 @@ index 1268bdae73..2c25e25745 100644
      TOTAL_INTERFACES
  };
  
-@@ -281,6 +292,10 @@ enum usb_endpoints {
+@@ -267,6 +278,10 @@ enum usb_endpoints {
  #        define DIGITIZER_IN_EPNUM SHARED_IN_EPNUM
  #    endif
  #endif
@@ -323,7 +323,7 @@ index 1268bdae73..2c25e25745 100644
  };
  
  #ifdef PROTOCOL_LUFA
-@@ -307,5 +322,6 @@ enum usb_endpoints {
+@@ -293,5 +308,6 @@ enum usb_endpoints {
  #define CDC_EPSIZE 16
  #define JOYSTICK_EPSIZE 8
  #define DIGITIZER_EPSIZE 8
