@@ -22,6 +22,7 @@
 #include <math.h>
 #include <wait.h>
 
+#include "ec_auto_calibration.h"
 #include "ec_config.h"
 
 // Pin and port array
@@ -62,18 +63,20 @@ extern void matrix_scan_perf_task(void);
 extern void switch_events(uint8_t row, uint8_t col, bool pressed);
 
 // if row = 0 col =0, dummy reading for equalize discharge time
-#define MATRIX_READ_LOOP(...)                                   \
-  matrix_row_t col_mask = 1;                                    \
-  for (int col = 0; col < MATRIX_COLS; col++, col_mask <<= 1) { \
-    select_col(col);                                            \
-    for (int row = 0; row < MATRIX_ROWS; row++) {               \
-      if (col == 0 && row == 0) ec_readkey(row_pins[row]);      \
-      if (matrix_used[row] & col_mask) {                        \
-        uint16_t sw_value = ec_readkey(row_pins[row]);          \
-        ec_key_config_t *key = &ec_config_keys[row][col];       \
-        __VA_ARGS__                                             \
-      }                                                         \
-    }                                                           \
+#define MATRIX_READ_LOOP(...)                                             \
+  matrix_row_t col_mask = 1;                                              \
+  for (int col = 0; col < MATRIX_COLS; col++, col_mask <<= 1) {           \
+    select_col(col);                                                      \
+    for (int row = 0; row < MATRIX_ROWS; row++) {                         \
+      if (col == 0 && row == 0) ec_readkey(row_pins[row]);                \
+      if (matrix_used[row] & col_mask) {                                  \
+        uint16_t sw_value = ec_readkey(row_pins[row]);                    \
+        ec_key_config_t *key = &ec_config_keys[row][col];                 \
+        key->sw_value = sw_value;                                         \
+        if (sw_value > key->bottoming_max) key->bottoming_max = sw_value; \
+        __VA_ARGS__                                                       \
+      }                                                                   \
+    }                                                                     \
   }
 
 //  inline functions
@@ -104,7 +107,7 @@ static inline void select_col(uint8_t col) {
   if (changes & 4) writePin(amux_sel_pins[2], amux_col_ch & 4);
 }
 
-static inline bool ec_is_key_pressed(ec_key_config_t *key, uint16_t sw_value) {
+static inline bool is_actuated(ec_key_config_t *key, uint16_t sw_value) {
   if (sw_value <= key->deadzone) return false;
   switch (key->modes.actuation_mode) {
     case EC_ACTUATION_MODE_STATIC_EDGE:
@@ -118,7 +121,7 @@ static inline bool ec_is_key_pressed(ec_key_config_t *key, uint16_t sw_value) {
   return false;
 }
 
-static inline bool ec_is_key_released(ec_key_config_t *key, uint16_t sw_value) {
+static inline bool is_released(ec_key_config_t *key, uint16_t sw_value) {
   if (sw_value <= key->deadzone) return true;
   switch (key->modes.release_mode) {
     case EC_RELEASE_MODE_STATIC_EDGE:
@@ -131,7 +134,7 @@ static inline bool ec_is_key_released(ec_key_config_t *key, uint16_t sw_value) {
   }
   return false;
 }
-static inline bool is_sub_action_pressed(ec_key_config_t *key, uint16_t sw_value) {
+static inline bool is_sub_action_actuated(ec_key_config_t *key, uint16_t sw_value) {
   if (sw_value <= key->deadzone) return false;
   return sw_value > key->sub_action_actuation_threshold;
 }
@@ -330,6 +333,7 @@ void matrix_init(void) {
 
   last_key_scan_time = chSysGetRealtimeCounterX();
   ec_calibrate_noise_floor();
+  ec_auto_calibration_init();
 }
 
 inline matrix_row_t matrix_get_row(uint8_t row) { return matrix[PRIMARY_MATRIX_PAGE][row]; }
@@ -359,7 +363,7 @@ uint8_t matrix_scan(void) {
     uint16_t extremum = sw_value < key->deadzone ? key->deadzone : sw_value;  //
     matrix_row_t *primary_matrix_row = &matrix[PRIMARY_MATRIX_PAGE][row];     //
     if (*primary_matrix_row & col_mask) {
-      if (ec_is_key_released(key, sw_value)) {
+      if (is_released(key, sw_value)) {
         *primary_matrix_row &= ~col_mask;
         matrix_changed[PRIMARY_MATRIX_PAGE][row] |= col_mask;
         key->extremum = extremum;
@@ -372,10 +376,11 @@ uint8_t matrix_scan(void) {
         }
       }
     } else {
-      if (ec_is_key_pressed(key, sw_value)) {
+      if (is_actuated(key, sw_value)) {
         *primary_matrix_row |= col_mask;
         matrix_changed[PRIMARY_MATRIX_PAGE][row] |= col_mask;
         key->extremum = extremum;
+        key->actuation_count++;
         changed = true;
       } else {
         matrix_changed[PRIMARY_MATRIX_PAGE][row] &= ~col_mask;
@@ -397,7 +402,7 @@ uint8_t matrix_scan(void) {
           matrix_changed[SUB_ACTION_MATRIX_PAGE][row] &= ~col_mask;
         }
       } else {
-        if (is_sub_action_pressed(key, sw_value)) {
+        if (is_sub_action_actuated(key, sw_value)) {
           *sub_matrix_row |= col_mask;
           matrix_changed[SUB_ACTION_MATRIX_PAGE][row] |= col_mask;
           changed = true;
@@ -431,9 +436,11 @@ bool custom_matrix_task(void) {
     return false;
   }
 
+  bool all_released = true;
   for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
     const matrix_row_t current_row = matrix[PRIMARY_MATRIX_PAGE][row];
     const matrix_row_t row_changes = matrix_changed[PRIMARY_MATRIX_PAGE][row];
+    if (current_row) all_released = false;
     if (!row_changes) continue;
 
     matrix_row_t col_mask = 1;
@@ -455,6 +462,7 @@ bool custom_matrix_task(void) {
   for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
     const matrix_row_t current_row = matrix[SUB_ACTION_MATRIX_PAGE][row];
     const matrix_row_t row_changes = matrix_changed[SUB_ACTION_MATRIX_PAGE][row];
+    if (current_row) all_released = false;
     if (!row_changes) continue;
 
     matrix_row_t col_mask = 1;
@@ -472,6 +480,8 @@ bool custom_matrix_task(void) {
       process_record(&record);
     }
   }
+
+  ec_auto_calibration_task(all_released);
   return changed;
 }
 

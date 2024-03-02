@@ -1,6 +1,6 @@
 CUSTOM_MATRIX = yes
 ANALOG_DRIVER_REQUIRED = yes
-SRC += ec_config.c ec_switch_matrix.c
+SRC += ec_config.c ec_switch_matrix.c ec_auto_calibration.c
 
 SEND_STRING_ENABLE = yes
 

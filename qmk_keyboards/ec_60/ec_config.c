@@ -248,7 +248,7 @@ void ec_config_send_presets(void) {
           SEND_C_SYMBOL_PROP_SYMBOL_VALUE(actuation_mode, EC_ACTUATION_MODE_STATIC_EDGE, ",\n");
           break;
         case EC_ACTUATION_MODE_STATIC_LEVEL:
-          SEND_C_SYMBOL_PROP_SYMBOL_VALUE(actuation_mode, EC_ACTUATION_MODE_STATIC_EDGE, ",\n");
+          SEND_C_SYMBOL_PROP_SYMBOL_VALUE(actuation_mode, EC_ACTUATION_MODE_STATIC_LEVEL, ",\n");
           break;
         case EC_ACTUATION_MODE_DYNAMIC:
           SEND_C_SYMBOL_PROP_SYMBOL_VALUE(actuation_mode, EC_ACTUATION_MODE_DYNAMIC, ",\n");

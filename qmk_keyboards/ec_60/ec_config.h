@@ -78,9 +78,12 @@ typedef struct {
   uint16_t sub_action_keycode;
   uint16_t sub_action_actuation_threshold;
   uint16_t sub_action_release_threshold;
-  uint16_t noise_floor;
-  uint16_t noise;
   uint16_t extremum;
+  uint16_t noise_floor;
+  uint16_t bottoming_max;
+  uint16_t sw_value;
+  uint8_t actuation_count;
+  uint8_t noise;
   bool bottoming_calibration_starter;
 } ec_key_config_t;
 
