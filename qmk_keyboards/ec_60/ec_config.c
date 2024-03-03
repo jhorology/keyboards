@@ -308,7 +308,7 @@ void ec_config_debug_send_calibration(void) {
   SEND_EC_CONFIG_KEY_MATRIX(bottoming_max, WORD, ",\n");
   SEND_JS_NAME_PROP_2D_ARRAY("noise_floor", ec_eeprom_config.noise_floor, MATRIX_ROWS, MATRIX_COLS,
                              WORD, ",\n");
-  SEND_JS_NAME_PROP_2D_ARRAY("bottoming_readiong", ec_eeprom_config.bottoming_reading, MATRIX_ROWS,
+  SEND_JS_NAME_PROP_2D_ARRAY("bottoming_reading", ec_eeprom_config.bottoming_reading, MATRIX_ROWS,
                              MATRIX_COLS, WORD, ",\n");
   SEND_JS_NAME_PROP_2D_ARRAY_CODE(
     "range", MATRIX_ROWS, MATRIX_COLS, ",\n",
