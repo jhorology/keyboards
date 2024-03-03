@@ -140,6 +140,7 @@ npm_install() {
 }
 
 macos_install_packages() {
+  brew tap qmk/qmk
   brew update
   # install 'qmk' in .venv, install only required packages.
   qmk_deps=$(brew info qmk/qmk/qmk | grep "Required:")
@@ -156,6 +157,7 @@ macos_install_packages() {
   done
   brew install $packages[*]
   brew link --force avr-gcc@12
+  brew untap qmk/qmk
   brew cleanup
 }
 
@@ -580,8 +582,6 @@ elif (( $#setup )); then
   setup_qmk
   pip_install
   setup_via
-  cd $PROJECT
-  npm install
   return
 elif (( $#clean )); then
   clean
