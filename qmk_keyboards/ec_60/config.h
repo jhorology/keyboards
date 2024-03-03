@@ -50,7 +50,6 @@
 #define DISCHARGE_PIN A6
 #define ANALOG_PORT A3
 #define DISCHARGE_TIME 8  // usec
-#define NOISE_FLOOR_SAMPLING_COUNT 30
 
 #define EC_BOTTOMING_READING_DEFAULT 1023
 #define EC_BOOTMAGIC_LITE_THRESHOLD 0x180
@@ -87,6 +86,7 @@
 typedef struct {
   ec_preset_t presets[EC_NUM_PRESETS];
   uint16_t bottoming_reading[MATRIX_ROWS][MATRIX_COLS];
+  uint16_t noise_floor[MATRIX_ROWS][MATRIX_COLS];
   uint8_t selected_preset_map_index : 3;  // 0 - 7
   uint16_t reserved_0 : 13;
 } __attribute__((packed)) ec_eeprom_config_t;
@@ -94,7 +94,7 @@ typedef struct {
 #define VIA_EC_PRESET_SIZE 12
 #define VIA_EEPROM_CUSTOM_CONFIG_SIZE                                           \
   (VIA_EEPROM_CUSTOM_CONFIG_COMMON_SIZE + EC_NUM_PRESETS * VIA_EC_PRESET_SIZE + \
-   MATRIX_COLS * MATRIX_ROWS * 2 + 2)
+   MATRIX_COLS * MATRIX_ROWS * 2 * 2 + 2)
 
 /* ViA layout options */
 /*  7 bit */

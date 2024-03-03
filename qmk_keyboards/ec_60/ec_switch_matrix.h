@@ -17,5 +17,3 @@
 
 #pragma once
 #include <quantum.h>
-
-void ec_calibrate_noise_floor(void);

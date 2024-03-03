@@ -181,16 +181,6 @@ static uint16_t ec_readkey(uint32_t strobe_pin) {
   return sw_value;
 }
 
-static void matrix_scan_bottom(void) {
-  MATRIX_READ_LOOP(  //
-    if (sw_value > BOTTOMING_READING_THRESHOLD &&
-        (key->bottoming_calibration_starter ||
-         sw_value > ec_eeprom_config.bottoming_reading[row][col])) {
-      ec_eeprom_config.bottoming_reading[row][col] = sw_value;
-      key->bottoming_calibration_starter = false;
-    })
-}
-
 // Initialize the row pins
 static void init_row(void) {
   // Set all row pins as output and low
@@ -209,6 +199,34 @@ static void init_amux(void) {
   for (uint8_t idx = 0; idx < AMUX_SEL_PINS_COUNT; idx++) {
     setPinOutput(amux_sel_pins[idx]);
   }
+}
+
+static void ec_initialize_noise_floor(void) {
+  // Initialize the noise floor to 0
+  MATRIX_LOOP_WITH_KEY(ec_eeprom_config.noise_floor[row][col] = 0; key->extremum = 0;)
+
+  // Get the noise floor
+  // max: ec_config.noise_floor[row][col]
+  // min: ec_config.extremum[row][col]
+  for (uint8_t sample_count = 0; sample_count < 5; sample_count++) {
+    MATRIX_READ_LOOP(
+      // max value
+      if (sw_value > ec_eeprom_config.noise_floor[row][col]) {
+        ec_eeprom_config.noise_floor[row][col] = sw_value;
+      }
+      // min value
+      if (key->extremum == 0 || sw_value < key->extremum) { key->extremum = sw_value; });
+  }
+
+  // Average the noise floor
+  MATRIX_LOOP_WITH_KEY(
+    // noise = max - mini
+    key->noise = ec_eeprom_config.noise_floor[row][col] - key->extremum;
+    // noise_floor = (max + min) / 2
+    ec_eeprom_config.noise_floor[row][col] =
+      (ec_eeprom_config.noise_floor[row][col] + key->extremum) / 2;
+    // initilize extremum
+    key->extremum = ec_eeprom_config.noise_floor[row][col];);
 }
 
 // debug
@@ -324,15 +342,14 @@ void matrix_init(void) {
   memset(matrix_changed, 0, sizeof(matrix_changed));
   memset(matrix_used, 0, sizeof(matrix_used));
 
-  // TODO
-  // debounce_init(ROWS_PER_HAND);
-
   // scan rate increase 780 -> 950
   // but when layout changed, restart is needed.
   MATRIX_LOOP(if (dynamic_keymap_get_keycode(0, row, col)) { matrix_used[row] |= (1 << col); });
 
+  // initial read for bootmagic
   last_key_scan_time = chSysGetRealtimeCounterX();
-  ec_calibrate_noise_floor();
+  // MATRIX_READ_LOOP(key->extremum = sw_value;)
+  ec_initialize_noise_floor();
   ec_auto_calibration_init();
 }
 
@@ -341,10 +358,6 @@ inline matrix_row_t matrix_get_row(uint8_t row) { return matrix[PRIMARY_MATRIX_P
 uint8_t matrix_scan(void) {
   bool changed = false;
 
-  if (ec_bottoming_calibration_enable) {
-    matrix_scan_bottom();
-    return false;
-  }
 #ifdef EC_DEBUG_ENABLE
   static bool test_last_state;
   if (ec_matrix_scan_test_enable) {
@@ -418,13 +431,59 @@ uint8_t matrix_scan(void) {
 
 bool custom_matrix_task(void) {
   bool changed = matrix_scan();
+  static bool all_released = true;
 
 #if defined(DEBUG_MATRIX_SCAN_RATE)
   // in keyboard.c
   matrix_scan_perf_task();
 #endif
   // Short-circuit the complete matrix processing if it is not necessary
-  if (!changed) {
+  if (changed) {
+    all_released = true;
+    for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
+      const matrix_row_t current_row = matrix[PRIMARY_MATRIX_PAGE][row];
+      const matrix_row_t row_changes = matrix_changed[PRIMARY_MATRIX_PAGE][row];
+      if (current_row) all_released = false;
+      if (!row_changes) continue;
+
+      matrix_row_t col_mask = 1;
+      for (uint8_t col = 0; col < MATRIX_COLS; col++, col_mask <<= 1) {
+        if (!(row_changes & col_mask)) continue;
+
+        const bool key_pressed = current_row & col_mask;
+        action_exec(MAKE_KEYEVENT(row, col, key_pressed));
+
+#if defined(LED_MATRIX_ENABLE) || defined(RGB_MATRIX_ENABLE)
+        // in quantum/keyboard.c
+        switch_events(row, col, key_pressed);
+#endif
+        break;
+      }
+    }
+
+    // Sub action
+    for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
+      const matrix_row_t current_row = matrix[SUB_ACTION_MATRIX_PAGE][row];
+      const matrix_row_t row_changes = matrix_changed[SUB_ACTION_MATRIX_PAGE][row];
+      if (current_row) all_released = false;
+      if (!row_changes) continue;
+
+      matrix_row_t col_mask = 1;
+      for (uint8_t col = 0; col < MATRIX_COLS; col++, col_mask <<= 1) {
+        if (!(row_changes & col_mask)) continue;
+
+        const bool key_pressed = current_row & col_mask;
+        // TODO experimental
+        ec_key_config_t *key = &ec_config_keys[row][col];
+        keyrecord_t record = {
+          .event = MAKE_KEYEVENT(row, col, key_pressed),
+          // requires ACTION_FOR_KEYCODE_ENABLE = yes
+          .keycode = key->sub_action_keycode,
+        };
+        process_record(&record);
+      }
+    }
+  } else {
     // in quantum/keyboard.c
     // static inline void generate_tick_event(void)
     static uint16_t last_tick = 0;
@@ -433,83 +492,8 @@ bool custom_matrix_task(void) {
       action_exec(MAKE_TICK_EVENT);
       last_tick = now;
     }
-    return false;
-  }
-
-  bool all_released = true;
-  for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
-    const matrix_row_t current_row = matrix[PRIMARY_MATRIX_PAGE][row];
-    const matrix_row_t row_changes = matrix_changed[PRIMARY_MATRIX_PAGE][row];
-    if (current_row) all_released = false;
-    if (!row_changes) continue;
-
-    matrix_row_t col_mask = 1;
-    for (uint8_t col = 0; col < MATRIX_COLS; col++, col_mask <<= 1) {
-      if (!(row_changes & col_mask)) continue;
-
-      const bool key_pressed = current_row & col_mask;
-      action_exec(MAKE_KEYEVENT(row, col, key_pressed));
-
-#if defined(LED_MATRIX_ENABLE) || defined(RGB_MATRIX_ENABLE)
-      // in quantum/keyboard.c
-      switch_events(row, col, key_pressed);
-#endif
-      break;
-    }
-  }
-
-  // Sub action
-  for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
-    const matrix_row_t current_row = matrix[SUB_ACTION_MATRIX_PAGE][row];
-    const matrix_row_t row_changes = matrix_changed[SUB_ACTION_MATRIX_PAGE][row];
-    if (current_row) all_released = false;
-    if (!row_changes) continue;
-
-    matrix_row_t col_mask = 1;
-    for (uint8_t col = 0; col < MATRIX_COLS; col++, col_mask <<= 1) {
-      if (!(row_changes & col_mask)) continue;
-
-      const bool key_pressed = current_row & col_mask;
-      // TODO experimental
-      ec_key_config_t *key = &ec_config_keys[row][col];
-      keyrecord_t record = {
-        .event = MAKE_KEYEVENT(row, col, key_pressed),
-        // requires ACTION_FOR_KEYCODE_ENABLE = yes
-        .keycode = key->sub_action_keycode,
-      };
-      process_record(&record);
-    }
   }
 
   ec_auto_calibration_task(all_released);
   return changed;
-}
-
-// export functions
-// -----------------------------------------------------------------------------------
-
-// Get the noise floor
-void ec_calibrate_noise_floor(void) {
-  // Initialize the noise floor to 0
-  MATRIX_LOOP_WITH_KEY(key->noise_floor = 0; key->extremum = 0;)
-
-  // Get the noise floor
-  // max: ec_config.noise_floor[row][col]
-  // min: ec_config.extremum[row][col]
-  for (uint8_t sample_count = 0; sample_count < NOISE_FLOOR_SAMPLING_COUNT; sample_count++) {
-    MATRIX_READ_LOOP(
-      // max value
-      if (sw_value > key->noise_floor) { key->noise_floor = sw_value; }
-      // min value
-      if (key->extremum == 0 || sw_value < key->extremum) { key->extremum = sw_value; });
-  }
-
-  // Average the noise floor
-  MATRIX_LOOP_WITH_KEY(
-    // noise = max - mini
-    key->noise = key->noise_floor - key->extremum;
-    // noise_floor = (max + min) / 2
-    key->noise_floor = (key->noise_floor + key->extremum) / 2;
-    // initilize extremum
-    key->extremum = key->noise_floor;);
 }

@@ -7,7 +7,8 @@
 enum ec_keycodes {
   EC_CALD = CUSTOM_KEYCODES_SAFE_RANGE,  // send calibration data
   EC_PSET,                               // Show presets
-  EC_PRESET_MAP_START = EC_PSET + 1,     // send calibration data as keystrokes
+  EC_SCAL,                               // save calibration data
+  EC_PRESET_MAP_START,                   // send calibration data as keystrokes
   EC_PRESET_MAP_END = EC_PRESET_MAP_START + EC_NUM_PRESET_MAPS - 1,
   EC_PRESET_START = EC_PRESET_MAP_END + 1,  // send calibration data as keystrokes
   EC_PRESET_END = EC_PRESET_START + EC_NUM_PRESETS - 1,
@@ -30,4 +31,5 @@ enum ec_keycodes {
 #define EC_PRESET_MAP(map_index) (EC_PRESET_MAP_LAYER_START + map_index)
 
 extern const uint16_t ec_bottoming_reading_default[MATRIX_ROWS][MATRIX_COLS];
+extern const uint16_t ec_noise_floor_default[MATRIX_ROWS][MATRIX_COLS];
 extern const ec_preset_t ec_presets_default[EC_NUM_PRESETS];

@@ -34,9 +34,9 @@ module.exports = function (options, defines) {
           label: 'EC Tools',
           content: [
             {
-              label: 'Bottoming Calibration',
+              label: 'Save Calibration Data',
               type: 'toggle',
-              content: ['id_ec_tools_bottoming_calibration', EC_TOOLS_CHANNEL_ID, 1]
+              content: ['id_ec_tools_save_calibration_data', EC_TOOLS_CHANNEL_ID, 1]
             },
             {
               label:

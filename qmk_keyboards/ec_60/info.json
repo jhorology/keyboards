@@ -10,6 +10,11 @@
     "pid": "0x6B84",
     "vid": "0x6369"
   },
+  "eeprom": {
+    "wear_leveling": {
+      "backing_size": 8192
+    }
+  },
   "layouts": {
     "LAYOUT_all": {
       "layout": [

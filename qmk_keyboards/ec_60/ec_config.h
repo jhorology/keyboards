@@ -47,6 +47,7 @@ typedef struct {
 typedef struct {
   ec_preset_t presets[EC_NUM_PRESETS];
   uint16_t bottoming_reading[MATRIX_ROWS][MATRIX_COLS];
+  uint16_t noise_floor[MATRIX_ROWS][MATRIX_COLS];
   uint8_t selected_preset_map_index : 3;  // 0 - 7
   uint16_t _reserved_0 : 13;
 } __attribute__((packed)) ec_eeprom_config_t;
@@ -55,7 +56,8 @@ typedef struct {
 #define EC_VIA_EEPROM_PRESETS VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR
 #define EC_VIA_EEPROM_BOTTOMING_READING \
   (EC_VIA_EEPROM_PRESETS + sizeof(ec_preset_t) * EC_NUM_PRESETS)
-#define EC_VIA_EEPROM_PRESET_MAP (EC_VIA_EEPROM_BOTTOMING_READING + 2 * MATRIX_ROWS * MATRIX_COLS)
+#define EC_VIA_EEPROM_NOISE_FLOOR (EC_VIA_EEPROM_BOTTOMING_READING + 2 * MATRIX_ROWS * MATRIX_COLS)
+#define EC_VIA_EEPROM_PRESET_MAP (EC_VIA_EEPROM_NOISE_FLOOR + 2 * MATRIX_ROWS * MATRIX_COLS)
 
 // Check if the size of the reserved persistent memory is the same as the size of struct
 // eeprom_ec_config_t
@@ -64,7 +66,6 @@ _Static_assert(sizeof(ec_preset_t) == VIA_EC_PRESET_SIZE,
 _Static_assert(sizeof(ec_eeprom_config_t) ==
                  (VIA_EEPROM_CUSTOM_CONFIG_SIZE - VIA_EEPROM_CUSTOM_CONFIG_COMMON_SIZE),
                "Mismatch in keyboard eeprom configuration");
-
 typedef struct {
   struct {
     ec_actuation_mode_t actuation_mode : 2;
@@ -79,17 +80,14 @@ typedef struct {
   uint16_t sub_action_actuation_threshold;
   uint16_t sub_action_release_threshold;
   uint16_t extremum;
-  uint16_t noise_floor;
   uint16_t bottoming_max;
   uint16_t sw_value;
   uint8_t actuation_count;
   uint8_t noise;
-  bool bottoming_calibration_starter;
 } ec_key_config_t;
 
 extern ec_key_config_t ec_config_keys[MATRIX_ROWS][MATRIX_COLS];
 extern ec_eeprom_config_t ec_eeprom_config;
-extern bool ec_bottoming_calibration_enable;
 #ifdef EC_DEBUG_ENABLE
 extern bool ec_matrix_scan_test_enable;
 extern uint32_t ec_key_scan_dead_time;
@@ -124,8 +122,7 @@ DECLARE_PRESET_PARAM_SETTER(sub_action_release_threshold, uint16_t)
 #define SET_PRESET_PARAM(member, preset_index, value) ec_config_set_##member(preset_index, value);
 
 void ec_config_set_preset_map(uint8_t preset_map_index);
-void ec_config_calibration_start(void);
-void ec_config_calibration_end(void);
+void ec_config_save_calibration_data(void);
 void ec_config_send_calibration_data(void);
 void ec_config_send_presets(void);
 #ifdef EC_DEBUG_ENABLE

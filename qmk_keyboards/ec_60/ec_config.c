@@ -8,7 +8,6 @@
 
 ec_eeprom_config_t ec_eeprom_config;
 ec_key_config_t ec_config_keys[MATRIX_ROWS][MATRIX_COLS];
-bool ec_bottoming_calibration_enable;
 
 #ifdef EC_DEBUG_ENABLE
 bool ec_matrix_scan_test_enable;
@@ -81,13 +80,15 @@ static int is_eeprom_valid(void) {
     int result = is_preset_valid(preset);
     if (result != 0) return result;
   }
-  MATRIX_LOOP_WITH_KEY(if (ec_eeprom_config.bottoming_reading[row][col] <= key->noise_floor ||
-                           ec_eeprom_config.bottoming_reading[row][col] > 0xfff) return -9;)
+  MATRIX_LOOP(
+    if (ec_eeprom_config.bottoming_reading[row][col] <= ec_eeprom_config.noise_floor[row][col] ||
+        ec_eeprom_config.bottoming_reading[row][col] > 0x3ff) return -9;)
   if (ec_eeprom_config.selected_preset_map_index >= EC_NUM_PRESET_MAPS) return -10;
   return 0;
 }
 
-static void update_key(ec_key_config_t *key, ec_preset_t *preset, uint16_t bottoming) {
+static void update_key(ec_key_config_t *key, ec_preset_t *preset, uint16_t floor,
+                       uint16_t bottoming) {
   ec_actuation_mode_t prev_actuation_mode = key->modes.actuation_mode;
   ec_release_mode_t prev_release_mode = key->modes.release_mode;
 
@@ -96,38 +97,36 @@ static void update_key(ec_key_config_t *key, ec_preset_t *preset, uint16_t botto
   key->modes.actuation_mode = preset->actuation_mode;
   switch (preset->actuation_mode) {
     case EC_ACTUATION_MODE_STATIC_EDGE ... EC_ACTUATION_MODE_STATIC_LEVEL:
-      key->actuation_reference =
-        KEY_THRESHOLD(key->noise_floor, bottoming, preset->actuation_threshold);
+      key->actuation_reference = KEY_THRESHOLD(floor, bottoming, preset->actuation_threshold);
       break;
     case EC_ACTUATION_MODE_DYNAMIC:
-      key->actuation_reference = KEY_TRAVEL(key->noise_floor, bottoming, preset->actuation_travel);
+      key->actuation_reference = KEY_TRAVEL(floor, bottoming, preset->actuation_travel);
       break;
   }
   // release
   key->modes.release_mode = preset->release_mode;
   switch (preset->release_mode) {
     case EC_RELEASE_MODE_STATIC_EDGE ... EC_RELEASE_MODE_STATIC_LEVEL:
-      key->release_reference =
-        KEY_THRESHOLD(key->noise_floor, bottoming, preset->release_threshold);
+      key->release_reference = KEY_THRESHOLD(floor, bottoming, preset->release_threshold);
       break;
     case EC_RELEASE_MODE_DYNAMIC:
-      key->release_reference = KEY_TRAVEL(key->noise_floor, bottoming, preset->release_travel);
+      key->release_reference = KEY_TRAVEL(floor, bottoming, preset->release_travel);
       break;
   }
   // deadzone
-  key->deadzone = KEY_THRESHOLD(key->noise_floor, bottoming, preset->deadzone);
+  key->deadzone = KEY_THRESHOLD(floor, bottoming, preset->deadzone);
 
   // sub action
   key->sub_action_keycode = preset->sub_action_enable ? preset->sub_action_keycode : KC_NO;
   key->sub_action_actuation_threshold =
-    KEY_THRESHOLD(key->noise_floor, bottoming, preset->sub_action_actuation_threshold);
+    KEY_THRESHOLD(floor, bottoming, preset->sub_action_actuation_threshold);
   key->modes.sub_action_release_mode = preset->sub_action_release_mode;
   key->sub_action_release_threshold =
-    KEY_THRESHOLD(key->noise_floor, bottoming, preset->sub_action_release_threshold);
+    KEY_THRESHOLD(floor, bottoming, preset->sub_action_release_threshold);
 
   // reset extremum
   if (prev_actuation_mode != preset->actuation_mode || prev_release_mode != preset->release_mode) {
-    key->extremum = key->noise_floor;
+    key->extremum = floor;
   }
   if (key->extremum < key->deadzone) {
     key->extremum = key->deadzone;
@@ -138,7 +137,8 @@ static void update_matrix(uint8_t preset_index) {
   MATRIX_LOOP_WITH_KEY(                                         //
     uint8_t key_preset_index = get_key_preset_index(row, col);  //
     if (preset_index == key_preset_index) {
-      update_key(key, get_preset(preset_index), ec_eeprom_config.bottoming_reading[row][col]);
+      update_key(key, get_preset(preset_index), ec_eeprom_config.noise_floor[row][col],
+                 ec_eeprom_config.bottoming_reading[row][col]);
     }  //
   )
 }
@@ -156,11 +156,11 @@ void ec_config_reset(void) {
       ec_eeprom_config.presets[preset_index] = preset_default;
     }
   }
-  MATRIX_LOOP(ec_eeprom_config.bottoming_reading[row][col] =
-                pgm_read_word(&ec_bottoming_reading_default[row][col]);)
-
   memcpy_P(&ec_eeprom_config.bottoming_reading[0][0], &ec_bottoming_reading_default[0][0],
            MATRIX_ROWS * MATRIX_COLS * 2);
+  memcpy_P(&ec_eeprom_config.noise_floor[0][0], &ec_noise_floor_default[0][0],
+           MATRIX_ROWS * MATRIX_COLS * 2);
+
   ec_eeprom_config.selected_preset_map_index = 0;
 
   // Write default value to EEPROM now
@@ -186,7 +186,7 @@ void ec_config_init(void) {
 
 void ec_config_update_key(uint8_t row, uint8_t col) {
   update_key(&ec_config_keys[row][col], get_key_preset(row, col),
-             ec_eeprom_config.bottoming_reading[row][col]);
+             ec_eeprom_config.noise_floor[row][col], ec_eeprom_config.bottoming_reading[row][col]);
 }
 
 IMPLEMENT_PRESET_PARAM_SETTER(actuation_mode, ec_actuation_mode_t)
@@ -211,28 +211,19 @@ void ec_config_set_preset_map(uint8_t preset_map_index) {
   }
 }
 
-void ec_config_calibration_start(void) {
-  MATRIX_LOOP_WITH_KEY(key->bottoming_calibration_starter = true;)
-  ec_bottoming_calibration_enable = true;
-}
-
-void ec_config_calibration_end(void) {
-  ec_bottoming_calibration_enable = false;
-  ec_calibrate_noise_floor();
-  MATRIX_LOOP_WITH_KEY(
-    if (key->bottoming_calibration_starter) { key->bottoming_calibration_starter = false; } else {
-      // bottoming = max - nose / 2
-      ec_eeprom_config.bottoming_reading[row][col] -= key->noise / 2;
-      ec_config_update_key(row, col);
-    })
+void ec_config_save_calibration_data(void) {
   eeprom_update_block(&ec_eeprom_config.bottoming_reading[0][0],
                       (void *)EC_VIA_EEPROM_BOTTOMING_READING, MATRIX_COLS * MATRIX_ROWS * 2);
+  eeprom_update_block(&ec_eeprom_config.noise_floor[0][0], (void *)EC_VIA_EEPROM_NOISE_FLOOR,
+                      MATRIX_COLS * MATRIX_ROWS * 2);
 }
 
 void ec_config_send_calibration_data(void) {
   send_string("// clang-format off\n");
   send_string("const uint16_t PROGMEM ec_bottoming_reading_default[MATRIX_ROWS][MATRIX_COLS] = ");
   SEND_C_2D_ARRAY(ec_eeprom_config.bottoming_reading, MATRIX_ROWS, MATRIX_COLS, WORD, ";\n");
+  send_string("const uint16_t PROGMEM ec_noise_floor_default[MATRIX_ROWS][MATRIX_COLS] = ");
+  SEND_C_2D_ARRAY(ec_eeprom_config.noise_floor, MATRIX_ROWS, MATRIX_COLS, WORD, ";\n");
   send_string("// clang-format on\n");
 }
 
@@ -298,8 +289,6 @@ void ec_config_debug_send_debug_values(void) {
 #  endif
   SEND_JS_PROP_VALUE(ec_eeprom_config_reseted, BOOL, ",\n");
   SEND_JS_PROP_VALUE(ec_eeprom_config_error, WORD, ",\n");
-  SEND_JS_PROP_VALUE(ec_bottoming_calibration_enable, BOOL, ",\n");
-  SEND_EC_CONFIG_KEY_MATRIX(bottoming_calibration_starter, BOOL, ",\n");
   SEND_EC_CONFIG_KEY_MATRIX(extremum, WORD, ",\n");
   send_string("scan_test_result: {\n");
   SEND_JS_TEST_RESULT(floor_min, WORD, ",\n");
@@ -314,17 +303,20 @@ void ec_config_debug_send_debug_values(void) {
 
 void ec_config_debug_send_calibration(void) {
   send_string("const calibrtion = {\n");
-  SEND_EC_CONFIG_KEY_MATRIX(noise, WORD, ",\n");
-  SEND_EC_CONFIG_KEY_MATRIX(noise_floor, WORD, ",\n");
+  SEND_EC_CONFIG_KEY_MATRIX(noise, BYTE, ",\n");
+  SEND_EC_CONFIG_KEY_MATRIX(actuation_count, WORD, ",\n");
+  SEND_EC_CONFIG_KEY_MATRIX(bottoming_max, WORD, ",\n");
+  SEND_JS_NAME_PROP_2D_ARRAY("noise_floor", ec_eeprom_config.noise_floor, MATRIX_ROWS, MATRIX_COLS,
+                             WORD, ",\n");
   SEND_JS_NAME_PROP_2D_ARRAY("bottoming_readiong", ec_eeprom_config.bottoming_reading, MATRIX_ROWS,
                              MATRIX_COLS, WORD, ",\n");
   SEND_JS_NAME_PROP_2D_ARRAY_CODE(
     "range", MATRIX_ROWS, MATRIX_COLS, ",\n",
-    (SEND_WORD(ec_eeprom_config.bottoming_reading[i][j] - ec_config_keys[i][j].noise_floor)););
+    (SEND_WORD(ec_eeprom_config.bottoming_reading[i][j] - ec_eeprom_config.noise_floor[i][j])););
   SEND_JS_NAME_PROP_2D_ARRAY_CODE(
     "SNR_percentage", MATRIX_ROWS, MATRIX_COLS, "\n",
     (SEND_WORD(ec_config_keys[i][j].noise * 100 /
-               (ec_eeprom_config.bottoming_reading[i][j] - ec_config_keys[i][j].noise_floor));));
+               (ec_eeprom_config.bottoming_reading[i][j] - ec_eeprom_config.noise_floor[i][j]));));
   send_string("}\n");
 }
 

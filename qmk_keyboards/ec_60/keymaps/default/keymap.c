@@ -43,6 +43,13 @@ const uint16_t PROGMEM ec_bottoming_reading_default[MATRIX_ROWS][MATRIX_COLS] = 
   {0x02ba,0x03ff,0x038e,0x03fb,0x03fb,0x03e9,0x0395,0x03fb,0x03fc,0x03e0,0x03f7,0x03c2,0x03ff,0x026f,0x032e},
   {0x02ff,0x0314,0x02a0,0x03ff,0x03ff,0x03ff,0x030c,0x03ff,0x03ff,0x03ff,0x0234,0x0266,0x02b4,0x03ff,0x03ff}
 };
+const uint16_t PROGMEM ec_noise_floor_default[MATRIX_ROWS][MATRIX_COLS] = {
+  {0x0111,0x0148,0x00fb,0x0124,0x0163,0x015d,0x012c,0x010e,0x00bc,0x00ca,0x00ff,0x00d7,0x0114,0x00cd,0x0137},
+  {0x00f4,0x00ef,0x0106,0x0147,0x0128,0x0137,0x0163,0x00cb,0x013c,0x012d,0x00fd,0x0137,0x009f,0x00bd,0x0000},
+  {0x00e4,0x0107,0x0143,0x013b,0x00f1,0x0184,0x014c,0x011d,0x0168,0x013e,0x015c,0x0132,0x0000,0x009c,0x0000},
+  {0x00a2,0x0000,0x011e,0x017d,0x01a6,0x00fe,0x010d,0x0185,0x019b,0x0183,0x0167,0x00ec,0x0000,0x00dd,0x00cc},
+  {0x00ee,0x00e7,0x00d0,0x0000,0x0000,0x0000,0x00dc,0x0000,0x0000,0x0000,0x00d9,0x00d9,0x009e,0x0000,0x0000}
+};
 // clang-format on
 
 // clang-format off
@@ -94,10 +101,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   ),
   // settings, application-specific keys
   // row 1 - EC data
+  // row 2 - Select EC Prrest Map
   // row 3: normal settings, +shift key for unusual reversed setting
   [3] = LAYOUT_60_tsangan(
     QK_BOOT, KC_F13,  KC_F14,  KC_F15,  KC_F16,  KC_F17,  KC_F18,  KC_F19,  KC_F20,  KC_F21,  KC_F22,  KC_F23,  KC_F24,  _______, TERM_LCK,
-    _______, EC_CALD, EC_PSET, _______, _EC_DBG0,_EC_DBG1,_EC_DBG2,_______, _______, _______, _______, _______, TEST_OS,          _______,
+    _______, EC_CALD, EC_PSET, EC_SCAL,_EC_DBG0,_EC_DBG1,_EC_DBG2,_______, _______, _______, _______, _______, TEST_OS,          _______,
     _______, ECM(0),  ECM(1),  ECM(2),  ECM(3),  _______, _______, _______, _______, _______, _______, _______,                   _______,
     _______,          RHID_OFF,AUT_ON,  MAC_ON,  USJ_OFF, NK_ON,   CL_NORM, AG_NORM, BS_NORM, _______, _______,          _______, _______,
     _______, _______, _______,                            _______,                                              _______, _______, _______

@@ -96,7 +96,7 @@ static bool sample_noise_floor() {
     // calculate median value
     // https://github.com/svpv/qsort
     QSORT(NUM_NOISE_FLOOR_SAMPLES, LESS, SWAP);
-    key->noise_floor = noise_floor_samples[NUM_NOISE_FLOOR_SAMPLES >> 1];
+    ec_eeprom_config.noise_floor[row][col] = noise_floor_samples[NUM_NOISE_FLOOR_SAMPLES >> 1];
     // noise = max - min
     key->noise = noise_floor_samples[NUM_NOISE_FLOOR_SAMPLES - 1] - noise_floor_samples[0];
     sample_count = 0;

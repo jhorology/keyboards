@@ -46,7 +46,7 @@ _Static_assert(id_ec_tools_channel == EC_VIA_CUSTOM_CHANNEL_ID_START,
                "Mismatch in via custom menu channel");
 
 enum via_ec_tools_value_id {
-  id_ec_tools_bottoming_calibration = 1,
+  id_ec_tools_save_calibrartion_data = 1,
   id_ec_tools_show_calibration_data,
 #if EC_DEBUG_ENABLE
   id_ec_tools_matrix_scan_test,
@@ -105,7 +105,7 @@ static void send_data(uint32_t delay, void (*send_data_func)(void)) {
 // Bootmagic overriden to avoid conflicts with EC
 void bootmagic_lite(void) {
 #ifdef EC_BOOTMAGIC_LITE_THRESHOLD
-  if (ec_config_keys[BOOTMAGIC_ROW][BOOTMAGIC_COLUMN].noise_floor > EC_BOOTMAGIC_LITE_THRESHOLD) {
+  if (ec_config_keys[BOOTMAGIC_ROW][BOOTMAGIC_COLUMN].sw_value > EC_BOOTMAGIC_LITE_THRESHOLD) {
     eeconfig_disable();
     // Jump to bootloader.
     bootloader_jump();
@@ -132,6 +132,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       if (!record->event.pressed) {
         // 2 secods after release
         send_data(2000, ec_config_send_presets);
+      }
+      return false;
+    case EC_SCAL:
+      if (!record->event.pressed) {
+        ec_config_save_calibration_data();
       }
       return false;
     case EC_PRESET_MAP_START ... EC_PRESET_MAP_END:
@@ -194,11 +199,9 @@ bool via_custom_value_command_user(via_custom_command_t *command) {
       switch (command->command_id) {
         case id_custom_set_value:
           switch (command->value_id) {
-            case id_ec_tools_bottoming_calibration:
+            case id_ec_tools_save_calibrartion_data:
               if (via_read_toggle_value(command)) {
-                ec_config_calibration_start();
-              } else {
-                ec_config_calibration_end();
+                ec_config_save_calibration_data();
               }
               return false;
             case id_ec_tools_show_calibration_data:

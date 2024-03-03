@@ -23,6 +23,11 @@ module.exports = function (options, defines) {
       title: 'Show presets as keystrokes',
       shortName: 'EC.P'
     },
+    {
+      name: 'EC\nSCal',
+      title: 'Save Calibration data',
+      shortName: 'EC.S'
+    },
     // preset map selector keys
     ...mapForEachIndex(defines.EC_NUM_PRESET_MAPS, (i) => ({
       name: `EC\n Map ${i}`,
