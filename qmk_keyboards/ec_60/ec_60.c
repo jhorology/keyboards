@@ -103,10 +103,10 @@ static void send_data(uint32_t delay, void (*send_data_func)(void)) {
 // -----------------------------------------------------------------------------------
 
 // Bootmagic overriden to avoid conflicts with EC
-void bootmagic_lite(void) {
-#ifdef EC_BOOTMAGIC_LITE_THRESHOLD
-  if (ec_config_keys[BOOTMAGIC_ROW][BOOTMAGIC_COLUMN].sw_value > EC_BOOTMAGIC_LITE_THRESHOLD) {
-    eeconfig_disable();
+void bootmagic_scan(void) {
+#ifdef EC_BOOTMAGIC_THRESHOLD
+  if (ec_config_keys[BOOTMAGIC_ROW][BOOTMAGIC_COLUMN].sw_value > EC_BOOTMAGIC_THRESHOLD) {
+    // eeconfig_disable();
     // Jump to bootloader.
     bootloader_jump();
   }

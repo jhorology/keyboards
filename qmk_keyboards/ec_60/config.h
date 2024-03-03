@@ -52,7 +52,7 @@
 #define DISCHARGE_TIME 8  // usec
 
 #define EC_BOTTOMING_READING_DEFAULT 1023
-#define EC_BOOTMAGIC_LITE_THRESHOLD 0x180
+#define EC_BOOTMAGIC_THRESHOLD 0x180
 
 // must be numeric definition for via_json_generator ------>
 
