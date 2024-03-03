@@ -7,6 +7,7 @@
 #define IDLE_TIME 500
 #define NUM_CALIBRATION_KEYS 10
 #define ACTUATION_COUNT 32
+#define BOTTOMING_UPDATE_COUNT 256
 
 static uint16_t noise_floor_samples[NUM_NOISE_FLOOR_SAMPLES];
 static uint32_t idle_timer;
@@ -17,6 +18,8 @@ static uint8_t start_row;
 static uint8_t start_col;
 static uint8_t row;
 static uint8_t col;
+
+uint16_t bottoming_update_count;
 
 static bool sample_noise_floor(void);
 static void update_keys(void);
@@ -106,13 +109,6 @@ static bool sample_noise_floor() {
   return key_count >= NUM_CALIBRATION_KEYS;
 }
 
-// TODO eeprom
-//   - ec_eeprom_config.bottoming_reading
-//   - key->noise_floor
-//   - key->noise
-//   - key->actuation_count
-//   - key->bottoming_max
-
 static void update_keys() {
   for (uint8_t i = 0; i < NUM_CALIBRATION_KEYS; i++) {
     ec_key_config_t *key = &ec_config_keys[row][col];
@@ -120,8 +116,16 @@ static void update_keys() {
       ec_eeprom_config.bottoming_reading[row][col] = key->bottoming_max - (key->noise >> 1);
       key->actuation_count = 0;
       key->bottoming_max = 0;
+      bottoming_update_count++;
     }
     ec_config_update_key(row, col);
     KEY_NEXT;
+  }
+  // TODO how often should save
+  if (bottoming_update_count >= BOTTOMING_UPDATE_COUNT) {
+    ec_config_save_calibration_data();
+    // TODO temporay comment out for monitoring counter.
+    // only once
+    // update_count = 0;
   }
 }

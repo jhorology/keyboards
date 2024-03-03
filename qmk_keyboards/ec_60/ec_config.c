@@ -3,6 +3,7 @@
 #include <eeprom.h>
 
 #include "ec_60.h"
+#include "ec_auto_calibration.h"
 #include "ec_switch_matrix.h"
 #include "lib/send_string_macro.h"
 
@@ -303,6 +304,7 @@ void ec_config_debug_send_debug_values(void) {
 
 void ec_config_debug_send_calibration(void) {
   send_string("const calibrtion = {\n");
+  SEND_JS_PROP_VALUE(bottoming_update_count, WORD, ",\n");
   SEND_EC_CONFIG_KEY_MATRIX(noise, BYTE, ",\n");
   SEND_EC_CONFIG_KEY_MATRIX(actuation_count, WORD, ",\n");
   SEND_EC_CONFIG_KEY_MATRIX(bottoming_max, WORD, ",\n");
