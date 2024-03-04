@@ -219,6 +219,14 @@ void ec_config_save_calibration_data(void) {
                       MATRIX_COLS * MATRIX_ROWS * 2);
 }
 
+void ec_config_save_calibration_key(uint8_t row, uint8_t col) {
+  uint16_t offset = (row * MATRIX_COLS + col) * 2;
+  eeprom_update_word((void *)(EC_VIA_EEPROM_BOTTOMING_READING + offset),
+                     ec_eeprom_config.bottoming_reading[row][col]);
+  eeprom_update_word((void *)(EC_VIA_EEPROM_NOISE_FLOOR + offset),
+                     ec_eeprom_config.noise_floor[row][col]);
+}
+
 void ec_config_send_calibration_data(void) {
   send_string("// clang-format off\n");
   send_string("const uint16_t PROGMEM ec_bottoming_reading_default[MATRIX_ROWS][MATRIX_COLS] = ");

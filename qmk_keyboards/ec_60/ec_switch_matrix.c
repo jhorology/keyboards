@@ -457,7 +457,6 @@ bool custom_matrix_task(void) {
         // in quantum/keyboard.c
         switch_events(row, col, key_pressed);
 #endif
-        break;
       }
     }
 

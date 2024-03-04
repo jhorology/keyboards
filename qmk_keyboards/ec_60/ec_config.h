@@ -124,7 +124,9 @@ DECLARE_PRESET_PARAM_SETTER(sub_action_release_threshold, uint16_t)
 void ec_config_set_preset_map(uint8_t preset_map_index);
 void ec_config_save_calibration_data(void);
 void ec_config_send_calibration_data(void);
+void ec_config_save_calibration_key(uint8_t row, uint8_t col);
 void ec_config_send_presets(void);
+
 #ifdef EC_DEBUG_ENABLE
 void ec_config_debug_send_debug_values(void);
 void ec_config_debug_send_calibration(void);

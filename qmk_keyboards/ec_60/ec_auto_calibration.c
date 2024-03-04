@@ -7,8 +7,9 @@
 #define IDLE_TIME 500
 #define NUM_CALIBRATION_KEYS 10
 #define ACTUATION_COUNT 32
-#define BOTTOMING_UPDATE_COUNT 256
+#define BOTTOMING_UPDATE_COUNT 128
 
+static matrix_row_t initial_saved[MATRIX_ROWS];
 static uint16_t noise_floor_samples[NUM_NOISE_FLOOR_SAMPLES];
 static uint32_t idle_timer;
 
@@ -117,15 +118,18 @@ static void update_keys() {
       key->actuation_count = 0;
       key->bottoming_max = 0;
       bottoming_update_count++;
+      // save key calibration when first updated (actuate 32 times)
+      matrix_row_t col_mask = 1 << col;
+      if ((col_mask & initial_saved[row]) == 0) {
+        ec_config_save_calibration_key(row, col);
+        initial_saved[row] |= col_mask;
+      }
     }
     ec_config_update_key(row, col);
     KEY_NEXT;
   }
-  // TODO how often should save
   if (bottoming_update_count >= BOTTOMING_UPDATE_COUNT) {
     ec_config_save_calibration_data();
-    // TODO temporay comment out for monitoring counter.
-    // only once
-    // update_count = 0;
+    bottoming_update_count = 0;
   }
 }
