@@ -543,8 +543,8 @@ macos_uf2_flash() {
       echo ""
       echo "copying firmware [$firmware] to volume [$dfu_volume]..."
       sleep 1
-      # cp -X $firmware $dfu_volume
-      west flash --build-dir build/$board || true
+      cp -X $firmware $dfu_volume || true
+      # west flash --build-dir build/$board || true
       echo "flashing firmware finished successfully."
       return
     else
