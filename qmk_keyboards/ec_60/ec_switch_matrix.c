@@ -430,8 +430,8 @@ uint8_t matrix_scan(void) {
 }
 
 bool custom_matrix_task(void) {
-  bool changed = matrix_scan();
   static bool all_released = true;
+  bool changed = matrix_scan();
 
 #if defined(DEBUG_MATRIX_SCAN_RATE)
   // in keyboard.c
@@ -491,8 +491,7 @@ bool custom_matrix_task(void) {
       action_exec(MAKE_TICK_EVENT);
       last_tick = now;
     }
+    ec_auto_calibration_task(all_released);
   }
-
-  ec_auto_calibration_task(all_released);
   return changed;
 }
