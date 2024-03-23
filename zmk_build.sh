@@ -11,7 +11,7 @@ HOST_OS=$(uname)
 HOST_ARCHITECTURE=$(uname -m)
 [[ $HOST_OS = macos ]] && [[ $HOST_ARCHITECTURE = arm64 ]] && HOST_ARCHITECTURE=aarch64
 ZEPHYR_VERSION=3.5.0
-ZEPHYR_SDK_VERSION=0.16.5
+ZEPHYR_SDK_VERSION=0.16.5-1
 
 # it is recommended to extract the Zephyr SDK bundle at one of the following default locations:
 #
@@ -329,6 +329,7 @@ pip_upgrade() {
 setup() {
   cd $PROJECT
   ${os}_install_packages
+
   if [[ ! -d "${ZEPHYR_SDK_INSTALL_DIR}/zephyr-sdk-${ZEPHYR_SDK_VERSION}" ]]; then
     mkdir -p "$ZEPHYR_SDK_INSTALL_DIR"
     cd "$ZEPHYR_SDK_INSTALL_DIR"
@@ -348,8 +349,17 @@ setup() {
       ./setup.sh -h -c -t $toolchain
     fi
   done
-  cd $PROJECT
 
+  # remove old SDK
+  cd "$ZEPHYR_SDK_INSTALL_DIR"
+  for sdk in zephyr-sdk-*; do
+    if [[ $sdk != zephyr-sdk-${ZEPHYR_SDK_VERSION} ]]; then
+      rm -rf $sdk
+    fi
+  done
+
+  # install python packages
+  cd $PROJECT
   pip_install
 }
 
