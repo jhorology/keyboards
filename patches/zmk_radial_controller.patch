@@ -1,15 +1,3 @@
-diff --git a/app/include/zmk/endpoints.h b/app/include/zmk/endpoints.h
-index 7024018..1eeb9dc 100644
---- a/app/include/zmk/endpoints.h
-+++ b/app/include/zmk/endpoints.h
-@@ -73,3 +73,7 @@ int zmk_endpoints_send_report(uint16_t usage_page);
- #if IS_ENABLED(CONFIG_ZMK_MOUSE)
- int zmk_endpoints_send_mouse_report();
- #endif // IS_ENABLE(CONFIG_ZMK_MOUSE)
-+
-+#if IS_ENABLED(CONFIG_ZMK_RADIAL_CONTROLLER)
-+int zmk_endpoints_send_radial_controller_report(void);
-+#endif // IS_ENABLED(CONFIG_ZMK_RADIAL_CONTROLLER)
 diff --git a/app/include/zmk/hid.h b/app/include/zmk/hid.h
 index d1d3b7d..7fe373f 100644
 --- a/app/include/zmk/hid.h
@@ -132,10 +120,10 @@ index c0cbc08..48514d9 100644
 +#endif // IS_ENABLED(CONFIG_ZMK_RADIAL_CONTROLLER)
  void zmk_usb_hid_set_protocol(uint8_t protocol);
 diff --git a/app/src/endpoints.c b/app/src/endpoints.c
-index 395d6ba..9beab3c 100644
+index 7c9d15a..56e65f4 100644
 --- a/app/src/endpoints.c
 +++ b/app/src/endpoints.c
-@@ -221,6 +221,37 @@ int zmk_endpoints_send_mouse_report() {
+@@ -239,6 +239,37 @@ int zmk_endpoints_send_mouse_report() {
  }
  #endif // IS_ENABLED(CONFIG_ZMK_MOUSE)
  
@@ -173,7 +161,7 @@ index 395d6ba..9beab3c 100644
  #if IS_ENABLED(CONFIG_SETTINGS)
  
  static int endpoints_handle_set(const char *name, size_t len, settings_read_cb read_cb,
-@@ -328,9 +359,15 @@ static void disconnect_current_endpoint(void) {
+@@ -346,9 +377,15 @@ void zmk_endpoints_clear_current(void) {
  #if IS_ENABLED(CONFIG_ZMK_MOUSE)
      zmk_hid_mouse_clear();
  #endif // IS_ENABLED(CONFIG_ZMK_MOUSE)

@@ -38,10 +38,10 @@ index d1d3b7d..0e65810 100644
      uint8_t keys[(ZMK_HID_KEYBOARD_NKRO_MAX_USAGE + 1) / 8];
  #elif IS_ENABLED(CONFIG_ZMK_HID_REPORT_TYPE_HKRO)
 diff --git a/app/src/endpoints.c b/app/src/endpoints.c
-index 395d6ba..430cb4d 100644
+index 7c9d15a..bf86c26 100644
 --- a/app/src/endpoints.c
 +++ b/app/src/endpoints.c
-@@ -187,6 +187,11 @@ int zmk_endpoints_send_report(uint16_t usage_page) {
+@@ -199,6 +199,11 @@ int zmk_endpoints_send_report(uint16_t usage_page) {
          return send_consumer_report();
      }
  
