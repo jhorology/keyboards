@@ -217,9 +217,9 @@
       compatible = "zmk,behavior-macro-two-param";
       #binding-cells = <2>;
       bindings
-      = <&macro_tap &out OUT_BLE>
-      , <&macro_param_1to2>
+      = <&macro_param_1to2>
       , <&macro_tap &bt BT_SEL MACRO_PLACEHOLDER>
+      , <&macro_tap &out OUT_BLE>
       , <&macro_param_2to1>
       , <&macro_tap &to MACRO_PLACEHOLDER>
       ;
