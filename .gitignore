@@ -26,6 +26,7 @@ compile_commands.json
 .ccls-cache/
 .docsets/
 xpacks/
+package-lock.json
 
 # VIA
 via_app/
