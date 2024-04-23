@@ -1,30 +1,83 @@
 #include <zephyr/init.h>
-#include <evil/usb_host_os.h>
 
 #include <zmk/usb_host_os.h>
 #include <zmk/event_manager.h>
 #include <zmk/events/usb_host_os_changed.h>
+#include <zmk/events/usb_conn_state_changed.h>
+#include "zephyr/usb/class/hid.h"
 
-LOG_MODULE_DECLARE(evil, CONFIG_EVIL_LOG_LEVEL);
+#define USB_HID_SETUP_TIMEOUT_MS 1000
+
+#if IS_ENABLED(CONFIG_ZMK_USB_HOST_OS_DEBUG)
+#  define USB_SETUP_LOG_MAX 64
+static struct usb_setup_packet usb_hid_setup_log[USB_SETUP_LOG_MAX];
+#endif
+static int packet_cnt;
+
+LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 static enum usb_host_os detected_os = USB_HOST_OS_UNDEFINED;
 
-static void raise_usb_host_os_changed_event(struct k_work *_work) {
+static void end_usb_hid_setup(struct k_work *work) {
+  if (detected_os == USB_HOST_OS_UNDEFINED) {
+    detected_os = USB_HOST_OS_UNKNOWN;
+  }
+  LOG_DBG("os detection end, packet_cnt: %d, detected_os:%d", packet_cnt, detected_os);
   raise_zmk_usb_host_os_changed((struct zmk_usb_host_os_changed){.os = zmk_usb_host_os_detected()});
 }
 
-K_WORK_DEFINE(usb_host_os_notifier_work, raise_usb_host_os_changed_event);
+static K_WORK_DELAYABLE_DEFINE(usb_host_os_work, end_usb_hid_setup);
+
+void zmk_usb_host_os_trace_hid_setup(struct usb_setup_packet *setup) {
+#if IS_ENABLED(CONFIG_ZMK_USB_HOST_OS_DEBUG)
+  if (packet_cnt < USB_SETUP_LOG_MAX) {
+    usb_hid_setup_log[packet_cnt] = *setup;
+  }
+#endif
+  packet_cnt++;
+  if (detected_os == USB_HOST_OS_UNDEFINED) {
+    // only work when CONFIG_USB_DEVICE_VID=0x05AC and CONFIG_USB_DEVICE_PID = 0x024F
+    //
+    //   bRequest: '9:HID_SET_REPORT'
+    //   reportType: '3:FEATURE_REPORT'
+    //   reportId : 9
+    //
+    // TODO not tested on iOS
+    //
+    LOG_DBG("usb_host_os: bRequest: %d, wValue: %0x", setup->bRequest, setup->wValue);
+    if (setup->bRequest == USB_HID_SET_REPORT && setup->wValue == 0x0309) {
+      detected_os = USB_HOST_OS_DARWIN;
+    }
+    k_work_reschedule(&usb_host_os_work, K_MSEC(USB_HID_SETUP_TIMEOUT_MS));
+  }
+}
 
 enum usb_host_os zmk_usb_host_os_detected() { return detected_os; }
 
-static void zmk_usb_host_os_cb(enum usb_host_os os) {
-  detected_os = os;
-  k_work_submit(&usb_host_os_notifier_work);
-};
+#if IS_ENABLED(CONFIG_ZMK_USB_HOST_OS_DEBUG)
+struct usb_setup_packet *get_usb_hid_setup_log_item(uint8_t index) {
+  if (index < packet_cnt) {
+    return &usb_hid_setup_log[index];
+  }
+  return NULL;
+}
+#endif  // CONFIG_ZMK_USB_HOST_OS_DEBUG
 
-static int zmk_usb_host_os_init(void) {
-  enable_usb_host_os(zmk_usb_host_os_cb);
+static int usb_conn_listener(const zmk_event_t *eh) {
+  //
+  // const struct zmk_usb_conn_state_changed *ev = as_zmk_usb_conn_state_changed(eh);
+  // if (ev->conn_state == ZMK_USB_CONN_HID) {
+  LOG_DBG("os detection start");
+  packet_cnt = 0;
+  detected_os = USB_HOST_OS_UNDEFINED;
+  k_work_reschedule(&usb_host_os_work, K_MSEC(USB_HID_SETUP_TIMEOUT_MS));
+  // }
   return 0;
 }
 
-SYS_INIT(zmk_usb_host_os_init, APPLICATION, CONFIG_ZMK_USB_INIT_PRIORITY);
+ZMK_LISTENER(usb_host_os_usb_conn, usb_conn_listener);
+ZMK_SUBSCRIPTION(usb_host_os_usb_conn, zmk_usb_conn_state_changed);
+
+// TODO research the support status of each indicator usage ID
+// ZMK_LISTENER(usb_host_os_indicator, indicators_listener);
+// ZMK_SUBSCRIPTION(usb_host_os_indicators, zmk_hid_indicators_changed);

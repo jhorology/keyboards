@@ -47,23 +47,26 @@ config ZMK_HID_EXTRA_KEY_7
 endif # ZMK_HID_EXTRA_KEYS
 
 config ZMK_USB_HOST_OS
-    bool "Enable uato switch layer"
-    select USB_DETECT_HOST_OS
+    bool "Enable detecting USB host os"
 
+if ZMK_USB_HOST_OS
 
-# TODO maybe better to define in device-tree as property of keymap
+config ZMK_USB_HOST_OS_DEBUG
+    bool "Enable debug for USB_HOST_OS"
+    default y if ZMK_CUSTOM_SHELL_CMD
+
+endif
+
 config ZMK_USB_AUTO_SWITCH_LAYER
-    bool "Enable uato switch layer"
+    bool "Enable auto switch layer"
     default n
     select ZMK_USB_HOST_OS
 
 if ZMK_USB_AUTO_SWITCH_LAYER
 
-# TODO maybe better to define in device-tree
 config ZMK_USB_AUTO_SWITCH_LAYER_IF_DARWIN
     int "Mac layer"
 
-# TODO maybe better to define in device-tree
 config ZMK_USB_AUTO_SWITCH_LAYER_UNLESS_DARWIN
     int "Win layer"
 
@@ -81,6 +84,10 @@ config ZMK_BLE_RADIAL_CONTROLLER_REPORT_QUEUE_SIZE
     default 5
 
 endif # ZMK_RADIAL_CONTROLLER
+
+config ZMK_CUSTOM_SHELL_CMD
+    bool "Enable custom shell command"
+    default y if SHELL
 
 config ZMK_INDICATOR_LED
     bool "Enable indicator LEDs"

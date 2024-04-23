@@ -1,8 +1,8 @@
 diff --git a/app/include/zmk/hid.h b/app/include/zmk/hid.h
-index d1d3b7d..0e65810 100644
+index 41f559b..4d7ee9f 100644
 --- a/app/include/zmk/hid.h
 +++ b/app/include/zmk/hid.h
-@@ -14,6 +14,10 @@
+@@ -16,6 +16,10 @@
  #include <zmk/mouse.h>
  #endif // IS_ENABLED(CONFIG_ZMK_MOUSE)
  
@@ -13,7 +13,7 @@ index d1d3b7d..0e65810 100644
  #include <dt-bindings/zmk/hid_usage.h>
  #include <dt-bindings/zmk/hid_usage_pages.h>
  
-@@ -74,10 +78,14 @@ static const uint8_t zmk_hid_report_desc[] = {
+@@ -76,10 +80,14 @@ static const uint8_t zmk_hid_report_desc[] = {
      HID_REPORT_COUNT(0x08),
      HID_INPUT(ZMK_HID_MAIN_VAL_DATA | ZMK_HID_MAIN_VAL_VAR | ZMK_HID_MAIN_VAL_ABS),
  
@@ -28,14 +28,14 @@ index d1d3b7d..0e65810 100644
  
  #if IS_ENABLED(CONFIG_ZMK_HID_INDICATORS)
  
-@@ -198,7 +206,7 @@ typedef struct zmk_hid_boot_report zmk_hid_boot_report_t;
+@@ -200,7 +208,7 @@ typedef struct zmk_hid_boot_report zmk_hid_boot_report_t;
  
  struct zmk_hid_keyboard_report_body {
      zmk_mod_flags_t modifiers;
 -    uint8_t _reserved;
 +    uint8_t extra_keys;
  #if IS_ENABLED(CONFIG_ZMK_HID_REPORT_TYPE_NKRO)
-     uint8_t keys[(ZMK_HID_KEYBOARD_NKRO_MAX_USAGE + 1) / 8];
+     uint8_t keys[DIV_ROUND_UP(ZMK_HID_KEYBOARD_NKRO_MAX_USAGE + 1, 8)];
  #elif IS_ENABLED(CONFIG_ZMK_HID_REPORT_TYPE_HKRO)
 diff --git a/app/src/endpoints.c b/app/src/endpoints.c
 index 7c9d15a..bf86c26 100644
@@ -54,7 +54,7 @@ index 7c9d15a..bf86c26 100644
      return -ENOTSUP;
  }
 diff --git a/app/src/hid.c b/app/src/hid.c
-index 8b0c23f..135db30 100644
+index 582db67..415c4e7 100644
 --- a/app/src/hid.c
 +++ b/app/src/hid.c
 @@ -13,7 +13,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);

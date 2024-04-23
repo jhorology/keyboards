@@ -11,7 +11,7 @@
 #include <zmk/endpoints_types.h>
 #include <zmk/events/endpoint_changed.h>
 
-LOG_MODULE_DECLARE(evil, CONFIG_EVIL_LOG_LEVEL);
+LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 static int auto_switch_layer_listener(const zmk_event_t *eh) {
   struct zmk_endpoint_instance endpoint = zmk_endpoints_selected();

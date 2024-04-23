@@ -3,5 +3,3 @@ zephyr_library_sources_ifdef(CONFIG_BOOTSEL_VIA_DOUBLE_RESET src/boot/bootsel_vi
 zephyr_library_sources_ifdef(CONFIG_BOOTSEL_STM32 src/boot/bootsel_stm32.c)
 zephyr_library_sources_ifdef(CONFIG_BOOTSEL_UF2_STM32F103 src/boot/bootsel_uf2_stm32f103.c)
 zephyr_library_sources_ifdef(CONFIG_CUSTOM_SHELL_CMD src/shell/info_cmd.c)
-zephyr_library_sources_ifdef(CONFIG_USB_DETECT_HOST_OS src/usb_host_os.c)
-

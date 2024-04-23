@@ -1,8 +1,8 @@
 diff --git a/app/include/zmk/hid.h b/app/include/zmk/hid.h
-index d1d3b7d..7fe373f 100644
+index 41f559b..3a19ea9 100644
 --- a/app/include/zmk/hid.h
 +++ b/app/include/zmk/hid.h
-@@ -58,6 +58,7 @@
+@@ -60,6 +60,7 @@
  #define ZMK_HID_REPORT_ID_LEDS 0x01
  #define ZMK_HID_REPORT_ID_CONSUMER 0x02
  #define ZMK_HID_REPORT_ID_MOUSE 0x03
@@ -10,7 +10,7 @@ index d1d3b7d..7fe373f 100644
  
  static const uint8_t zmk_hid_report_desc[] = {
      HID_USAGE_PAGE(HID_USAGE_GEN_DESKTOP),
-@@ -175,6 +176,42 @@ static const uint8_t zmk_hid_report_desc[] = {
+@@ -177,6 +178,42 @@ static const uint8_t zmk_hid_report_desc[] = {
      HID_END_COLLECTION,
      HID_END_COLLECTION,
  #endif // IS_ENABLED(CONFIG_ZMK_MOUSE)
@@ -53,7 +53,7 @@ index d1d3b7d..7fe373f 100644
  };
  
  #if IS_ENABLED(CONFIG_ZMK_USB_BOOT)
-@@ -252,6 +289,18 @@ struct zmk_hid_mouse_report {
+@@ -254,6 +291,18 @@ struct zmk_hid_mouse_report {
  
  #endif // IS_ENABLED(CONFIG_ZMK_MOUSE)
  
@@ -72,7 +72,7 @@ index d1d3b7d..7fe373f 100644
  zmk_mod_flags_t zmk_hid_get_explicit_mods(void);
  int zmk_hid_register_mod(zmk_mod_t modifier);
  int zmk_hid_unregister_mod(zmk_mod_t modifier);
-@@ -286,6 +335,14 @@ int zmk_hid_mouse_buttons_release(zmk_mouse_button_flags_t buttons);
+@@ -288,6 +337,14 @@ int zmk_hid_mouse_buttons_release(zmk_mouse_button_flags_t buttons);
  void zmk_hid_mouse_clear(void);
  #endif // IS_ENABLED(CONFIG_ZMK_MOUSE)
  
@@ -87,7 +87,7 @@ index d1d3b7d..7fe373f 100644
  struct zmk_hid_keyboard_report *zmk_hid_get_keyboard_report(void);
  struct zmk_hid_consumer_report *zmk_hid_get_consumer_report(void);
  
-@@ -296,3 +353,7 @@ zmk_hid_boot_report_t *zmk_hid_get_boot_report();
+@@ -298,3 +355,7 @@ zmk_hid_boot_report_t *zmk_hid_get_boot_report();
  #if IS_ENABLED(CONFIG_ZMK_MOUSE)
  struct zmk_hid_mouse_report *zmk_hid_get_mouse_report();
  #endif // IS_ENABLED(CONFIG_ZMK_MOUSE)
@@ -178,7 +178,7 @@ index 7c9d15a..56e65f4 100644
  
  static void update_current_endpoint(void) {
 diff --git a/app/src/hid.c b/app/src/hid.c
-index 8b0c23f..b136852 100644
+index 582db67..d5160d3 100644
 --- a/app/src/hid.c
 +++ b/app/src/hid.c
 @@ -32,6 +32,13 @@ static struct zmk_hid_mouse_report mouse_report = {.report_id = ZMK_HID_REPORT_I

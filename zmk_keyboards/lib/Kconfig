@@ -85,23 +85,4 @@ config CUSTOM_SHELL_CMD
     bool "Enable custom shell command"
     default y if SHELL
 
-config USB_TRACE_SETUP
-    bool "Enable trace HID setup packet"
-    default y if USB_DETECT_HOST_OS
-
-config USB_DETECT_HOST_OS
-    bool "Enable detecting usb host os"
-
-if USB_DETECT_HOST_OS
-
-config USB_DETECT_HOST_OS_DEBUG
-    bool "Enable logging usb setup packet"
-    default y if SHELL
-
-endif # USB_DETECT_HOST_OS
-
-config EVIL_LOG_LEVEL
-    int "Independent log module for for debugging"
-    default 4
-
 endmenu

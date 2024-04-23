@@ -1,8 +1,6 @@
 #pragma once
 
-#include <zephyr/kernel.h>
-#include <evil/usb_host_os.h>
-
+#include <zmk/usb_host_os.h>
 #include <zmk/event_manager.h>
 
 struct zmk_usb_host_os_changed {

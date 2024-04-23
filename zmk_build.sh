@@ -636,6 +636,7 @@ macos_log_console() {
     sleep 1
     for tty_dev in /dev/tty.usbmodem*(N); do
       if [[ $tty_dev -nt $firmware ]]; then
+        echo "found tty device [$tty_dev]"
         # to exit tio, [Ctrl + t][q]
         sudo chmod +urw $tty_dev
         tio --log --log-file=$log_file $tty_dev
@@ -660,6 +661,8 @@ macos_shell_console() {
     sleep 1
     for cu_dev in /dev/cu.usbmodem*(N); do
       if [[ $cu_dev -nt $firmware ]]; then
+        echo "found cu device [$cu_dev]"
+        sleep 3
         # to exit cu, [~][.][enter]
         sudo cu -l $cu_dev
         return
