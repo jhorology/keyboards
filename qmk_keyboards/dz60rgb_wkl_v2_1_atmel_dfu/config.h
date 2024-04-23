@@ -1,6 +1,6 @@
 #pragma once
 
-#define DEBOUNCE 5
+// #define DEBOUNCE 10
 
 #define IS31FL3733_I2C_ADDRESS_1 IS31FL3733_I2C_ADDRESS_GND_GND
 
