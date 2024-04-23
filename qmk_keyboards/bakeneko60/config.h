@@ -1,5 +1,7 @@
 #pragma once
 
+#define DEBOUNCE 8
+
 /* ViA layout options */
 #define LAYOUT_OPTION_SPLIT_BS 0x4
 #define LAYOUT_OPTION_SPLIT_RIGHT_SHIFT 0x2
