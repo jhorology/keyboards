@@ -156,8 +156,7 @@ macos_install_packages() {
     fi
   done
   brew install $packages[*]
-  brew link --force avr-gcc@12
-  brew untap qmk/qmk
+  brew untap --force qmk/qmk
   brew cleanup
 }
 

@@ -450,8 +450,8 @@ build() {
   local board=$1
   local target=$2
   local opts=()
-  local pristine=""
-  $WITH_UPDATE && pristine="--pristine"
+  local pristine="auto"
+  $WITH_UPDATE && pristine="always"
 
   (( $#with_logging )) && opts=($opts "-DCONFIG_ZMK_USB_LOGGING=y" "-DCONFIG_LOG_THREAD_ID_PREFIX=y")
   (( $#with_shell )) && opts=($opts "-DCONFIG_SHELL=y")
@@ -468,7 +468,7 @@ build() {
       dot_projectile
     fi
   fi
-  west build $pristine --board $board --build-dir build/$board zmk/app -- \
+  west build --pristine=$pristine --board $board --build-dir build/$board zmk/app -- \
        -DZMK_CONFIG=$PROJECT/zmk_keyboards $opts[*]
 
   if (( $#with_compile_db )); then
@@ -480,14 +480,14 @@ build() {
 build_with_docker() {
   local board=$1
   local opts=()
-  local pristine=""
-  $WITH_UPDATE && pristine="--pristine"
+  local pristine="auto"
+  $WITH_UPDATE && pristine="always"
 
   (( $#with_logging )) && opts=($opts "-DCONFIG_ZMK_USB_LOGGING=y")
   (( $#with_shell )) && opts=($opts "-DCONFIG_SHELL=y")
   (( $#with_pp )) && opts=($opts "-DEXTRA_CFLAGS=-save-temps=obj")
   docker_exec -i <<-EOF
-    west build $pristine --board $board --build-dir build/$board zmk/app -- -DZMK_CONFIG="$CONTAINER_WORKSPACE_DIR/zmk_keyboards" $opts[*]
+    west build --pristine=$pristine --board $board --build-dir build/$board zmk/app -- -DZMK_CONFIG="$CONTAINER_WORKSPACE_DIR/zmk_keyboards" $opts[*]
 EOF
 }
 
