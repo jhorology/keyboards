@@ -1,3 +1,16 @@
+diff --git a/app/include/zmk/endpoints.h b/app/include/zmk/endpoints.h
+index f2aff2b..6415ad0 100644
+--- a/app/include/zmk/endpoints.h
++++ b/app/include/zmk/endpoints.h
+@@ -74,4 +74,8 @@ int zmk_endpoints_send_report(uint16_t usage_page);
+ int zmk_endpoints_send_mouse_report();
+ #endif // IS_ENABLE(CONFIG_ZMK_MOUSE)
+ 
++#if IS_ENABLED(CONFIG_ZMK_RADIAL_CONTROLLER)
++int zmk_endpoints_send_radial_controller_report();
++#endif // IS_ENABLED(CONFIG_ZMK_RADIAL_CONTROLLER)
++
+ void zmk_endpoints_clear_current(void);
 diff --git a/app/include/zmk/hid.h b/app/include/zmk/hid.h
 index 41f559b..3a19ea9 100644
 --- a/app/include/zmk/hid.h
