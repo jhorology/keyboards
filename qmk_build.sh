@@ -140,23 +140,9 @@ npm_install() {
 }
 
 macos_install_packages() {
-  brew tap qmk/qmk
   brew update
-  # install 'qmk' in .venv, install only required packages.
-  qmk_deps=$(brew info qmk/qmk/qmk | grep "Required:")
-  qmk_deps=${qmk_deps//Required: /}
-  qmk_deps=(${(s[, ])qmk_deps})
-  # use GCC12
-  # On arm mac, arm-none-eabi-gcc@12 dosen't exist in homebrew packages
-  packages=(avr-gcc@12)
-  for p in $qmk_deps; do
-    # exclude gcc
-    if [[ ! $p =~ "-gcc@[0-9]+" ]]; then
-      packages=($packages $p)
-    fi
-  done
-  brew install $packages[*]
-  brew untap --force qmk/qmk
+  brew install make git python clang-format \
+       osx-cross/avr/avr-gcc@12 dfu-util dfu-programmer
   brew cleanup
 }
 
@@ -371,7 +357,7 @@ fedora_uf2_flash() {
 
 # $1 target
 build_firmware() {
-  PATH=$PROJECT/xpacks/.bin:$PATH
+  PATH=$PROJECT/xpacks/.bin:$(brew --prefix)/opt/avr-gcc@12/bin:$PATH
 
   local target=$1
   local kbd=(${(@s/:/)KEYBOARDS[$target]})
@@ -466,7 +452,7 @@ EOS
 }
 
 compile_db() {
-  PATH=$PROJECT/xpacks/.bin:$PATH
+  PATH=$PROJECT/xpacks/.bin:$(brew --prefix)/opt/avr-gcc@12/bin:$PATH
 
   local target=$1
   local kbd=(${(@s/:/)KEYBOARDS[$target]})
