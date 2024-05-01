@@ -1,0 +1,14 @@
+diff --git a/tmk_core/protocol/report.h b/tmk_core/protocol/report.h
+index 47bc4f2f..0eed2d6a 100644
+--- a/tmk_core/protocol/report.h
++++ b/tmk_core/protocol/report.h
+@@ -130,7 +130,8 @@ enum desktop_usages {
+ 
+ // clang-format on
+ 
+-#define NKRO_REPORT_BITS 30
++// default 30, I never use usege id greater than LANG2
++#define NKRO_REPORT_BITS 19
+ 
+ #ifdef KEYBOARD_SHARED_EP
+ #    define KEYBOARD_REPORT_SIZE 9
