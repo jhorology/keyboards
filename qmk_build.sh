@@ -357,7 +357,10 @@ fedora_uf2_flash() {
 
 # $1 target
 build_firmware() {
-  PATH=$PROJECT/xpacks/.bin:$(brew --prefix)/opt/avr-gcc@12/bin:$PATH
+  PATH=$PROJECT/xpacks/.bin:$PATH
+  if [[ $os == macos ]]; then
+    PATH=$(brew --prefix)/opt/avr-gcc@12/bin:$PATH
+  fi
 
   local target=$1
   local kbd=(${(@s/:/)KEYBOARDS[$target]})
@@ -452,7 +455,10 @@ EOS
 }
 
 compile_db() {
-  PATH=$PROJECT/xpacks/.bin:$(brew --prefix)/opt/avr-gcc@12/bin:$PATH
+  PATH=$PROJECT/xpacks/.bin:$PATH
+  if [[ $os == macos ]]; then
+    PATH=$(brew --prefix)/opt/avr-gcc@12/bin:$PATH
+  fi
 
   local target=$1
   local kbd=(${(@s/:/)KEYBOARDS[$target]})
