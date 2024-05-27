@@ -11,7 +11,7 @@ HOST_OS=$(uname)
 HOST_ARCHITECTURE=$(uname -m)
 [[ $HOST_OS = macos ]] && [[ $HOST_ARCHITECTURE = arm64 ]] && HOST_ARCHITECTURE=aarch64
 ZEPHYR_VERSION=3.5.0
-ZEPHYR_SDK_VERSION=0.16.5-1
+ZEPHYR_SDK_VERSION=0.16.6
 
 # it is recommended to extract the Zephyr SDK bundle at one of the following default locations:
 #
