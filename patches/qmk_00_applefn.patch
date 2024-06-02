@@ -1,8 +1,8 @@
 diff --git a/builddefs/common_features.mk b/builddefs/common_features.mk
-index 7227a5558e..afa5e0ca5d 100644
+index 68f9a1dd08..fcbf01e72c 100644
 --- a/builddefs/common_features.mk
 +++ b/builddefs/common_features.mk
-@@ -836,6 +836,13 @@ ifeq ($(strip $(JOYSTICK_ENABLE)), yes)
+@@ -848,6 +848,13 @@ ifeq ($(strip $(JOYSTICK_ENABLE)), yes)
      endif
  endif
  
@@ -105,10 +105,10 @@ index 959753ae02..2e222f55e9 100644
  #ifdef __cplusplus
  }
 diff --git a/tmk_core/protocol/report.h b/tmk_core/protocol/report.h
-index 47bc4f2f2b..98b9d6555d 100644
+index 0e4f6e9def..e5adaea5d9 100644
 --- a/tmk_core/protocol/report.h
 +++ b/tmk_core/protocol/report.h
-@@ -34,6 +34,7 @@ enum hid_report_ids {
+@@ -35,6 +35,7 @@ enum hid_report_ids {
      REPORT_ID_MOUSE,
      REPORT_ID_SYSTEM,
      REPORT_ID_CONSUMER,
@@ -174,10 +174,10 @@ index 0e2e63ad8e..5dcba18806 100644
  
  #ifdef PROGRAMMABLE_BUTTON_ENABLE
 diff --git a/tmk_core/protocol/vusb/vusb.c b/tmk_core/protocol/vusb/vusb.c
-index cfeeed3712..aa8e06a4fb 100644
+index c8ab494253..7e43f5b081 100644
 --- a/tmk_core/protocol/vusb/vusb.c
 +++ b/tmk_core/protocol/vusb/vusb.c
-@@ -562,6 +562,52 @@ const PROGMEM uchar shared_hid_report[] = {
+@@ -570,6 +570,52 @@ const PROGMEM uchar shared_hid_report[] = {
      0x75, 0x10,               //   Report Size (16)
      0x81, 0x00,               //   Input (Data, Array, Absolute)
      0xC0,                     // End Collection

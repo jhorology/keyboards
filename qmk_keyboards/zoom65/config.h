@@ -1,6 +1,5 @@
 #pragma once
-
-#define DEBOUNCE 12
+#define DEBOUNCE 15
 
 /*
   encoder lookup table
@@ -14,8 +13,7 @@
     clockwise: -1
     counter clockwise: 1
 */
-#define ENCODER_LOOKUP_TABLE \
-  { 0, 0, 0, 1, 1, 0, 0, -1, 0, 0, 0, 0, -1, 0, 0, 0 }
+#define ENCODER_LOOKUP_TABLE {0, 0, 0, 1, 1, 0, 0, -1, 0, 0, 0, 0, -1, 0, 0, 0}
 
 /* ViA layout options */
 #define LAYOUT_OPTION_SPLIT_BS 0x8

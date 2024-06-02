@@ -23,10 +23,10 @@ index 0e2e63ad8e..17f55ef3d3 100644
  
              break;
 diff --git a/tmk_core/protocol/usb_descriptor.h b/tmk_core/protocol/usb_descriptor.h
-index 2469990f4d..ba98c358a8 100644
+index ecfb022702..66e53a2e78 100644
 --- a/tmk_core/protocol/usb_descriptor.h
 +++ b/tmk_core/protocol/usb_descriptor.h
-@@ -295,3 +295,6 @@ enum usb_endpoints {
+@@ -297,3 +297,6 @@ enum usb_endpoints {
  #define DIGITIZER_EPSIZE 8
  
  uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const uint16_t wLength, const void** const DescriptorAddress);

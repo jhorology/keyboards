@@ -1,8 +1,8 @@
 diff --git a/tmk_core/protocol/report.h b/tmk_core/protocol/report.h
-index 47bc4f2f..0eed2d6a 100644
+index 0e4f6e9def..c52750ef9c 100644
 --- a/tmk_core/protocol/report.h
 +++ b/tmk_core/protocol/report.h
-@@ -130,7 +130,8 @@ enum desktop_usages {
+@@ -134,7 +134,8 @@ enum desktop_usages {
  
  // clang-format on
  

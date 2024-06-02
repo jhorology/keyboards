@@ -80,7 +80,7 @@ async function build(target, targetDir) {
 }
 
 async function getInfo(targetDir, options, defines) {
-  return await readJson(path.join(targetDir, 'info.json'), options, defines, undefined)
+  return await readJson(path.join(targetDir, 'keyboard.json'), options, defines, undefined)
 }
 
 async function getLayouts(targetDir, options, defines) {
