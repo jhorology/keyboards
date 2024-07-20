@@ -38,148 +38,148 @@
 
 / {
 
-    chosen {
-        zephyr,sram = &sram0;
-        zephyr,flash = &flash0;
-        zephyr,console = &cdc_acm_uart;
-        zephyr,shell-uart = &cdc_acm_uart;
-        zephyr,code-partition = &code_partition;
-        zmk,matrix_transform = &default_transform;
-        zmk,kscan = &kscan0;
-    };
+  chosen {
+    zephyr,sram = &sram0;
+    zephyr,flash = &flash0;
+    zephyr,console = &cdc_acm_uart;
+    zephyr,shell-uart = &cdc_acm_uart;
+    zephyr,code-partition = &code_partition;
+    zmk,matrix_transform = &default_transform;
+    zmk,kscan = &kscan0;
+  };
 
-    default_transform: default_transform {
-        compatible = "zmk,matrix-transform";
-        columns = <14>;
-        rows = <5>;
-        map = <
-        // row 0
-        RC(0,0) RC(0,1) RC(0,2) RC(0,3) RC(0,4) RC(0,5) RC(0,6) RC(0,7) RC(0,8) RC(0,9) RC(0,10) RC(0,11) RC(0,12) RC(0,13)
+  default_transform: default_transform {
+    compatible = "zmk,matrix-transform";
+    columns = <14>;
+    rows = <5>;
+    map = <
+      // row 0
+      RC(0,0) RC(0,1) RC(0,2) RC(0,3) RC(0,4) RC(0,5) RC(0,6) RC(0,7) RC(0,8) RC(0,9) RC(0,10) RC(0,11) RC(0,12) RC(0,13)
 #if SPLIT_BS
-        RC(1,13)
+      RC(1,13)
 #endif
 
-        // row 1
-        RC(1,0) RC(1,1) RC(1,2) RC(1,3) RC(1,4) RC(1,5) RC(1,6) RC(1,7) RC(1,8) RC(1,9) RC(1,10) RC(1,11) RC(1,12) RC(2,13)
+      // row 1
+      RC(1,0) RC(1,1) RC(1,2) RC(1,3) RC(1,4) RC(1,5) RC(1,6) RC(1,7) RC(1,8) RC(1,9) RC(1,10) RC(1,11) RC(1,12) RC(2,13)
 
-        // row 2
-        RC(2,0) RC(2,1) RC(2,2) RC(2,3) RC(2,4) RC(2,5) RC(2,6) RC(2,7) RC(2,8) RC(2,9) RC(2,10) RC(2,11) RC(2,12)
+      // row 2
+      RC(2,0) RC(2,1) RC(2,2) RC(2,3) RC(2,4) RC(2,5) RC(2,6) RC(2,7) RC(2,8) RC(2,9) RC(2,10) RC(2,11) RC(2,12)
 
-        // row 3
-        RC(3,0) RC(3,1) RC(3,2) RC(3,3) RC(3,4) RC(3,5) RC(3,6) RC(3,7) RC(3,8) RC(3,9) RC(3,10) RC(3,11)
+      // row 3
+      RC(3,0) RC(3,1) RC(3,2) RC(3,3) RC(3,4) RC(3,5) RC(3,6) RC(3,7) RC(3,8) RC(3,9) RC(3,10) RC(3,11)
 #if SPLIT_RIGHT_SHIFT
-        RC(3,12)
+      RC(3,12)
 #endif
 
-        // row 4 left modifiers
+      // row 4 left modifiers
 #if BOTTOM_ROW == BOTTOM_ROW_TSANGAN
-        RC(4,0) RC(4,1) RC(4,2)
+      RC(4,0) RC(4,1) RC(4,2)
 #elif BOTTOM_ROW == BOTTOM_ROW_HHKB
-                RC(4,1) RC(4,2)
+              RC(4,1) RC(4,2)
 #elif BOTTOM_ROW == BOTTOM_ROW_WKL
-        RC(4,0)        RC(4,2)
+      RC(4,0)        RC(4,2)
 #endif
 
-        // row 4 space
+      // row 4 space
 #if SPLIT_SPACE
-        RC(4,3) RC(4,5) RC(4,7) RC(4,10)
+      RC(4,3) RC(4,5) RC(4,7) RC(4,10)
 #else
-        RC(4,6)
+      RC(4,6)
 #endif
 
-        // row 4 right modifiers
+      // row 4 right modifiers
 #if BOTTOM_ROW == BOTTOM_ROW_TSANGAN
-        RC(4,11) RC(4,12) RC(4,13)
+      RC(4,11) RC(4,12) RC(4,13)
 #elif BOTTOM_ROW == BOTTOM_ROW_HHKB
-        RC(4,11) RC(4,12)
+      RC(4,11) RC(4,12)
 #elif BOTTOM_ROW == BOTTOM_ROW_WKL
-        RC(4,11)  RC(4,13)
+      RC(4,11)  RC(4,13)
 #endif
-        >;
-    };
+    >;
+  };
 
-    kscan0: kscan {
-        compatible = "zmk,kscan-gpio-matrix";
-        diode-direction = "col2row";
-        row-gpios
-        = <&gpioa 1 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
-        , <&gpioa 2 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
-        , <&gpioa 3 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
-        , <&gpioa 4 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
-        , <&gpioa 5 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
-        ;
-        col-gpios
-        = <&gpioa 7 GPIO_ACTIVE_HIGH>
-        , <&gpiob 0 GPIO_ACTIVE_HIGH>
-        , <&gpiob 1 GPIO_ACTIVE_HIGH>
-        , <&gpiob 2 GPIO_ACTIVE_HIGH>
-        , <&gpiob 10 GPIO_ACTIVE_HIGH>
-        , <&gpiob 11 GPIO_ACTIVE_HIGH>
-        , <&gpiob 12 GPIO_ACTIVE_HIGH>
-        , <&gpiob 13 GPIO_ACTIVE_HIGH>
-        , <&gpiob 14 GPIO_ACTIVE_HIGH>
-        , <&gpiob 15 GPIO_ACTIVE_HIGH>
-        , <&gpioa 8 GPIO_ACTIVE_HIGH>
-        , <&gpiob 6 GPIO_ACTIVE_HIGH>
-        , <&gpiob 7 GPIO_ACTIVE_HIGH>
-        , <&gpioa 6 GPIO_ACTIVE_HIGH>
-        ;
-    };
+  kscan0: kscan {
+    compatible = "zmk,kscan-gpio-matrix";
+    diode-direction = "col2row";
+    row-gpios
+      = <&gpioa 1 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+      , <&gpioa 2 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+      , <&gpioa 3 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+      , <&gpioa 4 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+      , <&gpioa 5 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+      ;
+    col-gpios
+      = <&gpioa 7 GPIO_ACTIVE_HIGH>
+      , <&gpiob 0 GPIO_ACTIVE_HIGH>
+      , <&gpiob 1 GPIO_ACTIVE_HIGH>
+      , <&gpiob 2 GPIO_ACTIVE_HIGH>
+      , <&gpiob 10 GPIO_ACTIVE_HIGH>
+      , <&gpiob 11 GPIO_ACTIVE_HIGH>
+      , <&gpiob 12 GPIO_ACTIVE_HIGH>
+      , <&gpiob 13 GPIO_ACTIVE_HIGH>
+      , <&gpiob 14 GPIO_ACTIVE_HIGH>
+      , <&gpiob 15 GPIO_ACTIVE_HIGH>
+      , <&gpioa 8 GPIO_ACTIVE_HIGH>
+      , <&gpiob 6 GPIO_ACTIVE_HIGH>
+      , <&gpiob 7 GPIO_ACTIVE_HIGH>
+      , <&gpioa 6 GPIO_ACTIVE_HIGH>
+      ;
+  };
 
-    leds {
-	    compatible = "gpio-leds";
-	    caps_lock_led: caps_lock_led {
-		    gpios = <&gpioa 0 GPIO_ACTIVE_LOW>;
-	    };
+  leds {
+    compatible = "gpio-leds";
+    caps_lock_led: caps_lock_led {
+      gpios = <&gpioa 0 GPIO_ACTIVE_LOW>;
     };
+  };
 };
 
 &clk_hse {
-	clock-frequency = <DT_FREQ_M(8)>;
-	status = "okay";
+  clock-frequency = <DT_FREQ_M(8)>;
+  status = "okay";
 };
 
 &pll {
-	mul = <9>;
-	clocks = <&clk_hse>;
-	status = "okay";
+  mul = <9>;
+  clocks = <&clk_hse>;
+  status = "okay";
 };
 
 &rcc {
-	status = "okay";
-	clocks = <&pll>;
-	clock-frequency = <DT_FREQ_M(72)>;
-	ahb-prescaler = <1>;
-	apb1-prescaler = <2>;
-	apb2-prescaler = <1>;
+  status = "okay";
+  clocks = <&pll>;
+  clock-frequency = <DT_FREQ_M(72)>;
+  ahb-prescaler = <1>;
+  apb1-prescaler = <2>;
+  apb2-prescaler = <1>;
 };
 
 &flash0 {
-    partitions {
-        compatible = "fixed-partitions";
-        #address-cells = <1>;
-        #size-cells = <1>;
+  partitions {
+    compatible = "fixed-partitions";
+    #address-cells = <1>;
+    #size-cells = <1>;
 
-        /*
-         * unknown bootloader
-         */
-        boot_partition: partition@0 {
-            reg = <0x0 DT_SIZE_K(24)>;
-            read-only;
-        };
-
-        code_partition: partition@6000 {
-            reg = <DT_SIZE_K(24) (DT_SIZE_K(128) - DT_SIZE_K(24))>;
-            read-only;
-        };
+    /*
+     * unknown bootloader
+     */
+    boot_partition: partition@0 {
+      reg = <0x0 DT_SIZE_K(24)>;
+      read-only;
     };
+
+    code_partition: partition@6000 {
+      reg = <DT_SIZE_K(24) (DT_SIZE_K(128) - DT_SIZE_K(24))>;
+      read-only;
+    };
+  };
 };
 
 &usb {
-    status = "okay";
-    pinctrl-0 = <&usb_dm_pa11 &usb_dp_pa12>;
-    pinctrl-names = "default";
-    cdc_acm_uart: cdc_acm_uart {
-        compatible = "zephyr,cdc-acm-uart";
-    };
+  status = "okay";
+  pinctrl-0 = <&usb_dm_pa11 &usb_dp_pa12>;
+  pinctrl-names = "default";
+  cdc_acm_uart: cdc_acm_uart {
+    compatible = "zephyr,cdc-acm-uart";
+  };
 };
