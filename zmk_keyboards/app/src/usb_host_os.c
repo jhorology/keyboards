@@ -6,13 +6,14 @@
 #include <zmk/events/usb_conn_state_changed.h>
 #include "zephyr/usb/class/hid.h"
 
-#define USB_HID_SETUP_TIMEOUT_MS 1000
+#define USB_HID_SETUP_TIMEOUT_MS 500
 
 #if IS_ENABLED(CONFIG_ZMK_USB_HOST_OS_DEBUG)
 #  define USB_SETUP_LOG_MAX 64
 static struct usb_setup_packet usb_hid_setup_log[USB_SETUP_LOG_MAX];
 #endif
 static int packet_cnt;
+static bool detecting;
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
@@ -22,6 +23,7 @@ static void end_usb_hid_setup(struct k_work *work) {
   if (detected_os == USB_HOST_OS_UNDEFINED) {
     detected_os = USB_HOST_OS_UNKNOWN;
   }
+  detecting = false;
   LOG_DBG("os detection end, packet_cnt: %d, detected_os:%d", packet_cnt, detected_os);
   raise_zmk_usb_host_os_changed((struct zmk_usb_host_os_changed){.os = zmk_usb_host_os_detected()});
 }
@@ -64,14 +66,16 @@ struct usb_setup_packet *get_usb_hid_setup_log_item(uint8_t index) {
 #endif  // CONFIG_ZMK_USB_HOST_OS_DEBUG
 
 static int usb_conn_listener(const zmk_event_t *eh) {
-  //
-  // const struct zmk_usb_conn_state_changed *ev = as_zmk_usb_conn_state_changed(eh);
-  // if (ev->conn_state == ZMK_USB_CONN_HID) {
-  LOG_DBG("os detection start");
-  packet_cnt = 0;
-  detected_os = USB_HOST_OS_UNDEFINED;
-  k_work_reschedule(&usb_host_os_work, K_MSEC(USB_HID_SETUP_TIMEOUT_MS));
-  // }
+  static enum zmk_usb_conn_state conn_state = ZMK_USB_CONN_NONE;
+  const struct zmk_usb_conn_state_changed *ev = as_zmk_usb_conn_state_changed(eh);
+  if (ev->conn_state != ZMK_USB_CONN_NONE && !detecting) {
+    LOG_DBG("os detection start");
+    detecting = true;
+    packet_cnt = 0;
+    detected_os = USB_HOST_OS_UNDEFINED;
+    k_work_reschedule(&usb_host_os_work, K_MSEC(USB_HID_SETUP_TIMEOUT_MS));
+  }
+  conn_state = ev->conn_state;
   return 0;
 }
 
