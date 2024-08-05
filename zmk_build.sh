@@ -63,13 +63,16 @@ WIN_GSUDO="/mnt/c/Program Files/gsudo/Current/gsudo.exe"
 #   [3]=firmware file type
 #   [4]=DFU volume name or device vid
 #   [5]=DFU device pid
+#   [6]=shields
 local -A KEYBOARDS=(
-  bt60       bt60:bt60_hhkb_ec11:uf2:CKP:none
-  fk68       fk680pro_v2:fk680pro_v2:uf2:"ZhaQian DFU":none
-  q60        keychron_q60:keychron_q60:bin:0483:df11
-  qk60       qk60_wired:qk60_wired_hhkb:bin:1688:2220
-  tf60       kbdfans_tofu60_v2:tofu60_hhkb:uf2:RPI-RP2:none
-  ju60       cyber60_rev_d:hibi_june60:uf2:CYBER60_D:none
+  bt60       bt60:bt60_hhkb_ec11:uf2:CKP:none:none
+  cz42l      nice_nano_v2:cz42_left:uf2:NICENANO:none:"cz42_left;good_display"
+  cz42r      nice_nano_v2:cz42_right:uf2:NICENANO:none:"cz42_right;good_display"
+  fk68       fk680pro_v2:fk680pro_v2:uf2:"ZhaQian DFU":none:none
+  q60        keychron_q60:keychron_q60:bin:0483:df11:none
+  qk60       qk60_wired:qk60_wired_hhkb:bin:1688:2220:none
+  tf60       kbdfans_tofu60_v2:tofu60_hhkb:uf2:RPI-RP2:none:none
+  ju60       cyber60_rev_d:hibi_june60:uf2:CYBER60_D:none:none
 )
 TARGETS=(bt60 fk68 q60 qk60 tf60 ju60)
 
@@ -447,10 +450,13 @@ EOF
 
 # $1 board
 build() {
-  local board=$1
-  local target=$2
+  local target=$1
+  local kbd=(${(@s/:/)KEYBOARDS[$target]})
+  local board=$kbd[1]
+  local shields=$kbd[6]
   local opts=()
   local pristine="auto"
+
   $WITH_UPDATE && pristine="always"
 
   (( $#with_logging )) && opts=($opts "-DCONFIG_ZMK_USB_LOGGING=y" "-DCONFIG_LOG_THREAD_ID_PREFIX=y")
@@ -460,6 +466,7 @@ build() {
     opts=($opts -DCONFIG_CBPRINTF_COMPLETE=y -DCONFIG_SHELL_BACKEND_SERIAL=y)
   (( $#with_compile_db )) && opts=($opts "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON")
   (( $#with_pp )) && opts=($opts "-DEXTRA_CFLAGS=-save-temps=obj")
+  [[ $shields != none ]] && opts+=("-DSHIELD=$shields")
 
   if (( $#with_compile_db )); then
     dot_clangd
@@ -468,17 +475,20 @@ build() {
       dot_projectile
     fi
   fi
-  west build --pristine=$pristine --board $board --build-dir build/$board zmk/app -- \
+  west build --pristine=$pristine --board $board --build-dir build/$target zmk/app -- \
        -DZMK_CONFIG=$PROJECT/zmk_keyboards $opts[*]
 
   if (( $#with_compile_db )); then
-    mv $PROJECT/build/$board/compile_commands.json $PROJECT
+    mv $PROJECT/build/$target/compile_commands.json $PROJECT
   fi
 }
 
 # $1 board
 build_with_docker() {
-  local board=$1
+  local target=$1
+  local kbd=(${(@s/:/)KEYBOARDS[$target]})
+  local board=$kbd[1]
+  local shields=$kbd[6]
   local opts=()
   local pristine="auto"
   $WITH_UPDATE && pristine="always"
@@ -486,8 +496,9 @@ build_with_docker() {
   (( $#with_logging )) && opts=($opts "-DCONFIG_ZMK_USB_LOGGING=y")
   (( $#with_shell )) && opts=($opts "-DCONFIG_SHELL=y")
   (( $#with_pp )) && opts=($opts "-DEXTRA_CFLAGS=-save-temps=obj")
+  [[ $shields != none ]] && opts+=("-DSHIELD=$shields")
   docker_exec -i <<-EOF
-    west build --pristine=$pristine --board $board --build-dir build/$board zmk/app -- -DZMK_CONFIG="$CONTAINER_WORKSPACE_DIR/zmk_keyboards" $opts[*]
+    west build --pristine=$pristine --board $board --build-dir build/$target zmk/app -- -DZMK_CONFIG="$CONTAINER_WORKSPACE_DIR/zmk_keyboards" $opts[*]
 EOF
 }
 
@@ -528,16 +539,18 @@ EOS
 # return echo path or firmware
 # -----------------------------------
 dist_firmware() {
-  local board=$1
-  local firmware_name=$2
-  local firmware_ext=$3
+  local target=$1
+  local kbd=(${(@s/:/)KEYBOARDS[$target]})
+  local board=$kbd[1]
+  local firmware_name=$kbd[2]
+  local firmware_ext=$kbd[3]
 
   cd $PROJECT
   cd zmk
   local version=$(date +"%Y%m%d")_zmk_$(git rev-parse --short HEAD)
   cd ..
   mkdir -p dist
-  local src=build/$board/zephyr/zmk.$firmware_ext
+  local src=build/$target/zephyr/zmk.$firmware_ext
   local variant=""
   (( $#with_logging )) && variant="_logging"
   (( $#with_shell )) && variant="_shell"
@@ -546,10 +559,22 @@ dist_firmware() {
   echo $dst
 }
 
-macos_uf2_flash() {
-  local firmware=$1
-  local board=$2
-  local volume_name=$3
+
+
+flash() {
+  local target=$1
+  local firmware=$2
+  local kbd=(${(@s/:/)KEYBOARDS[$target]})
+  local firmware_ext=$kbd[3]
+  ${os}_flash_${firmware_ext} $target $firmware
+}
+
+macos_flash_uf2() {
+  local target=$1
+  local firmware=$2
+  local kbd=(${(@s/:/)KEYBOARDS[$target]})
+  local board=$kbd[1]
+  local volume_name=$kbd[4]
   local dfu_volume=/Volumes/$volume_name
 
   echo -n "waiting for DFU volume [$dfu_volume] to be mounted..."
@@ -559,7 +584,7 @@ macos_uf2_flash() {
       echo "copying firmware [$firmware] to volume [$dfu_volume]..."
       sleep 1
       cp -X $firmware $dfu_volume || true
-      # west flash --build-dir build/$board || true
+      # west flash --build-dir build/$target || true
       echo "flashing firmware finished successfully."
       return
     else
@@ -569,10 +594,12 @@ macos_uf2_flash() {
   done
 }
 
-fedora_uf2_flash() {
-  local firmware=$1
-  local boaed=$2
-  local volume_name=$3
+fedora_flash_uf2() {
+  local target=$1
+  local firmware=$2
+  local kbd=(${(@s/:/)KEYBOARDS[$target]})
+  local board=$kbd[1]
+  local volume_name=$kbd[4]
 
   echo -n "waiting for DFU volume to be mounted..."
   while true; do
@@ -591,38 +618,34 @@ fedora_uf2_flash() {
   done
 }
 
-flash_uf2_firmware() {
-  local firmware=$1
-  local board=$2
-  local volume_name=$5
-  ${os}_uf2_flash $firmware $board $volume_name
+macos_flash_bin() {
+  local target=$1
+  west flash --build-dir build/$target || true
 }
 
-flash_bin_firmware() {
-  local board=$2
-  local hardware_id="$5:$6"
-  if [[ $os == "fedora" ]]; then
-    sudo echo -n
-    echo -n "waiting for target DFU device to be connected.."
-    while true; do
-      dfu_device=$($WIN_USBIPD list 2> /dev/null | grep "$hardware_id" || echo -n "")
-      if [[ ! -z $dfu_device ]]; then
-        if [[ $dfu_device =~ "Not shared" ]]; then
-          $WIN_GSUDO "$(wslpath -w $WIN_USBIPD)" bind --hardware-id $hardware_id
-        elif [[ $dfu_device =~ "Shared" ]]; then
-          $WIN_GSUDO "$(wslpath -w $WIN_USBIPD)" attach --wsl --hardware-id $hardware_id
-        elif [[ $dfu_device =~ "Attached" ]]; then
-          sudo chmod -R 777 /dev/bus/usb
-          west flash --build-dir build/$board || true
-          return
-        fi
+fedora_flash_bin() {
+  local target=$1
+  local kbd=(${(@s/:/)KEYBOARDS[$target]})
+  local hardware_id="$kbd[4]:$kbd[5]"
+
+  sudo echo -n
+  echo -n "waiting for target DFU device to be connected.."
+  while true; do
+    dfu_device=$($WIN_USBIPD list 2> /dev/null | grep "$hardware_id" || echo -n "")
+    if [[ ! -z $dfu_device ]]; then
+      if [[ $dfu_device =~ "Not shared" ]]; then
+        $WIN_GSUDO "$(wslpath -w $WIN_USBIPD)" bind --hardware-id $hardware_id
+      elif [[ $dfu_device =~ "Shared" ]]; then
+        $WIN_GSUDO "$(wslpath -w $WIN_USBIPD)" attach --wsl --hardware-id $hardware_id
+      elif [[ $dfu_device =~ "Attached" ]]; then
+        sudo chmod -R 777 /dev/bus/usb
+        west flash --build-dir build/$target || true
+        return
       fi
-      sleep 1
-      echo -n "."
-    done
-  else
-    west flash --build-dir build/$board || true
-  fi
+    fi
+    sleep 1
+    echo -n "."
+  done
 }
 
 macos_log_console() {
@@ -814,17 +837,18 @@ for target in $TARGETS; do
   board=$kbd[1]
   firmware_name=$kbd[2]
   firmware_ext=$kbd[3]
+  shields=$kbd[6]
 
   if (( $#with_docker )); then
-    build_with_docker $board $target
+    build_with_docker $target
   else
-    build $board $target
+    build $target
   fi
-  firmware_file=$(dist_firmware $board $firmware_name $firmware_ext)
+  firmware_file=$(dist_firmware $target)
   if (( $#with_flash )); then
     (( $#with_logging )) && sudo echo -n
     (( $#with_shell )) && sudo echo -n
-    flash_${firmware_ext}_firmware $firmware_file $kbd[*]
+    flash $target $firmware_file
     if (( $#with_logging )); then
       ${os}_log_console $firmware_file
     elif (( $#with_shell )); then

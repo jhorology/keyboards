@@ -1,3 +1,4 @@
+name: MY_CONFIG
 build:
   kconfig: Kconfig
   cmake: .

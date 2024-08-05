@@ -1,0 +1,145 @@
+/*
+ * Copyright (c) 2020 The ZMK Contributors
+ * SPDX-License-Identifier: MIT
+ */
+
+#include "my-keymap-common.dtsi"
+
+/ {
+  keymap {
+    compatible = "zmk,keymap";
+
+    mac_base_layer {
+      display-name = "MAC BASE";
+
+      // TODO Right Shift
+      // --------------------------------------------------------------------------------
+      // |  TAB |  Q  |  W  |  E  |  R  |  T  |   |  Y  |  U   |  I  |  O  |  P  | BKSP |
+      // | CTRL |  A  |  S  |  D  |  F  |  G  |   |  H  |  J   |  K  |  L  |  ;  |  '   |
+      // | SHFT |  Z  |  X  |  C  |  V  |  B  |   |  N  |  M   |  ,  |  .  |  /  | ESC  |
+      //                    | OPT | CMD | SPC |   | ENT | CMD  | OPT |
+
+      bindings = <
+                  &kp TAB    &kp Q  &kp W  &kp E     &kp R  &kp T          &kp Y        &kp U  &kp I      &kp O    &kp P     &kp BSPC
+                  &kp LCTRL  &kp A  &kp S  &kp D     &kp F  &kp G          &kp H        &kp J  &kp K      &kp L    &kp SEMI  &kp SQT
+                  &kp LSHFT  &kp Z  &kp X  &kp C     &kp V  &kp B          &kp N        &kp M  &kp COMMA  &kp DOT  &kp FSLH  _H_FN
+                                           _H_M_LOPT _LCMD  &lt 3 ENTER    &lt 3 SPACE  _RCMD  _H_ROPT
+      >;
+    };
+
+    win_base_layer {
+      display-name = "WIN BASE";
+
+      // --------------------------------------------------------------------------------
+      // |  TAB |  Q  |  W  |  E  |  R  |  T  |   |  Y  |  U   |  I  |  O  |  P  | BKSP |
+      // | CTRL |  A  |  S  |  D  |  F  |  G  |   |  H  |  J   |  K  |  L  |  ;  |  '   |
+      // | SHFT |  Z  |  X  |  C  |  V  |  B  |   |  N  |  M   |  ,  |  .  |  /  | ESC  |
+      //                    | OPT | CMD | SPC |   | ENT | CMD  | OPT |
+
+      bindings = <
+                  &kp TAB    &kp Q  &kp W  &kp E     &kp R  &kp T          &kp Y        &kp U  &kp I      &kp O    &kp P     &kp BSPC
+                  &kp LCTRL  &kp A  &kp S  &kp D     &kp F  &kp G          &kp H        &kp J  &kp K      &kp L    &kp SEMI  &kp SQT
+                  &kp LSHFT  &kp Z  &kp X  &kp C     &kp V  &kp B          &kp N        &kp M  &kp COMMA  &kp DOT  &kp FSLH  _H_FN
+                                           _H_W_LOPT _LCMD  &lt 6 ENTER    &lt 7 SPACE  _RCMD  _H_ROPT
+      >;
+    };
+
+    hhkb_fn_layer {
+      display-name = "HHKB FN";
+
+      // --------------------------------------------------------------------------------
+      // | CAPS | F16 | F17 | F18 |     |     |   |PSCRN|  SLCK|  PB |  UP | INS | DEL  |
+      // | CTRL |     |     |     | [*] | [/] |   | HOME| P.UP | LEFT| DOWN|RIGHT|  '   |
+      // | SHFT |     |     |     | [+] | [-] |   | END | P.DN |     |     |     | ESC  |
+      //                    |     |     |     |   |     |      |     |
+
+      bindings = <
+                  &kp CAPS  &kp F16  &kp F17  &kp F18  &trans           &trans            &kp PSCRN  &kp SLCK   &kp PAUSE_BREAK   &kp UP    &kp INS    &kp DEL
+                  &trans    &trans   &trans   &trans   &kp KP_MULTIPLY  &kp KP_DIVIDE     &kp HOME   &kp PG_UP  &kp LEFT          &kp DOWN  &kp RIGHT  &trans
+                  &trans    &trans   &trans   &trans   &kp KP_PLUS      &kp KP_MINUS      &kp END    &kp PG_DN  &trans            &trans    &trans     &trans
+                                              &trans   &trans           &trans            &trans     &trans     &trans
+      >;
+    };
+
+    apple_fn_layer {
+      display-name = "APPLE FN";
+      // TODO Fn + H
+      // -------------------------------------------------------------------------------
+      // |      |     |     |     |     |     |   |     |     |     |     |     |      |
+      // |      |     |     |     |     |     |   |     |     |     |     |     |      |
+      // |      |     |     |     |     |     |   |     |     |     |     |     |      |
+      //                    |     |     |     |   |     |     |     |
+      bindings = <
+                  &trans  &trans  &trans  &trans  &trans  &trans    &kp F1  &kp F2  &kp F3  _SPOTLIGHT  _DICTATION  _DND
+                  &trans  &trans  &trans  &trans  &trans  &trans    &kp F7  &kp F8  &kp F9  &kp F10     &kp F11     &kp F12
+                  &trans  &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans      &trans      &trans
+                                          &trans  &trans  &trans    &trans  &trans  &trans
+      >;
+    };
+
+    win_fn_layer {
+      display-name = "WIN FN";
+
+      // -------------------------------------------------------------------------------
+      // |      |     |     |     |     |     |   |     |     |     |     |     |      |
+      // |      |     |     |     |     |     |   |     |     |     |     |     |      |
+      // |      |     |     |     |     |     |   |     |     |     |     |     |      |
+      //                    |     |     |     |   |     |     |     |
+      // TODO Fn + H
+      bindings = <
+                  &trans  _FN_Q   &trans  _FN_E   &trans  &trans    _FN_F1   _FN_F2  _FN_F3  _FN_F4   _FN_F5   _FN_F6
+                  &trans  _FN_A   &trans  &trans  _FN_F   &trans    _FN_F7   _FN_F8  _FN_F9  _FN_F10  _FN_F11  _FN_F12
+                  &trans  &trans  _FN_C   &trans  &trans  &trans    _FN_N    _FN_M   &trans  &trans  &trans   &trans
+                                          &trans  &trans  &trans    _FN_SPC  &trans  &trans
+      >;
+    };
+
+    setting_layer {
+      display-name = "SETTING";
+
+      // -------------------------------------------------------------------------------
+      // |      |     |     |     |     |     |   |     |     |     |     |     |      |
+      // |      |     |     |     |     |     |   |     |     |     |     |     |      |
+      // |      |     |     |     |     |     |   |     |     |     |     |     |      |
+      //                    |     |     |     |   |     |     |     |
+      bindings = <
+                  &bootloader  _BT_MAC1  _BT_MAC2  _BT_WIN1  _BT_MAC3  _BT_WIN2    &trans  _USB    &trans  &trans  &soft_off  &sys_reset
+                  &trans       _BT_OFF0  _BT_OFF1  _BT_OFF2  _BT_OFF3  _BT_OFF4    &trans  &trans  &trans  &trans  _BT_CLR    _BT_CLR_ALL
+                  &trans       _MAC_WIN  _EP       _RGB      _BRT      _HUE        _SAT    _SPD    _EFT    &trans  &trans     &trans
+                                                   &trans    &trans    &trans      &trans  &trans  &trans
+      >;
+    };
+
+    supplement1_layer {
+      display-name = "SUPP.1";
+
+      // -------------------------------------------------------------------------------
+      // |      |     |     |     |     |     |   |     |     |     |     |     |      |
+      // |      |     |     |     |     |     |   |     |     |     |     |     |      |
+      // |      |     |     |     |     |     |   |     |     |     |     |     |      |
+      //                    |     |     |     |   |     |     |     |
+      bindings = <
+                  &kp GRAVE  &kp N1  &kp N2  &kp N3  &kp N4  &kp N5     &kp N6     &kp N7     &kp N8    &kp N9    &kp N0    &trans
+                  &trans     &kp F1  &kp F2  &kp F3  &kp F4  &kp F5     &kp MINUS  &kp EQUAL  &kp BSLH  &kp LBKT  &kp RBKT  &trans
+                  &trans     &kp F6  &kp F7  &kp F8  &kp F9  &kp F10    &kp F11    &kp F12    &trans    &trans    &trans    &trans
+                                             &trans  &trans  &trans     &trans     &trans     &trans
+      >;
+    };
+
+    supplement2_layer {
+      display-name = "SUPP.2";
+
+      // -------------------------------------------------------------------------------
+      // |      |     |     |     |     |     |   |     |     |     |     |     |      |
+      // |      |     |     |     |     |     |   |     |     |     |     |     |      |
+      // |      |     |     |     |     |     |   |     |     |     |     |     |      |
+      //                    |     |     |     |   |     |     |     |
+      bindings = <
+                  &kp ESC  &kp EXCL  &kp AT  &kp HASH  &kp DLLR  &kp PRCNT    &kp CARET  &kp AMPS  &kp ASTRK  &kp LPAR  &kp RPAR  &trans
+                  &trans   &kp F1    &kp F2  &kp F3    &kp F4    &kp F5       &kp UNDER  &kp PLUS  &kp PIPE   &kp LBRC  &kp RBRC  &trans
+                  &trans   &kp F6    &kp F7  &kp F8    &kp F9    &kp F10      &kp F11    &kp F12   &trans     &trans    &trans    &trans
+                                             &trans    &trans    &trans       &trans     &trans    &trans
+      >;
+    };
+  };
+};

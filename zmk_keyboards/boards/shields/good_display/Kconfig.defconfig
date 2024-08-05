@@ -1,0 +1,90 @@
+# Copyright (c) 2023 The ZMK Contributors
+# SPDX-License-Identifier: MIT
+
+if SHIELD_GOOD_DISPLAY
+
+config ZMK_DISPLAY
+    select LV_USE_CONT
+    select LV_FONT_MONTSERRAT_26
+    select LV_FONT_MONTSERRAT_16
+    select LV_USE_LABEL
+    select LV_USE_IMG
+
+choice ZMK_DISPLAY_STATUS_SCREEN
+   default ZMK_DISPLAY_STATUS_SCREEN_CUSTOM
+endchoice
+
+if ZMK_DISPLAY
+
+config SPI
+   default y
+
+config IL0323
+    default y
+
+choice ZMK_DISPLAY_WORK_QUEUE
+    default ZMK_DISPLAY_WORK_QUEUE_DEDICATED
+endchoice
+
+config ZMK_DISPLAY_DEDICATED_THREAD_STACK_SIZE
+    default 4096
+
+config LV_Z_BITS_PER_PIXEL
+    default 1
+
+choice LV_COLOR_DEPTH
+   default LV_COLOR_DEPTH_1
+endchoice
+
+config LV_DPI_DEF
+    default 145
+
+config LV_Z_VDB_SIZE
+    default 100
+
+config LV_USE_THEME_MONO
+    default y
+
+config LV_COLOR_CHROMA_KEY_HEX
+   default 0x00FF00
+
+choice ZMK_LV_FONT_DEFAULT_SMALL
+    default ZMK_LV_FONT_DEFAULT_SMALL_MONTSERRAT_16
+endchoice
+
+choice LV_FONT_DEFAULT
+    default LV_FONT_DEFAULT_MONTSERRAT_26
+endchoice
+
+# Needed for the IL0323 driver which allocs memory to clear the display
+config HEAP_MEM_POOL_SIZE
+    default 1024
+
+config LV_Z_MEM_POOL_SIZE
+    default 4096
+
+endif # ZMK_DISPLAY
+
+if ZMK_DISPLAY_STATUS_SCREEN_CUSTOM
+
+config CUSTOM_WIDGET_BATTERY_STATUS
+    bool "custom battery status widget"
+    default y
+
+config CUSTOM_WIDGET_OUTPUT_STATUS
+    bool "custom output status widget"
+    default y if ZMK_SPLIT_ROLE_CENTRAL
+
+config CUSTOM_WIDGET_LAYER_STATUS
+    bool "custom layer status widget"
+    default y if ZMK_SPLIT_ROLE_CENTRAL
+
+config CUSTOM_WIDGET_PERIPHERAL_STATUS
+    bool "custom peripheral status widget"
+    default y  if !ZMK_SPLIT_ROLE_CENTRAL
+
+endif # ZMK_DISPLAY_STATUS_SCREEN_CUSTOM
+
+# enable display drivers
+
+endif # SHIELD_GOOD_DISPLAY
