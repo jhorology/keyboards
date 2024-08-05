@@ -6,6 +6,11 @@
 #include "my-keymap-common.dtsi"
 
 / {
+  soft_off_wakers {
+    compatible = "zmk,soft-off-wakeup-sources";
+    wakeup-sources = <&kscan0>;
+  };
+
   keymap {
     compatible = "zmk,keymap";
 
@@ -103,14 +108,14 @@
       // |      |     |     |     |     |     |   |     |     |     |     |     |      |
       //                    |     |     |     |   |     |     |     |
       bindings = <
-                  &bootloader  _BT_MAC1  _BT_MAC2  _BT_WIN1  _BT_MAC3  _BT_WIN2    &trans  _USB    &trans  &trans  &soft_off  &sys_reset
-                  &trans       _BT_OFF0  _BT_OFF1  _BT_OFF2  _BT_OFF3  _BT_OFF4    &trans  &trans  &trans  &trans  _BT_CLR    _BT_CLR_ALL
-                  &trans       _MAC_WIN  _EP       _RGB      _BRT      _HUE        _SAT    _SPD    _EFT    &trans  &trans     &trans
-                                                   &trans    &trans    &trans      &trans  &trans  &trans
+                  &bootloader  _BT_MAC1  _BT_MAC2  _BT_WIN1  _BT_MAC3  _BT_WIN2    &trans    _USB      &trans    &trans    &soft_off  &sys_reset
+                  &trans       _BT_OFF0  _BT_OFF1  _BT_OFF2  _BT_OFF3  _BT_OFF4    _RGB_BRI  _RGB_HUI  _RGB_SAI  _RGB_SPI  _RGB_EFF   _BT_CLR
+                  &trans       _MAC_WIN  _EP_ON    _EP_OFF   _RGB_ON   _RGB_OFF    _RGB_BRD  _RGB_HUD  _RGB_SAD  _RGB_SPD  _RGB_EFR   _BT_CLR_ALL
+                                                   &trans    &trans    &trans      &trans    &trans    &trans
       >;
     };
 
-    supplement1_layer {
+    supplement1_la0yer {
       display-name = "SUPP.1";
 
       // -------------------------------------------------------------------------------
