@@ -28,7 +28,7 @@
                   &kp TAB    &kp Q  &kp W  &kp E     &kp R  &kp T          &kp Y        &kp U  &kp I      &kp O    &kp P     &kp BSPC
                   &kp LCTRL  &kp A  &kp S  &kp D     &kp F  &kp G          &kp H        &kp J  &kp K      &kp L    &kp SEMI  &kp SQT
                   &kp LSHFT  &kp Z  &kp X  &kp C     &kp V  &kp B          &kp N        &kp M  &kp COMMA  &kp DOT  &kp FSLH  _H_FN
-                                           _H_M_LOPT _LCMD  &lt 3 ENTER    &lt 3 SPACE  _RCMD  _H_ROPT
+                                           _H_M_LOPT _LCMD  &lt 6 ENTER    &lt 7 SPACE  _RCMD  _H_ROPT
       >;
     };
 
@@ -115,7 +115,7 @@
       >;
     };
 
-    supplement1_la0yer {
+    supplement1_layer {
       display-name = "SUPP.1";
 
       // -------------------------------------------------------------------------------

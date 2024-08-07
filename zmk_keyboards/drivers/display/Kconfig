@@ -1,0 +1,8 @@
+# Copyright (c) 2021 The ZMK Contributors
+# SPDX-License-Identifier: MIT
+
+if DISPLAY
+
+rsource "Kconfig.uc8175"
+
+endif # DISPLAY

@@ -31,7 +31,7 @@
   cs-gpios = <&gpio0 10 GPIO_ACTIVE_LOW>;
 
   good_display: il0323@0 {
-    compatible = "gooddisplay,il0323";
+    compatible = "gooddisplay,uc8175";
     reg =  <0>;
     width = <80>;
     height = <128>;

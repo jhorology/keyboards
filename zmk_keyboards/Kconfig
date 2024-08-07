@@ -1,3 +1,2 @@
 rsource "lib/Kconfig"
-# rsource "drivers/Kconfig"
-rsource "app/Kconfig"
+rsource "drivers/Kconfig"

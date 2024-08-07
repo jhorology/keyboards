@@ -1,0 +1,11 @@
+# Copyright (c) 2020 Phytec Messtechnik GmbH, Peter Johanson
+# SPDX-License-Identifier: Apache-2.0
+
+# UC8175 display controller configuration options
+
+config UC8175
+    bool "UC8175 compatible display controller driver"
+    depends on SPI
+    depends on HEAP_MEM_POOL_SIZE != 0
+    help
+      Enable driver for UC8175 compatible controller.

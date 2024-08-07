@@ -1,6 +1,5 @@
-name: MY_CONFIG
 build:
   kconfig: Kconfig
   cmake: .
   settings:
-    dts_root: app
+    dts_root: .
