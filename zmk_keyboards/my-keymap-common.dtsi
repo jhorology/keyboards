@@ -62,6 +62,11 @@
 // double: Momentaly setting layer
 #define _H_ROPT &hhkb_r_opt
 
+// Right Shift for corne keyboard
+// single: Right Shift
+// double: Momentaly setting layer
+#define _C_RSHFT &corne_r_shift
+
 // HHKB fn
 #define _H_FN &mo _HHKB_FN_LAYER
 
@@ -198,7 +203,7 @@
   behaviors {
     // Left Option key on mac base layer for HHKB layout
     // single -> LALT
-    // double -> APPLE_FNn + MO(1)
+    // double -> APPLE_FNn + MO(_MAC_FN_LAYER)
     /omit-if-no-ref/ hhkb_mac_l_opt: hhkb_mac_l_opt {
       compatible = "zmk,behavior-tap-dance";
       #binding-cells = <0>;
@@ -207,7 +212,7 @@
     };
     // Left Option key on win base layer for HHKB layout
     // single -> LALT
-    // double -> MO(1)
+    // double -> MO(_WIN_FN_LAYER)
     /omit-if-no-ref/ hhkb_win_l_opt: hhkb_win_l_opt {
       compatible = "zmk,behavior-tap-dance";
       #binding-cells = <0>;
@@ -215,12 +220,20 @@
       bindings = <&kp LALT>, <&mo _WIN_FN_LAYER>;
     };
     // single -> RALT
-    // double -> MO(3)
+    // double -> MO(_SETTING_LAYER)
     /omit-if-no-ref/ hhkb_r_opt: hhkb_r_opt {
-      compatible = "zmk,behavior-tap-dance";
-      #binding-cells = <0>;
-      tapping-term-ms = <200>;
-      bindings = <&kp RALT>, <&mo _SETTING_LAYER>;
+        compatible = "zmk,behavior-tap-dance";
+        #binding-cells = <0>;
+        tapping-term-ms = <200>;
+        bindings = <&kp RALT>, <&mo _SETTING_LAYER>;
+    };
+    // single -> RSHFT
+    // double -> MO(_SETTING_LAYER)
+    /omit-if-no-ref/ corne_r_shift: corne_r_shift {
+        compatible = "zmk,behavior-tap-dance";
+        #binding-cells = <0>;
+        tapping-term-ms = <200>;
+        bindings = <&kp RSHFT>, <&mo _SETTING_LAYER>;
     };
     // single -> APP
     // double -> MO(3)
