@@ -65,21 +65,25 @@ config CUSTOM_WIDGET_BATTERY_STATUS
 
 config CUSTOM_WIDGET_OUTPUT_STATUS
     bool "custom output status widget"
-    default y if ZMK_SPLIT_ROLE_CENTRAL
+    default y if !ZMK_SPLIT || ZMK_SPLIT_ROLE_CENTRAL
     select LV_USE_IMG
 
 config CUSTOM_WIDGET_LAYER_STATUS
     bool "custom layer status widget"
-    default y if ZMK_SPLIT_ROLE_CENTRAL
+    default y if !ZMK_SPLIT || ZMK_SPLIT_ROLE_CENTRAL
     select LV_USE_LABEL
 
 config CUSTOM_WIDGET_PERIPHERAL_STATUS
     bool "custom peripheral status widget"
-    default y  if !ZMK_SPLIT_ROLE_CENTRAL
+    default y  if ZMK_SPLIT && !ZMK_SPLIT_ROLE_CENTRAL
     select LV_USE_IMG
 
-config CUSTOM_WIDGET_LAYER_STATUS_HIDE_HEADING
-	  bool "Hide heading strip for layer widget and center widgets on 1/3rds"
+config CUSTOM_WIDGET_LOGO
+    bool "custom logo widget"
+    default y if ZMK_SPLIT && !ZMK_SPLIT_ROLE_CENTRAL
+    select LV_USE_IMG
+
+if CUSTOM_WIDGET_LOGO
 
 choice CUSTOM_WIDGET_LOGO_IMAGE
     prompt "custom logo widget image"
@@ -99,8 +103,9 @@ config CUSTOM_WIDGET_LOGO_IMAGE_ZMK
 config CUSTOM_WIDGET_LOGO_IMAGE_MIRYOKU
     bool "Miryoku"
     select LV_USE_IMG
-
 endchoice
+
+endif # CUSTOM_WIDGET_LOGO
 
 endif # ZMK_DISPLAY_STATUS_SCREEN_CUSTOM
 
