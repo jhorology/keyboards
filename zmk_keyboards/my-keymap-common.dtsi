@@ -102,7 +102,6 @@
 // underglow
 //--------------------------------------------
 
-// TODO dosen't work on split right side
 #define _RGB &rgb_sw
 #define _BRT &rgb_brt
 #define _HUE &rgb_hue
@@ -110,18 +109,18 @@
 #define _SPD &rgb_spd
 #define _EFT &rgb_eft
 
-#define _RGB_ON &rgb_ug RGB_ON
-#define _RGB_OFF &rgb_ug RGB_OFF
-#define _RGB_BRI &rgb_ug RGB_BRI
-#define _RGB_BRD &rgb_ug RGB_BRD
-#define _RGB_HUI &rgb_ug RGB_HUI
-#define _RGB_HUD &rgb_ug RGB_HUD
-#define _RGB_SAI &rgb_ug RGB_SAI
-#define _RGB_SAD &rgb_ug RGB_SAD
-#define _RGB_SPI &rgb_ug RGB_SPI
-#define _RGB_SPD &rgb_ug RGB_SPD
-#define _RGB_EFF &rgb_ug RGB_EFF
-#define _RGB_EFR &rgb_ug RGB_EFR
+/* #define _RGB_ON &rgb_ug RGB_ON */
+/* #define _RGB_OFF &rgb_ug RGB_OFF */
+/* #define _RGB_BRI &rgb_ug RGB_BRI */
+/* #define _RGB_BRD &rgb_ug RGB_BRD */
+/* #define _RGB_HUI &rgb_ug RGB_HUI */
+/* #define _RGB_HUD &rgb_ug RGB_HUD */
+/* #define _RGB_SAI &rgb_ug RGB_SAI */
+/* #define _RGB_SAD &rgb_ug RGB_SAD */
+/* #define _RGB_SPI &rgb_ug RGB_SPI */
+/* #define _RGB_SPD &rgb_ug RGB_SPD */
+/* #define _RGB_EFF &rgb_ug RGB_EFF */
+/* #define _RGB_EFR &rgb_ug RGB_EFR */
 
 // Emulate fn/globe shortcut keys for windows
 //--------------------------------------------
@@ -254,11 +253,6 @@
       bindings = <&to _MAC_BASE_LAYER>, <&to _WIN_BASE_LAYER>;
       mods = <(MOD_LSFT|MOD_RSFT)>;
     };
-
-    /*
-      TODO
-      &ext_power &rgb_ug inside mod-morh never call zmk_split_bt_invoke_behavior
-    */
 
     /omit-if-no-ref/ ep_sw: switch_ext_power {
       compatible = "zmk,behavior-mod-morph";

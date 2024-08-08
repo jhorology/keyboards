@@ -30,12 +30,6 @@ config LV_DPI_DEF
 config LV_Z_VDB_SIZE
     default 100
 
-config LV_USE_THEME_MONO
-    default y
-
-config LV_COLOR_CHROMA_KEY_HEX
-   default 0x00FF00
-
 config LV_Z_MEM_POOL_SIZE
     default 4096
 
@@ -75,7 +69,7 @@ config CUSTOM_WIDGET_LAYER_STATUS
 
 config CUSTOM_WIDGET_PERIPHERAL_STATUS
     bool "custom peripheral status widget"
-    default y  if ZMK_SPLIT && !ZMK_SPLIT_ROLE_CENTRAL
+    default y if ZMK_SPLIT && !ZMK_SPLIT_ROLE_CENTRAL
     select LV_USE_IMG
 
 config CUSTOM_WIDGET_LOGO

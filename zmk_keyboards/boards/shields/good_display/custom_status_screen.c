@@ -67,22 +67,22 @@ lv_obj_t *zmk_display_status_screen() {
 #endif
 
 #if IS_ENABLED(CONFIG_CUSTOM_WIDGET_LOGO)
-    lv_obj_t *zenlogo_icon;
-    zenlogo_icon = lv_img_create(screen);
+    lv_obj_t *logo_icon;
+    logo_icon = lv_img_create(screen);
 #if IS_ENABLED(CONFIG_CUSTOM_WIDGET_LOGO_IMAGE_ZEN)
     LV_IMG_DECLARE(zenlogo);
-    lv_img_set_src(zenlogo_icon, &zenlogo);
+    lv_img_set_src(logo_icon, &zenlogo);
 #elif IS_ENABLED(CONFIG_CUSTOM_WIDGET_LOGO_IMAGE_LPKB)
     LV_IMG_DECLARE(lpkblogo);
-    lv_img_set_src(zenlogo_icon, &lpkblogo);
+    lv_img_set_src(logo_icon, &lpkblogo);
 #elif IS_ENABLED(CONFIG_CUSTOM_WIDGET_LOGO_IMAGE_ZMK)
     LV_IMG_DECLARE(zmklogo);
-    lv_img_set_src(zenlogo_icon, &zmklogo);
+    lv_img_set_src(logo_icon, &zmklogo);
 #elif IS_ENABLED(CONFIG_CUSTOM_WIDGET_LOGO_IMAGE_MIRYOKU)
     LV_IMG_DECLARE(miryokulogo);
-    lv_img_set_src(zenlogo_icon, &miryokulogo);
+    lv_img_set_src(logo_icon, &miryokulogo);
 #endif
-    lv_obj_align(zenlogo_icon, LV_ALIGN_BOTTOM_MID, 0, -5);
+    lv_obj_align(logo_icon, LV_ALIGN_BOTTOM_MID, 0, -5);
 #endif // CONFIG_CUSTOM_WIDGET_LOGO
 
     return screen;
