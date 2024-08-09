@@ -1,18 +1,4 @@
 # Copyright (c) 2024 The ZMK Contributors
 # SPDX-License-Identifier: MIT
 
-choice ZMK_DISPLAY_CUSTOM_WIDGETS
-    prompt "Custom widgetst for custom status screen"
-    default ZMK_DISPLAY_CUSTOM_WIDGETS_NONE
-
-config ZMK_DISPLAY_CUSTOM_WIDGETS_NONE
-    bool "Custom widgets for 80x128 mono screen"
-
-config ZMK_DISPLAY_CUSTOM_WIDGETS_80X128_MONO
-    bool "Custom widgets for 80x128 mono screen"
-
-endchoice # ZMK_DISPLAY_CUSTOM_WIDGETS_80X128_MONO
-
-if ZMK_DISPLAY_CUSTOM_WIDGETS_80X128_MONO
-    rsource "80x128_mono/Kconfig"
-endif
+rsource "80x128_mono/Kconfig"
