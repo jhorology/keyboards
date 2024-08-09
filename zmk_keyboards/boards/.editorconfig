@@ -1,8 +1,0 @@
-[*]
-indent_size = 4
-
-[*.{yml,yaml,cmake}]
-indent_size = 2
-
-[CMakeLists.txt]
-indent_size = 2

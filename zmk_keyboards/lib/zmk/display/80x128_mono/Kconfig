@@ -1,0 +1,89 @@
+# Copyright (c) 2024 The ZMK Contributors
+# SPDX-License-Identifier: MIT
+
+
+if ZMK_DISPLAY_CUSTOM_WIDGETS_80X128_MONO
+
+config ZMK_DISPLAY
+    default y
+
+choice ZMK_DISPLAY_STATUS_SCREEN
+    default ZMK_DISPLAY_STATUS_SCREEN_CUSTOM
+endchoice
+
+choice ZMK_DISPLAY_WORK_QUEUE
+    default ZMK_DISPLAY_WORK_QUEUE_DEDICATED
+endchoice
+
+endif # ZMK_DISPLAY_CUSTOM_WIDGETS_80X128_MONO
+
+config ZMK_DISPLAY_CUSTOM_WIDGETS_80X128_MONO_BATTERY
+    bool "custom battery status widget"
+    default y
+    select LV_USE_IMG
+
+config ZMK_DISPLAY_CUSTOM_WIDGETS_80X128_MONO_OUTPUT
+    bool "custom output status widget"
+    default y if !ZMK_SPLIT || ZMK_SPLIT_ROLE_CENTRAL
+    select LV_USE_IMG
+
+config ZMK_DISPLAY_CUSTOM_WIDGETS_80X128_MONO_LAYER
+    bool "custom layer status widget"
+    default y if !ZMK_SPLIT || ZMK_SPLIT_ROLE_CENTRAL
+    select LV_USE_LABEL
+    select LV_FONT_MONTSERRAT_26
+    select LV_FONT_MONTSERRAT_16
+
+config ZMK_DISPLAY_CUSTOM_WIDGETS_80X128_MONO_PERIPHERAL
+    bool "custom peripheral status widget"
+    default y if ZMK_SPLIT && !ZMK_SPLIT_ROLE_CENTRAL
+    select LV_USE_IMG
+
+config ZMK_DISPLAY_CUSTOM_WIDGETS_80X128_MONO_LOGO
+    bool "custom logo widget"
+    default y if ZMK_SPLIT && !ZMK_SPLIT_ROLE_CENTRAL
+    select LV_USE_IMG
+
+if ZMK_DISPLAY_CUSTOM_WIDGETS_80X128_MONO_LOGO
+
+choice ZMK_DISPLAY_CUSTOM_WIDGETS_80X128_MONO_LOGO_IMAGE
+    prompt "custom logo widget image"
+    default ZMK_DISPLAY_CUSTOM_WIDGETS_80X128_MONO_LOGO_IMAGE_ZMK
+
+config ZMK_DISPLAY_CUSTOM_WIDGETS_80X128_MONO_LOGO_IMAGE_ZEN
+    bool "Corne-ish Zen"
+
+config ZMK_DISPLAY_CUSTOM_WIDGETS_80X128_MONO_LOGO_IMAGE_LPKB
+    bool "LPKB"
+
+config ZMK_DISPLAY_CUSTOM_WIDGETS_80X128_MONO_LOGO_IMAGE_ZMK
+    bool "ZMK"
+
+config ZMK_DISPLAY_CUSTOM_WIDGETS_80X128_MONO_LOGO_IMAGE_MIRYOKU
+    bool "Miryoku"
+
+endchoice # ZMK_DISPLAY_CUSTOM_WIDGETS_80X128_MONO_LOGO_IMAGE
+
+endif # ZMK_DISPLAY_CUSTOM_WIDGETS_80X128_MONO_LOGO
+
+config LV_Z_BITS_PER_PIXEL
+    default 1
+
+choice LV_COLOR_DEPTH
+    default LV_COLOR_DEPTH_1
+endchoice
+
+config LV_DPI_DEF
+    default 145
+
+config LV_Z_VDB_SIZE
+    default 100
+
+config LV_Z_MEM_POOL_SIZE
+    default 4096
+
+config ZMK_DISPLAY_BLANK_ON_IDLE
+    default n
+
+config ZMK_DISPLAY_DEDICATED_THREAD_STACK_SIZE
+    default 4096

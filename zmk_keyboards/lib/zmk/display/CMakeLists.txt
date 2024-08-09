@@ -1,0 +1,1 @@
+add_subdirectory_ifdef(CONFIG_ZMK_DISPLAY_CUSTOM_WIDGETS_80X128_MONO 80x128_mono)

@@ -12,8 +12,8 @@
 #include <zephyr/kernel.h>
 
 struct zmk_widget_battery_status {
-    sys_snode_t node;
-    lv_obj_t *obj;
+  sys_snode_t node;
+  lv_obj_t *obj;
 };
 
 int zmk_widget_battery_status_init(struct zmk_widget_battery_status *widget, lv_obj_t *parent);

@@ -1,0 +1,12 @@
+# Copyright (c) 2023 The ZMK Contributors
+# SPDX-License-Identifier: MIT
+
+if SHIELD_GOODDISPLAY_GDEW0102T4
+
+config UC8175
+    default y
+
+config HEAP_MEM_POOL_SIZE
+    default 1024
+
+endif # SHIELD_GOODDISPLAY_GDEW0102T4

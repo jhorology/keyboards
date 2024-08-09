@@ -1,5 +1,3 @@
-menu "ZMK Extends"
-
 # TODO maybe better to define in device-tree as property of keymap
 config ZMK_HID_EXTRA_KEYS
     bool "Enable extra keys"
@@ -98,4 +96,4 @@ config ZMK_RAW_HID_TEST
     bool "Enable keymap raw HID"
     default n
 
-endmenu
+rsource "display/Kconfig"

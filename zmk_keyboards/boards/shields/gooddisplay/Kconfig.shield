@@ -1,0 +1,5 @@
+# Copyright (c) 2024 The ZMK Contributors
+# SPDX-License-Identifier: MIT
+
+config SHIELD_GOODDISPLAY_GDEW0102T4
+    def_bool $(shields_list_contains,gooddisplay_gdew0102t4)

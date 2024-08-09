@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#define DT_DRV_COMPAT gooddisplay_uc8175
+#define DT_DRV_COMPAT ultrachip_uc8175
 
 #include <string.h>
 #include <zephyr/device.h>

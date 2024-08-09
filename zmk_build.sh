@@ -65,8 +65,8 @@ WIN_GSUDO="/mnt/c/Program Files/gsudo/Current/gsudo.exe"
 #   [5]=DFU device pid
 #   [6]=shields
 local -A KEYBOARDS=(
-  cz42l      nice_nano_v2:cz42_left:uf2:NICENANO:none:"cz42_left;good_display"
-  cz42r      nice_nano_v2:cz42_right:uf2:NICENANO:none:"cz42_right;good_display"
+  cz42l      nice_nano_v2:cz42_left:uf2:NICENANO:none:"cz42_left;gooddisplay_gdew0102t4"
+  cz42r      nice_nano_v2:cz42_right:uf2:NICENANO:none:"cz42_right;gooddisplay_gdew0102t4"
   d60        bt60:d60_lite_hhkb_ec11:uf2:CKP:none:none
   fk68       fk680pro_v2:fk680pro_v2:uf2:"ZhaQian DFU":none:none
   q60        keychron_q60:keychron_q60:bin:0483:df11:none
