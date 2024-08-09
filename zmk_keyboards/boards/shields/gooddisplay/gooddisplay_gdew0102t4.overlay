@@ -2,3 +2,28 @@
  * Copyright (c) 2024 The ZMK Contributors
  * SPDX-License-Identifier: MIT
  */
+
+&spi_gooddisplay {
+  status = "okay";
+  gooddisplay_gdew0102t: uc8175@0 {
+    compatible = "ultrachip,uc8175";
+    status = "okay";
+
+    reg =  <0>;
+    width = <80>;
+    height = <128>;
+    spi-max-frequency = <4000000>;
+    dc-gpios = <&gpio0 9 GPIO_ACTIVE_LOW>;
+    busy-gpios = <&gpio1 6 GPIO_ACTIVE_LOW>;
+    reset-gpios = <&gpio1 4 GPIO_ACTIVE_LOW>;
+    pwr = [03 00 26 26];
+    cdi = <0xd2>;
+    tcon = <0x22>;
+  };
+};
+
+/ {
+  chosen {
+    zephyr,display = &gooddisplay_gdew0102t;
+  };
+};

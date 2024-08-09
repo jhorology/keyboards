@@ -1,0 +1,9 @@
+# Copyright (c) 2023 The ZMK Contributors
+# SPDX-License-Identifier: MIT
+
+if SHIELD_GOODDISPLAY_ADAPTER
+
+config SPI
+    default y
+
+endif # SHIELD_GOODDISPLAY_ADAPTER

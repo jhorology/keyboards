@@ -24,36 +24,16 @@
   };
 };
 
-&spi0 {
+spi_gooddisplay: &spi0 {
   compatible = "nordic,nrf-spim";
   status = "okay";
   pinctrl-0 = <&spi0_default>;
   pinctrl-1 = <&spi0_sleep>;
   pinctrl-names = "default", "sleep";
   cs-gpios = <&gpio0 10 GPIO_ACTIVE_LOW>;
-
-  gooddisplay_gdew0102t: uc8175@0 {
-    compatible = "ultrachip,uc8175";
-    reg =  <0>;
-    width = <80>;
-    height = <128>;
-    spi-max-frequency = <4000000>;
-    dc-gpios = <&gpio0 9 GPIO_ACTIVE_LOW>;
-    busy-gpios = <&gpio1 6 GPIO_ACTIVE_LOW>;
-    reset-gpios = <&gpio1 4 GPIO_ACTIVE_LOW>;
-    pwr = [03 00 26 26];
-    cdi = <0xd2>;
-    tcon = <0x22>;
-  };
 };
 
 
 &pro_micro_i2c {
   status = "disabled";
-};
-
-/ {
-  chosen {
-    zephyr,display = &gooddisplay_gdew0102t;
-  };
 };
