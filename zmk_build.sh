@@ -64,15 +64,16 @@ WIN_GSUDO="/mnt/c/Program Files/gsudo/Current/gsudo.exe"
 #   [4]=DFU volume name or device vid
 #   [5]=DFU device pid
 #   [6]=shields
+#   [7]=-additional options when --with-logging
 local -A KEYBOARDS=(
-  cz42l      nice_nano_v2:cz42_left:uf2:NICENANO:none:"cz42_left;gooddisplay_adapter;gooddisplay_gdew0102t4"
-  cz42r      nice_nano_v2:cz42_right:uf2:NICENANO:none:"cz42_right;gooddisplay_adapter;gooddisplay_gdew0102t4"
-  d60        bt60:d60_lite_hhkb_ec11:uf2:CKP:none:none
-  fk68       fk680pro_v2:fk680pro_v2:uf2:"ZhaQian DFU":none:none
-  q60        keychron_q60:keychron_q60:bin:0483:df11:none
-  qk60       qk60_wired:qk60_wired_hhkb:bin:1688:2220:none
-  tf60       kbdfans_tofu60_v2:tofu60_hhkb:uf2:RPI-RP2:none:none
-  ju60       cyber60_rev_d:hibi_june60:uf2:CYBER60_D:none:none
+  cz42l      nice_nano_v2:cz42_left:uf2:NICENANO:none:"cz42_left;gooddisplay_adapter;gooddisplay_gdew0102t4":"CONFIG_LV_LOG_LEVEL_TRACE,CONFIG_DISPLAY_LOG_LEVEL_DBG"
+  cz42r      nice_nano_v2:cz42_right:uf2:NICENANO:none:"cz42_right;gooddisplay_adapter;gooddisplay_gdew0102t4":"CONFIG_LV_LOG_LEVEL_TRACE,CONFIG_DISPLAY_LOG_LEVEL_DBG"
+  d60        bt60:d60_lite_hhkb_ec11:uf2:CKP:none:none:none
+  fk68       fk680pro_v2:fk680pro_v2:uf2:"ZhaQian DFU":none:none:none
+  q60        keychron_q60:keychron_q60:bin:0483:df11:none:none
+  qk60       qk60_wired:qk60_wired_hhkb:bin:1688:2220:none:none
+  tf60       kbdfans_tofu60_v2:tofu60_hhkb:uf2:RPI-RP2:none:none:none
+  ju60       cyber60_rev_d:hibi_june60:uf2:CYBER60_D:none:none:none
 )
 TARGETS=(cz42l cz42r d60 fk68 q60 qk60 tf60 ju60)
 
@@ -454,12 +455,21 @@ build() {
   local kbd=(${(@s/:/)KEYBOARDS[$target]})
   local board=$kbd[1]
   local shields=$kbd[6]
+  local log_options=$kbd[7]
   local opts=()
   local pristine="auto"
 
   $WITH_UPDATE && pristine="always"
 
-  (( $#with_logging )) && opts=($opts "-DCONFIG_ZMK_USB_LOGGING=y" "-DCONFIG_LOG_THREAD_ID_PREFIX=y")
+  if (( $#with_logging )); then
+    opts=($opts "-DCONFIG_ZMK_USB_LOGGING=y" "-DCONFIG_LOG_THREAD_ID_PREFIX=y")
+    if [[ $log_options != none ]]; then
+      echo $log_options
+      for log_opt in ${(@s/,/)log_options}; do
+        opts=($opts "-D$log_opt=y")
+      done
+    fi
+  fi
   (( $#with_shell )) && opts=($opts "-DCONFIG_SHELL=y")
   #  temporarily fix dependencie issue for nrf boards
   (( $#with_shell )) && [[ $board = "bt60" || $board == "cyber60_rev_d" ]] && \
@@ -489,11 +499,18 @@ build_with_docker() {
   local kbd=(${(@s/:/)KEYBOARDS[$target]})
   local board=$kbd[1]
   local shields=$kbd[6]
+  local log_options=$kbd[7]
   local opts=()
   local pristine="auto"
   $WITH_UPDATE && pristine="always"
 
-  (( $#with_logging )) && opts=($opts "-DCONFIG_ZMK_USB_LOGGING=y")
+  if (( $#with_logging )); then
+    opts=($opts "-DCONFIG_ZMK_USB_LOGGING=y" "-DCONFIG_LOG_THREAD_ID_PREFIX=y")
+    if [[ $log_options != none ]]; then
+      echo $log_options
+      exit 0
+    fi
+  fi
   (( $#with_shell )) && opts=($opts "-DCONFIG_SHELL=y")
   (( $#with_pp )) && opts=($opts "-DEXTRA_CFLAGS=-save-temps=obj")
   [[ $shields != none ]] && opts+=("-DSHIELD=$shields")

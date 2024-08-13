@@ -30,6 +30,8 @@ LOG_MODULE_REGISTER(uc8175, CONFIG_DISPLAY_LOG_LEVEL);
 #define UC8175_LUTW_LEN 42U
 #define UC8175_LUTB_LEN 42U
 
+static bool blanking_on;
+
 struct uc8175_config {
   // include: [spi-device.yaml]
   struct spi_dt_spec spi;
@@ -164,6 +166,7 @@ static inline int _sleep(const struct device *dev) {
   if (err) {
     return err;
   }
+  _busy_wait(dev);
 
   return 0;
 }
@@ -342,6 +345,11 @@ static int uc8175_blanking_on(const struct device *dev) {
 
   uint8_t ptl[UC8175_PTL_REG_LENGTH] = {0, config->width - 1, 0, config->height - 1,
                                         UC8175_PTL_PT_SCAN};
+  /* avoid flooding calls */
+  if (blanking_on) {
+    return 0;
+  }
+
   /* TODO parametize keep displaying */
   // blanking by LUTB -> lutw
   err = _write_cmd_block_data(dev, UC8175_CMD_LUTB, (void *)config->lutw, UC8175_LUTB_LEN);
@@ -364,6 +372,7 @@ static int uc8175_blanking_on(const struct device *dev) {
     return err;
   }
 
+  blanking_on = true;
   return 0;
 }
 
@@ -383,13 +392,19 @@ static int uc8175_blanking_off(const struct device *dev) {
   int err = 0;
   LOG_DBG("uc8175_blanking_off()");
 
+  uint8_t ptl[UC8175_PTL_REG_LENGTH] = {0, config->width - 1, 0, config->height - 1,
+                                        UC8175_PTL_PT_SCAN};
+
+  /* avoid flooding calls */
+  if (!blanking_on) {
+    return 0;
+  }
+
   err = _wake(dev);
   if (err < 0) {
     return err;
   }
 
-  uint8_t ptl[UC8175_PTL_REG_LENGTH] = {0, config->width - 1, 0, config->height - 1,
-                                        UC8175_PTL_PT_SCAN};
   // restore LUTB
   err = _write_cmd_block_data(dev, UC8175_CMD_LUTB, (void *)config->lutb, UC8175_LUTB_LEN);
   if (err < 0) {
@@ -406,6 +421,7 @@ static int uc8175_blanking_off(const struct device *dev) {
     return err;
   }
 
+  blanking_on = false;
   return 0;
 }
 
