@@ -8,17 +8,35 @@
   gooddisplay_gdew0102t: uc8175@0 {
     compatible = "ultrachip,uc8175";
     status = "okay";
-
     reg =  <0>;
+
+    spi-max-frequency = <4000000>;
+
     width = <80>;
     height = <128>;
-    spi-max-frequency = <4000000>;
+
     dc-gpios = <&gpio0 9 GPIO_ACTIVE_LOW>;
     busy-gpios = <&gpio1 6 GPIO_ACTIVE_LOW>;
     reset-gpios = <&gpio1 4 GPIO_ACTIVE_LOW>;
-    pwr = [03 00 26 26];
-    cdi = <0xd2>;
-    tcon = <0x22>;
+
+    /*
+     * UC8175 default settings
+     * driver's defalt values are optimized for GDEW0102T4
+     *
+     * To invert screen, swap lutw and lutb or modify cdi
+     *
+     * psr = <0x6f>;
+     * pwr = [03 00 2b 2b];
+     * cpset = <0x3f>;
+     * luptopt = [00 00];
+     * pll = 11;   // 30Hz = 2.5Hz + 2.5Hz * 18, Higer value to reduce flicker
+     * cdi = <0xd2>;
+     * vdcs = 18;  // -1.0v = -0.1v - 0.05v * 18, Higer value to increase contrast
+     * pws = <0x33>;
+     * tcon = <0x22>;
+     * lutw = [ 60 01 01 00 00 01 80 0f 00 00 00 01 ];
+     * lutb = [ 90 01 01 00 00 01 40 0f 00 00 00 01 ];
+     */
   };
 };
 

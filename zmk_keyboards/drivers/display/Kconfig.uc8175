@@ -7,7 +7,6 @@ config UC8175
     bool "UltraChip UC8175 compatible display controller driver"
 	  default y
 	  depends on DT_HAS_ULTRACHIP_UC8175_ENABLED
-    depends on HEAP_MEM_POOL_SIZE != 0
 	  select SPI
 	  help
 	    Enable driver for UC8175 compatible controller.

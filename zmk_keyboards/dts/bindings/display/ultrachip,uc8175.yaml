@@ -5,19 +5,9 @@ description: UC8175 EPD display controller
 
 compatible: "ultrachip,uc8175"
 
-include: spi-device.yaml
+include: [spi-device.yaml, display-controller.yaml]
 
 properties:
-  height:
-    type: int
-    required: true
-    description: Height in pixel of the panel driven by the controller
-
-  width:
-    type: int
-    required: true
-    description: Width in pixel of the panel driven by the controller
-
   reset-gpios:
     type: phandle-array
     required: true
@@ -45,17 +35,220 @@ properties:
       If connected directly the MCU pin should be configured
       as active low.
 
+  psr:
+    type: int
+    default: 0x6f
+    description: |
+      Panel Setting (PSR) value
+
+      RES[7:6] Resolution
+        00b: 80 x 160
+        01b: 80 x 128
+        10b: 64 x 128
+        11b: 64 x 96
+      REG[5:4] LUT Select
+        00b: LUT from HW
+        01b: LUT from OTP
+        10b: LUT from registers
+        11b: LUT from registers
+      UD[3] Gate Selection
+        0: Scan down
+        1: Scan up
+      SHL[2] Source SHift Direction
+        0: Shift left
+        1: Shift right
+      SHD_N[1] Charge pump switch
+        0: off
+        1: on
+      RST_N[0] Soft reset
+        0: Reset. Charge pump OFF, Register data are set to their default values, all drivers will be
+            reset,and all functions will be disabled. Source/Gate/Border/VCOM will be released to
+            floating.
+        1: No effect
+
   pwr:
     type: uint8-array
-    required: true
-    description: Power Setting (PWR) values
+    default: [0x03, 0x00, 0x2b, 0x2b]
+    # default: [0x03, 0x00, 0x26, 0x26]
+    description: |
+      Power Setting (PWR) values
+
+       VDS_EN 0[1] Source Power Selection
+         0: External source power from VDH/VDL pins
+         1: Internal voltage generation circuit for both VDH/VDL (Default)
+       VDG_EN 0[0] Gate Power Selection
+         0: External gate power from VGH/VGL pins
+         1: InternalvoltagegenerationcircuitforbothVGH/VGL(Default)
+       VDG_LVL 1[3:0] VGH/VGL Voltage Level selection
+         000b: VGH=16V, VGL= -16V (Default)
+         001b: VGH=15V, VGL= -15V
+         010b: VGH=14V, VGL= -14V
+         011b: VGH=13V, VGL= -13V
+         100b: VGH=12V, VGL= -12V
+         101b: VGH=11V, VGL= -11V
+         others: VGH=11V, VGL= -11V
+      VDH_LVL 2[5:0] internal VDH power selection
+        2.4V + 0.2 * n (Default n=100110b 10V)
+      VDL_LVL 3[5:0] internal VDL power selection
+        -2.4V - 0.2 * n (Default n=100110b -10V)
+
+  cpset:
+    type: int
+    default: 0x3f
+    description: |
+      Charge pump Setting (CPSET) valueso
+
+        CPINT[5:4] pump time interval
+          00b: 20ms
+          01b: 30ms
+          10b: 40ms
+          11b: 50ms
+        CPS[3:2] pump driving strength
+          00b - 11b: Strength 1 - 4
+        CPFRQ[1:0] pump frequencey
+          00b: 1KHz
+          01b: 2KHz
+          10b: 4KHz
+          11b: 8KHz
+
+  lutopt:
+    type: uint8-array
+    default: [0x00, 0x00]
+    description: |
+      LUTOPT XON and the options of LUT.
+
+        0[0] 0x00 Stage-1 All-Gate-On
+        0[1] 0x00 Stage-2 All-Gate-On
+        0[2] 0x00 Stage-3 All-Gate-On
+        0[3] 0x00 Stage-4 All-Gate-On
+        1[4]  Selection of LUT of 20degC - 30degC
+          0: 4.8s
+          1: 1.8s
+        1[1:0]: Selection of LUT of 0degC - 5degC
+          00b: 10s
+          01b: 13.2s
+          1xb: 15s
+
+  pll:
+    type: int
+    default: 11
+    description: |
+      Clock frequency
+
+        [5:0] clock frequency
+        2.5Hz + 2.5Hz * n (Default n=11 30Hz)
 
   cdi:
     type: int
-    required: true
-    description: VCOM and data interval value
+    # default: 0xf2
+    default: 0xd2
+    # default: 0xb2
+    # default: 0x32
+    description: |
+      VCOM and data interval value
+
+        CDI(0x50) The interval of VCOM  and data output. When setting the vertical back porch, the total
+        blanking will be kept (10 Hsync).
+
+        VBD [7:6] Border LUT selection.
+          DDX[0] = 0  White on Black
+            00b: VCOM
+            01b: LUTW
+            10b: LUTB
+            11b: Floating
+          DDX[0] = 1 Black on WHite
+            00b: Floating
+            01b: LUTB
+            10b: LUTW
+            11b: VCOM
+        DDX [5:4] Data Polarity
+            new<-old
+          00b: 00 LUTW  White on Black Background, update all pixel, so don't need OLD(DTM1) data
+               01 LUTW
+               10 LUTB
+               11 LUTB
+          01b: 00 LUTB  White on Black Background, update all pixel, so don't need OLD(DTM1) data
+               01 LUTB
+               10 LUTW
+               11 LUTW
+          10b: 00 GND   White on Black Background, don't update unchanged pixel
+               01 LUTW
+               10 LUTB
+               11 GND
+          11b: 00 GND   Black on White Background, don't update unchanged pixel
+               01 LUTB
+               10 LUTW
+               11 GND
+        CDI [2:0] VCOM to Data Interval. Interval time setting between VCOM and driver data. Default: 5 HsyncData Polarity
+          000b: 7hsync
+          001b: 6hsync
+          010b: 5hsync
+          011b: 4hsync
+          100b: 3hsync
+          others: 2hsync
+
+  vdcs:
+    type: int
+    default: 18
+    description: |
+      VDCS (0x82) VCOM_DC value
+
+        [5:0] VCOM_DC setting
+          -0.1v - 0.05v * n (Default n=18 -1v)
+
+  pws:
+    type: int
+    default: 0x33
+    description: |
+      PWS (0xe3) Power Saving Width
+
+        VCOM_W[7:4] VCOM_DC setting
+          n line period (Default n=3 3 line period)
+        SD_W[3:0] VCOM_DC setting
+          n * 2 uS (Default n=3 6uS)
 
   tcon:
     type: int
-    required: true
-    description: TCON setting value
+    default: 0x22
+    description: |
+       TCON(0x60) non-overlap period of Gate and Source
+
+         S2G[7:4]
+         G2S[3:0]
+           4 x n + 4 period (Default n=2 12)
+
+  lutw:
+    type: uint8-array
+    default: [
+      0x60, 0x01, 0x01, 0x00, 0x00, 0x01,
+      0x80, 0x0f, 0x00, 0x00, 0x00, 0x01
+    ]
+    description: |
+      White Look-up table
+
+      6 bytes per stage (max 8 stages)
+        +0[7:6] Phase 0
+        +0[5:4] Phase 1
+        +0[3:2] Phase 2
+        +0[1:0] Phase 3
+          Phase n
+            00b: GND
+            01b: VDH
+            10b: VDL
+            10b: floating
+        +1 Number of frame for pahse 0
+        +2 Number of frame for pahse 1
+        +3 Number of frame for phase 2
+        +4 Number of frame for phase 3
+        +5 times to repeat
+
+  lutb:
+    type: uint8-array
+    default: [
+      0x90, 0x01, 0x01, 0x00, 0x00, 0x01,
+      0x40, 0x0f, 0x00, 0x00, 0x00, 0x01
+    ]
+    description: |
+      Black Look-up table
+
+      see lutw
