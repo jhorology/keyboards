@@ -8,7 +8,7 @@
   gooddisplay_gdew0102t: uc8175@0 {
     compatible = "ultrachip,uc8175";
     status = "okay";
-    reg =  <0>;
+    reg = <0>;
 
     spi-max-frequency = <4000000>;
 
@@ -25,13 +25,14 @@
      *
      * To invert screen, swap lutw and lutb or modify cdi
      *
+     * blanking = <1>;      // 0:Kkeep content 1: White 2: Black 3: Invert
      * psr = <0x6f>;
      * pwr = [03 00 2b 2b];
      * cpset = <0x3f>;
      * luptopt = [00 00];
-     * pll = 11;   // 30Hz = 2.5Hz + 2.5Hz * 18, Higer value to reduce flicker
+     * pll = <11>;         // 30Hz = 2.5Hz + 2.5Hz * 18, Higer value to reduce flicker
      * cdi = <0xd2>;
-     * vdcs = 18;  // -1.0v = -0.1v - 0.05v * 18, Higer value to increase contrast
+     * vdcs = <18>;        // -1.0v = -0.1v - 0.05v * 18, Higer value to increase contrast
      * pws = <0x33>;
      * tcon = <0x22>;
      * lutw = [ 60 01 01 00 00 01 80 0f 00 00 00 01 ];

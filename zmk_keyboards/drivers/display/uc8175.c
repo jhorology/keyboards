@@ -25,12 +25,10 @@ LOG_MODULE_REGISTER(uc8175, CONFIG_DISPLAY_LOG_LEVEL);
 
 #define UC8175_PIXELS_PER_BYTE 8U
 
-#define UC8175_PWR_LEN 4U
-#define UC8175_LUTOPT_LEN 2U
-#define UC8175_LUTW_LEN 42U
-#define UC8175_LUTB_LEN 42U
-
-static bool blanking_on;
+#define BLANKING_KEEP_CONTENT 0U
+#define BLANKING_WHITE 1U
+#define BLANKING_BLACK 2U
+#define BLANKING_INVERT 3U
 
 struct uc8175_config {
   // include: [spi-device.yaml]
@@ -44,20 +42,23 @@ struct uc8175_config {
   struct gpio_dt_spec dc;
   struct gpio_dt_spec busy;
 
+  uint8_t blanking;
   uint8_t psr;
-  uint8_t pwr[UC8175_PWR_LEN];
+  uint8_t pwr[UC8175_PWR_REG_LENGTH];
   uint8_t cpset;
-  uint8_t lutopt[UC8175_LUTOPT_LEN];
+  uint8_t lutopt[UC8175_LUTOPT_REG_LENGTH];
   uint8_t pll;
   uint8_t cdi;
   uint8_t tcon;
   uint8_t vdcs;
   uint8_t pws;
-  uint8_t lutw[UC8175_LUTW_LEN];
-  uint8_t lutb[UC8175_LUTB_LEN];
+  uint8_t lutw[UC8175_LUTW_REG_LENGTH];
+  uint8_t lutb[UC8175_LUTB_REG_LENGTH];
 };
 
-struct uc8175_data {};
+struct uc8175_data {
+  bool blanking_on;
+};
 
 static inline void _busy_wait(const struct device *dev) {
   const struct uc8175_config *config = dev->config;
@@ -162,6 +163,8 @@ static inline int _sleep(const struct device *dev) {
   if (err) {
     return err;
   }
+  _busy_wait(dev);
+
   err = _write_cmd(dev, UC8175_CMD_DSLP);
   if (err) {
     return err;
@@ -178,7 +181,7 @@ static inline int _wake(const struct device *dev) {
   if (err < 0) {
     return err;
   }
-
+  k_msleep(UC8175_PON_DELAY);
   _busy_wait(dev);
 
   return 0;
@@ -187,7 +190,7 @@ static inline int _wake(const struct device *dev) {
 static int _update_display(const struct device *dev, bool force) {
   const struct uc8175_config *config = dev->config;
   int err;
-  // CDI bit6 DDX[1]
+  // CDI bit5 DDX[1]
   //    0: update all pixel
   //    1: update only changed peixl
   bool cdi_mask_required = (config->cdi & BIT(5)) && force;
@@ -204,7 +207,6 @@ static int _update_display(const struct device *dev, bool force) {
     return err;
   }
 
-  k_msleep(UC8175_BUSY_DELAY);
   _busy_wait(dev);
 
   // restore CDI
@@ -253,8 +255,6 @@ static int uc8175_write(const struct device *dev, const uint16_t x, const uint16
     return -EINVAL;
   }
 
-  _busy_wait(dev);
-
   // NEW data
   err = _write_cmd_block_data(dev, UC8175_CMD_PTL, ptl, sizeof(ptl));
   if (err < 0) {
@@ -272,7 +272,7 @@ static int uc8175_write(const struct device *dev, const uint16_t x, const uint16
   }
 
   // OLD data
-  // CDI bit6 DDX[1]
+  // CDI bit5 DDX[1]
   //    0: update all pixel
   //    1: update only changed peixl
   if (config->cdi & BIT(5)) {
@@ -340,21 +340,35 @@ static void *uc8175_get_framebuffer(const struct device *dev) {
  */
 static int uc8175_blanking_on(const struct device *dev) {
   const struct uc8175_config *config = dev->config;
+  struct uc8175_data *data = dev->data;
   int err = 0;
   LOG_DBG("uc8175_blanking_on()");
 
   uint8_t ptl[UC8175_PTL_REG_LENGTH] = {0, config->width - 1, 0, config->height - 1,
                                         UC8175_PTL_PT_SCAN};
   /* avoid flooding calls */
-  if (blanking_on) {
+  if (data->blanking_on) {
     return 0;
   }
 
-  /* TODO parametize keep displaying */
-  // blanking by LUTB -> lutw
-  err = _write_cmd_block_data(dev, UC8175_CMD_LUTB, (void *)config->lutw, UC8175_LUTB_LEN);
-  if (err < 0) {
-    return err;
+  if (config->blanking == BLANKING_WHITE) {
+    // blanking by LUTB -> lutw
+    err = _write_cmd_block_data(dev, UC8175_CMD_LUTB, (void *)config->lutw, UC8175_LUTB_REG_LENGTH);
+    if (err < 0) {
+      return err;
+    }
+  } else if (config->blanking == BLANKING_BLACK) {
+    // blanking by LUTW -> lutb
+    err = _write_cmd_block_data(dev, UC8175_CMD_LUTW, (void *)config->lutb, UC8175_LUTB_REG_LENGTH);
+    if (err < 0) {
+      return err;
+    }
+  } else if (config->blanking == BLANKING_INVERT) {
+    // toggle CDI bit4 DDX[0]
+    err = _write_cmd_uint8_data(dev, UC8175_CMD_CDI, config->cdi ^ BIT(4));
+    if (err < 0) {
+      return err;
+    }
   }
 
   err = _write_cmd_block_data(dev, UC8175_CMD_PTL, ptl, sizeof(ptl));
@@ -372,7 +386,7 @@ static int uc8175_blanking_on(const struct device *dev) {
     return err;
   }
 
-  blanking_on = true;
+  data->blanking_on = true;
   return 0;
 }
 
@@ -389,6 +403,7 @@ static int uc8175_blanking_on(const struct device *dev) {
  */
 static int uc8175_blanking_off(const struct device *dev) {
   const struct uc8175_config *config = dev->config;
+  struct uc8175_data *data = dev->data;
   int err = 0;
   LOG_DBG("uc8175_blanking_off()");
 
@@ -396,7 +411,7 @@ static int uc8175_blanking_off(const struct device *dev) {
                                         UC8175_PTL_PT_SCAN};
 
   /* avoid flooding calls */
-  if (!blanking_on) {
+  if (!data->blanking_on) {
     return 0;
   }
 
@@ -405,10 +420,24 @@ static int uc8175_blanking_off(const struct device *dev) {
     return err;
   }
 
-  // restore LUTB
-  err = _write_cmd_block_data(dev, UC8175_CMD_LUTB, (void *)config->lutb, UC8175_LUTB_LEN);
-  if (err < 0) {
-    return err;
+  if (config->blanking == BLANKING_WHITE) {
+    // restore LUTB
+    err = _write_cmd_block_data(dev, UC8175_CMD_LUTB, (void *)config->lutb, UC8175_LUTB_REG_LENGTH);
+    if (err < 0) {
+      return err;
+    }
+  } else if (config->blanking == BLANKING_BLACK) {
+    // restore LUTW -> lutb
+    err = _write_cmd_block_data(dev, UC8175_CMD_LUTW, (void *)config->lutw, UC8175_LUTB_REG_LENGTH);
+    if (err < 0) {
+      return err;
+    }
+  } else if (config->blanking == BLANKING_INVERT) {
+    // restore CDI
+    err = _write_cmd_uint8_data(dev, UC8175_CMD_CDI, config->cdi);
+    if (err < 0) {
+      return err;
+    }
   }
 
   err = _write_cmd_block_data(dev, UC8175_CMD_PTL, ptl, sizeof(ptl));
@@ -421,7 +450,7 @@ static int uc8175_blanking_off(const struct device *dev) {
     return err;
   }
 
-  blanking_on = false;
+  data->blanking_on = false;
   return 0;
 }
 
@@ -525,7 +554,7 @@ static int uc8175_controller_init(const struct device *dev) {
   }
 
   // PWR Power setting
-  err = _write_cmd_block_data(dev, UC8175_CMD_PWR, (void *)config->pwr, UC8175_PWR_LEN);
+  err = _write_cmd_block_data(dev, UC8175_CMD_PWR, (void *)config->pwr, UC8175_PWR_REG_LENGTH);
   if (err < 0) {
     return err;
   }
@@ -535,7 +564,8 @@ static int uc8175_controller_init(const struct device *dev) {
     return err;
   }
 
-  err = _write_cmd_block_data(dev, UC8175_CMD_LUTOPT, (void *)config->lutopt, UC8175_LUTOPT_LEN);
+  err =
+    _write_cmd_block_data(dev, UC8175_CMD_LUTOPT, (void *)config->lutopt, UC8175_LUTOPT_REG_LENGTH);
   if (err < 0) {
     return err;
   }
@@ -569,23 +599,17 @@ static int uc8175_controller_init(const struct device *dev) {
     return err;
   }
 
-  err = _write_cmd_block_data(dev, UC8175_CMD_LUTW, (void *)config->lutw, UC8175_LUTW_LEN);
+  err = _write_cmd_block_data(dev, UC8175_CMD_LUTW, (void *)config->lutw, UC8175_LUTW_REG_LENGTH);
   if (err < 0) {
     return err;
   }
 
-  err = _write_cmd_block_data(dev, UC8175_CMD_LUTB, (void *)config->lutb, UC8175_LUTB_LEN);
+  err = _write_cmd_block_data(dev, UC8175_CMD_LUTB, (void *)config->lutb, UC8175_LUTB_REG_LENGTH);
   if (err < 0) {
     return err;
   }
 
-  err = _write_cmd(dev, UC8175_CMD_PON);
-  if (err < 0) {
-    return err;
-  }
-
-  k_msleep(UC8175_PON_DELAY);
-  _busy_wait(dev);
+  err = _wake(dev);
 
   // only support partial mode
   err = _write_cmd(dev, UC8175_CMD_PIN);
@@ -694,6 +718,7 @@ static const struct display_driver_api uc8175_display_api = {
     .reset = GPIO_DT_SPEC_INST_GET(n, reset_gpios),                                              \
     .busy = GPIO_DT_SPEC_INST_GET(n, busy_gpios),                                                \
     .dc = GPIO_DT_SPEC_INST_GET(n, dc_gpios),                                                    \
+    .blanking = DT_INST_PROP(n, blanking),                                                       \
     .psr = DT_INST_PROP(n, psr),                                                                 \
     .pwr = DT_INST_PROP(n, pwr),                                                                 \
     .cpset = DT_INST_PROP(n, cpset),                                                             \
