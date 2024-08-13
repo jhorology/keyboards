@@ -428,6 +428,14 @@ static int uc8175_write(const struct device *dev, const uint16_t x, const uint16
 
   LOG_DBG("end");
 
+  // continue to sleep
+  if (data->blanking_on) {
+    err = _sleep(dev);
+    if (err < 0) {
+      return err;
+    }
+  }
+
   return 0;
 }
 
