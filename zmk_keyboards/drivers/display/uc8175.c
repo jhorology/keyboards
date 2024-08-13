@@ -52,12 +52,13 @@ struct uc8175_config {
   uint8_t tcon;
   uint8_t vdcs;
   uint8_t pws;
-  uint8_t lutw[UC8175_LUTW_REG_LENGTH];
-  uint8_t lutb[UC8175_LUTB_REG_LENGTH];
+  uint8_t lutw[UC8175_LUT_REG_LENGTH];
+  uint8_t lutb[UC8175_LUT_REG_LENGTH];
 };
 
 struct uc8175_data {
   bool blanking_on;
+  bool sleep;
 };
 
 static inline void _busy_wait(const struct device *dev) {
@@ -158,35 +159,6 @@ static inline int _write_cmd_fill_data(const struct device *dev, uint8_t cmd, ui
   return _write_cmd_data(dev, cmd, NULL, 0, fill_data, fill_len);
 }
 
-static inline int _sleep(const struct device *dev) {
-  int err = _write_cmd(dev, UC8175_CMD_POF);
-  if (err) {
-    return err;
-  }
-  _busy_wait(dev);
-
-  err = _write_cmd(dev, UC8175_CMD_DSLP);
-  if (err) {
-    return err;
-  }
-  _busy_wait(dev);
-
-  return 0;
-}
-
-static inline int _wake(const struct device *dev) {
-  int err;
-
-  err = _write_cmd(dev, UC8175_CMD_PON);
-  if (err < 0) {
-    return err;
-  }
-  k_msleep(UC8175_PON_DELAY);
-  _busy_wait(dev);
-
-  return 0;
-}
-
 static int _update_display(const struct device *dev, bool force) {
   const struct uc8175_config *config = dev->config;
   int err;
@@ -220,6 +192,152 @@ static int _update_display(const struct device *dev, bool force) {
   return 0;
 }
 
+static int _clear_frame_buffer(const struct device *dev) {
+  const struct uc8175_config *config = dev->config;
+  uint8_t ptl[UC8175_PTL_REG_LENGTH] = {0, config->width - 1, 0, config->height - 1,
+                                        UC8175_PTL_PT_SCAN};
+  size_t buf_len = config->width * config->height / UC8175_PIXELS_PER_BYTE;
+  int err;
+
+  err = _write_cmd_block_data(dev, UC8175_CMD_PTL, ptl, sizeof(ptl));
+  if (err < 0) {
+    return err;
+  }
+
+  err = _write_cmd_fill_data(dev, UC8175_CMD_DTM1, 0xff, buf_len);
+  if (err < 0) {
+    return err;
+  }
+
+  err = _write_cmd_fill_data(dev, UC8175_CMD_DTM2, 0xff, buf_len);
+  if (err < 0) {
+    return err;
+  }
+
+  err = _update_display(dev, true);
+  if (err < 0) {
+    return err;
+  }
+
+  return 0;
+}
+
+static inline int _sleep(const struct device *dev) {
+  struct uc8175_data *data = dev->data;
+
+  int err = _write_cmd(dev, UC8175_CMD_POF);
+  if (err) {
+    return err;
+  }
+  _busy_wait(dev);
+
+  // deep sleep A5 = check code
+  err = _write_cmd_uint8_data(dev, UC8175_CMD_DSLP, 0xa5);
+  if (err) {
+    return err;
+  }
+  _busy_wait(dev);
+
+  data->sleep = true;
+
+  return 0;
+}
+
+static int _wake(const struct device *dev) {
+  const struct uc8175_config *config = dev->config;
+  struct uc8175_data *data = dev->data;
+
+  int err;
+  uint8_t tmp[UC8175_TRES_REG_LENGTH];
+
+  _reset(dev);
+
+  // unknown cmd 0xd2
+  err = _write_cmd_uint8_data(dev, 0xd2, 0x3f);
+  if (err < 0) {
+    return err;
+  }
+
+  // PSR Panerl Setting
+  err = _write_cmd_uint8_data(dev, UC8175_CMD_PSR, config->psr);
+  if (err < 0) {
+    return err;
+  }
+
+  // PWR Power setting
+  err = _write_cmd_block_data(dev, UC8175_CMD_PWR, (void *)config->pwr, UC8175_PWR_REG_LENGTH);
+  if (err < 0) {
+    return err;
+  }
+
+  err = _write_cmd_uint8_data(dev, UC8175_CMD_CPSET, config->cpset);
+  if (err < 0) {
+    return err;
+  }
+
+  err =
+    _write_cmd_block_data(dev, UC8175_CMD_LUTOPT, (void *)config->lutopt, UC8175_LUTOPT_REG_LENGTH);
+  if (err < 0) {
+    return err;
+  }
+
+  err = _write_cmd_uint8_data(dev, UC8175_CMD_PLL, config->pll);
+  if (err < 0) {
+    return err;
+  }
+
+  err = _write_cmd_uint8_data(dev, UC8175_CMD_CDI, config->cdi);
+  if (err < 0) {
+    return err;
+  }
+
+  err = _write_cmd_uint8_data(dev, UC8175_CMD_TCON, config->tcon);
+  if (err < 0) {
+    return err;
+  }
+
+  tmp[0] = config->width;
+  tmp[1] = config->height;
+  err = _write_cmd_block_data(dev, UC8175_CMD_TRES, tmp, 2);
+
+  err = _write_cmd_uint8_data(dev, UC8175_CMD_VDCS, config->vdcs);
+  if (err < 0) {
+    return err;
+  }
+
+  err = _write_cmd_uint8_data(dev, UC8175_CMD_PWS, config->pws);
+  if (err < 0) {
+    return err;
+  }
+
+  err = _write_cmd_block_data(dev, UC8175_CMD_LUTW, (void *)config->lutw, UC8175_LUT_REG_LENGTH);
+  if (err < 0) {
+    return err;
+  }
+
+  err = _write_cmd_block_data(dev, UC8175_CMD_LUTB, (void *)config->lutb, UC8175_LUT_REG_LENGTH);
+  if (err < 0) {
+    return err;
+  }
+
+  err = _write_cmd(dev, UC8175_CMD_PON);
+  if (err < 0) {
+    return err;
+  }
+  k_msleep(UC8175_PON_DELAY);
+  _busy_wait(dev);
+
+  // only support partial mode
+  err = _write_cmd(dev, UC8175_CMD_PIN);
+  if (err < 0) {
+    return err;
+  }
+
+  data->sleep = false;
+
+  return 0;
+}
+
 /**
  * @brief Write data to display
  *
@@ -234,14 +352,32 @@ static int _update_display(const struct device *dev, bool force) {
 static int uc8175_write(const struct device *dev, const uint16_t x, const uint16_t y,
                         const struct display_buffer_descriptor *desc, const void *buf) {
   const struct uc8175_config *config = dev->config;
+  struct uc8175_data *data = dev->data;
   int err;
-  uint16_t x_end_idx = x + desc->width - 1;
-  uint16_t y_end_idx = y + desc->height - 1;
   size_t buf_len = MIN(desc->buf_size, config->height * config->width / UC8175_PIXELS_PER_BYTE);
-  uint8_t ptl[UC8175_PTL_REG_LENGTH] = {x, x_end_idx, y, y_end_idx, UC8175_PTL_PT_SCAN};
+  uint8_t ptl[UC8175_PTL_REG_LENGTH] = {x, x + desc->width - 1, y, y + desc->height - 1,
+                                        UC8175_PTL_PT_SCAN};
 
-  LOG_DBG("x %u, y %u, height %u, width %u, buf_size %u, pitch %u", x, y, desc->height, desc->width,
-          desc->buf_size, desc->pitch);
+  /*
+    TODO which is correct behavior
+     - ignore while blanking_on
+     - wake
+  */
+  /*
+  if (data->blanking_on) {
+    return 0;
+  }
+  */
+
+  if (data->sleep) {
+    err = _wake(dev);
+    if (err < 0) {
+      return err;
+    }
+  }
+
+  LOG_DBG("start x %u, y %u, height %u, width %u, buf_size %u, pitch %u", x, y, desc->height,
+          desc->width, desc->buf_size, desc->pitch);
 
   __ASSERT(desc->width <= desc->pitch, "Pitch is smaller then width");
   __ASSERT(buf != NULL, "Buffer is not available");
@@ -250,7 +386,7 @@ static int uc8175_write(const struct device *dev, const uint16_t x, const uint16
            UC8175_PIXELS_PER_BYTE);
 
   LOG_DBG("buf_len %d", buf_len);
-  if ((y_end_idx > (config->height - 1)) || (x_end_idx > (config->width - 1))) {
+  if (((y + desc->height - 1) >= config->height) || ((x + desc->width - 1) >= config->width)) {
     LOG_ERR("Position out of bounds");
     return -EINVAL;
   }
@@ -266,9 +402,11 @@ static int uc8175_write(const struct device *dev, const uint16_t x, const uint16
     return err;
   }
 
-  err = _update_display(dev, false);
-  if (err < 0) {
-    return err;
+  if (!data->blanking_on) {
+    err = _update_display(dev, false);
+    if (err < 0) {
+      return err;
+    }
   }
 
   // OLD data
@@ -286,7 +424,10 @@ static int uc8175_write(const struct device *dev, const uint16_t x, const uint16
       return err;
     }
   }
-  return err;
+
+  LOG_DBG("end");
+
+  return 0;
 }
 
 /**
@@ -342,7 +483,8 @@ static int uc8175_blanking_on(const struct device *dev) {
   const struct uc8175_config *config = dev->config;
   struct uc8175_data *data = dev->data;
   int err = 0;
-  LOG_DBG("uc8175_blanking_on()");
+
+  LOG_DBG("start");
 
   uint8_t ptl[UC8175_PTL_REG_LENGTH] = {0, config->width - 1, 0, config->height - 1,
                                         UC8175_PTL_PT_SCAN};
@@ -351,24 +493,24 @@ static int uc8175_blanking_on(const struct device *dev) {
     return 0;
   }
 
-  if (config->blanking == BLANKING_WHITE) {
-    // blanking by LUTB -> lutw
-    err = _write_cmd_block_data(dev, UC8175_CMD_LUTB, (void *)config->lutw, UC8175_LUTB_REG_LENGTH);
-    if (err < 0) {
-      return err;
-    }
-  } else if (config->blanking == BLANKING_BLACK) {
-    // blanking by LUTW -> lutb
-    err = _write_cmd_block_data(dev, UC8175_CMD_LUTW, (void *)config->lutb, UC8175_LUTB_REG_LENGTH);
-    if (err < 0) {
-      return err;
-    }
-  } else if (config->blanking == BLANKING_INVERT) {
-    // toggle CDI bit4 DDX[0]
-    err = _write_cmd_uint8_data(dev, UC8175_CMD_CDI, config->cdi ^ BIT(4));
-    if (err < 0) {
-      return err;
-    }
+  switch (config->blanking) {
+    case BLANKING_WHITE:
+      // blanking by LUTB -> lutw
+      err =
+        _write_cmd_block_data(dev, UC8175_CMD_LUTB, (void *)config->lutw, UC8175_LUT_REG_LENGTH);
+      break;
+    case BLANKING_BLACK:
+      // blanking by LUTW -> lutb
+      err =
+        _write_cmd_block_data(dev, UC8175_CMD_LUTW, (void *)config->lutb, UC8175_LUT_REG_LENGTH);
+      break;
+    case BLANKING_INVERT:
+      // toggle CDI bit4 DDX[0]
+      err = _write_cmd_uint8_data(dev, UC8175_CMD_CDI, config->cdi ^ BIT(4));
+      break;
+  }
+  if (err < 0) {
+    return err;
   }
 
   err = _write_cmd_block_data(dev, UC8175_CMD_PTL, ptl, sizeof(ptl));
@@ -387,6 +529,9 @@ static int uc8175_blanking_on(const struct device *dev) {
   }
 
   data->blanking_on = true;
+
+  LOG_DBG("end");
+
   return 0;
 }
 
@@ -405,7 +550,8 @@ static int uc8175_blanking_off(const struct device *dev) {
   const struct uc8175_config *config = dev->config;
   struct uc8175_data *data = dev->data;
   int err = 0;
-  LOG_DBG("uc8175_blanking_off()");
+
+  LOG_DBG("start");
 
   uint8_t ptl[UC8175_PTL_REG_LENGTH] = {0, config->width - 1, 0, config->height - 1,
                                         UC8175_PTL_PT_SCAN};
@@ -415,30 +561,8 @@ static int uc8175_blanking_off(const struct device *dev) {
     return 0;
   }
 
+  // need iniitialize after DSLP deep sleep mode
   err = _wake(dev);
-  if (err < 0) {
-    return err;
-  }
-
-  if (config->blanking == BLANKING_WHITE) {
-    // restore LUTB
-    err = _write_cmd_block_data(dev, UC8175_CMD_LUTB, (void *)config->lutb, UC8175_LUTB_REG_LENGTH);
-    if (err < 0) {
-      return err;
-    }
-  } else if (config->blanking == BLANKING_BLACK) {
-    // restore LUTW -> lutb
-    err = _write_cmd_block_data(dev, UC8175_CMD_LUTW, (void *)config->lutw, UC8175_LUTB_REG_LENGTH);
-    if (err < 0) {
-      return err;
-    }
-  } else if (config->blanking == BLANKING_INVERT) {
-    // restore CDI
-    err = _write_cmd_uint8_data(dev, UC8175_CMD_CDI, config->cdi);
-    if (err < 0) {
-      return err;
-    }
-  }
 
   err = _write_cmd_block_data(dev, UC8175_CMD_PTL, ptl, sizeof(ptl));
   if (err < 0) {
@@ -451,6 +575,9 @@ static int uc8175_blanking_off(const struct device *dev) {
   }
 
   data->blanking_on = false;
+
+  LOG_DBG("end");
+
   return 0;
 }
 
@@ -534,120 +661,11 @@ static int uc8175_set_orientation(const struct device *dev,
   return -ENOTSUP;
 }
 
-static int uc8175_controller_init(const struct device *dev) {
-  const struct uc8175_config *config = dev->config;
-  int err;
-  uint8_t tmp[UC8175_TRES_REG_LENGTH];
-
-  _reset(dev);
-
-  // unknown cmd 0xd2
-  err = _write_cmd_uint8_data(dev, 0xd2, 0x3f);
-  if (err < 0) {
-    return err;
-  }
-
-  // PSR Panerl Setting
-  err = _write_cmd_uint8_data(dev, UC8175_CMD_PSR, config->psr);
-  if (err < 0) {
-    return err;
-  }
-
-  // PWR Power setting
-  err = _write_cmd_block_data(dev, UC8175_CMD_PWR, (void *)config->pwr, UC8175_PWR_REG_LENGTH);
-  if (err < 0) {
-    return err;
-  }
-
-  err = _write_cmd_uint8_data(dev, UC8175_CMD_CPSET, config->cpset);
-  if (err < 0) {
-    return err;
-  }
-
-  err =
-    _write_cmd_block_data(dev, UC8175_CMD_LUTOPT, (void *)config->lutopt, UC8175_LUTOPT_REG_LENGTH);
-  if (err < 0) {
-    return err;
-  }
-
-  err = _write_cmd_uint8_data(dev, UC8175_CMD_PLL, config->pll);
-  if (err < 0) {
-    return err;
-  }
-
-  err = _write_cmd_uint8_data(dev, UC8175_CMD_CDI, config->cdi);
-  if (err < 0) {
-    return err;
-  }
-
-  err = _write_cmd_uint8_data(dev, UC8175_CMD_TCON, config->tcon);
-  if (err < 0) {
-    return err;
-  }
-
-  tmp[0] = config->width;
-  tmp[1] = config->height;
-  err = _write_cmd_block_data(dev, UC8175_CMD_TRES, tmp, 2);
-
-  err = _write_cmd_uint8_data(dev, UC8175_CMD_VDCS, config->vdcs);
-  if (err < 0) {
-    return err;
-  }
-
-  err = _write_cmd_uint8_data(dev, UC8175_CMD_PWS, config->pws);
-  if (err < 0) {
-    return err;
-  }
-
-  err = _write_cmd_block_data(dev, UC8175_CMD_LUTW, (void *)config->lutw, UC8175_LUTW_REG_LENGTH);
-  if (err < 0) {
-    return err;
-  }
-
-  err = _write_cmd_block_data(dev, UC8175_CMD_LUTB, (void *)config->lutb, UC8175_LUTB_REG_LENGTH);
-  if (err < 0) {
-    return err;
-  }
-
-  err = _wake(dev);
-
-  // only support partial mode
-  err = _write_cmd(dev, UC8175_CMD_PIN);
-  if (err < 0) {
-    return err;
-  }
-
-  // initialize frame buffers
-  uint8_t ptl[UC8175_PTL_REG_LENGTH] = {0, config->width - 1, 0, config->height - 1,
-                                        UC8175_PTL_PT_SCAN};
-  size_t buf_len = config->width * config->height / UC8175_PIXELS_PER_BYTE;
-  err = _write_cmd_block_data(dev, UC8175_CMD_PTL, ptl, sizeof(ptl));
-  if (err < 0) {
-    return err;
-  }
-
-  err = _write_cmd_fill_data(dev, UC8175_CMD_DTM1, 0xff, buf_len);
-  if (err < 0) {
-    return err;
-  }
-  err = _write_cmd_fill_data(dev, UC8175_CMD_DTM2, 0xff, buf_len);
-  if (err < 0) {
-    return err;
-  }
-
-  err = _update_display(dev, true);
-  if (err < 0) {
-    return err;
-  }
-
-  return 0;
-}
-
 static int uc8175_init(const struct device *dev) {
   const struct uc8175_config *config = dev->config;
   int err;
 
-  LOG_DBG("uc8175_init() start");
+  LOG_DBG("start");
 
   if (!spi_is_ready_dt(&config->spi)) {
     LOG_ERR("SPI device not ready for UC8175");
@@ -687,12 +705,19 @@ static int uc8175_init(const struct device *dev) {
     return err;
   }
 
-  err = uc8175_controller_init(dev);
+  err = _wake(dev);
   if (err < 0) {
     LOG_ERR("Could not initialize UC8175 controller. err: %d", err);
     return err;
   }
-  LOG_DBG("uc8175_init() end");
+
+  err = _clear_frame_buffer(dev);
+  if (err < 0) {
+    LOG_ERR("Could not clear frame buffer. err: %d", err);
+    return err;
+  }
+
+  LOG_DBG("end");
 
   return 0;
 }
