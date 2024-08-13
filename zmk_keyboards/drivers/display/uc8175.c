@@ -24,7 +24,8 @@ LOG_MODULE_REGISTER(uc8175, CONFIG_DISPLAY_LOG_LEVEL);
  */
 
 #define UC8175_PIXELS_PER_BYTE 8U
-
+// #define UC8175_CDI_REVERSE_MASK (BIT(7) + BIT(6) + BIT(4))
+#define UC8175_CDI_REVERSE_MASK BIT(4)
 #define BLANKING_KEEP_CONTENT 0U
 #define BLANKING_WHITE 1U
 #define BLANKING_BLACK 2U
@@ -505,8 +506,8 @@ static int uc8175_blanking_on(const struct device *dev) {
         _write_cmd_block_data(dev, UC8175_CMD_LUTW, (void *)config->lutb, UC8175_LUT_REG_LENGTH);
       break;
     case BLANKING_INVERT:
-      // toggle CDI bit4 DDX[0]
-      err = _write_cmd_uint8_data(dev, UC8175_CMD_CDI, config->cdi ^ BIT(4));
+      // toggle CDI bit4 DDX[0] and VBD[1:0]
+      err = _write_cmd_uint8_data(dev, UC8175_CMD_CDI, config->cdi ^ UC8175_CDI_REVERSE_MASK);
       break;
   }
   if (err < 0) {

@@ -152,9 +152,9 @@ properties:
   cdi:
     type: int
     # default: 0xf2
-    default: 0xd2
-    # default: 0xb2
-    # default: 0x32
+    # default: 0xd2
+    default: 0x92
+    # default: 0x52
     description: |
       VCOM and data interval value
 
