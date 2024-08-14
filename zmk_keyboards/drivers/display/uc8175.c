@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <sys/_stdint.h>
 #define DT_DRV_COMPAT ultrachip_uc8175
 
 #include <string.h>
@@ -25,7 +26,8 @@ LOG_MODULE_REGISTER(uc8175, CONFIG_DISPLAY_LOG_LEVEL);
 
 #define UC8175_PIXELS_PER_BYTE 8U
 // #define UC8175_CDI_REVERSE_MASK (BIT(7) + BIT(6) + BIT(4))
-#define UC8175_CDI_REVERSE_MASK BIT(4)
+#define UC8175_CDI_MASK_INVERT BIT(4)
+#define UC8175_CDI_MASK_UPDATE_MODE BIT(5)
 #define BLANKING_KEEP_CONTENT 0U
 #define BLANKING_WHITE 1U
 #define BLANKING_BLACK 2U
@@ -36,8 +38,8 @@ struct uc8175_config {
   struct spi_dt_spec spi;
 
   // include: [display-controller.yaml]
-  uint8_t height;
-  uint8_t width;
+  uint16_t height;
+  uint16_t width;
 
   struct gpio_dt_spec reset;
   struct gpio_dt_spec dc;
@@ -160,21 +162,77 @@ static inline int _write_cmd_fill_data(const struct device *dev, uint8_t cmd, ui
   return _write_cmd_data(dev, cmd, NULL, 0, fill_data, fill_len);
 }
 
-static int _update_display(const struct device *dev, bool force) {
+/**
+ *  x0  top left horizontal position of partial window
+ *  x1  bottom right horizontal position of partial window
+ *  y0  top left vertical position of partial window
+ *  y1  bottom right vertical position of wpartial window
+ *  ptl_scan   true:  Gates scan only inside of the partial window
+ *             false: Gates scan both inside and outside of the partial window.
+ */
+static int _window(const struct device *dev, uint16_t x0, uint16_t x1, uint16_t y0, uint16_t y1,
+                   bool ptl_scan) {
+  uint8_t ptl[UC8175_PTL_REG_LENGTH] = {x0, x1, y0, y1, ptl_scan ? 0 : 1};
+  int err;
+  // set partial window
+  err = _write_cmd_block_data(dev, UC8175_CMD_PTL, ptl, sizeof(ptl));
+  if (err < 0) {
+    return err;
+  }
+
+  return 0;
+}
+
+static int _window_partial(const struct device *dev, uint16_t x0, uint16_t x1, uint16_t y0,
+                           uint16_t y1) {
+  /* TODO why ? */
+  // return _window(dev, x0, x1, y0, y1, true);
+  return _window(dev, x0, x1, y0, y1, false);
+}
+
+static int _window_full(const struct device *dev) {
   const struct uc8175_config *config = dev->config;
   int err;
+
+  err = _window(dev, 0, config->width - 1, 0, config->height - 1, false);
+  if (err < 0) {
+    return err;
+  }
+
+  return 0;
+}
+/**
+ *  force  true:  update all pixels in window
+ *         false: update only OLD->NEW changed pixels in window (depdens on CDI setting)
+ *  invert whether or not to invert datat prolaity
+ */
+static int _refresh(const struct device *dev, bool force, bool invert) {
+  const struct uc8175_config *config = dev->config;
   // CDI bit5 DDX[1]
   //    0: update all pixel
   //    1: update only changed peixl
-  bool cdi_mask_required = (config->cdi & BIT(5)) && force;
+  bool update_mode_mask_required = force && (config->cdi & UC8175_CDI_MASK_UPDATE_MODE);
+  uint8_t cdi;
+  int err;
 
-  if (cdi_mask_required) {
-    err = _write_cmd_uint8_data(dev, UC8175_CMD_CDI, config->cdi & ~BIT(5));
+  if (update_mode_mask_required || invert) {
+    cdi = config->cdi;
+    if (update_mode_mask_required) {
+      cdi &= ~UC8175_CDI_MASK_UPDATE_MODE;
+    }
+
+    if (invert) {
+      cdi ^= UC8175_CDI_MASK_INVERT;
+    }
+
+    err = _write_cmd_uint8_data(dev, UC8175_CMD_CDI, cdi);
     if (err < 0) {
       return err;
     }
+    LOG_DBG("CDI is temporarily changed. 0x%02x -> 0x%02x", config->cdi, cdi);
   }
 
+  // display refresh
   err = _write_cmd(dev, UC8175_CMD_DRF);
   if (err < 0) {
     return err;
@@ -183,24 +241,29 @@ static int _update_display(const struct device *dev, bool force) {
   _busy_wait(dev);
 
   // restore CDI
-  if (cdi_mask_required) {
+  if (update_mode_mask_required || invert) {
     err = _write_cmd_uint8_data(dev, UC8175_CMD_CDI, config->cdi);
     if (err < 0) {
       return err;
     }
+    LOG_DBG("CDI is restiored. 0x%02x -> 0x%02x", cdi, config->cdi);
   }
 
   return 0;
 }
 
+static int _refresh_partial(const struct device *dev) { return _refresh(dev, false, false); }
+
+static int _refresh_full(const struct device *dev, bool invert) {
+  return _refresh(dev, true, invert);
+}
+
 static int _clear_frame_buffer(const struct device *dev) {
   const struct uc8175_config *config = dev->config;
-  uint8_t ptl[UC8175_PTL_REG_LENGTH] = {0, config->width - 1, 0, config->height - 1,
-                                        UC8175_PTL_PT_SCAN};
   size_t buf_len = config->width * config->height / UC8175_PIXELS_PER_BYTE;
   int err;
 
-  err = _write_cmd_block_data(dev, UC8175_CMD_PTL, ptl, sizeof(ptl));
+  err = _window_full(dev);
   if (err < 0) {
     return err;
   }
@@ -211,11 +274,6 @@ static int _clear_frame_buffer(const struct device *dev) {
   }
 
   err = _write_cmd_fill_data(dev, UC8175_CMD_DTM2, 0xff, buf_len);
-  if (err < 0) {
-    return err;
-  }
-
-  err = _update_display(dev, true);
   if (err < 0) {
     return err;
   }
@@ -354,10 +412,8 @@ static int uc8175_write(const struct device *dev, const uint16_t x, const uint16
                         const struct display_buffer_descriptor *desc, const void *buf) {
   const struct uc8175_config *config = dev->config;
   struct uc8175_data *data = dev->data;
-  int err;
   size_t buf_len = MIN(desc->buf_size, config->height * config->width / UC8175_PIXELS_PER_BYTE);
-  uint8_t ptl[UC8175_PTL_REG_LENGTH] = {x, x + desc->width - 1, y, y + desc->height - 1,
-                                        UC8175_PTL_PT_SCAN};
+  int err;
 
   /*
     TODO which is correct behavior
@@ -393,48 +449,45 @@ static int uc8175_write(const struct device *dev, const uint16_t x, const uint16
   }
 
   // NEW data
-  err = _write_cmd_block_data(dev, UC8175_CMD_PTL, ptl, sizeof(ptl));
+  err = _window_partial(dev, x, x + desc->width - 1, y, y + desc->height - 1);
   if (err < 0) {
     return err;
   }
-
   err = _write_cmd_block_data(dev, UC8175_CMD_DTM2, (void *)buf, buf_len);
   if (err < 0) {
     return err;
   }
 
-  if (!data->blanking_on) {
-    err = _update_display(dev, false);
-    if (err < 0) {
-      return err;
-    }
-  }
-
-  // OLD data
-  // CDI bit5 DDX[1]
-  //    0: update all pixel
-  //    1: update only changed peixl
-  if (config->cdi & BIT(5)) {
-    err = _write_cmd_block_data(dev, UC8175_CMD_PTL, ptl, sizeof(ptl));
-    if (err < 0) {
-      return err;
-    }
-
-    err = _write_cmd_block_data(dev, UC8175_CMD_DTM1, (void *)buf, buf_len);
-    if (err < 0) {
-      return err;
-    }
-  }
-
-  LOG_DBG("end");
-
-  // continue to sleep
   if (data->blanking_on) {
+    // continue to sleep
     err = _sleep(dev);
     if (err < 0) {
       return err;
     }
+  } else {
+    err = _refresh_partial(dev);
+    if (err < 0) {
+      return err;
+    }
+
+    // OLD data
+    // CDI bit5 DDX[1]
+    //   0: update all pixel
+    //   1: update only changed peixl
+    if (config->cdi & BIT(5)) {
+      // PTL setting is required after refresh
+      err = _window_partial(dev, x, x + desc->width - 1, y, y + desc->height - 1);
+      if (err < 0) {
+        return err;
+      }
+      err = _write_cmd_block_data(dev, UC8175_CMD_DTM1, (void *)buf, buf_len);
+      if (err < 0) {
+        return err;
+      }
+    }
   }
+
+  LOG_DBG("end");
 
   return 0;
 }
@@ -495,8 +548,6 @@ static int uc8175_blanking_on(const struct device *dev) {
 
   LOG_DBG("start");
 
-  uint8_t ptl[UC8175_PTL_REG_LENGTH] = {0, config->width - 1, 0, config->height - 1,
-                                        UC8175_PTL_PT_SCAN};
   /* avoid flooding calls */
   if (data->blanking_on) {
     return 0;
@@ -513,21 +564,17 @@ static int uc8175_blanking_on(const struct device *dev) {
       err =
         _write_cmd_block_data(dev, UC8175_CMD_LUTW, (void *)config->lutb, UC8175_LUT_REG_LENGTH);
       break;
-    case BLANKING_INVERT:
-      // toggle CDI bit4 DDX[0] and VBD[1:0]
-      err = _write_cmd_uint8_data(dev, UC8175_CMD_CDI, config->cdi ^ UC8175_CDI_REVERSE_MASK);
-      break;
   }
   if (err < 0) {
     return err;
   }
 
-  err = _write_cmd_block_data(dev, UC8175_CMD_PTL, ptl, sizeof(ptl));
+  err = _window_full(dev);
   if (err < 0) {
     return err;
   }
 
-  err = _update_display(dev, true);
+  err = _refresh_full(dev, config->blanking == BLANKING_INVERT);
   if (err < 0) {
     return err;
   }
@@ -536,6 +583,7 @@ static int uc8175_blanking_on(const struct device *dev) {
   if (err < 0) {
     return err;
   }
+  /* TODO dose frame-buffer survive after DSLP and _reset?  */
 
   data->blanking_on = true;
 
@@ -556,14 +604,10 @@ static int uc8175_blanking_on(const struct device *dev) {
  * @retval 0 on success else negative errno code.
  */
 static int uc8175_blanking_off(const struct device *dev) {
-  const struct uc8175_config *config = dev->config;
   struct uc8175_data *data = dev->data;
   int err = 0;
 
   LOG_DBG("start");
-
-  uint8_t ptl[UC8175_PTL_REG_LENGTH] = {0, config->width - 1, 0, config->height - 1,
-                                        UC8175_PTL_PT_SCAN};
 
   /* avoid flooding calls */
   if (!data->blanking_on) {
@@ -573,12 +617,12 @@ static int uc8175_blanking_off(const struct device *dev) {
   // need iniitialize after DSLP deep sleep mode
   err = _wake(dev);
 
-  err = _write_cmd_block_data(dev, UC8175_CMD_PTL, ptl, sizeof(ptl));
+  err = _window_full(dev);
   if (err < 0) {
     return err;
   }
 
-  err = _update_display(dev, true);
+  err = _refresh_full(dev, false);
   if (err < 0) {
     return err;
   }
@@ -723,6 +767,11 @@ static int uc8175_init(const struct device *dev) {
   err = _clear_frame_buffer(dev);
   if (err < 0) {
     LOG_ERR("Could not clear frame buffer. err: %d", err);
+    return err;
+  }
+
+  err = _refresh_full(dev, false);
+  if (err < 0) {
     return err;
   }
 

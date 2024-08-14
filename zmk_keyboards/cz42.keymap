@@ -153,9 +153,31 @@
   /*
    *  Blanking mode
    *   0: keep content
-   *   1: white
-   *   2: black
-   *   3: invert
+   *   1: white (backgroun color)
+   *   2: black (foreground color)
+   *   3: invert (Default. reduce ghosting)
    */
   blanking = <3>;
+
+  // for debugging
+  // CDI = 0x92 0b10010010
+  // [7:6] VBD  10b border color is same as background
+  // [5] DDX[1]  0  update all pixel
+  // [4] DDX[0]  1  black on white
+  // [2:0] CDI   2  5hsync
+  // cdi = <0x92>;
+  // ---------------------------------------------------
+  // CDI = 0x82 0b10000010
+  // [7:6] VBD  10b border color is same as background
+  // [5] DDX[1]  0  update all pixel
+  // [4] DDX[0]  0  white on black
+  // [2:0] CDI   2  5hsync
+  // cdi = <0x82>;
+  // ---------------------------------------------------
+  // CDI = 0xb2 0b10110010 (Default)
+  // [7:6] VBD  10b border color is same as background
+  // [5] DDX[1]  1  update only OLD->NEW changed pixel
+  // [4] DDX[0]  1  black on white
+  // [2:0] CDI   2  5hsync
+  cdi = <0xb2>;
 };
