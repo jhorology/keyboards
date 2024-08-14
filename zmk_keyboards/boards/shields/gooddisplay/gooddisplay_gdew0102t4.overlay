@@ -30,7 +30,7 @@
      * pwr = [03 00 2b 2b];
      * cpset = <0x3f>;
      * luptopt = [00 00];
-     * pll = <11>;         // 30Hz = 2.5Hz + 2.5Hz * 18, Higer value to reduce flicker
+     * pll = <11>;         // 30Hz = 2.5Hz + 2.5Hz * 11, Higer value to reduce flicker
      * cdi = <0xb2>;
      * vdcs = <18>;        // -1.0v = -0.1v - 0.05v * 18, Higer value to increase contrast
      * pws = <0x33>;

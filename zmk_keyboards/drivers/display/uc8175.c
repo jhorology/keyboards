@@ -246,7 +246,7 @@ static int _refresh(const struct device *dev, bool force, bool invert) {
     if (err < 0) {
       return err;
     }
-    LOG_DBG("CDI is restiored. 0x%02x -> 0x%02x", cdi, config->cdi);
+    LOG_DBG("CDI is restored. 0x%02x -> 0x%02x", cdi, config->cdi);
   }
 
   return 0;
@@ -386,7 +386,6 @@ static int _wake(const struct device *dev) {
   k_msleep(UC8175_PON_DELAY);
   _busy_wait(dev);
 
-  // only support partial mode
   err = _write_cmd(dev, UC8175_CMD_PIN);
   if (err < 0) {
     return err;
@@ -474,7 +473,7 @@ static int uc8175_write(const struct device *dev, const uint16_t x, const uint16
     // CDI bit5 DDX[1]
     //   0: update all pixel
     //   1: update only changed peixl
-    if (config->cdi & BIT(5)) {
+    if (config->cdi & UC8175_CDI_MASK_UPDATE_MODE) {
       // PTL setting is required after refresh
       err = _window_partial(dev, x, x + desc->width - 1, y, y + desc->height - 1);
       if (err < 0) {

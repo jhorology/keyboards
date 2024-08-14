@@ -508,7 +508,9 @@ build_with_docker() {
     opts=($opts "-DCONFIG_ZMK_USB_LOGGING=y" "-DCONFIG_LOG_THREAD_ID_PREFIX=y")
     if [[ $log_options != none ]]; then
       echo $log_options
-      exit 0
+      for log_opt in ${(@s/,/)log_options}; do
+        opts=($opts "-D$log_opt=y")
+      done
     fi
   fi
   (( $#with_shell )) && opts=($opts "-DCONFIG_SHELL=y")
