@@ -35,6 +35,20 @@ properties:
       If connected directly the MCU pin should be configured
       as active low.
 
+  power-saving:
+    type: int
+    default: 3
+    description: |
+      Power-saving Mode
+
+      0: none
+      1: POF (power-off) on display_blanking_on()
+      2: POF (power-off) on display_blanking_on() and display_write()
+      3: POF (power-off) on display_blanking_on() and display_write()
+         DSLP (deep sleep) on display_blanking_on()
+      3: POF (power-off) on display_blanking_on() and display_write()
+         DSLP (deep sleep) on display_blanking_on() and display_write()
+
   blanking:
     type: int
     default: 3
@@ -151,7 +165,7 @@ properties:
 
   cdi:
     type: int
-    default: 0xb2
+    default: 0x92
     description: |
       VCOM and data interval value
 
