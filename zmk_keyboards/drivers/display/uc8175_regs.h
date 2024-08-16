@@ -57,6 +57,9 @@
 #define UC8175_PTL_REG_LENGTH 5U
 #define UC8175_PTL_PT_SCAN BIT(0)
 
+#define UC8175_AUTO_POF 0xa5
+#define UC8175_AUTO_DSLP 0xa7
+
 /* Time constants in ms */
 #define UC8175_RESET_DELAY 10U
 #define UC8175_PON_DELAY 100U
