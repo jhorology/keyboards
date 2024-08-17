@@ -4,11 +4,8 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-
-#include <sys/_stdint.h>
 #define DT_DRV_COMPAT ultrachip_uc8175
 
-#include <string.h>
 #include <zephyr/device.h>
 #include <zephyr/init.h>
 #include <zephyr/drivers/display.h>
@@ -21,45 +18,37 @@
 
 LOG_MODULE_REGISTER(uc8175, CONFIG_DISPLAY_LOG_LEVEL);
 
-/**
- * UC8175 compatible EPD controller driver.
+/*
+ * CDI bit5 DDX[1]
+ *   0: update all pixel
+ *   1: update only changed peixl
  */
-
-#define UC8175_PIXELS_PER_BYTE 8U
-#define UC8175_CDI_MASK_INVERT BIT(4)
-#define UC8175_CDI_MASK_REFRESH_MODE BIT(5)
-#define BLANKING_KEEP_CONTENT 0U
-#define BLANKING_WHITE 1U
-#define BLANKING_BLACK 2U
-#define BLANKING_INVERT 3U
-
-// CDI bit5 DDX[1]
-//   0: update all pixel
-//   1: update only changed peixl
 #define IS_XOR_REFRESH(config) ((config->cdi & UC8175_CDI_MASK_REFRESH_MODE) != 0)
 
-// clang-format off
 /*
-  power_saving mode
-
-   0: none
-   1: POF (power-off) on blanking_on()
-   2: POF (power-off) on blanking_on() and display_write()
-   3: POF (power-off) on blanking_on() and display_write()
-      DSLP (deep sleep) on blanking_on()
-   4: POF (power-off) on blanking_on() and write()
-      DSLP (deep sleep) on blanking_on() and write()
-
-       init       blanking_off            blanking_on             write
-    0  wake,PON   DRF                     DRF                     DRF
-    1  wake       PON,DRF                 DRF,POF                 DRF
-    2  wake       PON,DRF,POF             PON,DRF,POF             PON,DRF,POF
-    3  ___        wake,PON,DRF,POF        PON,DRF,POF,DSLP        PON,DRF,POF
-    4  ___        wake,PON,DRF,POF,DSLP   wake,PON,DRF,POF,DSLP   wake,PON,DRF,POF,DSLP
-
-      default 3
+ *  power_saving mode
+ *
+ *   0: none
+ *   1: POF (power-off) on blanking_on()
+ *   2: POF (power-off) on blanking_on() and write()
+ *   3: POF (power-off) on blanking_on() and write()
+ *      DSLP (deep sleep) on blanking_on()
+ *   4: POF (power-off) on blanking_on() and write()
+ *      DSLP (deep sleep) on blanking_on() and write()
+ *
+ *       init       blanking_off            blanking_on             write
+ *    0  wake,PON   DRF                     DRF                     DRF
+ *    1  wake       PON,DRF                 DRF,POF                 DRF
+ *    2  wake       PON,DRF,POF             PON,DRF,POF             PON,DRF,POF
+ *    3  ___        wake,PON,DRF,POF        PON,DRF,POF,DSLP        PON,DRF,POF
+ *    4  ___        wake,PON,DRF,POF,DSLP   wake,PON,DRF,POF,DSLP   wake,PON,DRF,POF,DSLP
+ *
+ *     default 3
+ *
+ * TODO add following mode
+ *       init       blanking_off            blanking_on             write
+ *    x  wake,PON   _wake,PON,DRF           DRF,POF,DSLP            DRF
  */
-// clang-format on
 enum {
   POWER_SAVING_NONE,
   POWER_SAVING_POF_ON_BLANKING,
@@ -67,6 +56,15 @@ enum {
   POWER_SAVING_DSLP_ON_BLANKING,
   POWER_SAVING_DSLP_ON_WRITE,
 };
+
+/*
+ * Blanking mode
+ *   0 Keep display content.
+ *   1 Fill white(background color)
+ *   2 Fill black(foreground color)
+ *   3 Invert display content
+ */
+enum { BLANKING_KEEP_CONTENT, BLANKING_WHITE, BLANKING_BLACK, BLANKING_INVERT };
 
 struct uc8175_config {
   // include: [spi-device.yaml]
@@ -92,14 +90,15 @@ struct uc8175_config {
   uint8_t tcon;
   uint8_t vdcs;
   uint8_t pws;
-  uint8_t lutw[UC8175_LUT_REG_LENGTH];
-  uint8_t lutb[UC8175_LUT_REG_LENGTH];
+  uint8_t lutw[UC8175_LUTW_REG_LENGTH];
+  uint8_t lutb[UC8175_LUTB_REG_LENGTH];
 };
 
 struct uc8175_data {
   bool blanking_on;
   bool sleep;
   bool initialized;
+  uint8_t psr_res;
 };
 
 static inline void _busy_wait(const struct device *dev) {
@@ -260,7 +259,7 @@ static int _set_cdi_lut(const struct device *dev, bool restore, bool force, bool
         lutw = lutb;
         break;
       case BLANKING_INVERT:
-        cdi ^= UC8175_CDI_MASK_INVERT;
+        cdi ^= UC8175_CDI_MASK_DATA_POLARITY;
         break;
     }
   }
@@ -274,7 +273,7 @@ static int _set_cdi_lut(const struct device *dev, bool restore, bool force, bool
 
   if (force || config->lutw != lutw) {
     err = _write_cmd_block_data(dev, UC8175_CMD_LUTW, restore ? (void *)config->lutw : lutw,
-                                UC8175_LUT_REG_LENGTH);
+                                UC8175_LUTW_REG_LENGTH);
     if (err < 0) {
       return err;
     }
@@ -282,7 +281,7 @@ static int _set_cdi_lut(const struct device *dev, bool restore, bool force, bool
 
   if (force || config->lutb != lutb) {
     err = _write_cmd_block_data(dev, UC8175_CMD_LUTB, restore ? (void *)config->lutb : lutb,
-                                UC8175_LUT_REG_LENGTH);
+                                UC8175_LUTB_REG_LENGTH);
     if (err < 0) {
       return err;
     }
@@ -360,7 +359,6 @@ static int _refresh_full(const struct device *dev, bool blanking) {
         if (err < 0) {
           return err;
         }
-        _busy_wait(dev);
       }
       break;
 
@@ -418,7 +416,6 @@ static int _refresh_full(const struct device *dev, bool blanking) {
       if (err < 0) {
         return err;
       }
-      _busy_wait(dev);
 
       data->sleep = true;
       break;
@@ -443,7 +440,6 @@ static int _refresh_partial(const struct device *dev, bool post_process) {
       if (err < 0) {
         return err;
       }
-      _busy_wait(dev);
       break;
 
     case POWER_SAVING_POF_ON_WRITE:
@@ -453,8 +449,6 @@ static int _refresh_partial(const struct device *dev, bool post_process) {
       if (err < 0) {
         return err;
       }
-      _busy_wait(dev);
-
       break;
 
     case POWER_SAVING_DSLP_ON_WRITE:
@@ -469,7 +463,6 @@ static int _refresh_partial(const struct device *dev, bool post_process) {
       if (err < 0) {
         return err;
       }
-      _busy_wait(dev);
 
       if (!post_process) {
         data->sleep = true;
@@ -663,6 +656,8 @@ static int uc8175_write(const struct device *dev, const uint16_t x, const uint16
     if (err < 0) {
       return err;
     }
+  } else {
+    _busy_wait(dev);
   }
 
   // NEW data
@@ -782,6 +777,7 @@ static int uc8175_blanking_on(const struct device *dev) {
   if (data->blanking_on) {
     return 0;
   }
+  _busy_wait(dev);
 
   if (data->sleep) {
     err = _wake(dev);
@@ -831,6 +827,8 @@ static int uc8175_blanking_off(const struct device *dev) {
     if (err < 0) {
       return err;
     }
+  } else {
+    _busy_wait(dev);
   }
 
   err = _window_full(dev);
@@ -936,6 +934,27 @@ static int uc8175_init(const struct device *dev) {
   int err;
 
   LOG_DBG("start");
+
+  uint8_t res;
+  if (config->width == 80 && config->height == 160) {
+    res = 0;
+  } else if (config->width == 80 && config->height == 128) {
+    res = 1;
+  } else if (config->width == 64 && config->height == 128) {
+    res = 2;
+  } else if (config->width == 64 && config->height == 96) {
+    res = 3;
+  } else {
+    LOG_ERR("Unsupported panel resolution");
+    return -ENOTSUP;
+  }
+
+  if ((config->psr >> 6) != res) {
+    LOG_ERR("The psr atribute is conflict with resolution");
+    return -ENOTSUP;
+  }
+
+  __ASSERT(resn > == 0, "The psr atribute is conflict with resolution");
 
   if (!spi_is_ready_dt(&config->spi)) {
     LOG_ERR("SPI device not ready for UC8175");

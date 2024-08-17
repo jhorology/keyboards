@@ -155,8 +155,8 @@
    *
    *   0: none
    *   1: POF (power-off) on blanking_on()
-   *   2: POF (power-off) on blanking_on() and display_write()
-   *   3: POF (power-off) on blanking_on() and display_write()
+   *   2: POF (power-off) on blanking_on() and write()
+   *   3: POF (power-off) on blanking_on() and write()
    *      DSLP (deep sleep) on blanking_on()
    *   4: POF (power-off) on blanking_on() and write()
    *      DSLP (deep sleep) on blanking_on() and write()
