@@ -1040,14 +1040,6 @@ static int uc8175_init(const struct device *dev) {
       break;
 
     case POWER_SAVING_DSLP_ON_BLANKING:
-      // decrease workload for initial blanking_off()
-      data->blanking_on = true;
-      err = uc8175_blanking_off(dev);
-      if (err) {
-        return err;
-      }
-      break;
-
     case POWER_SAVING_DSLP_ON_WRITE:
       data->blanking_on = true;
       data->sleep = true;
