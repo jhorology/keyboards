@@ -177,7 +177,14 @@
   // [5] DDX[1]  0  update all pixel
   // [4] DDX[0]  1  black on white
   // [2:0] CDI   2  5hsync
-  cdi = <0x92>;
+  // cdi = <0x92>;
+  // for debugging
+  // CDI = 0x92 0b01010010
+  // [7:6] VBD  01b border color is same as forground
+  // [5] DDX[1]  0  update all pixel
+  // [4] DDX[0]  1  black on white
+  // [2:0] CDI   2  5hsync
+  cdi = <0x52>;
   // ---------------------------------------------------
   // CDI = 0x82 0b10000010
   // [7:6] VBD  10b border color is same as background
