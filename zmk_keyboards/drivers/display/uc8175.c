@@ -24,6 +24,7 @@ LOG_MODULE_REGISTER(uc8175, CONFIG_DISPLAY_LOG_LEVEL);
  *   1: update only changed peixl
  */
 #define IS_XOR_REFRESH(config) ((config->cdi & UC8175_CDI_MASK_REFRESH_MODE) != 0)
+#define IS_BORDERD(config) ((config->cdi & UC8175_CDI_MASK_VBD) == 0x40)
 
 /*
  *  power_saving mode
@@ -263,6 +264,10 @@ static int _override_cdi_lut(const struct device *dev, bool force, bool blanking
         break;
       case BLANKING_INVERT:
         cdi ^= UC8175_CDI_MASK_DATA_POLARITY;
+        // prevent inverting border
+        if (IS_BORDERD(config)) {
+          cdi &= ~UC8175_CDI_MASK_VBD;
+        }
         break;
     }
   }
