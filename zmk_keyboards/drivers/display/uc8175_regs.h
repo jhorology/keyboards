@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2020 PHYTEC Messtechnik GmbH, Peter Johanson
+ * Copyright (c) 2024 The ZMK Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -57,6 +58,7 @@
 #define UC8175_PTL_REG_LENGTH 5U
 #define UC8175_PTL_PT_SCAN BIT(0)
 
+#define UC8175_DSLP_CODE 0xa5
 #define UC8175_AUTO_POF 0xa5
 #define UC8175_AUTO_DSLP 0xa7
 

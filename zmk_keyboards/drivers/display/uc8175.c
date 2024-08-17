@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2020 PHYTEC Messtechnik GmbHH, Peter Johanson
+ * Copyright (c) 2024 The ZMK Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -25,7 +26,6 @@ LOG_MODULE_REGISTER(uc8175, CONFIG_DISPLAY_LOG_LEVEL);
  */
 
 #define UC8175_PIXELS_PER_BYTE 8U
-// #define UC8175_CDI_REVERSE_MASK (BIT(7) + BIT(6) + BIT(4))
 #define UC8175_CDI_MASK_INVERT BIT(4)
 #define UC8175_CDI_MASK_REFRESH_MODE BIT(5)
 #define BLANKING_KEEP_CONTENT 0U
@@ -123,8 +123,8 @@ static inline void _reset(const struct device *dev) {
   _busy_wait(dev);
 }
 
-static inline int _write_cmd_data(const struct device *dev, uint8_t cmd, void *data, size_t len,
-                                  uint8_t fill_data, size_t fill_len) {
+static int _write_cmd_data(const struct device *dev, uint8_t cmd, void *data, size_t len,
+                           uint8_t fill_data, size_t fill_len) {
   const struct uc8175_config *config = dev->config;
   struct spi_buf buf = {.buf = &cmd, .len = sizeof(cmd)};
   struct spi_buf_set buf_set = {.buffers = &buf, .count = 1};
@@ -208,8 +208,8 @@ static inline int _write_cmd_fill_data(const struct device *dev, uint8_t cmd, ui
  *  ptl_scan   true:  Gates scan only inside of the partial window
  *             false: Gates scan both inside and outside of the partial window.
  */
-static int _window(const struct device *dev, uint16_t x0, uint16_t x1, uint16_t y0, uint16_t y1,
-                   bool ptl_scan) {
+static inline int _window(const struct device *dev, uint16_t x0, uint16_t x1, uint16_t y0,
+                          uint16_t y1, bool ptl_scan) {
   uint8_t ptl[UC8175_PTL_REG_LENGTH] = {x0, x1, y0, y1, ptl_scan ? 0 : 1};
   int err;
   // set partial window
@@ -221,8 +221,8 @@ static int _window(const struct device *dev, uint16_t x0, uint16_t x1, uint16_t 
   return 0;
 }
 
-static int _window_partial(const struct device *dev, uint16_t x0, uint16_t x1, uint16_t y0,
-                           uint16_t y1) {
+static inline int _window_partial(const struct device *dev, uint16_t x0, uint16_t x1, uint16_t y0,
+                                  uint16_t y1) {
   /* TODO why ? */
   // return _window(dev, x0, x1, y0, y1, true);
   return _window(dev, x0, x1, y0, y1, false);
@@ -254,10 +254,10 @@ static int _set_cdi_lut(const struct device *dev, bool restore, bool force, bool
   if (blanking) {
     switch (config->blanking) {
       case BLANKING_WHITE:
-        lutw = lutb;
+        lutb = lutw;
         break;
       case BLANKING_BLACK:
-        lutb = lutw;
+        lutw = lutb;
         break;
       case BLANKING_INVERT:
         cdi ^= UC8175_CDI_MASK_INVERT;
@@ -274,7 +274,7 @@ static int _set_cdi_lut(const struct device *dev, bool restore, bool force, bool
 
   if (force || config->lutw != lutw) {
     err = _write_cmd_block_data(dev, UC8175_CMD_LUTW, restore ? (void *)config->lutw : lutw,
-                                UC8175_LUTOPT_REG_LENGTH);
+                                UC8175_LUT_REG_LENGTH);
     if (err < 0) {
       return err;
     }
@@ -282,7 +282,7 @@ static int _set_cdi_lut(const struct device *dev, bool restore, bool force, bool
 
   if (force || config->lutb != lutb) {
     err = _write_cmd_block_data(dev, UC8175_CMD_LUTB, restore ? (void *)config->lutb : lutb,
-                                UC8175_LUTOPT_REG_LENGTH);
+                                UC8175_LUT_REG_LENGTH);
     if (err < 0) {
       return err;
     }
@@ -480,7 +480,7 @@ static int _refresh_partial(const struct device *dev, bool post_process) {
   return 0;
 }
 
-static int _clear_frame_buffer(const struct device *dev) {
+static inline int _clear_frame_buffer(const struct device *dev) {
   const struct uc8175_config *config = dev->config;
   size_t buf_len = config->width * config->height / UC8175_PIXELS_PER_BYTE;
   int err;
@@ -508,6 +508,8 @@ static int _wake(const struct device *dev) {
   struct uc8175_data *data = dev->data;
   uint8_t tmp[UC8175_TRES_REG_LENGTH];
   int err;
+
+  LOG_DBG("start");
 
   _reset(dev);
 
@@ -584,6 +586,9 @@ static int _wake(const struct device *dev) {
     data->initialized = true;
   }
 
+  data->sleep = false;
+
+  LOG_DBG("end");
   return 0;
 }
 
@@ -609,8 +614,7 @@ static inline int _sleep(const struct device *dev) {
   struct uc8175_data *data = dev->data;
   int err;
 
-  // deep sleep A5 = check code
-  err = _write_cmd_uint8_data(dev, UC8175_CMD_DSLP, UC8175_AUTO_POF);
+  err = _write_cmd_uint8_data(dev, UC8175_CMD_DSLP, UC8175_DSLP_CODE);
   if (err) {
     return err;
   }
@@ -640,26 +644,25 @@ static int uc8175_write(const struct device *dev, const uint16_t x, const uint16
 
   int err;
 
-  if (data->sleep) {
-    err = _wake(dev);
-    if (err < 0) {
-      return err;
-    }
-  }
-
-  LOG_DBG("start x %u, y %u, height %u, width %u, buf_size %u, pitch %u", x, y, desc->height,
-          desc->width, desc->buf_size, desc->pitch);
+  LOG_DBG(
+    "start x %u, y %u, height %u, width %u, buf_size %u, buf_len %u, pitch %u, PS %u, sleep %u, "
+    "blanking %u, ",
+    x, y, desc->height, desc->width, desc->buf_size, buf_len, desc->pitch, config->power_saving,
+    data->sleep, data->blanking_on);
 
   __ASSERT(desc->width <= desc->pitch, "Pitch is smaller then width");
   __ASSERT(buf != NULL, "Buffer is not available");
   __ASSERT(buf_len != 0U, "Buffer of length zero");
   __ASSERT(!(desc->width % UC8175_PIXELS_PER_BYTE), "Buffer width not multiple of %d",
            UC8175_PIXELS_PER_BYTE);
+  __ASSERT((y + desc->height) <= config->height && (x + desc->width) <= config->width,
+           "Position out of bounds");
 
-  LOG_DBG("buf_len %d", buf_len);
-  if (((y + desc->height - 1) >= config->height) || ((x + desc->width - 1) >= config->width)) {
-    LOG_ERR("Position out of bounds");
-    return -EINVAL;
+  if (data->sleep) {
+    err = _wake(dev);
+    if (err < 0) {
+      return err;
+    }
   }
 
   // NEW data
@@ -768,10 +771,12 @@ static void *uc8175_get_framebuffer(const struct device *dev) {
  * @retval 0 on success else negative errno code.
  */
 static int uc8175_blanking_on(const struct device *dev) {
+  const struct uc8175_config *config = dev->config;
   struct uc8175_data *data = dev->data;
   int err;
 
-  LOG_DBG("start");
+  LOG_DBG("start PS %u, sleep %u, blanking %u", config->power_saving, data->sleep,
+          data->blanking_on);
 
   /* avoid flooding calls */
   if (data->blanking_on) {
@@ -814,10 +819,12 @@ static int uc8175_blanking_on(const struct device *dev) {
  * @retval 0 on success else negative errno code.
  */
 static int uc8175_blanking_off(const struct device *dev) {
+  const struct uc8175_config *config = dev->config;
   struct uc8175_data *data = dev->data;
   int err;
 
-  LOG_DBG("start");
+  LOG_DBG("start PS %u, sleep %u, blanking %u", config->power_saving, data->sleep,
+          data->blanking_on);
 
   if (data->sleep) {
     err = _wake(dev);
@@ -977,6 +984,8 @@ static int uc8175_init(const struct device *dev) {
       if (err) {
         return err;
       }
+      break;
+
     case POWER_SAVING_POF_ON_BLANKING:
     case POWER_SAVING_POF_ON_WRITE:
       err = _wake(dev);
@@ -987,13 +996,15 @@ static int uc8175_init(const struct device *dev) {
       if (err) {
         return err;
       }
+      break;
+
     case POWER_SAVING_DSLP_ON_BLANKING:
     case POWER_SAVING_DSLP_ON_WRITE:
       data->sleep = true;
       break;
   }
 
-  LOG_DBG("end");
+  LOG_DBG("end PS %u, sleep %u, blanking %u", config->power_saving, data->sleep, data->blanking_on);
 
   return 0;
 }
