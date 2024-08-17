@@ -98,7 +98,9 @@ struct uc8175_data {
   bool blanking_on;
   bool sleep;
   bool initialized;
-  uint8_t psr_res;
+  uint8_t cur_cdi;
+  uint8_t *cur_lutw;
+  uint8_t *cur_lutb;
 };
 
 static inline void _busy_wait(const struct device *dev) {
@@ -239,8 +241,9 @@ static int _window_full(const struct device *dev) {
   return 0;
 }
 
-static int _set_cdi_lut(const struct device *dev, bool restore, bool force, bool blanking) {
+static int _override_cdi_lut(const struct device *dev, bool force, bool blanking) {
   const struct uc8175_config *config = dev->config;
+  struct uc8175_data *data = dev->data;
   uint8_t cdi = config->cdi;
   void *lutw = (void *)config->lutw;
   void *lutb = (void *)config->lutb;
@@ -265,37 +268,68 @@ static int _set_cdi_lut(const struct device *dev, bool restore, bool force, bool
   }
 
   if (force || cdi != config->cdi) {
-    err = _write_cmd_uint8_data(dev, UC8175_CMD_CDI, restore ? config->cdi : cdi);
+    err = _write_cmd_uint8_data(dev, UC8175_CMD_CDI, cdi);
     if (err < 0) {
       return err;
     }
+    data->cur_cdi = cdi;
+    LOG_DBG("CDI is temporaily changed. %u -> %u", config->cdi, cdi);
   }
 
   if (force || config->lutw != lutw) {
-    err = _write_cmd_block_data(dev, UC8175_CMD_LUTW, restore ? (void *)config->lutw : lutw,
-                                UC8175_LUTW_REG_LENGTH);
+    err = _write_cmd_block_data(dev, UC8175_CMD_LUTW, lutw, UC8175_LUTW_REG_LENGTH);
     if (err < 0) {
       return err;
     }
+    data->cur_lutw = lutw;
+    LOG_DBG("LUTW is temporaily changed to Black");
   }
 
   if (force || config->lutb != lutb) {
-    err = _write_cmd_block_data(dev, UC8175_CMD_LUTB, restore ? (void *)config->lutb : lutb,
-                                UC8175_LUTB_REG_LENGTH);
+    err = _write_cmd_block_data(dev, UC8175_CMD_LUTB, lutb, UC8175_LUTB_REG_LENGTH);
     if (err < 0) {
       return err;
     }
+    data->cur_lutb = lutb;
+    LOG_DBG("LUTB is temporaily changed to White");
   }
 
   return 0;
 }
 
-static inline int _override_cdi_lut(const struct device *dev, bool force, bool blanking) {
-  return _set_cdi_lut(dev, false, force, blanking);
-}
+static int _restore_cdi_lut(const struct device *dev, bool force) {
+  const struct uc8175_config *config = dev->config;
+  struct uc8175_data *data = dev->data;
+  int err;
 
-static inline int _restore_cdi_lut(const struct device *dev, bool force, bool blanking) {
-  return _set_cdi_lut(dev, true, force, blanking);
+  if (force || data->cur_cdi != config->cdi) {
+    err = _write_cmd_uint8_data(dev, UC8175_CMD_CDI, config->cdi);
+    if (err < 0) {
+      return err;
+    }
+    LOG_DBG("CDI is restiored %u -> %u", data->cur_cdi, config->cdi);
+    data->cur_cdi = config->cdi;
+  }
+
+  if (force || data->cur_lutw != config->lutw) {
+    err = _write_cmd_block_data(dev, UC8175_CMD_LUTW, (void *)config->lutw, UC8175_LUTW_REG_LENGTH);
+    data->cur_lutw = (uint8_t *)config->lutw;
+    if (err < 0) {
+      return err;
+    }
+    LOG_DBG("LUTW is restored");
+  }
+
+  if (force || data->cur_lutb != config->lutb) {
+    err = _write_cmd_block_data(dev, UC8175_CMD_LUTB, (void *)config->lutb, UC8175_LUTB_REG_LENGTH);
+    data->cur_lutb = (uint8_t *)config->lutb;
+    if (err < 0) {
+      return err;
+    }
+    LOG_DBG("LUTB is restored");
+  }
+
+  return 0;
 }
 
 /**
@@ -316,12 +350,6 @@ static int _refresh_full(const struct device *dev, bool blanking) {
       }
 
       err = _write_cmd(dev, UC8175_CMD_DRF);
-      if (err < 0) {
-        return err;
-      }
-      _busy_wait(dev);
-
-      err = _restore_cdi_lut(dev, false, blanking);
       if (err < 0) {
         return err;
       }
@@ -348,11 +376,6 @@ static int _refresh_full(const struct device *dev, bool blanking) {
       }
       _busy_wait(dev);
 
-      err = _restore_cdi_lut(dev, false, blanking);
-      if (err < 0) {
-        return err;
-      }
-
       // blanking_on()
       if (blanking) {
         err = _write_cmd(dev, UC8175_CMD_POF);
@@ -373,15 +396,10 @@ static int _refresh_full(const struct device *dev, bool blanking) {
       if (err < 0) {
         return err;
       }
-      _busy_wait(dev);
-
-      err = _restore_cdi_lut(dev, false, blanking);
-      if (err < 0) {
-        return err;
-      }
       break;
 
     case POWER_SAVING_DSLP_ON_BLANKING:
+      // CDI / LUT values are not writed in _wake()
       err = _override_cdi_lut(dev, true, blanking);
       if (err < 0) {
         return err;
@@ -392,21 +410,13 @@ static int _refresh_full(const struct device *dev, bool blanking) {
       if (err < 0) {
         return err;
       }
-      _busy_wait(dev);
       if (blanking) {
         data->sleep = true;
-      }
-
-      // blanking_off()
-      if (!blanking) {
-        err = _restore_cdi_lut(dev, false, true);
-        if (err < 0) {
-          return err;
-        }
       }
       break;
 
     case POWER_SAVING_DSLP_ON_WRITE:
+      // CDI / LUT values are not writed in _wake()
       err = _override_cdi_lut(dev, true, blanking);
       if (err < 0) {
         return err;
@@ -435,6 +445,10 @@ static int _refresh_partial(const struct device *dev, bool post_process) {
   switch (config->power_saving) {
     case POWER_SAVING_NONE:
     case POWER_SAVING_POF_ON_BLANKING:
+      err = _restore_cdi_lut(dev, false);
+      if (err < 0) {
+        return err;
+      }
 
       err = _write_cmd(dev, UC8175_CMD_DRF);
       if (err < 0) {
@@ -444,6 +458,11 @@ static int _refresh_partial(const struct device *dev, bool post_process) {
 
     case POWER_SAVING_POF_ON_WRITE:
     case POWER_SAVING_DSLP_ON_BLANKING:
+      err = _restore_cdi_lut(dev, false);
+      if (err < 0) {
+        return err;
+      }
+
       // 0xa5 = PON -> DRF -> POF
       err = _write_cmd_uint8_data(dev, UC8175_CMD_AUTO, UC8175_AUTO_POF);
       if (err < 0) {
@@ -453,7 +472,7 @@ static int _refresh_partial(const struct device *dev, bool post_process) {
 
     case POWER_SAVING_DSLP_ON_WRITE:
       // CDI / LUT values are not writed in _wake()
-      err = _restore_cdi_lut(dev, true, false);
+      err = _restore_cdi_lut(dev, true);
       if (err < 0) {
         return err;
       }
@@ -561,9 +580,8 @@ static int _wake(const struct device *dev) {
 
   if (config->power_saving == POWER_SAVING_NONE ||
       config->power_saving == POWER_SAVING_POF_ON_BLANKING ||
-      config->power_saving == POWER_SAVING_POF_ON_WRITE ||
-      config->power_saving == POWER_SAVING_DSLP_ON_BLANKING) {
-    err = _restore_cdi_lut(dev, true, false);
+      config->power_saving == POWER_SAVING_POF_ON_WRITE) {
+    err = _restore_cdi_lut(dev, true);
     if (err < 0) {
       return err;
     }
