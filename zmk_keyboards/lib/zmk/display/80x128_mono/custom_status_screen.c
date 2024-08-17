@@ -17,7 +17,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 static struct zmk_widget_battery_status battery_status_widget;
 #endif
 
-#if IS_ENABLED(CONFIG_ZMK_WIDGET_OUTPUT_STATUS)
+#if IS_ENABLED(CONFIG_ZMK_WIDGET_OUTPUT_STATUS_80X128_MONO)
 static struct zmk_widget_output_status output_status_widget;
 #endif
 
@@ -67,7 +67,7 @@ lv_obj_t *zmk_display_status_screen() {
   y += 16 + MARGIN_BOTTOM;
 #endif
 
-#if IS_ENABLED(CONFIG_ZMK_WIDGET_OUTPUT_STATUS)
+#if IS_ENABLED(CONFIG_ZMK_WIDGET_OUTPUT_STATUS_80X128_MONO)
   create_label(screen, "OUT", LV_ALIGN_TOP_LEFT, MARGIN_LEFT, y + 2);
   zmk_widget_output_status_init(&output_status_widget, screen);
   lv_obj_align(zmk_widget_output_status_obj(&output_status_widget), LV_ALIGN_TOP_RIGHT,

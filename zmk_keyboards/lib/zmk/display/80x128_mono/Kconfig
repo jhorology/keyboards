@@ -6,6 +6,11 @@ config ZMK_WIDGET_BATTERY_STATUS_80X128_MONO
     depends on BT
     select LV_USE_LABEL
 
+config ZMK_WIDGET_OUTPUT_STATUS_80X128_MONO
+    bool "Widget for keyboard output status icons"
+    depends on BT && (!ZMK_SPLIT_BLE || ZMK_SPLIT_ROLE_CENTRAL)
+    select LV_USE_LABEL
+
 config ZMK_DISPLAY_STATUS_SCREEN_CUSTOM_80X128_MONO
     bool "Custom status screen form 80x128 mono display"
     select ZMK_DISPLAY
@@ -15,7 +20,7 @@ config ZMK_DISPLAY_STATUS_SCREEN_CUSTOM_80X128_MONO
     imply ZMK_WIDGET_LAYER_STATUS
     imply ZMK_WIDGET_BATTERY_STATUS_80X128_MONO
     imply ZMK_WIDGET_BATTERY_STATUS_SHOW_PERCENTAGE
-    imply ZMK_WIDGET_OUTPUT_STATUS
+    imply ZMK_WIDGET_OUTPUT_STATUS_80X128_MONO
     imply ZMK_WIDGET_PERIPHERAL_STATUS
     # TODO ZMK_WIDGET_WPM_STATUS causes flooding calls display_blanking_on()
     # imply ZMK_WIDGET_WPM_STATUS
@@ -28,6 +33,9 @@ endchoice
 
 config ZMK_WIDGET_BATTERY_STATUS
     depends on !ZMK_WIDGET_BATTERY_STATUS_80X128_MONO
+
+config ZMK_WIDGET_OUTPUT_STATUS
+    depends on !ZMK_WIDGET_OUTPUT_STATUS_80X128_MONO
 
 config ZMK_DISPLAY_DEDICATED_THREAD_STACK_SIZE
     default 4096

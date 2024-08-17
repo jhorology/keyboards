@@ -1,6 +1,8 @@
 if (CONFIG_ZMK_DISPLAY_STATUS_SCREEN_CUSTOM_80X128_MONO)
   target_sources(app PRIVATE custom_status_screen.c)
   target_sources_ifdef(CONFIG_ZMK_WIDGET_BATTERY_STATUS_80X128_MONO app PRIVATE custom_battery_status.c)
+  target_sources_ifdef(CONFIG_ZMK_WIDGET_OUTPUT_STATUS_80X128_MONO app PRIVATE custom_output_status.c)
+
   if ((NOT CONFIG_ZMK_SPLIT) OR CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
     target_sources(app PRIVATE zmklogo.c)
   endif()
