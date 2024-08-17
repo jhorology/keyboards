@@ -157,18 +157,20 @@ properties:
 
   pll:
     type: int
-    default: 11
+    default: 19
     description: |
       Clock frequency
 
         [5:0] clock frequency
-        2.5Hz + 2.5Hz * n (Default n=11 30Hz)
+          Range 0...39 (2.5Hz ... 100Hz)
+          2.5Hz + 2.5Hz * n (Default n=19 50Hz)
 
   cdi:
     type: int
     default: 0x92
     description: |
       VCOM and data interval value
+
 
         CDI(0x50) The interval of VCOM  and data output. When setting the vertical back porch, the total
         blanking will be kept (10 Hsync).
@@ -217,6 +219,7 @@ properties:
       VDCS (0x82) VCOM_DC value
 
         [5:0] VCOM_DC setting
+           Range 0...58 (-0.1v ... -3v)
           -0.1v - 0.05v * n (Default n=18 -1v)
 
   pws:

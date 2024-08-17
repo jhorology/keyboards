@@ -840,6 +840,10 @@ static int uc8175_blanking_off(const struct device *dev) {
   LOG_DBG("start PS %u, sleep %u, blanking %u", config->power_saving, data->sleep,
           data->blanking_on);
 
+  if (!data->blanking_on) {
+    return 0;
+  }
+
   if (data->sleep) {
     err = _wake(dev);
     if (err < 0) {
@@ -1036,7 +1040,16 @@ static int uc8175_init(const struct device *dev) {
       break;
 
     case POWER_SAVING_DSLP_ON_BLANKING:
+      // decrease workload for initial blanking_off()
+      data->blanking_on = true;
+      err = uc8175_blanking_off(dev);
+      if (err) {
+        return err;
+      }
+      break;
+
     case POWER_SAVING_DSLP_ON_WRITE:
+      data->blanking_on = true;
       data->sleep = true;
       break;
   }
