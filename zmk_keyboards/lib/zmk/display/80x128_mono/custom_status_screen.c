@@ -87,8 +87,8 @@ lv_obj_t *zmk_display_status_screen() {
 #if !IS_ENABLED(CONFIG_ZMK_SPLIT) || IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
   create_label(screen, "Powerd By", LV_ALIGN_BOTTOM_MID, 0, -40 - MARGIN_BOTTOM);
   lv_obj_t *zmk = lv_img_create(screen);
-  LV_IMG_DECLARE(zmklogo);
-  lv_img_set_src(zmk, &zmklogo);
+  LV_IMG_DECLARE(zmk_logo_40x40);
+  lv_img_set_src(zmk, &zmk_logo_40x40);
   lv_obj_align(zmk, LV_ALIGN_BOTTOM_MID, 0, -MARGIN_BOTTOM);
 #endif
 #if IS_ENABLED(CONFIG_ZMK_SPLIT) && !IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)

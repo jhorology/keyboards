@@ -4,12 +4,12 @@
 #  define LV_ATTRIBUTE_MEM_ALIGN
 #endif
 
-#ifndef LV_ATTRIBUTE_IMG_ZMKLOGO
-#  define LV_ATTRIBUTE_IMG_ZMKLOGO
+#ifndef LV_ATTRIBUTE_IMG_ZMK_LOGO_40X40
+#  define LV_ATTRIBUTE_IMG_ZMK_LOGO_40X40
 #endif
 
-const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMG_ZMKLOGO uint8_t
-  zmklogo_map[] = {
+const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMG_ZMK_LOGO_40X40 uint8_t
+  zmk_logo_40x40_map[] = {
     0xff, 0xff, 0xff, 0xff, /*Color of index 0*/
     0x00, 0x00, 0x00, 0xfe, /*Color of index 1*/
 
@@ -28,12 +28,12 @@ const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMG_ZMKLOGO u
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 };
 
-const lv_img_dsc_t zmklogo = {
+const lv_img_dsc_t zmk_logo_40x40 = {
   .header.cf = LV_IMG_CF_INDEXED_1BIT,
   .header.always_zero = 0,
   .header.reserved = 0,
   .header.w = 40,
   .header.h = 40,
   .data_size = 208,
-  .data = zmklogo_map,
+  .data = zmk_logo_40x40_map,
 };

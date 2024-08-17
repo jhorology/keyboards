@@ -21,14 +21,41 @@
       // --------------------------------------------------------------------------------
       // |  TAB |  Q  |  W  |  E  |  R  |  T  |   |  Y  |  U   |  I  |  O  |  P  | BKSP |
       // | CTRL |  A  |  S  |  D  |  F  |  G  |   |  H  |  J   |  K  |  L  |  ;  |  '   |
-      // | SHFT |  Z  |  X  |  C  |  V  |  B  |   |  N  |  M   |  ,  |  .  |  /  | ESC  |
-      //                    | OPT | CMD | SPC |   | ENT | CMD  | fn  |
-
+      // | SHFT |  Z  |  X  |  C  |  V  |  B  |   |  N  |  M   |  ,  |  .  |  /  | SHIFT|
+      //                    | OPT | ENT | LCMD|   | RCMD| SPC  | fn  |
+      // --------------------------------------------------------------------------------
+      // Left Thumb claster
+      //
+      //  1 OPT single LOPT
+      //        double+hold APPLE Fn
+      //
+      //  2 ENT  hold momentary R.Thumb layer
+      //         taps ENTER
+      //
+      //  3 LCMD hold LCMD
+      //         tap  LANG2(英数)
+      //
+      // --------------------------------------------------------------------------------
+      // Right Thumb claster
+      //
+      //  1 RCMD hold RCMD
+      //         tap  LANG1(かな)
+      //
+      //  2 ENT  hold momentary L.Thumb layer
+      //         taps ENTER
+      //
+      //  3 fn   momentary HHKB fn layer
+      //
+      // --------------------------------------------------------------------------------
+      //  RSHFT single RSHIFT
+      //        double+hole momentary setting layer
+      //
+      // --------------------------------------------------------------------------------
       bindings = <
-                  &kp TAB    &kp Q  &kp W  &kp E     &kp R  &kp T          &kp Y        &kp U  &kp I      &kp O    &kp P     &kp BSPC
-                  &kp LCTRL  &kp A  &kp S  &kp D     &kp F  &kp G          &kp H        &kp J  &kp K      &kp L    &kp SEMI  &kp SQT
-                  &kp LSHFT  &kp Z  &kp X  &kp C     &kp V  &kp B          &kp N        &kp M  &kp COMMA  &kp DOT  &kp FSLH  _C_RSHFT
-                                           _H_M_LOPT _LCMD  &lt 6 ENTER    &lt 7 SPACE  _RCMD  _H_FN
+                  &kp TAB    &kp Q  &kp W  &kp E      &kp R        &kp T          &kp Y  &kp U      &kp I      &kp O    &kp P     &kp BSPC
+                  &kp LCTRL  &kp A  &kp S  &kp D      &kp F        &kp G          &kp H  &kp J      &kp K      &kp L    &kp SEMI  &kp SQT
+                  &kp LSHFT  &kp Z  &kp X  &kp C      &kp V        &kp B          &kp N  &kp M      &kp COMMA  &kp DOT  &kp FSLH  _C_RSHFT
+                                           _H_M_LOPT  &lt 6 ENTER  _LCMD         _RCMD   &lt 7 SPC  &kp SPC    _H_FN
       >;
     };
 
@@ -42,10 +69,10 @@
       //                    | OPT | CMD | SPC |   | ENT | CMD  | OPT |
 
       bindings = <
-                  &kp TAB    &kp Q  &kp W  &kp E     &kp R  &kp T          &kp Y        &kp U  &kp I      &kp O    &kp P     &kp BSPC
-                  &kp LCTRL  &kp A  &kp S  &kp D     &kp F  &kp G          &kp H        &kp J  &kp K      &kp L    &kp SEMI  &kp SQT
-                  &kp LSHFT  &kp Z  &kp X  &kp C     &kp V  &kp B          &kp N        &kp M  &kp COMMA  &kp DOT  &kp FSLH  _C_RSHFT
-                                           _H_W_LOPT _LCMD  &lt 6 ENTER    &lt 7 SPACE  _RCMD  _H_FN
+                  &kp TAB    &kp Q  &kp W  &kp E     &kp R        &kp T          &kp Y  &kp U      &kp I      &kp O    &kp P     &kp BSPC
+                  &kp LCTRL  &kp A  &kp S  &kp D     &kp F        &kp G          &kp H  &kp J      &kp K      &kp L    &kp SEMI  &kp SQT
+                  &kp LSHFT  &kp Z  &kp X  &kp C     &kp V        &kp B          &kp N  &kp M      &kp COMMA  &kp DOT  &kp FSLH  _C_RSHFT
+                                          _H_W_LOPT  &lt 6 ENTER  _LCMD         _RCMD   &lt 7 SPC  &kp SPC    _H_FN
       >;
     };
 
@@ -67,33 +94,36 @@
     };
 
     apple_fn_layer {
-      display-name = "APPLE Fn";
+      display-name = "Apple Fn";
       // TODO Fn + H
       // -------------------------------------------------------------------------------
       // |      |     |     |     |     |     |   |     |     |     |     |     |      |
       // |      |     |     |     |     |     |   |     |     |     |     |     |      |
       // |      |     |     |     |     |     |   |     |     |     |     |     |      |
       //                    |     |     |     |   |     |     |     |
+      // -------------------------------------------------------------------------------
+      // fn + H Show desktop -> fn + G
       bindings = <
                   &trans  &trans  &trans  &trans  &trans  &trans    &kp F1  &kp F2  &kp F3  _SPOTLIGHT  _DICTATION  _DND
-                  &trans  &trans  &trans  &trans  &trans  &trans    &kp F7  &kp F8  &kp F9  &kp F10     &kp F11     &kp F12
+                  &trans  &trans  &trans  &trans  &trans  &kp H     &kp F7  &kp F8  &kp F9  &kp F10     &kp F11     &kp F12
                   &trans  &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans      &trans      &trans
                                           &trans  &trans  &trans    &trans  &trans  &trans
       >;
     };
 
     win_fn_layer {
-      display-name = "WIN Fn";
+      display-name = "Win  Fn";
 
       // -------------------------------------------------------------------------------
       // |      |     |     |     |     |     |   |     |     |     |     |     |      |
       // |      |     |     |     |     |     |   |     |     |     |     |     |      |
       // |      |     |     |     |     |     |   |     |     |     |     |     |      |
       //                    |     |     |     |   |     |     |     |
-      // TODO Fn + H
+      // -------------------------------------------------------------------------------
+      // fn + H Show desktop -> fn + G
       bindings = <
                   &trans  _FN_Q   &trans  _FN_E   &trans  &trans    _FN_F1   _FN_F2  _FN_F3  _FN_F4   _FN_F5   _FN_F6
-                  &trans  _FN_A   &trans  &trans  _FN_F   &trans    _FN_F7   _FN_F8  _FN_F9  _FN_F10  _FN_F11  _FN_F12
+                  &trans  _FN_A   &trans  &trans  _FN_F   _FN_H     _FN_F7   _FN_F8  _FN_F9  _FN_F10  _FN_F11  _FN_F12
                   &trans  &trans  _FN_C   &trans  &trans  &trans    _FN_N    _FN_M   &trans  &trans  &trans   &trans
                                           &trans  &trans  &trans    _FN_SPC  &trans  &trans
       >;
@@ -115,8 +145,8 @@
       >;
     };
 
-    supplement1_layer {
-      display-name = "SUPP.1";
+    left_thumb_layer {
+      display-name = "L Thumb";
 
       // -------------------------------------------------------------------------------
       // |      |     |     |     |     |     |   |     |     |     |     |     |      |
@@ -131,8 +161,8 @@
       >;
     };
 
-    supplement2_layer {
-      display-name = "SUPP.2";
+    right_thumb_layer {
+      display-name = "R Thumb";
 
       // -------------------------------------------------------------------------------
       // |      |     |     |     |     |     |   |     |     |     |     |     |      |
@@ -150,6 +180,8 @@
 };
 
 &gooddisplay_gdew0102t {
+  // for debugging
+
   /*
    * power_saving mode
    *
@@ -162,6 +194,7 @@
    *      DSLP (deep sleep) on blanking_on() and write()
    */
   power-saving = <3>;
+
   /*
    *  Blanking mode
    *   0: keep content
@@ -171,32 +204,40 @@
    */
   blanking = <3>;
 
-  // for debugging
-  // CDI = 0x92 0b10010010
-  // [7:6] VBD  10b border color is same as background
-  // [5] DDX[1]  0  update all pixel
-  // [4] DDX[0]  1  black on white
-  // [2:0] CDI   2  5hsync
+  /*
+   * CDI = 0x92 0b10010010
+   * [7:6] VBD  10b border color is same as background
+   * [5] DDX[1]  0  update all pixel
+   * [4] DDX[0]  1  black on white
+   * [2:0] CDI   2  5hsync
+   */
   // cdi = <0x92>;
-  // for debugging
-  // CDI = 0x92 0b01010010
-  // [7:6] VBD  01b border color is same as forground
-  // [5] DDX[1]  0  update all pixel
-  // [4] DDX[0]  1  black on white
-  // [2:0] CDI   2  5hsync
+
+  /*
+   * for debugging
+   * CDI = 0x92 0b01010010
+   * [7:6] VBD  01b border color is same as forground
+   * [5] DDX[1]  0  update all pixel
+   * [4] DDX[0]  1  black on white
+   * [2:0] CDI   2  5hsync
+   */
   cdi = <0x52>;
-  // ---------------------------------------------------
-  // CDI = 0x82 0b10000010
-  // [7:6] VBD  10b border color is same as background
-  // [5] DDX[1]  0  update all pixel
-  // [4] DDX[0]  0  white on black
-  // [2:0] CDI   2  5hsync
+
+  /*
+   * CDI = 0x82 0b10000010
+   * [7:6] VBD  10b border color is same as background
+   * [5] DDX[1]  0  update all pixel
+   * [4] DDX[0]  0  white on black
+   * [2:0] CDI   2  5hsync
+   */
   // cdi = <0x82>;
-  // ---------------------------------------------------
-  // CDI = 0xb2 0b10110010 (Default)
-  // [7:6] VBD  10b border color is same as background
-  // [5] DDX[1]  1  update only OLD->NEW changed pixel
-  // [4] DDX[0]  1  black on white
-  // [2:0] CDI   2  5hsync
+
+  /*
+   * CDI = 0xb2 0b10110010 (Default)
+   * [7:6] VBD  10b border color is same as background
+   * [5] DDX[1]  1  update only OLD->NEW changed pixel
+   * [4] DDX[0]  1  black on white
+   * [2:0] CDI   2  5hsync
+   */
   // cdi = <0xb2>;
 };
