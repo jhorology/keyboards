@@ -43,12 +43,12 @@ properties:
       Power-saving Mode
 
       0: none
-      1: POF (power-off) on display_blanking_on()
-      2: POF (power-off) on display_blanking_on() and display_write()
-      3: POF (power-off) on display_blanking_on() and display_write()
-         DSLP (deep sleep) on display_blanking_on()
-      3: POF (power-off) on display_blanking_on() and display_write()
-         DSLP (deep sleep) on display_blanking_on() and display_write()
+      1: POF (power-off) on blanking_on()
+      2: POF (power-off) on blanking_on() and write()
+      3: POF (power-off) on anking_on() and write()
+         DSLP (deep sleep) on blanking_on()
+      3: POF (power-off) on blanking_on() and write()
+         DSLP (deep sleep) on blanking_on() and write()
 
   blanking:
     type: int
@@ -57,8 +57,8 @@ properties:
       Blanking Mode
 
       0: Keep display content
-      1: White
-      2: Black
+      1: White (1-indexed color)
+      2: Black (0-indexed color)
       3: Invert (Default. reduce ghosting)
 
   psr:
@@ -104,7 +104,7 @@ properties:
          1: Internal voltage generation circuit for both VDH/VDL (Default)
        VDG_EN 0[0] Gate Power Selection
          0: External gate power from VGH/VGL pins
-         1: InternalvoltagegenerationcircuitforbothVGH/VGL(Default)
+         1: Internal voltage generation circuit for both VGH/VGL(Default)
        VDG_LVL 1[3:0] VGH/VGL Voltage Level selection
          000b: VGH=16V, VGL= -16V (Default)
          001b: VGH=15V, VGL= -15V
@@ -113,16 +113,16 @@ properties:
          100b: VGH=12V, VGL= -12V
          101b: VGH=11V, VGL= -11V
          others: VGH=11V, VGL= -11V
-      VDH_LVL 2[5:0] internal VDH power selection
-        2.4V + 0.2 * n (Default n=100110b 10V)
-      VDL_LVL 3[5:0] internal VDL power selection
-        -2.4V - 0.2 * n (Default n=100110b -10V)
+       VDH_LVL 2[5:0] internal VDH power selection
+         2.4V + 0.2 * n (Default n=100110b 10V)
+       VDL_LVL 3[5:0] internal VDL power selection
+         -2.4V - 0.2 * n (Default n=100110b -10V)
 
   cpset:
     type: int
     default: 0x3f
     description: |
-      Charge pump Setting (CPSET) valueso
+      Charge pump Setting (CPSET) values
 
         CPINT[5:4] pump time interval
           00b: 20ms
@@ -167,44 +167,26 @@ properties:
 
   cdi:
     type: int
-    default: 0x92
+    default: 0x52
     description: |
       VCOM and data interval value
 
-
-        CDI(0x50) The interval of VCOM  and data output. When setting the vertical back porch, the total
+        The interval of VCOM  and data output. When setting the vertical back porch, the total
         blanking will be kept (10 Hsync).
 
         VBD [7:6] Border LUT selection.
-          DDX[0] = 0  White on Black
-            00b: VCOM
-            01b: LUTW
-            10b: LUTB
-            11b: Floating
-          DDX[0] = 1 Black on WHite
-            00b: Floating
-            01b: LUTB
-            10b: LUTW
-            11b: VCOM
+          00b: VCOM
+          01b: 0-indexd color, depends on DDX[0]
+          10b: 1-indexd color, depends on DDX[0]
+          11b: Floating
         DDX [5:4] Data Polarity
-            new<-old
-          00b: 00 LUTW  White on Black Background, update all pixel, so don't need OLD(DTM1) data
-               01 LUTW
-               10 LUTB
-               11 LUTB
-          01b: 00 LUTB  White on Black Background, update all pixel, so don't need OLD(DTM1) data
-               01 LUTB
-               10 LUTW
-               11 LUTW
-          10b: 00 GND   White on Black Background, don't update unchanged pixel
-               01 LUTW
-               10 LUTB
-               11 GND
-          11b: 00 GND   Black on White Background, don't update unchanged pixel
-               01 LUTB
-               10 LUTW
-               11 GND
-        CDI [2:0] VCOM to Data Interval. Interval time setting between VCOM and driver data. Default: 5 HsyncData Polarity
+          DDX[0] Data Proarity
+             0 0=White(LUTW) 1=Black(LUTB)
+             1 0=Black(LUTB) 1=White(LUTW)
+          DDX[1] XOR Refresh
+             0 refresh all piexsls of DTM2 frame-buffer
+             1 refresh only differential pixels between of DTM1 and DTM2
+        CDI [2:0] VCOM to Data Interval. Interval time setting between VCOM and driver data. Default: 5 Hsync
           000b: 7hsync
           001b: 6hsync
           010b: 5hsync
@@ -252,7 +234,7 @@ properties:
     description: |
       White Look-up table
 
-      6 bytes per stage (max 8 stages)
+      6 bytes per stage (max 7 stages)
         +0[7:6] Phase 0
         +0[5:4] Phase 1
         +0[3:2] Phase 2

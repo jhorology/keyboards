@@ -5,11 +5,23 @@
 
 #include "my-keymap-common.dtsi"
 
+#define LEFT_KEYS 0 1 2 3  4  5 12 13 14 15 16 17 24 25 26 27 28 29
+#define RIGHT_KEYS 6 7 8 9 10 11 18 19 20 21 22 23 30 31 32 33 34 35
+#define LEFT_THUMB_KEYS 36 37 38
+#define RIGHT_THUMB_KEYS  39 40 41
+#define THUMB_KEYS LEFT_THUMB_KEYS RIGHT_THUMB_KEYS
+// mod + lang2 + lang1
+// hold   mod
+// single tap LANG2(英数)
+// double tap LANG1(かな)
+#define _MOD_LANG(mod) &mod_lang21 mod 0
+
 / {
   soft_off_wakers {
     compatible = "zmk,soft-off-wakeup-sources";
     wakeup-sources = <&kscan0>;
   };
+
 
   keymap {
     compatible = "zmk,keymap";
@@ -24,38 +36,41 @@
       // | SHFT |  Z  |  X  |  C  |  V  |  B  |   |  N  |  M   |  ,  |  .  |  /  | SHIFT|
       //                    | OPT | ENT | LCMD|   | RCMD| SPC  | fn  |
       // --------------------------------------------------------------------------------
-      // Left Thumb claster
+      // *under construction
+      //
+      // Left Thumb cluster
       //
       //  1 OPT single LOPT
       //        double+hold APPLE Fn
       //
-      //  2 ENT  hold momentary R.Thumb layer
+      //  2 ENT  hold L.Thumb layer
       //         taps ENTER
       //
       //  3 LCMD hold LCMD
-      //         tap  LANG2(英数)
+      //         single tap spacemacs leader key
       //
       // --------------------------------------------------------------------------------
-      // Right Thumb claster
+      // Right Thumb cluster
       //
       //  1 RCMD hold RCMD
-      //         tap  LANG1(かな)
+      //         single tap LANG2(英数)
+      //         doble tap  LANG1(かな)
       //
-      //  2 ENT  hold momentary L.Thumb layer
+      //  2 ENT  hold R.Thumb layer
       //         taps ENTER
       //
       //  3 fn   momentary HHKB fn layer
       //
       // --------------------------------------------------------------------------------
       //  RSHFT single RSHIFT
-      //        double+hole momentary setting layer
+      //        double+hold momentary setting layer
       //
       // --------------------------------------------------------------------------------
       bindings = <
-                  &kp TAB    &kp Q  &kp W  &kp E      &kp R        &kp T          &kp Y  &kp U      &kp I      &kp O    &kp P     &kp BSPC
-                  &kp LCTRL  &kp A  &kp S  &kp D      &kp F        &kp G          &kp H  &kp J      &kp K      &kp L    &kp SEMI  &kp SQT
-                  &kp LSHFT  &kp Z  &kp X  &kp C      &kp V        &kp B          &kp N  &kp M      &kp COMMA  &kp DOT  &kp FSLH  _C_RSHFT
-                                           _H_M_LOPT  &lt 6 ENTER  _LCMD         _RCMD   &lt 7 SPC  &kp SPC    _H_FN
+                  &kp TAB    &kp Q  &kp W  &kp E      &kp R        &kp T             &kp Y            &kp U      &kp I      &kp O    &kp P     &kp BSPC
+                  &kp LCTRL  &kp A  &kp S  &kp D      &kp F        &kp G             &kp H            &kp J      &kp K      &kp L    &kp SEMI  &kp SQT
+                  &kp LSHFT  &kp Z  &kp X  &kp C      &kp V        &kp B             &kp N            &kp M      &kp COMMA  &kp DOT  &kp FSLH  _C_RSHFT
+                                           _H_M_LOPT  _C_LENT      &mt LCMD RA(M)    _MOD_LANG(RCMD)  _C_RSPC  _H_FN
       >;
     };
 
@@ -69,10 +84,10 @@
       //                    | OPT | CMD | SPC |   | ENT | CMD  | OPT |
 
       bindings = <
-                  &kp TAB    &kp Q  &kp W  &kp E     &kp R        &kp T          &kp Y  &kp U      &kp I      &kp O    &kp P     &kp BSPC
-                  &kp LCTRL  &kp A  &kp S  &kp D     &kp F        &kp G          &kp H  &kp J      &kp K      &kp L    &kp SEMI  &kp SQT
-                  &kp LSHFT  &kp Z  &kp X  &kp C     &kp V        &kp B          &kp N  &kp M      &kp COMMA  &kp DOT  &kp FSLH  _C_RSHFT
-                                          _H_W_LOPT  &lt 6 ENTER  _LCMD         _RCMD   &lt 7 SPC  &kp SPC    _H_FN
+                  &kp TAB    &kp Q  &kp W  &kp E      &kp R    &kp T             &kp Y            &kp U    &kp I      &kp O    &kp P     &kp BSPC
+                  &kp LCTRL  &kp A  &kp S  &kp D      &kp F    &kp G             &kp H            &kp J    &kp K      &kp L    &kp SEMI  &kp SQT
+                  &kp LSHFT  &kp Z  &kp X  &kp C      &kp V    &kp B             &kp N            &kp M    &kp COMMA  &kp DOT  &kp FSLH  _C_RSHFT
+                                           _H_W_LOPT  _C_LENT  &mt LCMD RA(M)    _MOD_LANG(RCMD)  _C_RSPC  _H_FN
       >;
     };
 
@@ -153,6 +168,8 @@
       // |      |     |     |     |     |     |   |     |     |     |     |     |      |
       // |      |     |     |     |     |     |   |     |     |     |     |     |      |
       //                    |     |     |     |   |     |     |     |
+      // -------------------------------------------------------------------------------
+      // *under construction
       bindings = <
                   &kp GRAVE  &kp N1  &kp N2  &kp N3  &kp N4  &kp N5     &kp N6     &kp N7     &kp N8    &kp N9    &kp N0    &trans
                   &trans     &kp F1  &kp F2  &kp F3  &kp F4  &kp F5     &kp MINUS  &kp EQUAL  &kp BSLH  &kp LBKT  &kp RBKT  &trans
@@ -169,6 +186,8 @@
       // |      |     |     |     |     |     |   |     |     |     |     |     |      |
       // |      |     |     |     |     |     |   |     |     |     |     |     |      |
       //                    |     |     |     |   |     |     |     |
+      // -------------------------------------------------------------------------------
+      // *under construction
       bindings = <
                   &kp ESC  &kp EXCL  &kp AT  &kp HASH  &kp DLLR  &kp PRCNT    &kp CARET  &kp AMPS  &kp ASTRK  &kp LPAR  &kp RPAR  &trans
                   &trans   &kp F1    &kp F2  &kp F3    &kp F4    &kp F5       &kp UNDER  &kp PLUS  &kp PIPE   &kp LBRC  &kp RBRC  &trans
@@ -179,7 +198,7 @@
   };
 };
 
-&gooddisplay_gdew0102t {
+&gooddisplay_gdew0102t4 {
   // for debugging
 
   /*
@@ -206,38 +225,55 @@
 
   /*
    * CDI = 0x92 0b10010010
-   * [7:6] VBD  10b border color is same as background
-   * [5] DDX[1]  0  update all pixel
-   * [4] DDX[0]  1  black on white
+   * [7:6] VBD  Border        10b border color 1, depends on DDX[0]
+   * [5] DDX[1] XOR Refresh    0  refresh all pixel
+   * [4] DDX[0] Data Polarity  1  black on white 0=LUTB on 1=LUTW
    * [2:0] CDI   2  5hsync
    */
   // cdi = <0x92>;
 
   /*
-   * for debugging
-   * CDI = 0x92 0b01010010
-   * [7:6] VBD  01b border color is same as forground
-   * [5] DDX[1]  0  update all pixel
-   * [4] DDX[0]  1  black on white
+   *k CDI = 0x92 0b01010010
+   * [7:6] VBD  Border        01b border colo is 0, depends on DDX[0]
+   * [5] DDX[1] XOR Refresh    0  refresh all pixel
+   * [4] DDX[0] Data Polarity  1  black on white 0=LUTB on 1=LUTW
    * [2:0] CDI   2  5hsync
    */
   cdi = <0x52>;
 
   /*
    * CDI = 0x82 0b10000010
-   * [7:6] VBD  10b border color is same as background
-   * [5] DDX[1]  0  update all pixel
-   * [4] DDX[0]  0  white on black
+   * [7:6] VBD  Border        10b border color 1, depends on DDX[0]
+   * [5] DDX[1] XOR Refresh    0  refresh all pixel
+   * [4] DDX[0] Data Polarity  0  white on black 0=LUTW on 1=LUTB
    * [2:0] CDI   2  5hsync
    */
   // cdi = <0x82>;
 
   /*
-   * CDI = 0xb2 0b10110010 (Default)
-   * [7:6] VBD  10b border color is same as background
-   * [5] DDX[1]  1  update only OLD->NEW changed pixel
-   * [4] DDX[0]  1  black on white
+   * CDI = 0xb2 0b10110010
+   * [7:6] VBD  Border       10b border color 1, depends on DDX[0]
+   * [5] DDX[1] XOR Refresh   1  refresh only OLD^NEW changed pixel
+   * [4] DDX[0] Data Polarity 1  black on white 0=LUTB on 1=LUTW
    * [2:0] CDI   2  5hsync
    */
   // cdi = <0xb2>;
+
+  /*
+   * CDI = 0xd2 0b11010010
+   * [7:6] VBD  Border        11b keep previous color even after reset, not depends on DDX[0]
+   * [5] DDX[1] XOR Refresh    0  refresh all pixel
+   * [4] DDX[0] Data Polarity  0  black on white 0=LUTB on 1=LUTW
+   * [2:0] CDI   2  5hsync
+   */
+  // cdi = <0xd2>;
+
+  /*
+   * CDI = 0xd2 0b00010010
+   * [7:6] VBD  Border         00b keep previous color even after reset, not depends on DDX[0]
+   * [5] DDX[1] XOR Refresh     0  refresh all pixel
+   * [4] DDXk[0] Data Polarity  1  black on white 0=LUTB on 1=LUTW
+   * [2:0] CDI   2  5hsync
+   */
+  // cdi = <0x12>;
 };

@@ -23,9 +23,17 @@
 #define _APPLE_FN_LAYER 3
 #define _WIN_FN_LAYER 4
 #define _SETTING_LAYER 5
+#define _L_THUMB_LAYER 6
+#define _R_THUMB_LAYER 7
 
 // key definitions other than kp/trans behavior
 //--------------------------------------------
+
+// mod + lang2 + lang1
+// hold   mod
+// single tap LANG2(英数)
+// double tap LANG1(かな)
+#define _MOD_LANG(mod) &mod_lang21 mod 0
 
 // keychron DIP SW
 // off: mac base layer
@@ -66,6 +74,16 @@
 // single: Right Shift
 // double: Momentaly setting layer
 #define _C_RSHFT &corne_r_shift
+
+// Left Enter for corne keyboard
+// hold: Momentaly L Thumb layer
+// tap: ENTER
+#define _C_LENT &qlt _L_THUMB_LAYER ENTER
+
+// Right SPACE for corne keyboard
+// hold: Momentaly R Thumb layer
+// tap: ENTER
+#define _C_RSPC &qlt _R_THUMB_LAYER SPC
 
 // HHKB fn
 #define _H_FN &mo _HHKB_FN_LAYER
@@ -200,6 +218,37 @@
 
 / {
   behaviors {
+    /omit-if-no-ref/ qlt: quick_layer_tap {
+      compatible = "zmk,behavior-hold-tap";
+      #binding-cells = <2>;
+      flavor = "hold-preferred";
+      tapping-term-ms = <200>;
+      quick-tap-ms = <200>;
+      bindings = <&mo>, <&kp>;
+    };
+
+    // single tap -> LANG2(英数)
+    // double tap -> LANG1(かな)
+    /omit-if-no-ref/ lang21: lang21 {
+      compatible = "zmk,behavior-tap-dance";
+      #binding-cells = <0>;
+      tapping-term-ms = <200>;
+      bindings = <&kp LANG2>, <&kp LANG1>;
+    };
+
+    // hold -> param 1
+    // single tap -> LANG2(英数)
+    // double tap -> LANG1(かな)
+    /omit-if-no-ref/ mod_lang21: mod_lang21 {
+      compatible = "zmk,behavior-hold-tap";
+      #binding-cells = <2>;
+      flavor = "tap-preferred";
+      tapping-term-ms = <200>;
+      quick-tap-ms = <200>;
+      bindings = <&kp>, <&lang21>;
+      retro-tap;
+    };
+
     // Left Option key on mac base layer for HHKB layout
     // single -> LALT
     // double -> APPLE_FNn + MO(_MAC_FN_LAYER)

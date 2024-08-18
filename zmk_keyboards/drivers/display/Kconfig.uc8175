@@ -10,3 +10,7 @@ config UC8175
 	  select SPI
 	  help
 	    Enable driver for UC8175 compatible controller.
+
+config UC8175_EXPERIMENT
+    bool "this is just for my experimenetal playgorund"
+    depends on PM_DEVICE

@@ -11,6 +11,7 @@
 #include <zephyr/drivers/display.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/spi.h>
+#include <zephyr/pm/device.h>
 #include <zephyr/sys/byteorder.h>
 #include <zephyr/logging/log.h>
 
@@ -20,11 +21,20 @@ LOG_MODULE_REGISTER(uc8175, CONFIG_DISPLAY_LOG_LEVEL);
 
 /*
  * CDI bit5 DDX[1]
- *   0: update all pixel
- *   1: update only changed peixl
+ *   0: refresh all pixel
+ *   1: refresh only changed peixl
  */
 #define IS_XOR_REFRESH(config) ((config->cdi & UC8175_CDI_MASK_REFRESH_MODE) != 0)
-#define IS_BORDERED(config) ((config->cdi & UC8175_CDI_MASK_VBD) == 0x40)
+
+/* border is explicitly defined */
+#define IS_BORDERED(config) \
+  ((config->cdi & UC8175_CDI_MASK_VBD) == 0x40 || (config->cdi & UC8175_CDI_MASK_VBD) == 0x80)
+
+#define CHECK_SUSPENDED(dev)                                                       \
+  COND_CODE_1(CONFIG_UC8175_EXPERIMENT,                                            \
+              (enum pm_device_state state; (void)pm_device_state_get(dev, &state); \
+               if (state == PM_DEVICE_STATE_SUSPENDED) return -EIO;),              \
+              ())
 
 /*
  *  power_saving mode
@@ -50,7 +60,7 @@ LOG_MODULE_REGISTER(uc8175, CONFIG_DISPLAY_LOG_LEVEL);
  *       init       blanking_off            blanking_on             write
  *    x  wake,PON   _wake,PON,DRF           DRF,POF,DSLP            DRF
  */
-enum {
+enum power_saving {
   POWER_SAVING_NONE,
   POWER_SAVING_POF_ON_BLANKING,
   POWER_SAVING_POF_ON_WRITE,
@@ -65,7 +75,7 @@ enum {
  *   2 Fill black(foreground color)
  *   3 Invert display content
  */
-enum { BLANKING_KEEP_CONTENT, BLANKING_WHITE, BLANKING_BLACK, BLANKING_INVERT };
+enum blanking { KEEP_CONTENT, BLANKING_WHITE, BLANKING_BLACK, BLANKING_INVERT };
 
 struct uc8175_config {
   // include: [spi-device.yaml]
@@ -79,9 +89,10 @@ struct uc8175_config {
   struct gpio_dt_spec dc;
   struct gpio_dt_spec busy;
 
-  uint8_t blanking;
+  enum blanking blanking;
 
-  uint8_t power_saving;
+  enum power_saving power_saving;
+
   uint8_t psr;
   uint8_t pwr[UC8175_PWR_REG_LENGTH];
   uint8_t cpset;
@@ -242,7 +253,7 @@ static int _window_full(const struct device *dev) {
   return 0;
 }
 
-static int _override_cdi_lut(const struct device *dev, bool force, bool blanking) {
+static int _override_cdi_lut(const struct device *dev, bool force, enum blanking blanking) {
   const struct uc8175_config *config = dev->config;
   struct uc8175_data *data = dev->data;
   uint8_t cdi = config->cdi;
@@ -254,22 +265,22 @@ static int _override_cdi_lut(const struct device *dev, bool force, bool blanking
     cdi &= ~UC8175_CDI_MASK_REFRESH_MODE;
   }
 
-  if (blanking) {
-    switch (config->blanking) {
-      case BLANKING_WHITE:
-        lutb = lutw;
-        break;
-      case BLANKING_BLACK:
-        lutw = lutb;
-        break;
-      case BLANKING_INVERT:
-        cdi ^= UC8175_CDI_MASK_DATA_POLARITY;
-        // prevent inverting border
-        if (IS_BORDERED(config)) {
-          cdi &= ~UC8175_CDI_MASK_VBD;
-        }
-        break;
-    }
+  switch (blanking) {
+    case BLANKING_WHITE:
+      lutb = lutw;
+      break;
+    case BLANKING_BLACK:
+      lutw = lutb;
+      break;
+    case BLANKING_INVERT:
+      cdi ^= UC8175_CDI_MASK_DATA_POLARITY;
+      // prevent inverting border
+      if (IS_BORDERED(config)) {
+        cdi ^= UC8175_CDI_MASK_VBD;
+      }
+      break;
+    default:
+      break;
   }
 
   if (force || cdi != config->cdi) {
@@ -339,10 +350,10 @@ static int _restore_cdi_lut(const struct device *dev, bool force) {
 
 /**
  * @param full for fullscreen refresh
- * @param blanking for blanking_on()
+ * @param blanking blanking mode
  * @param post_process need post process
  */
-static int _refresh_full(const struct device *dev, bool blanking) {
+static int _refresh_full(const struct device *dev, enum blanking blanking) {
   const struct uc8175_config *config = dev->config;
   struct uc8175_data *data = dev->data;
   int err;
@@ -656,9 +667,12 @@ static int uc8175_write(const struct device *dev, const uint16_t x, const uint16
                         const struct display_buffer_descriptor *desc, const void *buf) {
   const struct uc8175_config *config = dev->config;
   struct uc8175_data *data = dev->data;
-  size_t buf_len = MIN(desc->buf_size, config->height * config->width / UC8175_PIXELS_PER_BYTE);
-
+  size_t buf_len;
   int err;
+
+  CHECK_SUSPENDED(dev);
+
+  buf_len = MIN(desc->buf_size, config->height * config->width / UC8175_PIXELS_PER_BYTE);
 
   LOG_DBG(
     "start x %u, y %u, height %u, width %u, buf_size %u, buf_len %u, pitch %u, PS %u, sleep %u, "
@@ -793,6 +807,8 @@ static int uc8175_blanking_on(const struct device *dev) {
   struct uc8175_data *data = dev->data;
   int err;
 
+  CHECK_SUSPENDED(dev);
+
   LOG_DBG("start PS %u, sleep %u, blanking %u", config->power_saving, data->sleep,
           data->blanking_on);
 
@@ -814,7 +830,7 @@ static int uc8175_blanking_on(const struct device *dev) {
     return err;
   }
 
-  err = _refresh_full(dev, true);
+  err = _refresh_full(dev, config->blanking);
   if (err < 0) {
     return err;
   }
@@ -842,6 +858,8 @@ static int uc8175_blanking_off(const struct device *dev) {
   struct uc8175_data *data = dev->data;
   int err;
 
+  CHECK_SUSPENDED(dev);
+
   LOG_DBG("start PS %u, sleep %u, blanking %u", config->power_saving, data->sleep,
           data->blanking_on);
 
@@ -863,7 +881,7 @@ static int uc8175_blanking_off(const struct device *dev) {
     return err;
   }
 
-  err = _refresh_full(dev, false);
+  err = _refresh_full(dev, KEEP_CONTENT);
   if (err < 0) {
     return err;
   }
@@ -1056,6 +1074,49 @@ static int uc8175_init(const struct device *dev) {
   return 0;
 }
 
+#ifdef CONFIG_UC8175_EXPERIMENT
+static int _resume(const struct device *dev) {
+  const struct uc8175_config *config = dev->config;
+  struct uc8175_data *data = dev->data;
+  LOG_DBG("start PS %u, sleep %u, blanking %u", config->power_saving, data->sleep,
+          data->blanking_on);
+  return 0;
+}
+
+static int _suspend(const struct device *dev) {
+  const struct uc8175_config *config = dev->config;
+  struct uc8175_data *data = dev->data;
+  LOG_DBG("start PS %u, sleep %u, blanking %u", config->power_saving, data->sleep,
+          data->blanking_on);
+  return 0;
+}
+
+/**
+ * @brief Device PM action callback.
+ *
+ * @param dev Device instance.
+ * @param action Requested action.
+ *
+ * @retval 0 If successful.
+ * @retval -ENOTSUP If the requested action is not supported.
+ * @retval Errno Other negative errno on failure.
+ */
+static int uc8175_pm_action(const struct device *dev, enum pm_device_action action) {
+  switch (action) {
+    case PM_DEVICE_ACTION_RESUME:
+      return _resume(dev);
+    case PM_DEVICE_ACTION_SUSPEND:
+      return _suspend(dev);
+    case PM_DEVICE_ACTION_TURN_ON:
+    case PM_DEVICE_ACTION_TURN_OFF:
+    default:
+      return -ENOTSUP;
+      break;
+  }
+  return 0;
+}
+#endif /* CCONFIG_UC8175_EXPERIMENT */
+
 static const struct display_driver_api uc8175_display_api = {
   .blanking_on = uc8175_blanking_on,
   .blanking_off = uc8175_blanking_off,
@@ -1093,6 +1154,7 @@ static const struct display_driver_api uc8175_display_api = {
   };                                                                                             \
   static struct uc8175_data uc8175_data_##n = {};                                                \
   DEVICE_DT_INST_DEFINE(n, uc8175_init, NULL, &uc8175_data_##n, &uc8175_config_##n, POST_KERNEL, \
-                        CONFIG_APPLICATION_INIT_PRIORITY, &uc8175_display_api);
+                        CONFIG_APPLICATION_INIT_PRIORITY, &uc8175_display_api);                  \
+  IF_ENABLED(CONFIG_UC8175_EXPERIMENT, (PM_DEVICE_DT_INST_DEFINE(n, uc8175_pm_action);));
 
 DT_INST_FOREACH_STATUS_OKAY(UC8175_INIT)
