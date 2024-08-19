@@ -28,44 +28,29 @@
 
     mac_base_layer {
       display-name = "Mac Base";
-
-      // TODO Right Shift
-      // --------------------------------------------------------------------------------
+      // --------------------------------------   ---------------------------------------
       // |  TAB |  Q  |  W  |  E  |  R  |  T  |   |  Y  |  U   |  I  |  O  |  P  | BKSP |
       // | CTRL |  A  |  S  |  D  |  F  |  G  |   |  H  |  J   |  K  |  L  |  ;  |  '   |
       // | SHFT |  Z  |  X  |  C  |  V  |  B  |   |  N  |  M   |  ,  |  .  |  /  | SHIFT|
-      //                    | OPT | ENT | LCMD|   | RCMD| SPC  | fn  |
-      // --------------------------------------------------------------------------------
+      // -------------------| OPT | ENT | LCMD|   | RCMD| SPC  | fn  |------------------
+      //                    -------------------   --------------------
       // *under construction
       //
-      // Left Thumb cluster
+      //         Left Thumb cluster                 Right Thumb cluster
       //
-      //  1 OPT single LOPT
-      //        double+hold APPLE Fn
-      //
-      //  2 ENT  hold L.Thumb layer
-      //         taps ENTER
-      //
-      //  3 LCMD hold LCMD
-      //         single tap spacemacs leader key
-      //
-      // --------------------------------------------------------------------------------
-      // Right Thumb cluster
-      //
-      //  1 RCMD hold RCMD
-      //         single tap LANG2(英数)
-      //         doble tap  LANG1(かな)
-      //
-      //  2 ENT  hold R.Thumb layer
-      //         taps ENTER
-      //
-      //  3 fn   momentary HHKB fn layer
+      //         1 OPT single LOPT                  1 RCMD hold       RCMD
+      //               double+hold APPLE Fn                single tap LANG2(英数)
+      //                                                   double tap LANG1(かな)
+      //         2 ENT hold L.Thumb layer
+      //               taps ENTER                   2 SPCE hold R.Thumb layer
+      //                                                   tap  SPACE
+      //         3 LCMD hold LCMD
+      //                tap spacemacs leader key    3 fn   momentary HHKB fn layer
       //
       // --------------------------------------------------------------------------------
       //  RSHFT single RSHIFT
       //        double+hold momentary setting layer
       //
-      // --------------------------------------------------------------------------------
       bindings = <
                   &kp TAB    &kp Q  &kp W  &kp E      &kp R        &kp T             &kp Y            &kp U      &kp I      &kp O    &kp P     &kp BSPC
                   &kp LCTRL  &kp A  &kp S  &kp D      &kp F        &kp G             &kp H            &kp J      &kp K      &kp L    &kp SEMI  &kp SQT
@@ -76,13 +61,12 @@
 
     win_base_layer {
       display-name = "Win Base";
-
-      // --------------------------------------------------------------------------------
+      // --------------------------------------   ---------------------------------------
       // |  TAB |  Q  |  W  |  E  |  R  |  T  |   |  Y  |  U   |  I  |  O  |  P  | BKSP |
       // | CTRL |  A  |  S  |  D  |  F  |  G  |   |  H  |  J   |  K  |  L  |  ;  |  '   |
-      // | SHFT |  Z  |  X  |  C  |  V  |  B  |   |  N  |  M   |  ,  |  .  |  /  | ESC  |
-      //                    | OPT | CMD | SPC |   | ENT | CMD  | OPT |
-
+      // | SHFT |  Z  |  X  |  C  |  V  |  B  |   |  N  |  M   |  ,  |  .  |  /  | SHIFT|
+      // -------------------| OPT | ENT | LCMD|   | RCMD| SPC  | fn  |------------------
+      //                    -------------------   --------------------
       bindings = <
                   &kp TAB    &kp Q  &kp W  &kp E      &kp R    &kp T             &kp Y            &kp U    &kp I      &kp O    &kp P     &kp BSPC
                   &kp LCTRL  &kp A  &kp S  &kp D      &kp F    &kp G             &kp H            &kp J    &kp K      &kp L    &kp SEMI  &kp SQT
@@ -93,13 +77,12 @@
 
     hhkb_fn_layer {
       display-name = "HHKB Fn";
-
-      // --------------------------------------------------------------------------------
+      // --------------------------------------   ---------------------------------------
       // | CAPS | F16 | F17 | F18 |     |     |   |PSCRN|  SLCK|  PB |  UP | INS | DEL  |
       // | CTRL |     |     |     | [*] | [/] |   | HOME| P.UP | LEFT| DOWN|RIGHT|  '   |
       // | SHFT |     |     |     | [+] | [-] |   | END | P.DN |     |     |     | ESC  |
-      //                    |     |     |     |   |     |      |     |
-
+      // -------------------|     |     |     |   |     |      |     |-------------------
+      //                    -------------------   --------------------
       bindings = <
                   &kp CAPS  &kp F16  &kp F17  &kp F18  &trans           &trans            &kp PSCRN  &kp SLCK   &kp PAUSE_BREAK   &kp UP    &kp INS    &kp DEL
                   &trans    &trans   &trans   &trans   &kp KP_MULTIPLY  &kp KP_DIVIDE     &kp HOME   &kp PG_UP  &kp LEFT          &kp DOWN  &kp RIGHT  &trans
@@ -110,13 +93,12 @@
 
     apple_fn_layer {
       display-name = "Apple Fn";
-      // TODO Fn + H
-      // -------------------------------------------------------------------------------
+      // --------------------------------------   --------------------------------------
       // |      |     |     |     |     |     |   |     |     |     |     |     |      |
       // |      |     |     |     |     |     |   |     |     |     |     |     |      |
       // |      |     |     |     |     |     |   |     |     |     |     |     |      |
-      //                    |     |     |     |   |     |     |     |
-      // -------------------------------------------------------------------------------
+      // -------------------|     |     |     |   |     |     |     |-------------------
+      //                    -------------------   -------------------
       // fn + H Show desktop -> fn + G
       bindings = <
                   &trans  &trans  &trans  &trans  &trans  &trans    &kp F1  &kp F2  &kp F3  _SPOTLIGHT  _DICTATION  _DND
@@ -127,14 +109,13 @@
     };
 
     win_fn_layer {
-      display-name = "Win  Fn";
-
-      // -------------------------------------------------------------------------------
+      display-name = "Win Fn";
+      // --------------------------------------   --------------------------------------
       // |      |     |     |     |     |     |   |     |     |     |     |     |      |
       // |      |     |     |     |     |     |   |     |     |     |     |     |      |
       // |      |     |     |     |     |     |   |     |     |     |     |     |      |
-      //                    |     |     |     |   |     |     |     |
-      // -------------------------------------------------------------------------------
+      // -------------------|     |     |     |   |     |     |     |-------------------
+      //                    -------------------   -------------------
       // fn + H Show desktop -> fn + G
       bindings = <
                   &trans  _FN_Q   &trans  _FN_E   &trans  &trans    _FN_F1   _FN_F2  _FN_F3  _FN_F4   _FN_F5   _FN_F6
@@ -146,29 +127,29 @@
 
     setting_layer {
       display-name = "Setting";
-
-      // -------------------------------------------------------------------------------
+      // --------------------------------------   --------------------------------------
       // |      |     |     |     |     |     |   |     |     |     |     |     |      |
       // |      |     |     |     |     |     |   |     |     |     |     |     |      |
       // |      |     |     |     |     |     |   |     |     |     |     |     |      |
-      //                    |     |     |     |   |     |     |     |
+      // -------------------|     |     |     |   |     |     |     |-------------------
+      //                    -------------------   -------------------
+      // Row2 +SHIFT for reverse action. mac->win / on->off / inc->dec / next->prev
       bindings = <
-                  &bootloader  _BT_MAC1  _BT_MAC2  _BT_WIN1  _BT_MAC3  _BT_WIN2    &trans  _USB    &trans  &trans  &soft_off  &sys_reset
-                  &trans       _BT_OFF0  _BT_OFF1  _BT_OFF2  _BT_OFF3  _BT_OFF4    &trans  &trans  &trans  &trans  &trans     _BT_CLR
-                  &trans       _MAC_WIN  _EP       _RGB      _BRT      _HUE        _SAT    _EFT    _SPD    &trans  &trans     _BT_CLR_ALL
-                                                   &trans    &trans    &trans      &trans  &trans  &trans
+                  &bootloader  _BT_MAC1  _BT_MAC2  _BT_WIN1  _BT_MAC3  _BT_WIN2    &trans   _USB         &trans  &trans  &soft_off  &bootloader
+                  &sys_reset   _BT_OFF0  _BT_OFF1  _BT_OFF2  _BT_OFF3  _BT_OFF4    _BT_CLR  _BT_CLR_ALL  &trans  &trans  &trans     &sys_reset
+                  &trans       _MAC_WIN  _EP       _RGB      _BRT      _HUE        _SAT     _EFT         _SPD    &trans  &trans     &trans
+                                                   &trans    &trans    &trans      &trans   &trans       &trans
       >;
     };
 
     left_thumb_layer {
       display-name = "L Thumb";
-
-      // -------------------------------------------------------------------------------
+      // --------------------------------------   --------------------------------------
       // |      |     |     |     |     |     |   |     |     |     |     |     |      |
       // |      |     |     |     |     |     |   |     |     |     |     |     |      |
       // |      |     |     |     |     |     |   |     |     |     |     |     |      |
-      //                    |     |     |     |   |     |     |     |
-      // -------------------------------------------------------------------------------
+      // -------------------|     |     |     |   |     |     |     |-------------------
+      //                    -------------------   -------------------
       // *under construction
       bindings = <
                   &kp GRAVE  &kp N1  &kp N2  &kp N3  &kp N4  &kp N5     &kp N6     &kp N7     &kp N8    &kp N9    &kp N0    &trans
@@ -180,13 +161,12 @@
 
     right_thumb_layer {
       display-name = "R Thumb";
-
-      // -------------------------------------------------------------------------------
+      // --------------------------------------   --------------------------------------
       // |      |     |     |     |     |     |   |     |     |     |     |     |      |
       // |      |     |     |     |     |     |   |     |     |     |     |     |      |
       // |      |     |     |     |     |     |   |     |     |     |     |     |      |
-      //                    |     |     |     |   |     |     |     |
-      // -------------------------------------------------------------------------------
+      // -------------------|     |     |     |   |     |     |     |-------------------
+      //                    -------------------   -------------------
       // *under construction
       bindings = <
                   &kp ESC  &kp EXCL  &kp AT  &kp HASH  &kp DLLR  &kp PRCNT    &kp CARET  &kp AMPS  &kp ASTRK  &kp LPAR  &kp RPAR  &trans

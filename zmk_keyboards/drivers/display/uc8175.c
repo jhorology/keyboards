@@ -643,7 +643,7 @@ static inline int _sleep(const struct device *dev) {
   int err;
 
   err = _write_cmd_uint8_data(dev, UC8175_CMD_DSLP, UC8175_DSLP_CODE);
-  if (err) {
+  if (err < 0) {
     return err;
   }
   data->sleep = true;
@@ -1040,11 +1040,11 @@ static int uc8175_init(const struct device *dev) {
   switch (config->power_saving) {
     case POWER_SAVING_NONE:
       err = _wake(dev);
-      if (err) {
+      if (err < 0) {
         return err;
       }
       err = _power_on(dev);
-      if (err) {
+      if (err < 0) {
         return err;
       }
       break;
@@ -1052,11 +1052,11 @@ static int uc8175_init(const struct device *dev) {
     case POWER_SAVING_POF_ON_BLANKING:
     case POWER_SAVING_POF_ON_WRITE:
       err = _wake(dev);
-      if (err) {
+      if (err < 0) {
         return err;
       }
       err = _power_off(dev);
-      if (err) {
+      if (err < 0) {
         return err;
       }
       break;
@@ -1131,7 +1131,7 @@ static const struct display_driver_api uc8175_display_api = {
 
 #define UC8175_INIT(n)                                                                           \
   static struct uc8175_config uc8175_config_##n = {                                              \
-    .spi = SPI_DT_SPEC_INST_GET(n, SPI_OP_MODE_MASTER | SPI_WORD_SET(8), 0),                     \
+    .spi = SPI_DT_SPEC_INST_GET(n, SPI_OP_MODE_MASTER | SPI_LOCK_ON | SPI_WORD_SET(8), 0),       \
     .width = DT_INST_PROP(n, width),                                                             \
     .height = DT_INST_PROP(n, height),                                                           \
     .reset = GPIO_DT_SPEC_INST_GET(n, reset_gpios),                                              \
