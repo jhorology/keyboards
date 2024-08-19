@@ -92,10 +92,10 @@ lv_obj_t *zmk_display_status_screen() {
   lv_obj_align(zmk, LV_ALIGN_BOTTOM_MID, 0, -MARGIN_BOTTOM);
 #endif
 #if IS_ENABLED(CONFIG_ZMK_SPLIT) && !IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
-  lv_obj_t *starman = lv_img_create(screen);
-  LV_IMG_DECLARE(starman_80x80);
-  lv_img_set_src(starman, &starman_80x80);
-  lv_obj_align(starman, LV_ALIGN_BOTTOM_MID, 0, 0);
+  lv_obj_t *custom_logo = lv_img_create(screen);
+  LV_IMG_DECLARE(custom_logo_80x80);
+  lv_img_set_src(custom_logo, &custom_logo_80x80);
+  lv_obj_align(custom_logo, LV_ALIGN_BOTTOM_MID, 0, 0);
 #endif
 
 #if IS_ENABLED(CONFIG_ZMK_WIDGET_WPM_STATUS)
