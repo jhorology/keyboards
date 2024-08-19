@@ -183,7 +183,7 @@ static int _write_cmd_data(const struct device *dev, uint8_t cmd, void *data, si
 
     err = spi_write_dt(&config->spi, &buf_set);
     if (err < 0) {
-      LOG_ERR("Failed to send fill data: %02x err: %d", cmd, err);
+      LOG_ERR("Failed to send fill data: %02x err: %d", fill_data, err);
       goto spi_out;
     }
 
@@ -499,7 +499,9 @@ static int _refresh_partial(const struct device *dev, bool post_process) {
         return err;
       }
 
-      if (!post_process) {
+      if (post_process) {
+        _busy_wait(dev);
+      } else {
         data->sleep = true;
       }
       break;
@@ -633,7 +635,6 @@ static inline int _power_off(const struct device *dev) {
   if (err < 0) {
     return err;
   }
-  _busy_wait(dev);
   return 0;
 }
 
@@ -645,8 +646,6 @@ static inline int _sleep(const struct device *dev) {
   if (err) {
     return err;
   }
-  _busy_wait(dev);
-
   data->sleep = true;
 
   return 0;
@@ -995,7 +994,7 @@ static int uc8175_init(const struct device *dev) {
   }
 
   if ((config->psr >> 6) != res) {
-    LOG_ERR("The psr atribute is conflict with resolution");
+    LOG_ERR("PSR attribute is conflict with resolution");
     return -ENOTSUP;
   }
 
