@@ -6,10 +6,11 @@
 &spi_gooddisplay {
   status = "okay";
   gooddisplay_gdew0102t4: uc8175@0 {
-    compatible = "ultrachip,uc8175";
+    /*  yet another UC8175 driver   */
+    compatible = "ya,ultrachip,uc8175";
     status = "okay";
-    reg = <0>;
 
+    reg = <0>;
     spi-max-frequency = <4000000>;
 
     width = <80>;

@@ -4,7 +4,7 @@
 
 description: UC8175 EPD display controller
 
-compatible: "ultrachip,uc8175"
+compatible: "ya,ultrachip,uc8175"
 
 include: [spi-device.yaml, display-controller.yaml]
 

@@ -3,7 +3,7 @@
 
 if SHIELD_GOODDISPLAY_GDEW0102T4
 
-config UC8175
+config YA_UC8175
     default y
 
 if ZMK_DISPLAY
@@ -15,6 +15,6 @@ choice ZMK_DISPLAY_WORK_QUEUE
     default ZMK_DISPLAY_WORK_QUEUE_DEDICATED
 endchoice
 
-endif # MK_DISPLAY
+endif # ZMK_DISPLAY
 
 endif # SHIELD_GOODDISPLAY_GDEW0102T4

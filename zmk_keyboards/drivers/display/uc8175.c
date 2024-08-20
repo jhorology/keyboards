@@ -4,7 +4,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-#define DT_DRV_COMPAT ultrachip_uc8175
+#define DT_DRV_COMPAT ya_ultrachip_uc8175
 
 #include <zephyr/device.h>
 #include <zephyr/init.h>
@@ -31,7 +31,7 @@ LOG_MODULE_REGISTER(uc8175, CONFIG_DISPLAY_LOG_LEVEL);
   ((config->cdi & UC8175_CDI_MASK_VBD) == 0x40 || (config->cdi & UC8175_CDI_MASK_VBD) == 0x80)
 
 #define CHECK_SUSPENDED(dev)                                                       \
-  COND_CODE_1(CONFIG_UC8175_EXPERIMENT,                                            \
+  COND_CODE_1(CONFIG_YA_UC8175_EXPERIMENT,                                         \
               (enum pm_device_state state; (void)pm_device_state_get(dev, &state); \
                if (state == PM_DEVICE_STATE_SUSPENDED) return -EIO;),              \
               ())
@@ -1073,7 +1073,7 @@ static int uc8175_init(const struct device *dev) {
   return 0;
 }
 
-#ifdef CONFIG_UC8175_EXPERIMENT
+#ifdef CONFIG_YA_UC8175_EXPERIMENT
 static int _resume(const struct device *dev) {
   const struct uc8175_config *config = dev->config;
   struct uc8175_data *data = dev->data;
@@ -1114,7 +1114,7 @@ static int uc8175_pm_action(const struct device *dev, enum pm_device_action acti
   }
   return 0;
 }
-#endif /* CCONFIG_UC8175_EXPERIMENT */
+#endif /* CCONFIG_YA_UC8175_EXPERIMENT */
 
 static const struct display_driver_api uc8175_display_api = {
   .blanking_on = uc8175_blanking_on,
@@ -1154,6 +1154,6 @@ static const struct display_driver_api uc8175_display_api = {
   static struct uc8175_data uc8175_data_##n = {};                                                \
   DEVICE_DT_INST_DEFINE(n, uc8175_init, NULL, &uc8175_data_##n, &uc8175_config_##n, POST_KERNEL, \
                         CONFIG_APPLICATION_INIT_PRIORITY, &uc8175_display_api);                  \
-  IF_ENABLED(CONFIG_UC8175_EXPERIMENT, (PM_DEVICE_DT_INST_DEFINE(n, uc8175_pm_action);));
+  IF_ENABLED(CONFIG_YA_UC8175_EXPERIMENT, (PM_DEVICE_DT_INST_DEFINE(n, uc8175_pm_action);));
 
 DT_INST_FOREACH_STATUS_OKAY(UC8175_INIT)
