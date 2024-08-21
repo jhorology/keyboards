@@ -71,6 +71,11 @@
 #define _H_ROPT &hhkb_r_opt
 
 // Right Shift for corne keyboard
+// single: Left Shift
+// double: Momentaly setting layer
+#define _C_LSHFT &corne_l_shift
+
+// Right Shift for corne keyboard
 // single: Right Shift
 // double: Momentaly setting layer
 #define _C_RSHFT &corne_r_shift
@@ -275,6 +280,14 @@
         #binding-cells = <0>;
         tapping-term-ms = <200>;
         bindings = <&kp RALT>, <&mo _SETTING_LAYER>;
+    };
+    // single -> RSHFT
+    // double -> MO(_SETTING_LAYER)
+    /omit-if-no-ref/ corne_l_shift: corne_l_shift {
+      compatible = "zmk,behavior-tap-dance";
+      #binding-cells = <0>;
+      tapping-term-ms = <200>;
+      bindings = <&kp LSHFT>, <&mo _SETTING_LAYER>;
     };
     // single -> RSHFT
     // double -> MO(_SETTING_LAYER)
