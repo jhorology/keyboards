@@ -141,34 +141,36 @@
     left_thumb_layer {
       display-name = "L Thumb";
       // --------------------------------------   --------------------------------------
-      // |  `   |  !  |  @  |  #  |  %  |  ^  |   |  6  |  7  |  8  |  9  | 0   |      |
-      // |      | F1  | F2  | F3  | F4  | F5  |   |  -  |  =  |  \  |  [  | ]   |      |
-      // |      | F6  | F7  | F8  | F9  | F10 |   | F11 | F12 |     |     |     |      |
+      // |  ~   |  !  |  @  |  #  |  &  |  %  |   |  1  |  2  |  3  |  4  | 5   | ESC  |
+      // |      |  ^  |  &  |  *  |  (  |  )  |   |  6  |  7  |  8  |  9  | 0   |  `   |
+      // |      |  _  |  +  |  |  |  {  |  }  |   |  -  |  =  |  \  |  [  | ]   |      |
       // -------------------|     |     |     |   |     |     |     |-------------------
       //                    -------------------   -------------------
       // *under construction
+      // TODO F1-F24
       bindings = <
-                  &kp GRAVE  &kp EXCL  &kp AT  &kp HASH  &kp DLLR  &kp PRCNT     &kp N6     &kp N7    &kp N8    &kp N9    &kp N0    &trans
-                  &trans     &kp F1    &kp F2  &kp F3    &kp F4    &kp F5        &kp UNDER  &kp PLUS  &kp PIPE  &kp LBRC  &kp RBRC  &trans
-                  &trans     &kp F6    &kp F7  &kp F8    &kp F9    &kp F10       &kp F11    &kp F12   &trans    &trans    &trans    &trans
-                                               &trans    &trans     &trans       &trans     &trans    &trans
+                  &kp TILDE  &kp EXCL   &kp AT    &kp HASH   &kp DLLR  &kp PRCNT     &kp N1     &kp N2     &kp N3    &kp N4    &kp N5    &kp ESC
+                  &trans     &kp CARET  &kp AMPS  &kp ASTRK  &kp LPAR  &kp RPAR      &kp N6     &kp N7     &kp N8    &kp N9    &kp N0    &kp GRAVE
+                  &trans     &kp UNDER  &kp PLUS  &kp PIPE   &kp LBRC  &kp RBRC      &kp MINUS  &kp EQUAL  &kp BSLH  &kp LBKT  &kp RBKT  &trans
+                                                  &trans     &trans     &trans       &trans     &trans     &trans
       >;
     };
     // &kp MINUS  &kp EQUAL  &kp BSLH  &kp LBKT  &kp RBKT
     right_thumb_layer {
       display-name = "R Thumb";
       // --------------------------------------   --------------------------------------
-      // |      |  1  |  2  |  3  |  4  |  5  |   |  ^  |  &  |  *  |  (  |  )  |      |
-      // |      |  !  |  @  |  #  |  $  |  %  |   |  _  |  +  |  |  |  {  |  }  |      |
-      // |      |     |     |     |     |     |   |     |     |     |     |     |      |
+      // |   `  |  1  |  2  |  3  |  4  |  5  |   |  !  |  @  |  #  |  &  |  %  | ESC  |
+      // |      |  6  |  7  |  8  |  9  |  0  |   |  ^  |  &  |  *  |  (  |  )  |  ~   |
+      // |      |  -  |  =  |  \  |  [  |  ]  |   |  _  |  +  |  |  |  {  |  }  |      |
       // -------------------|     |     |     |   |     |     |     |-------------------
       //                    -------------------   -------------------
       // *under construction
+      // TODO F1-F24
       bindings = <
-                  &kp ESC  &kp N1    &kp N2  &kp N3    &kp N4    &kp N5        &kp CARET  &kp AMPS  &kp ASTRK  &kp LPAR  &kp RPAR  &trans
-                  &trans   &kp EXCL  &kp AT  &kp HASH  &kp DLLR  &kp PRCNT     &kp UNDER  &kp PLUS  &kp PIPE   &kp LBRC  &kp RBRC  &trans
-                  &trans   &trans    &trans  &trans    &trans    &trans        &trans     &trans    &trans     &trans    &trans    &trans
-                                             &trans    &trans    &trans        &trans     &trans    &trans
+                  &kp GRAVE  &kp N1     &kp N2    &kp N3    &kp N4    &kp N5       &kp EXCL   &kp AT    &kp HASH   &kp DLLR  &kp PRCNT &kp ESC
+                  &trans     &kp N6     &kp N7    &kp N8    &kp N9    &kp N0       &kp CARET  &kp AMPS  &kp ASTRK  &kp LPAR  &kp RPAR  &kp TILDE
+                  &trans     &kp MINUS  &kp EQUAL &kp BSLH  &kp LBKT  &kp RBKT     &kp UNDER  &kp PLUS  &kp PIPE   &kp LBRC  &kp RBRC  &trans
+                                                  &trans    &trans    &trans       &trans     &trans    &trans
       >;
     };
   };
