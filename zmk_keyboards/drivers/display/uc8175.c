@@ -499,12 +499,14 @@ static int _refresh_partial(const struct device *dev, bool post_process) {
         return err;
       }
 
-      if (post_process) {
-        _busy_wait(dev);
-      } else {
+      if (!post_process) {
         data->sleep = true;
       }
       break;
+  }
+
+  if (post_process) {
+    _busy_wait(dev);
   }
 
   return 0;
