@@ -353,9 +353,10 @@ static int _restore_cdi_lut(const struct device *dev, bool force) {
  * @param blanking blanking mode
  * @param post_process need post process
  */
-static int _refresh_full(const struct device *dev, enum blanking blanking) {
+static int _refresh_full(const struct device *dev, bool blanking_on) {
   const struct uc8175_config *config = dev->config;
   struct uc8175_data *data = dev->data;
+  enum blanking blanking = blanking_on ? config->blanking : KEEP_CONTENT;
   int err;
 
   switch (config->power_saving) {
@@ -378,7 +379,7 @@ static int _refresh_full(const struct device *dev, enum blanking blanking) {
       }
 
       // blanking_off()
-      if (!blanking) {
+      if (!blanking_on) {
         err = _write_cmd(dev, UC8175_CMD_PON);
         if (err < 0) {
           return err;
@@ -393,7 +394,7 @@ static int _refresh_full(const struct device *dev, enum blanking blanking) {
       _busy_wait(dev);
 
       // blanking_on()
-      if (blanking) {
+      if (blanking_on) {
         err = _write_cmd(dev, UC8175_CMD_POF);
         if (err < 0) {
           return err;
@@ -421,12 +422,12 @@ static int _refresh_full(const struct device *dev, enum blanking blanking) {
         return err;
       }
 
-      err =
-        _write_cmd_uint8_data(dev, UC8175_CMD_AUTO, blanking ? UC8175_AUTO_DSLP : UC8175_AUTO_POF);
+      err = _write_cmd_uint8_data(dev, UC8175_CMD_AUTO,
+                                  blanking_on ? UC8175_AUTO_DSLP : UC8175_AUTO_POF);
       if (err < 0) {
         return err;
       }
-      if (blanking) {
+      if (blanking_on) {
         data->sleep = true;
       }
       break;
@@ -831,7 +832,7 @@ static int uc8175_blanking_on(const struct device *dev) {
     return err;
   }
 
-  err = _refresh_full(dev, config->blanking);
+  err = _refresh_full(dev, true);
   if (err < 0) {
     return err;
   }
@@ -882,7 +883,7 @@ static int uc8175_blanking_off(const struct device *dev) {
     return err;
   }
 
-  err = _refresh_full(dev, KEEP_CONTENT);
+  err = _refresh_full(dev, false);
   if (err < 0) {
     return err;
   }

@@ -67,7 +67,6 @@
 #define UC8175_CDI_MASK_VBD (BIT(7) | BIT(6))
 #define UC8175_CDI_MASK_DATA_POLARITY BIT(4)
 #define UC8175_CDI_MASK_REFRESH_MODE BIT(5)
-#define UC8175_PSR_MASK_RES (BIT(7) | BIT(BIT(6)))
 
 /* Time constants in ms */
 #define UC8175_RESET_DELAY 10U
