@@ -35,6 +35,9 @@ const tap_dance_entry_t PROGMEM tap_dance_predefined_entries[NUM_TAP_DANCE_PREDE
   {KC_APP, KC_APP, KC_APP, MO(3), TAPPING_TERM},
 };
 
+// since QMK 0.26, tap_dance_actions must be defined in keyma.c
+tap_dance_action_t tap_dance_actions[TAP_DANCE_ENTRIES];
+
 // clang-format off
 const uint16_t PROGMEM ec_bottoming_reading_default[MATRIX_ROWS][MATRIX_COLS] = {
   {0x03ca,0x03f6,0x03e0,0x03fc,0x03fa,0x03f6,0x03e9,0x03c5,0x03c7,0x038f,0x03e7,0x03b7,0x03fb,0x028d,0x0381},

@@ -21,7 +21,9 @@ static void on_tap_dance_finished(tap_dance_state_t *state, tap_dance_data_t *da
 static void on_tap_dance_reset(tap_dance_state_t *state, tap_dance_data_t *data);
 
 tap_dance_data_t tap_dance_datas[TAP_DANCE_ENTRIES];
-tap_dance_action_t tap_dance_actions[TAP_DANCE_ENTRIES];
+
+// since QMK 0.26, tap_dance_actions must be defined in keyma.c
+extern tap_dance_action_t tap_dance_actions[TAP_DANCE_ENTRIES];
 
 uint16_t tap_dance_get_tapping_term(uint16_t keycode, keyrecord_t *record) {
   uint16_t index = keycode - QK_TAP_DANCE;

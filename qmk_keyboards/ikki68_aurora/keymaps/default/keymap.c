@@ -25,6 +25,9 @@ const tap_dance_entry_t PROGMEM tap_dance_predefined_entries[NUM_TAP_DANCE_PREDE
   {KC_APP, KC_APP, KC_APP, MO(3), TAPPING_TERM},
 };
 
+// since QMK 0.26, tap_dance_actions must be defined in keyma.c
+tap_dance_action_t tap_dance_actions[TAP_DANCE_ENTRIES];
+
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   // mac base layer
