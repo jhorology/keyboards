@@ -4,7 +4,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-#define DT_DRV_COMPAT ya_ultrachip_uc8175
+#define DT_DRV_COMPAT ultrachip_uc8175_ya
 
 #include <zephyr/device.h>
 #include <zephyr/init.h>
@@ -31,9 +31,9 @@ LOG_MODULE_REGISTER(uc8175, CONFIG_DISPLAY_LOG_LEVEL);
   ((config->cdi & UC8175_CDI_MASK_VBD) == 0x40 || (config->cdi & UC8175_CDI_MASK_VBD) == 0x80)
 
 #define CHECK_SUSPENDED(dev)                                                       \
-  COND_CODE_1(CONFIG_YA_UC8175_EXPERIMENT,                                         \
+  COND_CODE_1(CONFIG_PM_DEVICE,                                                    \
               (enum pm_device_state state; (void)pm_device_state_get(dev, &state); \
-               if (state == PM_DEVICE_STATE_SUSPENDED) return -EIO;),              \
+               if (state == PM_DEVICE_STATE_SUSPENDED) return -EIO),               \
               ())
 
 /*
@@ -90,8 +90,11 @@ struct uc8175_config {
   struct gpio_dt_spec busy;
 
   enum blanking blanking;
+  enum blanking blanking_on_suspend;
 
   enum power_saving power_saving;
+
+  bool anti_ghosting;
 
   uint8_t psr;
   uint8_t pwr[UC8175_PWR_REG_LENGTH];
@@ -654,6 +657,120 @@ static inline int _sleep(const struct device *dev) {
   return 0;
 }
 
+static int _resume(const struct device *dev) {
+  const struct uc8175_config *config = dev->config;
+  struct uc8175_data *data = dev->data;
+  int err;
+
+  switch (config->power_saving) {
+    case POWER_SAVING_NONE:
+      err = _wake(dev);
+      if (err < 0) {
+        return err;
+      }
+      err = _power_on(dev);
+      if (err < 0) {
+        return err;
+      }
+      break;
+
+    case POWER_SAVING_POF_ON_BLANKING:
+    case POWER_SAVING_POF_ON_WRITE:
+      err = _wake(dev);
+      if (err < 0) {
+        return err;
+      }
+      err = _power_off(dev);
+      if (err < 0) {
+        return err;
+      }
+      break;
+
+    case POWER_SAVING_DSLP_ON_BLANKING:
+    case POWER_SAVING_DSLP_ON_WRITE:
+      data->blanking_on = true;
+      data->sleep = true;
+      break;
+  }
+
+  return 0;
+}
+
+static int _suspend(const struct device *dev) {
+  const struct uc8175_config *config = dev->config;
+  struct uc8175_data *data = dev->data;
+  int err;
+
+  if (data->sleep && config->blanking_on_suspend == KEEP_CONTENT && !config->anti_ghosting) {
+    return 0;
+  }
+
+  _busy_wait(dev);
+
+  if (config->blanking_on_suspend == KEEP_CONTENT && !config->anti_ghosting) {
+    err = _write_cmd(dev, UC8175_CMD_POF);
+    if (err < 0) {
+      return err;
+    }
+    _busy_wait(dev);
+    err = _write_cmd_uint8_data(dev, UC8175_CMD_DSLP, UC8175_DSLP_CODE);
+    if (err < 0) {
+      return err;
+    }
+    return 0;
+  }
+
+  if (data->sleep) {
+    err = _wake(dev);
+    if (err < 0) {
+      return err;
+    }
+  }
+
+  // anti ghosting
+  if (config->anti_ghosting) {
+    bool is_black = config->blanking_on_suspend == BLANKING_BLACK ||
+                    config->blanking_on_suspend == BLANKING_INVERT;
+    for (int i = 0; i < 2; i++) {
+      err = _window_full(dev);
+      if (err < 0) {
+        return err;
+      }
+
+      err = _override_cdi_lut(dev, true, is_black ? BLANKING_BLACK : BLANKING_WHITE);
+      is_black = !is_black;
+      if (err < 0) {
+        return err;
+      }
+
+      err = _write_cmd_uint8_data(dev, UC8175_CMD_AUTO, UC8175_AUTO_POF);
+      if (err < 0) {
+        return err;
+      }
+      _busy_wait(dev);
+    }
+  }
+
+  err = _window_full(dev);
+  if (err < 0) {
+    return err;
+  }
+
+  err = _override_cdi_lut(dev, true, config->blanking_on_suspend);
+  if (err < 0) {
+    return err;
+  }
+
+  err = _write_cmd_uint8_data(dev, UC8175_CMD_AUTO, UC8175_AUTO_DSLP);
+  if (err < 0) {
+    return err;
+  }
+  data->sleep = true;
+  data->blanking_on = true;
+
+  return 0;
+}
+
 /**
  * @brief Write data to display
  *
@@ -824,6 +941,40 @@ static int uc8175_blanking_on(const struct device *dev) {
     err = _wake(dev);
     if (err < 0) {
       return err;
+    }
+  }
+
+  // anti ghosting
+  if (config->anti_ghosting) {
+    bool is_black = config->blanking == BLANKING_BLACK || config->blanking == BLANKING_INVERT;
+    for (int i = 0; i < 2; i++) {
+      err = _window_full(dev);
+      if (err < 0) {
+        return err;
+      }
+      err = _override_cdi_lut(dev, true, is_black ? BLANKING_BLACK : BLANKING_WHITE);
+      is_black = !is_black;
+      if (err < 0) {
+        return err;
+      }
+      switch (config->power_saving) {
+        case POWER_SAVING_NONE:
+        case POWER_SAVING_POF_ON_BLANKING:
+          err = _write_cmd(dev, UC8175_CMD_DRF);
+          if (err < 0) {
+            return err;
+          }
+          break;
+        case POWER_SAVING_POF_ON_WRITE:
+        case POWER_SAVING_DSLP_ON_BLANKING:
+        case POWER_SAVING_DSLP_ON_WRITE:
+          err = _write_cmd_uint8_data(dev, UC8175_CMD_AUTO, UC8175_AUTO_POF);
+          if (err < 0) {
+            return err;
+          }
+          break;
+      }
+      _busy_wait(dev);
     }
   }
 
@@ -1040,59 +1191,15 @@ static int uc8175_init(const struct device *dev) {
     LOG_ERR("Could not configure GPIO port for UC8175 busy signal");
     return err;
   }
-  switch (config->power_saving) {
-    case POWER_SAVING_NONE:
-      err = _wake(dev);
-      if (err < 0) {
-        return err;
-      }
-      err = _power_on(dev);
-      if (err < 0) {
-        return err;
-      }
-      break;
 
-    case POWER_SAVING_POF_ON_BLANKING:
-    case POWER_SAVING_POF_ON_WRITE:
-      err = _wake(dev);
-      if (err < 0) {
-        return err;
-      }
-      err = _power_off(dev);
-      if (err < 0) {
-        return err;
-      }
-      break;
-
-    case POWER_SAVING_DSLP_ON_BLANKING:
-    case POWER_SAVING_DSLP_ON_WRITE:
-      data->blanking_on = true;
-      data->sleep = true;
-      break;
-  }
+  err = _resume(dev);
 
   LOG_DBG("end PS %u, sleep %u, blanking %u", config->power_saving, data->sleep, data->blanking_on);
 
   return 0;
 }
 
-#ifdef CONFIG_YA_UC8175_EXPERIMENT
-static int _resume(const struct device *dev) {
-  const struct uc8175_config *config = dev->config;
-  struct uc8175_data *data = dev->data;
-  LOG_DBG("start PS %u, sleep %u, blanking %u", config->power_saving, data->sleep,
-          data->blanking_on);
-  return 0;
-}
-
-static int _suspend(const struct device *dev) {
-  const struct uc8175_config *config = dev->config;
-  struct uc8175_data *data = dev->data;
-  LOG_DBG("start PS %u, sleep %u, blanking %u", config->power_saving, data->sleep,
-          data->blanking_on);
-  return 0;
-}
-
+#if IS_ENABLED(CONFIG_PM_DEVICE)
 /**
  * @brief Device PM action callback.
  *
@@ -1104,20 +1211,35 @@ static int _suspend(const struct device *dev) {
  * @retval Errno Other negative errno on failure.
  */
 static int uc8175_pm_action(const struct device *dev, enum pm_device_action action) {
+  const struct uc8175_config *config = dev->config;
+  struct uc8175_data *data = dev->data;
+  int err;
+  LOG_DBG("start action %u, PS %u, sleep %u, blanking %u", action, config->power_saving,
+          data->sleep, data->blanking_on);
   switch (action) {
-    case PM_DEVICE_ACTION_RESUME:
-      return _resume(dev);
     case PM_DEVICE_ACTION_SUSPEND:
-      return _suspend(dev);
-    case PM_DEVICE_ACTION_TURN_ON:
+      err = _suspend(dev);
+      if (err < 0) {
+        return err;
+      }
+      break;
+    case PM_DEVICE_ACTION_RESUME:
+      err = _resume(dev);
+      if (err < 0) {
+        return err;
+      }
+      break;
     case PM_DEVICE_ACTION_TURN_OFF:
+    case PM_DEVICE_ACTION_TURN_ON:
     default:
       return -ENOTSUP;
       break;
   }
+  LOG_DBG("end action %u, PS %u, sleep %u, blanking %u", action, config->power_saving, data->sleep,
+          data->blanking_on);
   return 0;
 }
-#endif /* CCONFIG_YA_UC8175_EXPERIMENT */
+#endif /* CONFIG_PM_DEVICE  */
 
 static const struct display_driver_api uc8175_display_api = {
   .blanking_on = uc8175_blanking_on,
@@ -1132,31 +1254,34 @@ static const struct display_driver_api uc8175_display_api = {
   .set_orientation = uc8175_set_orientation,
 };
 
-#define UC8175_INIT(n)                                                                           \
-  static struct uc8175_config uc8175_config_##n = {                                              \
-    .spi = SPI_DT_SPEC_INST_GET(n, SPI_OP_MODE_MASTER | SPI_LOCK_ON | SPI_WORD_SET(8), 0),       \
-    .width = DT_INST_PROP(n, width),                                                             \
-    .height = DT_INST_PROP(n, height),                                                           \
-    .reset = GPIO_DT_SPEC_INST_GET(n, reset_gpios),                                              \
-    .busy = GPIO_DT_SPEC_INST_GET(n, busy_gpios),                                                \
-    .dc = GPIO_DT_SPEC_INST_GET(n, dc_gpios),                                                    \
-    .power_saving = DT_INST_PROP(n, power_saving),                                               \
-    .blanking = DT_INST_PROP(n, blanking),                                                       \
-    .psr = DT_INST_PROP(n, psr),                                                                 \
-    .pwr = DT_INST_PROP(n, pwr),                                                                 \
-    .cpset = DT_INST_PROP(n, cpset),                                                             \
-    .lutopt = DT_INST_PROP(n, lutopt),                                                           \
-    .pll = DT_INST_PROP(n, pll),                                                                 \
-    .cdi = DT_INST_PROP(n, cdi),                                                                 \
-    .tcon = DT_INST_PROP(n, tcon),                                                               \
-    .vdcs = DT_INST_PROP(n, vdcs),                                                               \
-    .pws = DT_INST_PROP(n, pws),                                                                 \
-    .lutw = DT_INST_PROP(n, lutw),                                                               \
-    .lutb = DT_INST_PROP(n, lutb),                                                               \
-  };                                                                                             \
-  static struct uc8175_data uc8175_data_##n = {};                                                \
-  DEVICE_DT_INST_DEFINE(n, uc8175_init, NULL, &uc8175_data_##n, &uc8175_config_##n, POST_KERNEL, \
-                        CONFIG_APPLICATION_INIT_PRIORITY, &uc8175_display_api);                  \
-  IF_ENABLED(CONFIG_YA_UC8175_EXPERIMENT, (PM_DEVICE_DT_INST_DEFINE(n, uc8175_pm_action);));
+#define UC8175_INIT(n)                                                                     \
+  static struct uc8175_config uc8175_config_##n = {                                        \
+    .spi = SPI_DT_SPEC_INST_GET(n, SPI_OP_MODE_MASTER | SPI_LOCK_ON | SPI_WORD_SET(8), 0), \
+    .width = DT_INST_PROP(n, width),                                                       \
+    .height = DT_INST_PROP(n, height),                                                     \
+    .reset = GPIO_DT_SPEC_INST_GET(n, reset_gpios),                                        \
+    .busy = GPIO_DT_SPEC_INST_GET(n, busy_gpios),                                          \
+    .dc = GPIO_DT_SPEC_INST_GET(n, dc_gpios),                                              \
+    .power_saving = DT_INST_PROP(n, power_saving),                                         \
+    .blanking = DT_INST_PROP(n, blanking),                                                 \
+    .blanking_on_suspend = DT_INST_PROP(n, blanking_on_suspend),                           \
+    .anti_ghosting = DT_INST_PROP(n, anti_ghosting),                                       \
+    .psr = DT_INST_PROP(n, psr),                                                           \
+    .pwr = DT_INST_PROP(n, pwr),                                                           \
+    .cpset = DT_INST_PROP(n, cpset),                                                       \
+    .lutopt = DT_INST_PROP(n, lutopt),                                                     \
+    .pll = DT_INST_PROP(n, pll),                                                           \
+    .cdi = DT_INST_PROP(n, cdi),                                                           \
+    .tcon = DT_INST_PROP(n, tcon),                                                         \
+    .vdcs = DT_INST_PROP(n, vdcs),                                                         \
+    .pws = DT_INST_PROP(n, pws),                                                           \
+    .lutw = DT_INST_PROP(n, lutw),                                                         \
+    .lutb = DT_INST_PROP(n, lutb),                                                         \
+  };                                                                                       \
+  static struct uc8175_data uc8175_data_##n = {};                                          \
+  PM_DEVICE_DT_INST_DEFINE(n, uc8175_pm_action);                                           \
+  DEVICE_DT_INST_DEFINE(n, uc8175_init, PM_DEVICE_DT_INST_GET(n), &uc8175_data_##n,        \
+                        &uc8175_config_##n, POST_KERNEL, CONFIG_APPLICATION_INIT_PRIORITY, \
+                        &uc8175_display_api);
 
 DT_INST_FOREACH_STATUS_OKAY(UC8175_INIT)

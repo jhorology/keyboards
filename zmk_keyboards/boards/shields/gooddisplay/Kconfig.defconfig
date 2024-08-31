@@ -3,7 +3,7 @@
 
 if SHIELD_GOODDISPLAY_GDEW0102T4
 
-config YA_UC8175
+config UC8175_YA
     default y
 
 if ZMK_DISPLAY

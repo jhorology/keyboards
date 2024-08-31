@@ -4,7 +4,7 @@
 
 description: UC8175 EPD display controller
 
-compatible: "ya,ultrachip,uc8175"
+compatible: "ultrachip,uc8175,ya"
 
 include: [spi-device.yaml, display-controller.yaml]
 
@@ -60,6 +60,24 @@ properties:
       1: White (1-indexed color)
       2: Black (0-indexed color)
       3: Invert (Default. reduce ghosting)
+
+  blanking-on-suspend:
+    type: int
+    default: 1
+    description: |
+      Blanking Mode
+
+      0: Keep display content
+      1: White (1-indexed color)
+      2: Black (0-indexed color)
+      3: Invert
+
+  anti-ghosting:
+    type: boolean
+    description: |
+      Enable anti-ghosting
+
+      full refresh black/white on blanking_on() nad pm_suspend
 
   psr:
     type: int

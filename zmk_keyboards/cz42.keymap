@@ -202,6 +202,17 @@
   blanking = <3>;
 
   /*
+   *  Blanking mode
+   *   0: keep content
+   *   1: white (backgroun color)
+   *   2: black (foreground color)
+   *   3: invert (Default. reduce ghosting)
+   */
+  blanking-on-suspend = <1>;
+
+  anti-ghosting;
+
+  /*
    * CDI = 0x92 0b10010010
    * [7:6] VBD  Border        10b border color 1, depends on DDX[0]
    * [5] DDX[1] XOR Refresh    0  refresh all pixel
