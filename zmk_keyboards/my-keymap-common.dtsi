@@ -113,6 +113,10 @@
 // Do Not Disturb on apple fn Layer
 #define _DND &de_fn_kp SC_DND
 
+// soft off
+//--------------------------------------------
+#define _SOFT_OFF &soft_off_on_release
+
 // ext_power
 //--------------------------------------------
 
@@ -436,4 +440,10 @@
     #sensor-binding-cells = <0>;
     bindings = <&trans>, <&trans>;
   };
+
+  /omit-if-no-ref/ soft_off_on_release: soft_off_on_release {
+    compatible = "zmk,behavior-soft-off";
+    #binding-cells = <0>;
+  };
+
 };
