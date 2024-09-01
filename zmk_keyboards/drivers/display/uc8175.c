@@ -1281,7 +1281,7 @@ static const struct display_driver_api uc8175_display_api = {
   static struct uc8175_data uc8175_data_##n = {};                                          \
   PM_DEVICE_DT_INST_DEFINE(n, uc8175_pm_action);                                           \
   DEVICE_DT_INST_DEFINE(n, uc8175_init, PM_DEVICE_DT_INST_GET(n), &uc8175_data_##n,        \
-                        &uc8175_config_##n, POST_KERNEL, CONFIG_APPLICATION_INIT_PRIORITY, \
+                        &uc8175_config_##n, POST_KERNEL, CONFIG_DISPLAY_INIT_PRIORITY,     \
                         &uc8175_display_api);
 
 DT_INST_FOREACH_STATUS_OKAY(UC8175_INIT)

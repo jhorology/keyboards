@@ -1,0 +1,1747 @@
+From cb9917a49882332ac780069cfef47d862e239122 Mon Sep 17 00:00:00 2001
+From: Tokazio <tokazio@hotmail.com>
+Date: Tue, 17 Jan 2023 19:05:04 +0100
+Subject: [PATCH 01/10] led color to right side
+
+---
+ app/include/zmk/keymap.h |  5 +++++
+ app/src/behavior_queue.c |  5 +++--
+ app/src/keymap.c         | 23 ++++++++++++++---------
+ 3 files changed, 22 insertions(+), 11 deletions(-)
+
+diff --git a/app/include/zmk/keymap.h b/app/include/zmk/keymap.h
+index 0d7dbaf33b3..6d3d91121a1 100644
+--- a/app/include/zmk/keymap.h
++++ b/app/include/zmk/keymap.h
+@@ -7,6 +7,7 @@
+ #pragma once
+ 
+ #include <zmk/events/position_state_changed.h>
++#include <zmk/behavior.h>
+ 
+ #define ZMK_LAYER_CHILD_LEN_PLUS_ONE(node) 1 +
+ #define ZMK_KEYMAP_LAYERS_LEN                                                                      \
+@@ -27,6 +28,10 @@ const char *zmk_keymap_layer_name(uint8_t layer);
+ int zmk_keymap_position_state_changed(uint8_t source, uint32_t position, bool pressed,
+                                       int64_t timestamp);
+ 
++int zmk_trigger_behavior_callbacks(struct zmk_behavior_binding *binding,
++                                   struct zmk_behavior_binding_event event, uint8_t source,
++                                   bool pressed);
++
+ #define ZMK_KEYMAP_EXTRACT_BINDING(idx, drv_inst)                                                  \
+     {                                                                                              \
+         .behavior_dev = DEVICE_DT_NAME(DT_PHANDLE_BY_IDX(drv_inst, bindings, idx)),                \
+diff --git a/app/src/behavior_queue.c b/app/src/behavior_queue.c
+index 1511e755d4f..531a92cb56e 100644
+--- a/app/src/behavior_queue.c
++++ b/app/src/behavior_queue.c
+@@ -5,6 +5,7 @@
+  */
+ 
+ #include <zmk/behavior_queue.h>
++#include <zmk/keymap.h>
+ 
+ #include <zephyr/kernel.h>
+ #include <zephyr/logging/log.h>
+@@ -35,9 +36,9 @@ static void behavior_queue_process_next(struct k_work *work) {
+                                                    .timestamp = k_uptime_get()};
+ 
+         if (item.press) {
+-            behavior_keymap_binding_pressed(&item.binding, event);
++            zmk_trigger_behavior_callbacks(&item.binding, event, 0, true);
+         } else {
+-            behavior_keymap_binding_released(&item.binding, event);
++            zmk_trigger_behavior_callbacks(&item.binding, event, 0, false);
+         }
+ 
+         LOG_DBG("Processing next queued behavior in %dms", item.wait);
+diff --git a/app/src/keymap.c b/app/src/keymap.c
+index 94bd12048cf..f5a798538a2 100644
+--- a/app/src/keymap.c
++++ b/app/src/keymap.c
+@@ -177,7 +177,6 @@ int zmk_keymap_apply_position_state(uint8_t source, int layer, uint32_t position
+     // We want to make a copy of this, since it may be converted from
+     // relative to absolute before being invoked
+     struct zmk_behavior_binding binding = zmk_keymap[layer][position];
+-    const struct device *behavior;
+     struct zmk_behavior_binding_event event = {
+         .layer = layer,
+         .position = position,
+@@ -186,14 +185,20 @@ int zmk_keymap_apply_position_state(uint8_t source, int layer, uint32_t position
+ 
+     LOG_DBG("layer: %d position: %d, binding name: %s", layer, position, binding.behavior_dev);
+ 
+-    behavior = zmk_behavior_get_binding(binding.behavior_dev);
++    return zmk_trigger_behavior_callbacks(&binding, event, source, pressed);
++}
++
++int zmk_trigger_behavior_callbacks(struct zmk_behavior_binding *binding,
++                                   struct zmk_behavior_binding_event event, uint8_t source,
++                                   bool pressed) {
++    const struct device *behavior = zmk_behavior_get_binding(binding->behavior_dev);
+ 
+     if (!behavior) {
+-        LOG_WRN("No behavior assigned to %d on layer %d", position, layer);
++        LOG_WRN("No behavior assigned to %d on layer %d", event.position, event.layer);
+         return 1;
+     }
+ 
+-    int err = behavior_keymap_binding_convert_central_state_dependent_params(&binding, event);
++    int err = behavior_keymap_binding_convert_central_state_dependent_params(binding, event);
+     if (err) {
+         LOG_ERR("Failed to convert relative to absolute behavior binding (err %d)", err);
+         return err;
+@@ -208,24 +213,24 @@ int zmk_keymap_apply_position_state(uint8_t source, int layer, uint32_t position
+ 
+     switch (locality) {
+     case BEHAVIOR_LOCALITY_CENTRAL:
+-        return invoke_locally(&binding, event, pressed);
++        return invoke_locally(binding, event, pressed);
+     case BEHAVIOR_LOCALITY_EVENT_SOURCE:
+ #if ZMK_BLE_IS_CENTRAL
+         if (source == ZMK_POSITION_STATE_CHANGE_SOURCE_LOCAL) {
+-            return invoke_locally(&binding, event, pressed);
++            return invoke_locally(binding, event, pressed);
+         } else {
+             return zmk_split_bt_invoke_behavior(source, &binding, event, pressed);
+         }
+ #else
+-        return invoke_locally(&binding, event, pressed);
++        return invoke_locally(binding, event, pressed);
+ #endif
+     case BEHAVIOR_LOCALITY_GLOBAL:
+ #if ZMK_BLE_IS_CENTRAL
+         for (int i = 0; i < ZMK_SPLIT_BLE_PERIPHERAL_COUNT; i++) {
+-            zmk_split_bt_invoke_behavior(i, &binding, event, pressed);
++            zmk_split_bt_invoke_behavior(i, binding, event, pressed);
+         }
+ #endif
+-        return invoke_locally(&binding, event, pressed);
++        return invoke_locally(binding, event, pressed);
+     }
+ 
+     return -ENOTSUP;
+
+From f4f31b250d994b54ff267701be6570ae22adc01b Mon Sep 17 00:00:00 2001
+From: Cem Aksoylar <caksoylar@users.noreply.github.com>
+Date: Tue, 6 Aug 2024 17:46:31 -0700
+Subject: [PATCH 02/10] Fix extra dereferencing bug
+
+---
+ app/src/keymap.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/app/src/keymap.c b/app/src/keymap.c
+index f5a798538a2..32e4abbd69d 100644
+--- a/app/src/keymap.c
++++ b/app/src/keymap.c
+@@ -219,7 +219,7 @@ int zmk_trigger_behavior_callbacks(struct zmk_behavior_binding *binding,
+         if (source == ZMK_POSITION_STATE_CHANGE_SOURCE_LOCAL) {
+             return invoke_locally(binding, event, pressed);
+         } else {
+-            return zmk_split_bt_invoke_behavior(source, &binding, event, pressed);
++            return zmk_split_bt_invoke_behavior(source, binding, event, pressed);
+         }
+ #else
+         return invoke_locally(binding, event, pressed);
+
+From 83ca29b3ec672fbaaeefa327606874ef533c7d2d Mon Sep 17 00:00:00 2001
+From: Cem Aksoylar <caksoylar@users.noreply.github.com>
+Date: Tue, 6 Aug 2024 23:31:01 -0700
+Subject: [PATCH 03/10] Attempt to properly pass through sources
+
+---
+ app/include/zmk/behavior.h                    |  1 +
+ app/include/zmk/behavior_queue.h              |  4 ++--
+ app/include/zmk/keymap.h                      |  3 +--
+ app/include/zmk/split/bluetooth/service.h     |  1 +
+ app/src/behavior_queue.c                      | 16 +++++++------
+ app/src/behaviors/behavior_hold_tap.c         | 23 ++++++++++++-------
+ app/src/behaviors/behavior_macro.c            | 15 ++++++------
+ app/src/behaviors/behavior_mod_morph.c        |  5 ++--
+ .../behaviors/behavior_sensor_rotate_common.c |  4 ++--
+ app/src/behaviors/behavior_sticky_key.c       | 15 ++++++++----
+ app/src/behaviors/behavior_tap_dance.c        | 15 ++++++++----
+ app/src/keymap.c                              | 10 ++++----
+ app/src/split/bluetooth/central.c             |  1 +
+ 13 files changed, 68 insertions(+), 45 deletions(-)
+
+diff --git a/app/include/zmk/behavior.h b/app/include/zmk/behavior.h
+index d45bbfffe75..ad16af211c5 100644
+--- a/app/include/zmk/behavior.h
++++ b/app/include/zmk/behavior.h
+@@ -26,6 +26,7 @@ struct zmk_behavior_binding_event {
+     int layer;
+     uint32_t position;
+     int64_t timestamp;
++    uint8_t source;
+ };
+ 
+ /**
+diff --git a/app/include/zmk/behavior_queue.h b/app/include/zmk/behavior_queue.h
+index 307482e7cd4..781f582e095 100644
+--- a/app/include/zmk/behavior_queue.h
++++ b/app/include/zmk/behavior_queue.h
+@@ -10,5 +10,5 @@
+ #include <stdint.h>
+ #include <zmk/behavior.h>
+ 
+-int zmk_behavior_queue_add(uint32_t position, const struct zmk_behavior_binding behavior,
+-                           bool press, uint32_t wait);
++int zmk_behavior_queue_add(uint32_t position, uint8_t source,
++                           const struct zmk_behavior_binding behavior, bool press, uint32_t wait);
+diff --git a/app/include/zmk/keymap.h b/app/include/zmk/keymap.h
+index 6d3d91121a1..f713092b3bf 100644
+--- a/app/include/zmk/keymap.h
++++ b/app/include/zmk/keymap.h
+@@ -29,8 +29,7 @@ int zmk_keymap_position_state_changed(uint8_t source, uint32_t position, bool pr
+                                       int64_t timestamp);
+ 
+ int zmk_trigger_behavior_callbacks(struct zmk_behavior_binding *binding,
+-                                   struct zmk_behavior_binding_event event, uint8_t source,
+-                                   bool pressed);
++                                   struct zmk_behavior_binding_event event, bool pressed);
+ 
+ #define ZMK_KEYMAP_EXTRACT_BINDING(idx, drv_inst)                                                  \
+     {                                                                                              \
+diff --git a/app/include/zmk/split/bluetooth/service.h b/app/include/zmk/split/bluetooth/service.h
+index 112cd552942..1c9e75226ad 100644
+--- a/app/include/zmk/split/bluetooth/service.h
++++ b/app/include/zmk/split/bluetooth/service.h
+@@ -20,6 +20,7 @@ struct sensor_event {
+ 
+ struct zmk_split_run_behavior_data {
+     uint8_t position;
++    uint8_t source;
+     uint8_t state;
+     uint32_t param1;
+     uint32_t param2;
+diff --git a/app/src/behavior_queue.c b/app/src/behavior_queue.c
+index 531a92cb56e..eb8f95b7db1 100644
+--- a/app/src/behavior_queue.c
++++ b/app/src/behavior_queue.c
+@@ -15,6 +15,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
+ 
+ struct q_item {
+     uint32_t position;
++    uint8_t source;
+     struct zmk_behavior_binding binding;
+     bool press : 1;
+     uint32_t wait : 31;
+@@ -32,13 +33,13 @@ static void behavior_queue_process_next(struct k_work *work) {
+         LOG_DBG("Invoking %s: 0x%02x 0x%02x", item.binding.behavior_dev, item.binding.param1,
+                 item.binding.param2);
+ 
+-        struct zmk_behavior_binding_event event = {.position = item.position,
+-                                                   .timestamp = k_uptime_get()};
++        struct zmk_behavior_binding_event event = {
++            .position = item.position, .timestamp = k_uptime_get(), .source = item.source};
+ 
+         if (item.press) {
+-            zmk_trigger_behavior_callbacks(&item.binding, event, 0, true);
++            zmk_trigger_behavior_callbacks(&item.binding, event, true);
+         } else {
+-            zmk_trigger_behavior_callbacks(&item.binding, event, 0, false);
++            zmk_trigger_behavior_callbacks(&item.binding, event, false);
+         }
+ 
+         LOG_DBG("Processing next queued behavior in %dms", item.wait);
+@@ -50,9 +51,10 @@ static void behavior_queue_process_next(struct k_work *work) {
+     }
+ }
+ 
+-int zmk_behavior_queue_add(uint32_t position, const struct zmk_behavior_binding binding, bool press,
+-                           uint32_t wait) {
+-    struct q_item item = {.press = press, .binding = binding, .wait = wait};
++int zmk_behavior_queue_add(uint32_t position, uint8_t source,
++                           const struct zmk_behavior_binding binding, bool press, uint32_t wait) {
++    struct q_item item = {
++        .press = press, .binding = binding, .wait = wait, .position = position, .source = source};
+ 
+     const int ret = k_msgq_put(&zmk_behavior_queue_msgq, &item, K_NO_WAIT);
+     if (ret < 0) {
+diff --git a/app/src/behaviors/behavior_hold_tap.c b/app/src/behaviors/behavior_hold_tap.c
+index c45ee803f53..8b559166a35 100644
+--- a/app/src/behaviors/behavior_hold_tap.c
++++ b/app/src/behaviors/behavior_hold_tap.c
+@@ -77,6 +77,7 @@ struct behavior_hold_tap_data {
+ // this data is specific for each hold-tap
+ struct active_hold_tap {
+     int32_t position;
++    uint8_t source;
+     uint32_t param_hold;
+     uint32_t param_tap;
+     int64_t timestamp;
+@@ -250,14 +251,16 @@ static struct active_hold_tap *find_hold_tap(uint32_t position) {
+     return NULL;
+ }
+ 
+-static struct active_hold_tap *store_hold_tap(uint32_t position, uint32_t param_hold,
+-                                              uint32_t param_tap, int64_t timestamp,
++static struct active_hold_tap *store_hold_tap(uint32_t position, uint8_t source,
++                                              uint32_t param_hold, uint32_t param_tap,
++                                              int64_t timestamp,
+                                               const struct behavior_hold_tap_config *config) {
+     for (int i = 0; i < ZMK_BHV_HOLD_TAP_MAX_HELD; i++) {
+         if (active_hold_taps[i].position != ZMK_BHV_HOLD_TAP_POSITION_NOT_USED) {
+             continue;
+         }
+         active_hold_taps[i].position = position;
++        active_hold_taps[i].source = source;
+         active_hold_taps[i].status = STATUS_UNDECIDED;
+         active_hold_taps[i].config = config;
+         active_hold_taps[i].param_hold = param_hold;
+@@ -400,45 +403,49 @@ static int press_hold_binding(struct active_hold_tap *hold_tap) {
+     struct zmk_behavior_binding_event event = {
+         .position = hold_tap->position,
+         .timestamp = hold_tap->timestamp,
++        .source = hold_tap->source,
+     };
+ 
+     struct zmk_behavior_binding binding = {.behavior_dev = hold_tap->config->hold_behavior_dev,
+                                            .param1 = hold_tap->param_hold};
+-    return behavior_keymap_binding_pressed(&binding, event);
++    return zmk_trigger_behavior_callbacks(&binding, event, true);
+ }
+ 
+ static int press_tap_binding(struct active_hold_tap *hold_tap) {
+     struct zmk_behavior_binding_event event = {
+         .position = hold_tap->position,
+         .timestamp = hold_tap->timestamp,
++        .source = hold_tap->source,
+     };
+ 
+     struct zmk_behavior_binding binding = {.behavior_dev = hold_tap->config->tap_behavior_dev,
+                                            .param1 = hold_tap->param_tap};
+     store_last_hold_tapped(hold_tap);
+-    return behavior_keymap_binding_pressed(&binding, event);
++    return zmk_trigger_behavior_callbacks(&binding, event, true);
+ }
+ 
+ static int release_hold_binding(struct active_hold_tap *hold_tap) {
+     struct zmk_behavior_binding_event event = {
+         .position = hold_tap->position,
+         .timestamp = hold_tap->timestamp,
++        .source = hold_tap->source,
+     };
+ 
+     struct zmk_behavior_binding binding = {.behavior_dev = hold_tap->config->hold_behavior_dev,
+                                            .param1 = hold_tap->param_hold};
+-    return behavior_keymap_binding_released(&binding, event);
++    return zmk_trigger_behavior_callbacks(&binding, event, false);
+ }
+ 
+ static int release_tap_binding(struct active_hold_tap *hold_tap) {
+     struct zmk_behavior_binding_event event = {
+         .position = hold_tap->position,
+         .timestamp = hold_tap->timestamp,
++        .source = hold_tap->source,
+     };
+ 
+     struct zmk_behavior_binding binding = {.behavior_dev = hold_tap->config->tap_behavior_dev,
+                                            .param1 = hold_tap->param_tap};
+-    return behavior_keymap_binding_released(&binding, event);
++    return zmk_trigger_behavior_callbacks(&binding, event, false);
+ }
+ 
+ static int press_binding(struct active_hold_tap *hold_tap) {
+@@ -597,8 +604,8 @@ static int on_hold_tap_binding_pressed(struct zmk_behavior_binding *binding,
+         return ZMK_BEHAVIOR_OPAQUE;
+     }
+ 
+-    struct active_hold_tap *hold_tap =
+-        store_hold_tap(event.position, binding->param1, binding->param2, event.timestamp, cfg);
++    struct active_hold_tap *hold_tap = store_hold_tap(event.position, event.source, binding->param1,
++                                                      binding->param2, event.timestamp, cfg);
+     if (hold_tap == NULL) {
+         LOG_ERR("unable to store hold-tap info, did you press more than %d hold-taps?",
+                 ZMK_BHV_HOLD_TAP_MAX_HELD);
+diff --git a/app/src/behaviors/behavior_macro.c b/app/src/behaviors/behavior_macro.c
+index b535ed8be07..adf3fa65747 100644
+--- a/app/src/behaviors/behavior_macro.c
++++ b/app/src/behaviors/behavior_macro.c
+@@ -158,7 +158,8 @@ static void replace_params(struct behavior_macro_trigger_state *state,
+     state->param2_source = PARAM_SOURCE_BINDING;
+ }
+ 
+-static void queue_macro(uint32_t position, const struct zmk_behavior_binding bindings[],
++static void queue_macro(uint32_t position, uint8_t source,
++                        const struct zmk_behavior_binding bindings[],
+                         struct behavior_macro_trigger_state state,
+                         const struct zmk_behavior_binding *macro_binding) {
+     LOG_DBG("Iterating macro bindings - starting: %d, count: %d", state.start_index, state.count);
+@@ -169,14 +170,14 @@ static void queue_macro(uint32_t position, const struct zmk_behavior_binding bin
+ 
+             switch (state.mode) {
+             case MACRO_MODE_TAP:
+-                zmk_behavior_queue_add(position, binding, true, state.tap_ms);
+-                zmk_behavior_queue_add(position, binding, false, state.wait_ms);
++                zmk_behavior_queue_add(position, source, binding, true, state.tap_ms);
++                zmk_behavior_queue_add(position, source, binding, false, state.wait_ms);
+                 break;
+             case MACRO_MODE_PRESS:
+-                zmk_behavior_queue_add(position, binding, true, state.wait_ms);
++                zmk_behavior_queue_add(position, source, binding, true, state.wait_ms);
+                 break;
+             case MACRO_MODE_RELEASE:
+-                zmk_behavior_queue_add(position, binding, false, state.wait_ms);
++                zmk_behavior_queue_add(position, source, binding, false, state.wait_ms);
+                 break;
+             default:
+                 LOG_ERR("Unknown macro mode: %d", state.mode);
+@@ -197,7 +198,7 @@ static int on_macro_binding_pressed(struct zmk_behavior_binding *binding,
+                                                          .start_index = 0,
+                                                          .count = state->press_bindings_count};
+ 
+-    queue_macro(event.position, cfg->bindings, trigger_state, binding);
++    queue_macro(event.position, event.source, cfg->bindings, trigger_state, binding);
+ 
+     return ZMK_BEHAVIOR_OPAQUE;
+ }
+@@ -208,7 +209,7 @@ static int on_macro_binding_released(struct zmk_behavior_binding *binding,
+     const struct behavior_macro_config *cfg = dev->config;
+     struct behavior_macro_state *state = dev->data;
+ 
+-    queue_macro(event.position, cfg->bindings, state->release_state, binding);
++    queue_macro(event.position, event.source, cfg->bindings, state->release_state, binding);
+ 
+     return ZMK_BEHAVIOR_OPAQUE;
+ }
+diff --git a/app/src/behaviors/behavior_mod_morph.c b/app/src/behaviors/behavior_mod_morph.c
+index 303f96a7d05..08dc9cbb2f7 100644
+--- a/app/src/behaviors/behavior_mod_morph.c
++++ b/app/src/behaviors/behavior_mod_morph.c
+@@ -10,6 +10,7 @@
+ #include <drivers/behavior.h>
+ #include <zephyr/logging/log.h>
+ #include <zmk/behavior.h>
++#include <zmk/keymap.h>
+ 
+ #include <zmk/matrix.h>
+ #include <zmk/endpoints.h>
+@@ -51,7 +52,7 @@ static int on_mod_morph_binding_pressed(struct zmk_behavior_binding *binding,
+     } else {
+         data->pressed_binding = (struct zmk_behavior_binding *)&cfg->normal_binding;
+     }
+-    return behavior_keymap_binding_pressed(data->pressed_binding, event);
++    return zmk_trigger_behavior_callbacks(data->pressed_binding, event, true);
+ }
+ 
+ static int on_mod_morph_binding_released(struct zmk_behavior_binding *binding,
+@@ -67,7 +68,7 @@ static int on_mod_morph_binding_released(struct zmk_behavior_binding *binding,
+     struct zmk_behavior_binding *pressed_binding = data->pressed_binding;
+     data->pressed_binding = NULL;
+     int err;
+-    err = behavior_keymap_binding_released(pressed_binding, event);
++    err = zmk_trigger_behavior_callbacks(pressed_binding, event, false);
+     zmk_hid_masked_modifiers_clear();
+     return err;
+ }
+diff --git a/app/src/behaviors/behavior_sensor_rotate_common.c b/app/src/behaviors/behavior_sensor_rotate_common.c
+index 94bf40c18d4..677443ee290 100644
+--- a/app/src/behaviors/behavior_sensor_rotate_common.c
++++ b/app/src/behaviors/behavior_sensor_rotate_common.c
+@@ -90,8 +90,8 @@ int zmk_behavior_sensor_rotate_common_process(struct zmk_behavior_binding *bindi
+     LOG_DBG("Sensor binding: %s", binding->behavior_dev);
+ 
+     for (int i = 0; i < triggers; i++) {
+-        zmk_behavior_queue_add(event.position, triggered_binding, true, cfg->tap_ms);
+-        zmk_behavior_queue_add(event.position, triggered_binding, false, 0);
++        zmk_behavior_queue_add(event.position, event.source, triggered_binding, true, cfg->tap_ms);
++        zmk_behavior_queue_add(event.position, event.source, triggered_binding, false, 0);
+     }
+ 
+     return ZMK_BEHAVIOR_OPAQUE;
+diff --git a/app/src/behaviors/behavior_sticky_key.c b/app/src/behaviors/behavior_sticky_key.c
+index 61c86fb7d21..30c9ad7df38 100644
+--- a/app/src/behaviors/behavior_sticky_key.c
++++ b/app/src/behaviors/behavior_sticky_key.c
+@@ -40,6 +40,7 @@ struct behavior_sticky_key_config {
+ 
+ struct active_sticky_key {
+     uint32_t position;
++    uint8_t source;
+     uint32_t param1;
+     uint32_t param2;
+     const struct behavior_sticky_key_config *config;
+@@ -55,8 +56,8 @@ struct active_sticky_key {
+ 
+ struct active_sticky_key active_sticky_keys[ZMK_BHV_STICKY_KEY_MAX_HELD] = {};
+ 
+-static struct active_sticky_key *store_sticky_key(uint32_t position, uint32_t param1,
+-                                                  uint32_t param2,
++static struct active_sticky_key *store_sticky_key(uint32_t position, uint8_t source,
++                                                  uint32_t param1, uint32_t param2,
+                                                   const struct behavior_sticky_key_config *config) {
+     for (int i = 0; i < ZMK_BHV_STICKY_KEY_MAX_HELD; i++) {
+         struct active_sticky_key *const sticky_key = &active_sticky_keys[i];
+@@ -65,6 +66,7 @@ static struct active_sticky_key *store_sticky_key(uint32_t position, uint32_t pa
+             continue;
+         }
+         sticky_key->position = position;
++        sticky_key->source = source;
+         sticky_key->param1 = param1;
+         sticky_key->param2 = param2;
+         sticky_key->config = config;
+@@ -101,8 +103,9 @@ static inline int press_sticky_key_behavior(struct active_sticky_key *sticky_key
+     struct zmk_behavior_binding_event event = {
+         .position = sticky_key->position,
+         .timestamp = timestamp,
++        .source = sticky_key->source,
+     };
+-    return behavior_keymap_binding_pressed(&binding, event);
++    return zmk_trigger_behavior_callbacks(&binding, event, true);
+ }
+ 
+ static inline int release_sticky_key_behavior(struct active_sticky_key *sticky_key,
+@@ -115,10 +118,11 @@ static inline int release_sticky_key_behavior(struct active_sticky_key *sticky_k
+     struct zmk_behavior_binding_event event = {
+         .position = sticky_key->position,
+         .timestamp = timestamp,
++        .source = sticky_key->source,
+     };
+ 
+     clear_sticky_key(sticky_key);
+-    return behavior_keymap_binding_released(&binding, event);
++    return zmk_trigger_behavior_callbacks(&binding, event, false);
+ }
+ 
+ static inline void on_sticky_key_timeout(struct active_sticky_key *sticky_key) {
+@@ -149,7 +153,8 @@ static int on_sticky_key_binding_pressed(struct zmk_behavior_binding *binding,
+         stop_timer(sticky_key);
+         release_sticky_key_behavior(sticky_key, event.timestamp);
+     }
+-    sticky_key = store_sticky_key(event.position, binding->param1, binding->param2, cfg);
++    sticky_key =
++        store_sticky_key(event.position, event.source, binding->param1, binding->param2, cfg);
+     if (sticky_key == NULL) {
+         LOG_ERR("unable to store sticky key, did you press more than %d sticky_key?",
+                 ZMK_BHV_STICKY_KEY_MAX_HELD);
+diff --git a/app/src/behaviors/behavior_tap_dance.c b/app/src/behaviors/behavior_tap_dance.c
+index ce57b70fc4b..51eb4a62b70 100644
+--- a/app/src/behaviors/behavior_tap_dance.c
++++ b/app/src/behaviors/behavior_tap_dance.c
+@@ -35,6 +35,7 @@ struct active_tap_dance {
+     // Tap Dance Data
+     int counter;
+     uint32_t position;
++    uint8_t source;
+     uint32_t param1;
+     uint32_t param2;
+     bool is_pressed;
+@@ -59,13 +60,15 @@ static struct active_tap_dance *find_tap_dance(uint32_t position) {
+     return NULL;
+ }
+ 
+-static int new_tap_dance(uint32_t position, const struct behavior_tap_dance_config *config,
++static int new_tap_dance(uint32_t position, uint8_t source,
++                         const struct behavior_tap_dance_config *config,
+                          struct active_tap_dance **tap_dance) {
+     for (int i = 0; i < ZMK_BHV_TAP_DANCE_MAX_HELD; i++) {
+         struct active_tap_dance *const ref_dance = &active_tap_dances[i];
+         if (ref_dance->position == ZMK_BHV_TAP_DANCE_POSITION_FREE) {
+             ref_dance->counter = 0;
+             ref_dance->position = position;
++            ref_dance->source = source;
+             ref_dance->config = config;
+             ref_dance->release_at = 0;
+             ref_dance->is_pressed = true;
+@@ -108,8 +111,9 @@ static inline int press_tap_dance_behavior(struct active_tap_dance *tap_dance, i
+     struct zmk_behavior_binding_event event = {
+         .position = tap_dance->position,
+         .timestamp = timestamp,
++        .source = tap_dance->source,
+     };
+-    return behavior_keymap_binding_pressed(&binding, event);
++    return zmk_trigger_behavior_callbacks(&binding, event, true);
+ }
+ 
+ static inline int release_tap_dance_behavior(struct active_tap_dance *tap_dance,
+@@ -118,9 +122,10 @@ static inline int release_tap_dance_behavior(struct active_tap_dance *tap_dance,
+     struct zmk_behavior_binding_event event = {
+         .position = tap_dance->position,
+         .timestamp = timestamp,
++        .source = tap_dance->source,
+     };
+     clear_tap_dance(tap_dance);
+-    return behavior_keymap_binding_released(&binding, event);
++    return zmk_trigger_behavior_callbacks(&binding, event, false);
+ }
+ 
+ static int on_tap_dance_binding_pressed(struct zmk_behavior_binding *binding,
+@@ -130,7 +135,7 @@ static int on_tap_dance_binding_pressed(struct zmk_behavior_binding *binding,
+     struct active_tap_dance *tap_dance;
+     tap_dance = find_tap_dance(event.position);
+     if (tap_dance == NULL) {
+-        if (new_tap_dance(event.position, cfg, &tap_dance) == -ENOMEM) {
++        if (new_tap_dance(event.position, event.source, cfg, &tap_dance) == -ENOMEM) {
+             LOG_ERR("Unable to create new tap dance. Insufficient space in active_tap_dances[].");
+             return ZMK_BEHAVIOR_OPAQUE;
+         }
+@@ -261,4 +266,4 @@ static int behavior_tap_dance_init(const struct device *dev) {
+ 
+ DT_INST_FOREACH_STATUS_OKAY(KP_INST)
+ 
+-#endif
+\ No newline at end of file
++#endif
+diff --git a/app/src/keymap.c b/app/src/keymap.c
+index 32e4abbd69d..897472e2282 100644
+--- a/app/src/keymap.c
++++ b/app/src/keymap.c
+@@ -181,16 +181,16 @@ int zmk_keymap_apply_position_state(uint8_t source, int layer, uint32_t position
+         .layer = layer,
+         .position = position,
+         .timestamp = timestamp,
++        .source = source,
+     };
+ 
+     LOG_DBG("layer: %d position: %d, binding name: %s", layer, position, binding.behavior_dev);
+ 
+-    return zmk_trigger_behavior_callbacks(&binding, event, source, pressed);
++    return zmk_trigger_behavior_callbacks(&binding, event, pressed);
+ }
+ 
+ int zmk_trigger_behavior_callbacks(struct zmk_behavior_binding *binding,
+-                                   struct zmk_behavior_binding_event event, uint8_t source,
+-                                   bool pressed) {
++                                   struct zmk_behavior_binding_event event, bool pressed) {
+     const struct device *behavior = zmk_behavior_get_binding(binding->behavior_dev);
+ 
+     if (!behavior) {
+@@ -216,10 +216,10 @@ int zmk_trigger_behavior_callbacks(struct zmk_behavior_binding *binding,
+         return invoke_locally(binding, event, pressed);
+     case BEHAVIOR_LOCALITY_EVENT_SOURCE:
+ #if ZMK_BLE_IS_CENTRAL
+-        if (source == ZMK_POSITION_STATE_CHANGE_SOURCE_LOCAL) {
++        if (event.source == ZMK_POSITION_STATE_CHANGE_SOURCE_LOCAL) {
+             return invoke_locally(binding, event, pressed);
+         } else {
+-            return zmk_split_bt_invoke_behavior(source, binding, event, pressed);
++            return zmk_split_bt_invoke_behavior(event.source, binding, event, pressed);
+         }
+ #else
+         return invoke_locally(binding, event, pressed);
+diff --git a/app/src/split/bluetooth/central.c b/app/src/split/bluetooth/central.c
+index 0f4cd78b531..9c459bf1b1d 100644
+--- a/app/src/split/bluetooth/central.c
++++ b/app/src/split/bluetooth/central.c
+@@ -816,6 +816,7 @@ int zmk_split_bt_invoke_behavior(uint8_t source, struct zmk_behavior_binding *bi
+                                                          .param1 = binding->param1,
+                                                          .param2 = binding->param2,
+                                                          .position = event.position,
++                                                         .source = event.source,
+                                                          .state = state ? 1 : 0,
+                                                      }};
+     const size_t payload_dev_size = sizeof(payload.behavior_dev);
+
+From 9ccf174dda360f212ff6f2ebce344e49832071eb Mon Sep 17 00:00:00 2001
+From: Cem Aksoylar <caksoylar@users.noreply.github.com>
+Date: Tue, 6 Aug 2024 23:50:19 -0700
+Subject: [PATCH 04/10] Rename function again
+
+---
+ app/include/zmk/keymap.h                | 4 ++--
+ app/src/behavior_queue.c                | 4 ++--
+ app/src/behaviors/behavior_hold_tap.c   | 8 ++++----
+ app/src/behaviors/behavior_mod_morph.c  | 4 ++--
+ app/src/behaviors/behavior_sticky_key.c | 4 ++--
+ app/src/behaviors/behavior_tap_dance.c  | 4 ++--
+ app/src/keymap.c                        | 6 +++---
+ 7 files changed, 17 insertions(+), 17 deletions(-)
+
+diff --git a/app/include/zmk/keymap.h b/app/include/zmk/keymap.h
+index f713092b3bf..6945c080a74 100644
+--- a/app/include/zmk/keymap.h
++++ b/app/include/zmk/keymap.h
+@@ -28,8 +28,8 @@ const char *zmk_keymap_layer_name(uint8_t layer);
+ int zmk_keymap_position_state_changed(uint8_t source, uint32_t position, bool pressed,
+                                       int64_t timestamp);
+ 
+-int zmk_trigger_behavior_callbacks(struct zmk_behavior_binding *binding,
+-                                   struct zmk_behavior_binding_event event, bool pressed);
++int zmk_invoke_behavior_binding(struct zmk_behavior_binding *binding,
++                                struct zmk_behavior_binding_event event, bool pressed);
+ 
+ #define ZMK_KEYMAP_EXTRACT_BINDING(idx, drv_inst)                                                  \
+     {                                                                                              \
+diff --git a/app/src/behavior_queue.c b/app/src/behavior_queue.c
+index eb8f95b7db1..f04982019a3 100644
+--- a/app/src/behavior_queue.c
++++ b/app/src/behavior_queue.c
+@@ -37,9 +37,9 @@ static void behavior_queue_process_next(struct k_work *work) {
+             .position = item.position, .timestamp = k_uptime_get(), .source = item.source};
+ 
+         if (item.press) {
+-            zmk_trigger_behavior_callbacks(&item.binding, event, true);
++            zmk_invoke_behavior_binding(&item.binding, event, true);
+         } else {
+-            zmk_trigger_behavior_callbacks(&item.binding, event, false);
++            zmk_invoke_behavior_binding(&item.binding, event, false);
+         }
+ 
+         LOG_DBG("Processing next queued behavior in %dms", item.wait);
+diff --git a/app/src/behaviors/behavior_hold_tap.c b/app/src/behaviors/behavior_hold_tap.c
+index 8b559166a35..1e4f3fcf662 100644
+--- a/app/src/behaviors/behavior_hold_tap.c
++++ b/app/src/behaviors/behavior_hold_tap.c
+@@ -408,7 +408,7 @@ static int press_hold_binding(struct active_hold_tap *hold_tap) {
+ 
+     struct zmk_behavior_binding binding = {.behavior_dev = hold_tap->config->hold_behavior_dev,
+                                            .param1 = hold_tap->param_hold};
+-    return zmk_trigger_behavior_callbacks(&binding, event, true);
++    return zmk_invoke_behavior_binding(&binding, event, true);
+ }
+ 
+ static int press_tap_binding(struct active_hold_tap *hold_tap) {
+@@ -421,7 +421,7 @@ static int press_tap_binding(struct active_hold_tap *hold_tap) {
+     struct zmk_behavior_binding binding = {.behavior_dev = hold_tap->config->tap_behavior_dev,
+                                            .param1 = hold_tap->param_tap};
+     store_last_hold_tapped(hold_tap);
+-    return zmk_trigger_behavior_callbacks(&binding, event, true);
++    return zmk_invoke_behavior_binding(&binding, event, true);
+ }
+ 
+ static int release_hold_binding(struct active_hold_tap *hold_tap) {
+@@ -433,7 +433,7 @@ static int release_hold_binding(struct active_hold_tap *hold_tap) {
+ 
+     struct zmk_behavior_binding binding = {.behavior_dev = hold_tap->config->hold_behavior_dev,
+                                            .param1 = hold_tap->param_hold};
+-    return zmk_trigger_behavior_callbacks(&binding, event, false);
++    return zmk_invoke_behavior_binding(&binding, event, false);
+ }
+ 
+ static int release_tap_binding(struct active_hold_tap *hold_tap) {
+@@ -445,7 +445,7 @@ static int release_tap_binding(struct active_hold_tap *hold_tap) {
+ 
+     struct zmk_behavior_binding binding = {.behavior_dev = hold_tap->config->tap_behavior_dev,
+                                            .param1 = hold_tap->param_tap};
+-    return zmk_trigger_behavior_callbacks(&binding, event, false);
++    return zmk_invoke_behavior_binding(&binding, event, false);
+ }
+ 
+ static int press_binding(struct active_hold_tap *hold_tap) {
+diff --git a/app/src/behaviors/behavior_mod_morph.c b/app/src/behaviors/behavior_mod_morph.c
+index 08dc9cbb2f7..37ff67feaba 100644
+--- a/app/src/behaviors/behavior_mod_morph.c
++++ b/app/src/behaviors/behavior_mod_morph.c
+@@ -52,7 +52,7 @@ static int on_mod_morph_binding_pressed(struct zmk_behavior_binding *binding,
+     } else {
+         data->pressed_binding = (struct zmk_behavior_binding *)&cfg->normal_binding;
+     }
+-    return zmk_trigger_behavior_callbacks(data->pressed_binding, event, true);
++    return zmk_invoke_behavior_binding(data->pressed_binding, event, true);
+ }
+ 
+ static int on_mod_morph_binding_released(struct zmk_behavior_binding *binding,
+@@ -68,7 +68,7 @@ static int on_mod_morph_binding_released(struct zmk_behavior_binding *binding,
+     struct zmk_behavior_binding *pressed_binding = data->pressed_binding;
+     data->pressed_binding = NULL;
+     int err;
+-    err = zmk_trigger_behavior_callbacks(pressed_binding, event, false);
++    err = zmk_invoke_behavior_binding(pressed_binding, event, false);
+     zmk_hid_masked_modifiers_clear();
+     return err;
+ }
+diff --git a/app/src/behaviors/behavior_sticky_key.c b/app/src/behaviors/behavior_sticky_key.c
+index 30c9ad7df38..871fc2edcd2 100644
+--- a/app/src/behaviors/behavior_sticky_key.c
++++ b/app/src/behaviors/behavior_sticky_key.c
+@@ -105,7 +105,7 @@ static inline int press_sticky_key_behavior(struct active_sticky_key *sticky_key
+         .timestamp = timestamp,
+         .source = sticky_key->source,
+     };
+-    return zmk_trigger_behavior_callbacks(&binding, event, true);
++    return zmk_invoke_behavior_binding(&binding, event, true);
+ }
+ 
+ static inline int release_sticky_key_behavior(struct active_sticky_key *sticky_key,
+@@ -122,7 +122,7 @@ static inline int release_sticky_key_behavior(struct active_sticky_key *sticky_k
+     };
+ 
+     clear_sticky_key(sticky_key);
+-    return zmk_trigger_behavior_callbacks(&binding, event, false);
++    return zmk_invoke_behavior_binding(&binding, event, false);
+ }
+ 
+ static inline void on_sticky_key_timeout(struct active_sticky_key *sticky_key) {
+diff --git a/app/src/behaviors/behavior_tap_dance.c b/app/src/behaviors/behavior_tap_dance.c
+index 51eb4a62b70..bcb5d243b59 100644
+--- a/app/src/behaviors/behavior_tap_dance.c
++++ b/app/src/behaviors/behavior_tap_dance.c
+@@ -113,7 +113,7 @@ static inline int press_tap_dance_behavior(struct active_tap_dance *tap_dance, i
+         .timestamp = timestamp,
+         .source = tap_dance->source,
+     };
+-    return zmk_trigger_behavior_callbacks(&binding, event, true);
++    return zmk_invoke_behavior_binding(&binding, event, true);
+ }
+ 
+ static inline int release_tap_dance_behavior(struct active_tap_dance *tap_dance,
+@@ -125,7 +125,7 @@ static inline int release_tap_dance_behavior(struct active_tap_dance *tap_dance,
+         .source = tap_dance->source,
+     };
+     clear_tap_dance(tap_dance);
+-    return zmk_trigger_behavior_callbacks(&binding, event, false);
++    return zmk_invoke_behavior_binding(&binding, event, false);
+ }
+ 
+ static int on_tap_dance_binding_pressed(struct zmk_behavior_binding *binding,
+diff --git a/app/src/keymap.c b/app/src/keymap.c
+index 897472e2282..1efe0855e57 100644
+--- a/app/src/keymap.c
++++ b/app/src/keymap.c
+@@ -186,11 +186,11 @@ int zmk_keymap_apply_position_state(uint8_t source, int layer, uint32_t position
+ 
+     LOG_DBG("layer: %d position: %d, binding name: %s", layer, position, binding.behavior_dev);
+ 
+-    return zmk_trigger_behavior_callbacks(&binding, event, pressed);
++    return zmk_invoke_behavior_binding(&binding, event, pressed);
+ }
+ 
+-int zmk_trigger_behavior_callbacks(struct zmk_behavior_binding *binding,
+-                                   struct zmk_behavior_binding_event event, bool pressed) {
++int zmk_invoke_behavior_binding(struct zmk_behavior_binding *binding,
++                                struct zmk_behavior_binding_event event, bool pressed) {
+     const struct device *behavior = zmk_behavior_get_binding(binding->behavior_dev);
+ 
+     if (!behavior) {
+
+From 950c2d48d7d5733d4c59761c2f66b40541e721f5 Mon Sep 17 00:00:00 2001
+From: Cem Aksoylar <caksoylar@users.noreply.github.com>
+Date: Thu, 8 Aug 2024 23:35:58 -0700
+Subject: [PATCH 05/10] Fix bug where keymap behavior params were modified by
+ invocation
+
+---
+ app/include/zmk/keymap.h |  2 +-
+ app/src/keymap.c         | 30 ++++++++++++++++--------------
+ 2 files changed, 17 insertions(+), 15 deletions(-)
+
+diff --git a/app/include/zmk/keymap.h b/app/include/zmk/keymap.h
+index 6945c080a74..ad2ac7e40ee 100644
+--- a/app/include/zmk/keymap.h
++++ b/app/include/zmk/keymap.h
+@@ -28,7 +28,7 @@ const char *zmk_keymap_layer_name(uint8_t layer);
+ int zmk_keymap_position_state_changed(uint8_t source, uint32_t position, bool pressed,
+                                       int64_t timestamp);
+ 
+-int zmk_invoke_behavior_binding(struct zmk_behavior_binding *binding,
++int zmk_invoke_behavior_binding(const struct zmk_behavior_binding *src_binding,
+                                 struct zmk_behavior_binding_event event, bool pressed);
+ 
+ #define ZMK_KEYMAP_EXTRACT_BINDING(idx, drv_inst)                                                  \
+diff --git a/app/src/keymap.c b/app/src/keymap.c
+index 1efe0855e57..486d133b415 100644
+--- a/app/src/keymap.c
++++ b/app/src/keymap.c
+@@ -174,9 +174,7 @@ int invoke_locally(struct zmk_behavior_binding *binding, struct zmk_behavior_bin
+ 
+ int zmk_keymap_apply_position_state(uint8_t source, int layer, uint32_t position, bool pressed,
+                                     int64_t timestamp) {
+-    // We want to make a copy of this, since it may be converted from
+-    // relative to absolute before being invoked
+-    struct zmk_behavior_binding binding = zmk_keymap[layer][position];
++    struct zmk_behavior_binding *binding = &zmk_keymap[layer][position];
+     struct zmk_behavior_binding_event event = {
+         .layer = layer,
+         .position = position,
+@@ -184,21 +182,25 @@ int zmk_keymap_apply_position_state(uint8_t source, int layer, uint32_t position
+         .source = source,
+     };
+ 
+-    LOG_DBG("layer: %d position: %d, binding name: %s", layer, position, binding.behavior_dev);
++    LOG_DBG("layer: %d position: %d, binding name: %s", layer, position, binding->behavior_dev);
+ 
+-    return zmk_invoke_behavior_binding(&binding, event, pressed);
++    return zmk_invoke_behavior_binding(binding, event, pressed);
+ }
+ 
+-int zmk_invoke_behavior_binding(struct zmk_behavior_binding *binding,
++int zmk_invoke_behavior_binding(const struct zmk_behavior_binding *src_binding,
+                                 struct zmk_behavior_binding_event event, bool pressed) {
+-    const struct device *behavior = zmk_behavior_get_binding(binding->behavior_dev);
++    // We want to make a copy of this, since it may be converted from
++    // relative to absolute before being invoked
++    struct zmk_behavior_binding binding = *src_binding;
++
++    const struct device *behavior = zmk_behavior_get_binding(binding.behavior_dev);
+ 
+     if (!behavior) {
+         LOG_WRN("No behavior assigned to %d on layer %d", event.position, event.layer);
+         return 1;
+     }
+ 
+-    int err = behavior_keymap_binding_convert_central_state_dependent_params(binding, event);
++    int err = behavior_keymap_binding_convert_central_state_dependent_params(&binding, event);
+     if (err) {
+         LOG_ERR("Failed to convert relative to absolute behavior binding (err %d)", err);
+         return err;
+@@ -213,24 +215,24 @@ int zmk_invoke_behavior_binding(struct zmk_behavior_binding *binding,
+ 
+     switch (locality) {
+     case BEHAVIOR_LOCALITY_CENTRAL:
+-        return invoke_locally(binding, event, pressed);
++        return invoke_locally(&binding, event, pressed);
+     case BEHAVIOR_LOCALITY_EVENT_SOURCE:
+ #if ZMK_BLE_IS_CENTRAL
+         if (event.source == ZMK_POSITION_STATE_CHANGE_SOURCE_LOCAL) {
+-            return invoke_locally(binding, event, pressed);
++            return invoke_locally(&binding, event, pressed);
+         } else {
+-            return zmk_split_bt_invoke_behavior(event.source, binding, event, pressed);
++            return zmk_split_bt_invoke_behavior(event.source, &binding, event, pressed);
+         }
+ #else
+-        return invoke_locally(binding, event, pressed);
++        return invoke_locally(&binding, event, pressed);
+ #endif
+     case BEHAVIOR_LOCALITY_GLOBAL:
+ #if ZMK_BLE_IS_CENTRAL
+         for (int i = 0; i < ZMK_SPLIT_BLE_PERIPHERAL_COUNT; i++) {
+-            zmk_split_bt_invoke_behavior(i, binding, event, pressed);
++            zmk_split_bt_invoke_behavior(i, &binding, event, pressed);
+         }
+ #endif
+-        return invoke_locally(binding, event, pressed);
++        return invoke_locally(&binding, event, pressed);
+     }
+ 
+     return -ENOTSUP;
+
+From b19d3d2cbdb64563b201f8ab57273a64f4bbee53 Mon Sep 17 00:00:00 2001
+From: Cem Aksoylar <caksoylar@users.noreply.github.com>
+Date: Fri, 9 Aug 2024 00:07:21 -0700
+Subject: [PATCH 06/10] Make combos invoke behaviors with locality
+
+Currently the source is hardcoded to central for source local behaviors
+---
+ app/src/combo.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/app/src/combo.c b/app/src/combo.c
+index 3f78878f01f..b3eb9be29d9 100644
+--- a/app/src/combo.c
++++ b/app/src/combo.c
+@@ -291,21 +291,23 @@ static int release_pressed_keys() {
+ static inline int press_combo_behavior(struct combo_cfg *combo, int32_t timestamp) {
+     struct zmk_behavior_binding_event event = {
+         .position = combo->virtual_key_position,
++        .source = ZMK_POSITION_STATE_CHANGE_SOURCE_LOCAL,
+         .timestamp = timestamp,
+     };
+ 
+     last_combo_timestamp = timestamp;
+ 
+-    return behavior_keymap_binding_pressed(&combo->behavior, event);
++    return zmk_invoke_behavior_binding(&combo->behavior, event, true);
+ }
+ 
+ static inline int release_combo_behavior(struct combo_cfg *combo, int32_t timestamp) {
+     struct zmk_behavior_binding_event event = {
+         .position = combo->virtual_key_position,
++        .source = ZMK_POSITION_STATE_CHANGE_SOURCE_LOCAL,
+         .timestamp = timestamp,
+     };
+ 
+-    return behavior_keymap_binding_released(&combo->behavior, event);
++    return zmk_invoke_behavior_binding(&combo->behavior, event, false);
+ }
+ 
+ static void move_pressed_keys_to_active_combo(struct active_combo *active_combo) {
+
+From ce9e170beabed2834a526f5e9f320d7a535fe5fe Mon Sep 17 00:00:00 2001
+From: Cem Aksoylar <caksoylar@users.noreply.github.com>
+Date: Fri, 9 Aug 2024 11:27:36 -0700
+Subject: [PATCH 07/10] feat(sensors): Make sensors always trigger on central
+ (for now)
+
+---
+ app/src/behaviors/behavior_sensor_rotate_common.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/app/src/behaviors/behavior_sensor_rotate_common.c b/app/src/behaviors/behavior_sensor_rotate_common.c
+index 677443ee290..e8fd7c37a23 100644
+--- a/app/src/behaviors/behavior_sensor_rotate_common.c
++++ b/app/src/behaviors/behavior_sensor_rotate_common.c
+@@ -6,6 +6,7 @@
+ 
+ #include <zmk/behavior_queue.h>
+ #include <zmk/virtual_key_position.h>
++#include <zmk/events/position_state_changed.h>
+ 
+ #include "behavior_sensor_rotate_common.h"
+ 
+@@ -90,8 +91,10 @@ int zmk_behavior_sensor_rotate_common_process(struct zmk_behavior_binding *bindi
+     LOG_DBG("Sensor binding: %s", binding->behavior_dev);
+ 
+     for (int i = 0; i < triggers; i++) {
+-        zmk_behavior_queue_add(event.position, event.source, triggered_binding, true, cfg->tap_ms);
+-        zmk_behavior_queue_add(event.position, event.source, triggered_binding, false, 0);
++        zmk_behavior_queue_add(event.position, ZMK_POSITION_STATE_CHANGE_SOURCE_LOCAL,
++                               triggered_binding, true, cfg->tap_ms);
++        zmk_behavior_queue_add(event.position, ZMK_POSITION_STATE_CHANGE_SOURCE_LOCAL,
++                               triggered_binding, false, 0);
+     }
+ 
+     return ZMK_BEHAVIOR_OPAQUE;
+
+From dfd8733f74d828ef59dc593820fbf9a911c320b6 Mon Sep 17 00:00:00 2001
+From: Cem Aksoylar <caksoylar@users.noreply.github.com>
+Date: Fri, 9 Aug 2024 11:31:09 -0700
+Subject: [PATCH 08/10] fix(docs): Remove split locality issue note
+
+---
+ docs/docs/features/split-keyboards.md | 5 -----
+ 1 file changed, 5 deletions(-)
+
+diff --git a/docs/docs/features/split-keyboards.md b/docs/docs/features/split-keyboards.md
+index aae61090988..7742afe6b3c 100644
+--- a/docs/docs/features/split-keyboards.md
++++ b/docs/docs/features/split-keyboards.md
+@@ -86,11 +86,6 @@ These behaviors only affect the keyboard part that they are invoked from:
+ 
+ - [Reset behaviors](../behaviors/reset.md)
+ 
+-:::warning[Nesting behaviors with locality]
+-Currently there is [an issue](https://github.com/zmkfirmware/zmk/issues/1494) preventing both global and source locality behaviors from working as expected if they are invoked from another behavior, such as a hold-tap, tap dance or a mod-morph.
+-For this reason it is recommended that these behaviors are placed directly on a keymap layer.
+-:::
+-
+ :::note[Peripheral invocation]
+ Peripherals must be paired and connected to the central in order to be able to activate these behaviors, even if it is possible to trigger the behavior using only keys on a particular peripheral.
+ This is because the key bindings are processed on the central side which would then instruct the peripheral side to run the behavior's effect.
+
+From d21ba18f0eca5ce7df745e9e91e6dc5041376a91 Mon Sep 17 00:00:00 2001
+From: Cem Aksoylar <caksoylar@users.noreply.github.com>
+Date: Tue, 13 Aug 2024 21:53:11 -0700
+Subject: [PATCH 09/10] refactor: Move zmk_invoke_behavior_binding to
+ behavior.c
+
+---
+ app/include/zmk/behavior.h             | 13 +++++
+ app/include/zmk/keymap.h               |  4 --
+ app/src/behavior.c                     | 67 ++++++++++++++++++++++++++
+ app/src/behavior_queue.c               |  2 +-
+ app/src/behaviors/behavior_hold_tap.c  |  1 -
+ app/src/behaviors/behavior_mod_morph.c |  1 -
+ app/src/keymap.c                       | 66 -------------------------
+ 7 files changed, 81 insertions(+), 73 deletions(-)
+
+diff --git a/app/include/zmk/behavior.h b/app/include/zmk/behavior.h
+index ad16af211c5..15045d9c077 100644
+--- a/app/include/zmk/behavior.h
++++ b/app/include/zmk/behavior.h
+@@ -43,6 +43,19 @@ struct zmk_behavior_binding_event {
+  */
+ const struct device *zmk_behavior_get_binding(const char *name);
+ 
++/**
++ * @brief Invoke a behavior given its binding and invoking event details.
++ *
++ * @param src_binding Behavior binding to invoke.
++ * @param event The binding event struct containing details of the event that invoked it.
++ * @param pressed Whether the binding is pressed or released.
++ *
++ * @retval 0 If successful.
++ * @retval Negative errno code if failure.
++ */
++int zmk_invoke_behavior_binding(const struct zmk_behavior_binding *src_binding,
++                                struct zmk_behavior_binding_event event, bool pressed);
++
+ /**
+  * @brief Get a local ID for a behavior from its @p name field.
+  *
+diff --git a/app/include/zmk/keymap.h b/app/include/zmk/keymap.h
+index ad2ac7e40ee..0d7dbaf33b3 100644
+--- a/app/include/zmk/keymap.h
++++ b/app/include/zmk/keymap.h
+@@ -7,7 +7,6 @@
+ #pragma once
+ 
+ #include <zmk/events/position_state_changed.h>
+-#include <zmk/behavior.h>
+ 
+ #define ZMK_LAYER_CHILD_LEN_PLUS_ONE(node) 1 +
+ #define ZMK_KEYMAP_LAYERS_LEN                                                                      \
+@@ -28,9 +27,6 @@ const char *zmk_keymap_layer_name(uint8_t layer);
+ int zmk_keymap_position_state_changed(uint8_t source, uint32_t position, bool pressed,
+                                       int64_t timestamp);
+ 
+-int zmk_invoke_behavior_binding(const struct zmk_behavior_binding *src_binding,
+-                                struct zmk_behavior_binding_event event, bool pressed);
+-
+ #define ZMK_KEYMAP_EXTRACT_BINDING(idx, drv_inst)                                                  \
+     {                                                                                              \
+         .behavior_dev = DEVICE_DT_NAME(DT_PHANDLE_BY_IDX(drv_inst, bindings, idx)),                \
+diff --git a/app/src/behavior.c b/app/src/behavior.c
+index e69cdf88702..78546754db4 100644
+--- a/app/src/behavior.c
++++ b/app/src/behavior.c
+@@ -17,11 +17,18 @@
+ 
+ #endif
+ 
++#include <zmk/ble.h>
++#if ZMK_BLE_IS_CENTRAL
++#include <zmk/split/bluetooth/central.h>
++#endif
++
+ #include <drivers/behavior.h>
+ #include <zmk/behavior.h>
+ #include <zmk/hid.h>
+ #include <zmk/matrix.h>
+ 
++#include <zmk/events/position_state_changed.h>
++
+ #include <zephyr/logging/log.h>
+ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
+ 
+@@ -49,6 +56,66 @@ const struct device *z_impl_behavior_get_binding(const char *name) {
+     return NULL;
+ }
+ 
++static int invoke_locally(struct zmk_behavior_binding *binding,
++                          struct zmk_behavior_binding_event event, bool pressed) {
++    if (pressed) {
++        return behavior_keymap_binding_pressed(binding, event);
++    } else {
++        return behavior_keymap_binding_released(binding, event);
++    }
++}
++
++int zmk_invoke_behavior_binding(const struct zmk_behavior_binding *src_binding,
++                                struct zmk_behavior_binding_event event, bool pressed) {
++    // We want to make a copy of this, since it may be converted from
++    // relative to absolute before being invoked
++    struct zmk_behavior_binding binding = *src_binding;
++
++    const struct device *behavior = zmk_behavior_get_binding(binding.behavior_dev);
++
++    if (!behavior) {
++        LOG_WRN("No behavior assigned to %d on layer %d", event.position, event.layer);
++        return 1;
++    }
++
++    int err = behavior_keymap_binding_convert_central_state_dependent_params(&binding, event);
++    if (err) {
++        LOG_ERR("Failed to convert relative to absolute behavior binding (err %d)", err);
++        return err;
++    }
++
++    enum behavior_locality locality = BEHAVIOR_LOCALITY_CENTRAL;
++    err = behavior_get_locality(behavior, &locality);
++    if (err) {
++        LOG_ERR("Failed to get behavior locality %d", err);
++        return err;
++    }
++
++    switch (locality) {
++    case BEHAVIOR_LOCALITY_CENTRAL:
++        return invoke_locally(&binding, event, pressed);
++    case BEHAVIOR_LOCALITY_EVENT_SOURCE:
++#if ZMK_BLE_IS_CENTRAL
++        if (event.source == ZMK_POSITION_STATE_CHANGE_SOURCE_LOCAL) {
++            return invoke_locally(&binding, event, pressed);
++        } else {
++            return zmk_split_bt_invoke_behavior(event.source, &binding, event, pressed);
++        }
++#else
++        return invoke_locally(&binding, event, pressed);
++#endif
++    case BEHAVIOR_LOCALITY_GLOBAL:
++#if ZMK_BLE_IS_CENTRAL
++        for (int i = 0; i < ZMK_SPLIT_BLE_PERIPHERAL_COUNT; i++) {
++            zmk_split_bt_invoke_behavior(i, &binding, event, pressed);
++        }
++#endif
++        return invoke_locally(&binding, event, pressed);
++    }
++
++    return -ENOTSUP;
++}
++
+ #if IS_ENABLED(CONFIG_ZMK_BEHAVIOR_METADATA)
+ 
+ int zmk_behavior_get_empty_param_metadata(const struct device *dev,
+diff --git a/app/src/behavior_queue.c b/app/src/behavior_queue.c
+index f04982019a3..081dfc28c09 100644
+--- a/app/src/behavior_queue.c
++++ b/app/src/behavior_queue.c
+@@ -5,7 +5,7 @@
+  */
+ 
+ #include <zmk/behavior_queue.h>
+-#include <zmk/keymap.h>
++#include <zmk/behavior.h>
+ 
+ #include <zephyr/kernel.h>
+ #include <zephyr/logging/log.h>
+diff --git a/app/src/behaviors/behavior_hold_tap.c b/app/src/behaviors/behavior_hold_tap.c
+index 1e4f3fcf662..71e15e531bc 100644
+--- a/app/src/behaviors/behavior_hold_tap.c
++++ b/app/src/behaviors/behavior_hold_tap.c
+@@ -18,7 +18,6 @@
+ #include <zmk/events/position_state_changed.h>
+ #include <zmk/events/keycode_state_changed.h>
+ #include <zmk/behavior.h>
+-#include <zmk/keymap.h>
+ 
+ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
+ 
+diff --git a/app/src/behaviors/behavior_mod_morph.c b/app/src/behaviors/behavior_mod_morph.c
+index 37ff67feaba..b17822de4e6 100644
+--- a/app/src/behaviors/behavior_mod_morph.c
++++ b/app/src/behaviors/behavior_mod_morph.c
+@@ -10,7 +10,6 @@
+ #include <drivers/behavior.h>
+ #include <zephyr/logging/log.h>
+ #include <zmk/behavior.h>
+-#include <zmk/keymap.h>
+ 
+ #include <zmk/matrix.h>
+ #include <zmk/endpoints.h>
+diff --git a/app/src/keymap.c b/app/src/keymap.c
+index 486d133b415..ea33725b54a 100644
+--- a/app/src/keymap.c
++++ b/app/src/keymap.c
+@@ -6,7 +6,6 @@
+ 
+ #include <drivers/behavior.h>
+ #include <zephyr/sys/util.h>
+-#include <zephyr/bluetooth/bluetooth.h>
+ #include <zephyr/logging/log.h>
+ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
+ 
+@@ -16,11 +15,6 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
+ #include <zmk/sensors.h>
+ #include <zmk/virtual_key_position.h>
+ 
+-#include <zmk/ble.h>
+-#if ZMK_BLE_IS_CENTRAL
+-#include <zmk/split/bluetooth/central.h>
+-#endif
+-
+ #include <zmk/event_manager.h>
+ #include <zmk/events/position_state_changed.h>
+ #include <zmk/events/layer_state_changed.h>
+@@ -163,15 +157,6 @@ const char *zmk_keymap_layer_name(uint8_t layer) {
+     return zmk_keymap_layer_names[layer];
+ }
+ 
+-int invoke_locally(struct zmk_behavior_binding *binding, struct zmk_behavior_binding_event event,
+-                   bool pressed) {
+-    if (pressed) {
+-        return behavior_keymap_binding_pressed(binding, event);
+-    } else {
+-        return behavior_keymap_binding_released(binding, event);
+-    }
+-}
+-
+ int zmk_keymap_apply_position_state(uint8_t source, int layer, uint32_t position, bool pressed,
+                                     int64_t timestamp) {
+     struct zmk_behavior_binding *binding = &zmk_keymap[layer][position];
+@@ -187,57 +172,6 @@ int zmk_keymap_apply_position_state(uint8_t source, int layer, uint32_t position
+     return zmk_invoke_behavior_binding(binding, event, pressed);
+ }
+ 
+-int zmk_invoke_behavior_binding(const struct zmk_behavior_binding *src_binding,
+-                                struct zmk_behavior_binding_event event, bool pressed) {
+-    // We want to make a copy of this, since it may be converted from
+-    // relative to absolute before being invoked
+-    struct zmk_behavior_binding binding = *src_binding;
+-
+-    const struct device *behavior = zmk_behavior_get_binding(binding.behavior_dev);
+-
+-    if (!behavior) {
+-        LOG_WRN("No behavior assigned to %d on layer %d", event.position, event.layer);
+-        return 1;
+-    }
+-
+-    int err = behavior_keymap_binding_convert_central_state_dependent_params(&binding, event);
+-    if (err) {
+-        LOG_ERR("Failed to convert relative to absolute behavior binding (err %d)", err);
+-        return err;
+-    }
+-
+-    enum behavior_locality locality = BEHAVIOR_LOCALITY_CENTRAL;
+-    err = behavior_get_locality(behavior, &locality);
+-    if (err) {
+-        LOG_ERR("Failed to get behavior locality %d", err);
+-        return err;
+-    }
+-
+-    switch (locality) {
+-    case BEHAVIOR_LOCALITY_CENTRAL:
+-        return invoke_locally(&binding, event, pressed);
+-    case BEHAVIOR_LOCALITY_EVENT_SOURCE:
+-#if ZMK_BLE_IS_CENTRAL
+-        if (event.source == ZMK_POSITION_STATE_CHANGE_SOURCE_LOCAL) {
+-            return invoke_locally(&binding, event, pressed);
+-        } else {
+-            return zmk_split_bt_invoke_behavior(event.source, &binding, event, pressed);
+-        }
+-#else
+-        return invoke_locally(&binding, event, pressed);
+-#endif
+-    case BEHAVIOR_LOCALITY_GLOBAL:
+-#if ZMK_BLE_IS_CENTRAL
+-        for (int i = 0; i < ZMK_SPLIT_BLE_PERIPHERAL_COUNT; i++) {
+-            zmk_split_bt_invoke_behavior(i, &binding, event, pressed);
+-        }
+-#endif
+-        return invoke_locally(&binding, event, pressed);
+-    }
+-
+-    return -ENOTSUP;
+-}
+-
+ int zmk_keymap_position_state_changed(uint8_t source, uint32_t position, bool pressed,
+                                       int64_t timestamp) {
+     if (pressed) {
+
+From 2bc4f23e8994481c2c009742a6e1db3967c12983 Mon Sep 17 00:00:00 2001
+From: Cem Aksoylar <caksoylar@users.noreply.github.com>
+Date: Sat, 17 Aug 2024 21:03:43 -0700
+Subject: [PATCH 10/10] refactor: Condition source props on CONFIG_ZMK_SPLIT
+
+---
+ app/include/zmk/behavior.h                    |  2 ++
+ app/include/zmk/behavior_queue.h              |  2 +-
+ app/src/behavior.c                            |  2 +-
+ app/src/behavior_queue.c                      | 20 +++++++++++---
+ app/src/behaviors/behavior_hold_tap.c         | 26 ++++++++++++++-----
+ app/src/behaviors/behavior_macro.c            | 14 +++++-----
+ .../behaviors/behavior_sensor_rotate_common.c | 11 +++++---
+ app/src/behaviors/behavior_sticky_key.c       | 17 ++++++++----
+ app/src/behaviors/behavior_tap_dance.c        | 16 +++++++++---
+ app/src/combo.c                               |  8 ++++--
+ app/src/keymap.c                              |  2 ++
+ 11 files changed, 86 insertions(+), 34 deletions(-)
+
+diff --git a/app/include/zmk/behavior.h b/app/include/zmk/behavior.h
+index 15045d9c077..d2bb78847a0 100644
+--- a/app/include/zmk/behavior.h
++++ b/app/include/zmk/behavior.h
+@@ -26,7 +26,9 @@ struct zmk_behavior_binding_event {
+     int layer;
+     uint32_t position;
+     int64_t timestamp;
++#if IS_ENABLED(CONFIG_ZMK_SPLIT)
+     uint8_t source;
++#endif
+ };
+ 
+ /**
+diff --git a/app/include/zmk/behavior_queue.h b/app/include/zmk/behavior_queue.h
+index 781f582e095..8e6d0c82eb8 100644
+--- a/app/include/zmk/behavior_queue.h
++++ b/app/include/zmk/behavior_queue.h
+@@ -10,5 +10,5 @@
+ #include <stdint.h>
+ #include <zmk/behavior.h>
+ 
+-int zmk_behavior_queue_add(uint32_t position, uint8_t source,
++int zmk_behavior_queue_add(struct zmk_behavior_binding_event *event,
+                            const struct zmk_behavior_binding behavior, bool press, uint32_t wait);
+diff --git a/app/src/behavior.c b/app/src/behavior.c
+index 78546754db4..e10c0545025 100644
+--- a/app/src/behavior.c
++++ b/app/src/behavior.c
+@@ -95,7 +95,7 @@ int zmk_invoke_behavior_binding(const struct zmk_behavior_binding *src_binding,
+     case BEHAVIOR_LOCALITY_CENTRAL:
+         return invoke_locally(&binding, event, pressed);
+     case BEHAVIOR_LOCALITY_EVENT_SOURCE:
+-#if ZMK_BLE_IS_CENTRAL
++#if ZMK_BLE_IS_CENTRAL // source is a member of event because CONFIG_ZMK_SPLIT is enabled
+         if (event.source == ZMK_POSITION_STATE_CHANGE_SOURCE_LOCAL) {
+             return invoke_locally(&binding, event, pressed);
+         } else {
+diff --git a/app/src/behavior_queue.c b/app/src/behavior_queue.c
+index 081dfc28c09..2f17c3bfb79 100644
+--- a/app/src/behavior_queue.c
++++ b/app/src/behavior_queue.c
+@@ -15,7 +15,9 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
+ 
+ struct q_item {
+     uint32_t position;
++#if IS_ENABLED(CONFIG_ZMK_SPLIT)
+     uint8_t source;
++#endif
+     struct zmk_behavior_binding binding;
+     bool press : 1;
+     uint32_t wait : 31;
+@@ -34,7 +36,12 @@ static void behavior_queue_process_next(struct k_work *work) {
+                 item.binding.param2);
+ 
+         struct zmk_behavior_binding_event event = {
+-            .position = item.position, .timestamp = k_uptime_get(), .source = item.source};
++            .position = item.position,
++            .timestamp = k_uptime_get(),
++#if IS_ENABLED(CONFIG_ZMK_SPLIT)
++            .source = item.source
++#endif
++        };
+ 
+         if (item.press) {
+             zmk_invoke_behavior_binding(&item.binding, event, true);
+@@ -51,10 +58,17 @@ static void behavior_queue_process_next(struct k_work *work) {
+     }
+ }
+ 
+-int zmk_behavior_queue_add(uint32_t position, uint8_t source,
++int zmk_behavior_queue_add(struct zmk_behavior_binding_event *event,
+                            const struct zmk_behavior_binding binding, bool press, uint32_t wait) {
+     struct q_item item = {
+-        .press = press, .binding = binding, .wait = wait, .position = position, .source = source};
++        .press = press,
++        .binding = binding,
++        .wait = wait,
++        .position = event->position,
++#if IS_ENABLED(CONFIG_ZMK_SPLIT)
++        .source = event->source,
++#endif
++    };
+ 
+     const int ret = k_msgq_put(&zmk_behavior_queue_msgq, &item, K_NO_WAIT);
+     if (ret < 0) {
+diff --git a/app/src/behaviors/behavior_hold_tap.c b/app/src/behaviors/behavior_hold_tap.c
+index 71e15e531bc..cb22f35aaad 100644
+--- a/app/src/behaviors/behavior_hold_tap.c
++++ b/app/src/behaviors/behavior_hold_tap.c
+@@ -76,7 +76,9 @@ struct behavior_hold_tap_data {
+ // this data is specific for each hold-tap
+ struct active_hold_tap {
+     int32_t position;
++#if IS_ENABLED(CONFIG_ZMK_SPLIT)
+     uint8_t source;
++#endif
+     uint32_t param_hold;
+     uint32_t param_tap;
+     int64_t timestamp;
+@@ -250,21 +252,22 @@ static struct active_hold_tap *find_hold_tap(uint32_t position) {
+     return NULL;
+ }
+ 
+-static struct active_hold_tap *store_hold_tap(uint32_t position, uint8_t source,
++static struct active_hold_tap *store_hold_tap(struct zmk_behavior_binding_event *event,
+                                               uint32_t param_hold, uint32_t param_tap,
+-                                              int64_t timestamp,
+                                               const struct behavior_hold_tap_config *config) {
+     for (int i = 0; i < ZMK_BHV_HOLD_TAP_MAX_HELD; i++) {
+         if (active_hold_taps[i].position != ZMK_BHV_HOLD_TAP_POSITION_NOT_USED) {
+             continue;
+         }
+-        active_hold_taps[i].position = position;
+-        active_hold_taps[i].source = source;
++        active_hold_taps[i].position = event->position;
++#if IS_ENABLED(CONFIG_ZMK_SPLIT)
++        active_hold_taps[i].source = event->source;
++#endif
+         active_hold_taps[i].status = STATUS_UNDECIDED;
+         active_hold_taps[i].config = config;
+         active_hold_taps[i].param_hold = param_hold;
+         active_hold_taps[i].param_tap = param_tap;
+-        active_hold_taps[i].timestamp = timestamp;
++        active_hold_taps[i].timestamp = event->timestamp;
+         active_hold_taps[i].position_of_first_other_key_pressed = -1;
+         return &active_hold_taps[i];
+     }
+@@ -402,7 +405,9 @@ static int press_hold_binding(struct active_hold_tap *hold_tap) {
+     struct zmk_behavior_binding_event event = {
+         .position = hold_tap->position,
+         .timestamp = hold_tap->timestamp,
++#if IS_ENABLED(CONFIG_ZMK_SPLIT)
+         .source = hold_tap->source,
++#endif
+     };
+ 
+     struct zmk_behavior_binding binding = {.behavior_dev = hold_tap->config->hold_behavior_dev,
+@@ -414,7 +419,9 @@ static int press_tap_binding(struct active_hold_tap *hold_tap) {
+     struct zmk_behavior_binding_event event = {
+         .position = hold_tap->position,
+         .timestamp = hold_tap->timestamp,
++#if IS_ENABLED(CONFIG_ZMK_SPLIT)
+         .source = hold_tap->source,
++#endif
+     };
+ 
+     struct zmk_behavior_binding binding = {.behavior_dev = hold_tap->config->tap_behavior_dev,
+@@ -427,7 +434,9 @@ static int release_hold_binding(struct active_hold_tap *hold_tap) {
+     struct zmk_behavior_binding_event event = {
+         .position = hold_tap->position,
+         .timestamp = hold_tap->timestamp,
++#if IS_ENABLED(CONFIG_ZMK_SPLIT)
+         .source = hold_tap->source,
++#endif
+     };
+ 
+     struct zmk_behavior_binding binding = {.behavior_dev = hold_tap->config->hold_behavior_dev,
+@@ -439,7 +448,9 @@ static int release_tap_binding(struct active_hold_tap *hold_tap) {
+     struct zmk_behavior_binding_event event = {
+         .position = hold_tap->position,
+         .timestamp = hold_tap->timestamp,
++#if IS_ENABLED(CONFIG_ZMK_SPLIT)
+         .source = hold_tap->source,
++#endif
+     };
+ 
+     struct zmk_behavior_binding binding = {.behavior_dev = hold_tap->config->tap_behavior_dev,
+@@ -603,8 +614,9 @@ static int on_hold_tap_binding_pressed(struct zmk_behavior_binding *binding,
+         return ZMK_BEHAVIOR_OPAQUE;
+     }
+ 
+-    struct active_hold_tap *hold_tap = store_hold_tap(event.position, event.source, binding->param1,
+-                                                      binding->param2, event.timestamp, cfg);
++    struct active_hold_tap *hold_tap =
++        store_hold_tap(&event, binding->param1, binding->param2, cfg);
++
+     if (hold_tap == NULL) {
+         LOG_ERR("unable to store hold-tap info, did you press more than %d hold-taps?",
+                 ZMK_BHV_HOLD_TAP_MAX_HELD);
+diff --git a/app/src/behaviors/behavior_macro.c b/app/src/behaviors/behavior_macro.c
+index adf3fa65747..c16fb69a9e9 100644
+--- a/app/src/behaviors/behavior_macro.c
++++ b/app/src/behaviors/behavior_macro.c
+@@ -158,7 +158,7 @@ static void replace_params(struct behavior_macro_trigger_state *state,
+     state->param2_source = PARAM_SOURCE_BINDING;
+ }
+ 
+-static void queue_macro(uint32_t position, uint8_t source,
++static void queue_macro(struct zmk_behavior_binding_event *event,
+                         const struct zmk_behavior_binding bindings[],
+                         struct behavior_macro_trigger_state state,
+                         const struct zmk_behavior_binding *macro_binding) {
+@@ -170,14 +170,14 @@ static void queue_macro(uint32_t position, uint8_t source,
+ 
+             switch (state.mode) {
+             case MACRO_MODE_TAP:
+-                zmk_behavior_queue_add(position, source, binding, true, state.tap_ms);
+-                zmk_behavior_queue_add(position, source, binding, false, state.wait_ms);
++                zmk_behavior_queue_add(event, binding, true, state.tap_ms);
++                zmk_behavior_queue_add(event, binding, false, state.wait_ms);
+                 break;
+             case MACRO_MODE_PRESS:
+-                zmk_behavior_queue_add(position, source, binding, true, state.wait_ms);
++                zmk_behavior_queue_add(event, binding, true, state.wait_ms);
+                 break;
+             case MACRO_MODE_RELEASE:
+-                zmk_behavior_queue_add(position, source, binding, false, state.wait_ms);
++                zmk_behavior_queue_add(event, binding, false, state.wait_ms);
+                 break;
+             default:
+                 LOG_ERR("Unknown macro mode: %d", state.mode);
+@@ -198,7 +198,7 @@ static int on_macro_binding_pressed(struct zmk_behavior_binding *binding,
+                                                          .start_index = 0,
+                                                          .count = state->press_bindings_count};
+ 
+-    queue_macro(event.position, event.source, cfg->bindings, trigger_state, binding);
++    queue_macro(&event, cfg->bindings, trigger_state, binding);
+ 
+     return ZMK_BEHAVIOR_OPAQUE;
+ }
+@@ -209,7 +209,7 @@ static int on_macro_binding_released(struct zmk_behavior_binding *binding,
+     const struct behavior_macro_config *cfg = dev->config;
+     struct behavior_macro_state *state = dev->data;
+ 
+-    queue_macro(event.position, event.source, cfg->bindings, state->release_state, binding);
++    queue_macro(&event, cfg->bindings, state->release_state, binding);
+ 
+     return ZMK_BEHAVIOR_OPAQUE;
+ }
+diff --git a/app/src/behaviors/behavior_sensor_rotate_common.c b/app/src/behaviors/behavior_sensor_rotate_common.c
+index e8fd7c37a23..278f1cb2be7 100644
+--- a/app/src/behaviors/behavior_sensor_rotate_common.c
++++ b/app/src/behaviors/behavior_sensor_rotate_common.c
+@@ -90,11 +90,14 @@ int zmk_behavior_sensor_rotate_common_process(struct zmk_behavior_binding *bindi
+ 
+     LOG_DBG("Sensor binding: %s", binding->behavior_dev);
+ 
++#if IS_ENABLED(CONFIG_ZMK_SPLIT)
++    // set this value so that it always triggers on central, can be handled more properly later
++    event.source = ZMK_POSITION_STATE_CHANGE_SOURCE_LOCAL;
++#endif
++
+     for (int i = 0; i < triggers; i++) {
+-        zmk_behavior_queue_add(event.position, ZMK_POSITION_STATE_CHANGE_SOURCE_LOCAL,
+-                               triggered_binding, true, cfg->tap_ms);
+-        zmk_behavior_queue_add(event.position, ZMK_POSITION_STATE_CHANGE_SOURCE_LOCAL,
+-                               triggered_binding, false, 0);
++        zmk_behavior_queue_add(&event, triggered_binding, true, cfg->tap_ms);
++        zmk_behavior_queue_add(&event, triggered_binding, false, 0);
+     }
+ 
+     return ZMK_BEHAVIOR_OPAQUE;
+diff --git a/app/src/behaviors/behavior_sticky_key.c b/app/src/behaviors/behavior_sticky_key.c
+index 871fc2edcd2..dc86730be18 100644
+--- a/app/src/behaviors/behavior_sticky_key.c
++++ b/app/src/behaviors/behavior_sticky_key.c
+@@ -40,7 +40,9 @@ struct behavior_sticky_key_config {
+ 
+ struct active_sticky_key {
+     uint32_t position;
++#if IS_ENABLED(CONFIG_ZMK_SPLIT)
+     uint8_t source;
++#endif
+     uint32_t param1;
+     uint32_t param2;
+     const struct behavior_sticky_key_config *config;
+@@ -56,7 +58,7 @@ struct active_sticky_key {
+ 
+ struct active_sticky_key active_sticky_keys[ZMK_BHV_STICKY_KEY_MAX_HELD] = {};
+ 
+-static struct active_sticky_key *store_sticky_key(uint32_t position, uint8_t source,
++static struct active_sticky_key *store_sticky_key(struct zmk_behavior_binding_event *event,
+                                                   uint32_t param1, uint32_t param2,
+                                                   const struct behavior_sticky_key_config *config) {
+     for (int i = 0; i < ZMK_BHV_STICKY_KEY_MAX_HELD; i++) {
+@@ -65,8 +67,10 @@ static struct active_sticky_key *store_sticky_key(uint32_t position, uint8_t sou
+             sticky_key->timer_cancelled) {
+             continue;
+         }
+-        sticky_key->position = position;
+-        sticky_key->source = source;
++        sticky_key->position = event->position;
++#if IS_ENABLED(CONFIG_ZMK_SPLIT)
++        sticky_key->source = event->source;
++#endif
+         sticky_key->param1 = param1;
+         sticky_key->param2 = param2;
+         sticky_key->config = config;
+@@ -103,7 +107,9 @@ static inline int press_sticky_key_behavior(struct active_sticky_key *sticky_key
+     struct zmk_behavior_binding_event event = {
+         .position = sticky_key->position,
+         .timestamp = timestamp,
++#if IS_ENABLED(CONFIG_ZMK_SPLIT)
+         .source = sticky_key->source,
++#endif
+     };
+     return zmk_invoke_behavior_binding(&binding, event, true);
+ }
+@@ -118,7 +124,9 @@ static inline int release_sticky_key_behavior(struct active_sticky_key *sticky_k
+     struct zmk_behavior_binding_event event = {
+         .position = sticky_key->position,
+         .timestamp = timestamp,
++#if IS_ENABLED(CONFIG_ZMK_SPLIT)
+         .source = sticky_key->source,
++#endif
+     };
+ 
+     clear_sticky_key(sticky_key);
+@@ -153,8 +161,7 @@ static int on_sticky_key_binding_pressed(struct zmk_behavior_binding *binding,
+         stop_timer(sticky_key);
+         release_sticky_key_behavior(sticky_key, event.timestamp);
+     }
+-    sticky_key =
+-        store_sticky_key(event.position, event.source, binding->param1, binding->param2, cfg);
++    sticky_key = store_sticky_key(&event, binding->param1, binding->param2, cfg);
+     if (sticky_key == NULL) {
+         LOG_ERR("unable to store sticky key, did you press more than %d sticky_key?",
+                 ZMK_BHV_STICKY_KEY_MAX_HELD);
+diff --git a/app/src/behaviors/behavior_tap_dance.c b/app/src/behaviors/behavior_tap_dance.c
+index bcb5d243b59..aad31036c9e 100644
+--- a/app/src/behaviors/behavior_tap_dance.c
++++ b/app/src/behaviors/behavior_tap_dance.c
+@@ -35,7 +35,9 @@ struct active_tap_dance {
+     // Tap Dance Data
+     int counter;
+     uint32_t position;
++#if IS_ENABLED(CONFIG_ZMK_SPLIT)
+     uint8_t source;
++#endif
+     uint32_t param1;
+     uint32_t param2;
+     bool is_pressed;
+@@ -60,15 +62,17 @@ static struct active_tap_dance *find_tap_dance(uint32_t position) {
+     return NULL;
+ }
+ 
+-static int new_tap_dance(uint32_t position, uint8_t source,
++static int new_tap_dance(struct zmk_behavior_binding_event *event,
+                          const struct behavior_tap_dance_config *config,
+                          struct active_tap_dance **tap_dance) {
+     for (int i = 0; i < ZMK_BHV_TAP_DANCE_MAX_HELD; i++) {
+         struct active_tap_dance *const ref_dance = &active_tap_dances[i];
+         if (ref_dance->position == ZMK_BHV_TAP_DANCE_POSITION_FREE) {
+             ref_dance->counter = 0;
+-            ref_dance->position = position;
+-            ref_dance->source = source;
++            ref_dance->position = event->position;
++#if IS_ENABLED(CONFIG_ZMK_SPLIT)
++            ref_dance->source = event->source;
++#endif
+             ref_dance->config = config;
+             ref_dance->release_at = 0;
+             ref_dance->is_pressed = true;
+@@ -111,7 +115,9 @@ static inline int press_tap_dance_behavior(struct active_tap_dance *tap_dance, i
+     struct zmk_behavior_binding_event event = {
+         .position = tap_dance->position,
+         .timestamp = timestamp,
++#if IS_ENABLED(CONFIG_ZMK_SPLIT)
+         .source = tap_dance->source,
++#endif
+     };
+     return zmk_invoke_behavior_binding(&binding, event, true);
+ }
+@@ -122,7 +128,9 @@ static inline int release_tap_dance_behavior(struct active_tap_dance *tap_dance,
+     struct zmk_behavior_binding_event event = {
+         .position = tap_dance->position,
+         .timestamp = timestamp,
++#if IS_ENABLED(CONFIG_ZMK_SPLIT)
+         .source = tap_dance->source,
++#endif
+     };
+     clear_tap_dance(tap_dance);
+     return zmk_invoke_behavior_binding(&binding, event, false);
+@@ -135,7 +143,7 @@ static int on_tap_dance_binding_pressed(struct zmk_behavior_binding *binding,
+     struct active_tap_dance *tap_dance;
+     tap_dance = find_tap_dance(event.position);
+     if (tap_dance == NULL) {
+-        if (new_tap_dance(event.position, event.source, cfg, &tap_dance) == -ENOMEM) {
++        if (new_tap_dance(&event, cfg, &tap_dance) == -ENOMEM) {
+             LOG_ERR("Unable to create new tap dance. Insufficient space in active_tap_dances[].");
+             return ZMK_BEHAVIOR_OPAQUE;
+         }
+diff --git a/app/src/combo.c b/app/src/combo.c
+index b3eb9be29d9..36806ea26ab 100644
+--- a/app/src/combo.c
++++ b/app/src/combo.c
+@@ -291,8 +291,10 @@ static int release_pressed_keys() {
+ static inline int press_combo_behavior(struct combo_cfg *combo, int32_t timestamp) {
+     struct zmk_behavior_binding_event event = {
+         .position = combo->virtual_key_position,
+-        .source = ZMK_POSITION_STATE_CHANGE_SOURCE_LOCAL,
+         .timestamp = timestamp,
++#if IS_ENABLED(CONFIG_ZMK_SPLIT)
++        .source = ZMK_POSITION_STATE_CHANGE_SOURCE_LOCAL,
++#endif
+     };
+ 
+     last_combo_timestamp = timestamp;
+@@ -303,8 +305,10 @@ static inline int press_combo_behavior(struct combo_cfg *combo, int32_t timestam
+ static inline int release_combo_behavior(struct combo_cfg *combo, int32_t timestamp) {
+     struct zmk_behavior_binding_event event = {
+         .position = combo->virtual_key_position,
+-        .source = ZMK_POSITION_STATE_CHANGE_SOURCE_LOCAL,
+         .timestamp = timestamp,
++#if IS_ENABLED(CONFIG_ZMK_SPLIT)
++        .source = ZMK_POSITION_STATE_CHANGE_SOURCE_LOCAL,
++#endif
+     };
+ 
+     return zmk_invoke_behavior_binding(&combo->behavior, event, false);
+diff --git a/app/src/keymap.c b/app/src/keymap.c
+index ea33725b54a..37cbdb46957 100644
+--- a/app/src/keymap.c
++++ b/app/src/keymap.c
+@@ -164,7 +164,9 @@ int zmk_keymap_apply_position_state(uint8_t source, int layer, uint32_t position
+         .layer = layer,
+         .position = position,
+         .timestamp = timestamp,
++#if IS_ENABLED(CONFIG_ZMK_SPLIT)
+         .source = source,
++#endif
+     };
+ 
+     LOG_DBG("layer: %d position: %d, binding name: %s", layer, position, binding->behavior_dev);
