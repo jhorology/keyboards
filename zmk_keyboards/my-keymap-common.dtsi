@@ -35,6 +35,11 @@
 // double tap LANG1(かな)
 #define _MOD_LANG(mod) &mod_lang21 mod 0
 
+// mod + spacemacs leader key
+// hold   mod
+// single tap spacemacs leader key
+#define _MOD_EMACS(mod) &mt mod RA(M)
+
 // keychron DIP SW
 // off: mac base layer
 // on: win base layer
@@ -56,14 +61,15 @@
 #define _H_W_LOPT &hhkb_win_l_opt
 
 // Left Command
-// tap: LANG2(英数)
+// tap: spacemacs leader key
 // hold: Left Command
-#define _LCMD &mt LCMD LANG2
+#define _LCMD _MOD_EMACS(LCMD)
 
 // Right Command
-// tap: LANG1(かな)
+// tap: LANG2(英数)
+// double tap: LANG1(かな)
 // hold: Left Command
-#define _RCMD &mt LCMD LANG1
+#define _RCMD _MOD_LANG(RCMD)
 
 // Right Opt for HHKB layout
 // single: Right Option
