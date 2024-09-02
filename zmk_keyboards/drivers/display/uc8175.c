@@ -30,11 +30,12 @@ LOG_MODULE_REGISTER(uc8175, CONFIG_DISPLAY_LOG_LEVEL);
 #define IS_BORDERED(config) \
   ((config->cdi & UC8175_CDI_MASK_VBD) == 0x40 || (config->cdi & UC8175_CDI_MASK_VBD) == 0x80)
 
-#define CHECK_SUSPENDED(dev)                                                       \
-  COND_CODE_1(CONFIG_PM_DEVICE,                                                    \
-              (enum pm_device_state state; (void)pm_device_state_get(dev, &state); \
-               if (state == PM_DEVICE_STATE_SUSPENDED) return -EIO),               \
-              ())
+#define CHECK_SUSPENDED(dev)                                                                      \
+  COND_CODE_1(                                                                                    \
+    CONFIG_PM_DEVICE,                                                                             \
+    (enum pm_device_state state; (void)pm_device_state_get(dev, &state);                          \
+     if (state == PM_DEVICE_STATE_SUSPENDED || state == PM_DEVICE_STATE_SUSPENDING) return -EIO), \
+    ())
 
 /*
  *  power_saving mode
@@ -1092,7 +1093,9 @@ static void uc8175_get_capabilities(const struct device *dev, struct display_cap
   caps->y_resolution = config->height;
   caps->supported_pixel_formats = PIXEL_FORMAT_MONO10;
   caps->current_pixel_format = PIXEL_FORMAT_MONO10;
-  caps->screen_info = SCREEN_INFO_MONO_MSB_FIRST | SCREEN_INFO_EPD;
+  // ignore SCREEN_INFO_EPD I don't like LVGL behaivior for EPD
+  // caps->screen_info = SCREEN_INFO_MONO_MSB_FIRST | SCREEN_INFO_EPD;
+  caps->screen_info = SCREEN_INFO_MONO_MSB_FIRST | (config->anti_ghosting ? 0 : SCREEN_INFO_EPD);
 }
 
 /**
@@ -1192,7 +1195,27 @@ static int uc8175_init(const struct device *dev) {
     return err;
   }
 
+#if IS_ENABLED(CONFIG_PM_DEVICE)
+  /* OPTIONAL: mark device as suspended if it is physically suspended */
+  // pm_device_init_suspended(dev);
   err = _resume(dev);
+  if (err < 0) {
+    return err;
+  }
+
+#  if IS_ENABLED(CONFIG_PM_DEVICE_RUNTIME)
+  /* enable device runtime power management */
+  err = pm_device_runtime_enable(dev);
+  if ((err < 0) && (err != -ENOSYS)) {
+    return err;
+  }
+#  endif  // CONFIG_PM_DEVICE_RUNTIME
+#else
+  err = _resume(dev);
+  if (err < 0) {
+    return err;
+  }
+#endif  // CONFIG_PM_DEVICE
 
   LOG_DBG("end PS %u, sleep %u, blanking %u", config->power_saving, data->sleep, data->blanking_on);
 
