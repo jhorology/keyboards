@@ -7,6 +7,7 @@
 #include <zephyr/kernel.h>
 
 #include <zephyr/logging/log.h>
+#include "extra/widgets/span/lv_span.h"
 #include "font/lv_symbol_def.h"
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
@@ -19,46 +20,76 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include <zmk/ble.h>
 #include <zmk/endpoints.h>
 
+#if IS_ENABLED(CONFIG_ZMK_USB_HOST_OS)
+#  include <zmk/usb_host_os.h>
+#  include <zmk/events/usb_host_os_changed.h>
+#endif  // CONFIG_ZMK_USB_HOST_OS
+
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
 
 struct output_status_state {
   struct zmk_endpoint_instance selected_endpoint;
   bool active_profile_connected;
   bool active_profile_bonded;
+  enum usb_host_os usb_host_os;
 };
 
 static struct output_status_state get_state(const zmk_event_t *_eh) {
   return (struct output_status_state){
     .selected_endpoint = zmk_endpoints_selected(),
     .active_profile_connected = zmk_ble_active_profile_is_connected(),
-    .active_profile_bonded = !zmk_ble_active_profile_is_open()};
+    .active_profile_bonded = !zmk_ble_active_profile_is_open()
+#if IS_ENABLED(CONFIG_ZMK_USB_HOST_OS)
+      ,
+    .usb_host_os = zmk_usb_host_os_detected()
+#endif  // CONFIG_ZMK_USB_HOST_OS
+  };
   ;
 }
 
-static void set_status_symbol(lv_obj_t *label, struct output_status_state state) {
-  char text[20] = {};
+static void set_status_symbol(lv_obj_t *spangroup, struct output_status_state state) {
+  char transport_icon_text[4] = {};
+  char transport_desc_text[13] = {};
+  char ble_status_text[4] = {};
 
   switch (state.selected_endpoint.transport) {
     case ZMK_TRANSPORT_USB:
-      strcat(text, LV_SYMBOL_USB);
+      strcat(transport_icon_text, LV_SYMBOL_USB);
+#if IS_ENABLED(CONFIG_ZMK_USB_HOST_OS)
+      switch (zmk_usb_host_os_detected()) {
+        case USB_HOST_OS_DARWIN:
+          strcat(transport_desc_text, "Mac");
+          break;
+        default:
+          strcat(transport_desc_text, "Win");
+          break;
+      }
+#endif  // CONFIG_ZMK_USB_HOST_OS
       break;
     case ZMK_TRANSPORT_BLE:
+      strcat(transport_icon_text, LV_SYMBOL_WIFI);
+      snprintf(transport_desc_text, sizeof(transport_desc_text), "%i ",
+               state.selected_endpoint.ble.profile_index + 1);
       if (state.active_profile_bonded) {
         if (state.active_profile_connected) {
-          snprintf(text, sizeof(text), LV_SYMBOL_WIFI "%i " LV_SYMBOL_OK,
-                   state.selected_endpoint.ble.profile_index + 1);
+          strcat(ble_status_text, LV_SYMBOL_OK);
         } else {
-          snprintf(text, sizeof(text), LV_SYMBOL_WIFI "%i " LV_SYMBOL_CLOSE,
-                   state.selected_endpoint.ble.profile_index + 1);
+          strcat(ble_status_text, LV_SYMBOL_CLOSE);
         }
       } else {
-        snprintf(text, sizeof(text), LV_SYMBOL_WIFI "%i " LV_SYMBOL_SETTINGS,
-                 state.selected_endpoint.ble.profile_index + 1);
+        strcat(ble_status_text, LV_SYMBOL_SETTINGS);
       }
       break;
   }
+  lv_span_t *span = lv_spangroup_get_child(spangroup, 0);
+  lv_span_set_text(span, transport_icon_text);
 
-  lv_label_set_text(label, text);
+  span = lv_spangroup_get_child(spangroup, 1);
+  lv_span_set_text(span, transport_desc_text);
+
+  span = lv_spangroup_get_child(spangroup, 2);
+  lv_span_set_text(span, ble_status_text);
+  lv_spangroup_refr_mode(spangroup);
 }
 
 static void output_status_update_cb(struct output_status_state state) {
@@ -73,10 +104,24 @@ ZMK_SUBSCRIPTION(widget_output_status, zmk_endpoint_changed);
 // but there wasn't another endpoint to switch from/to, so update on BLE events too.
 #if defined(CONFIG_ZMK_BLE)
 ZMK_SUBSCRIPTION(widget_output_status, zmk_ble_active_profile_changed);
-#endif
+#endif  // CONFIG_ZMK_BLE
+
+#if defined(CONFIG_ZMK_USB_HOST_OS)
+ZMK_SUBSCRIPTION(widget_output_status, zmk_usb_host_os_changed);
+#endif  // CONFIG_ZMK_USB_HOST_OS
 
 int zmk_widget_output_status_init(struct zmk_widget_output_status *widget, lv_obj_t *parent) {
-  widget->obj = lv_label_create(parent);
+  widget->obj = lv_spangroup_create(parent);
+
+  // transport icon
+  lv_span_t *span = lv_spangroup_new_span(widget->obj);
+
+  // transport desc text
+  span = lv_spangroup_new_span(widget->obj);
+  lv_style_set_text_font(&span->style, lv_theme_get_font_small(parent));
+
+  // ble status icon
+  span = lv_spangroup_new_span(widget->obj);
 
   sys_slist_append(&widgets, &widget->node);
 

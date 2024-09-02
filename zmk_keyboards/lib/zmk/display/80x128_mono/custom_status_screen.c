@@ -48,7 +48,7 @@ static void create_label(lv_obj_t *parent, const char *text, lv_align_t align, l
 lv_obj_t *zmk_display_status_screen() {
   lv_obj_t *screen;
   screen = lv_obj_create(NULL);
-  int y = MARGIN_BOTTOM / 2;
+  int y = MARGIN_BOTTOM;
 #if IS_ENABLED(CONFIG_ZMK_WIDGET_LAYER_STATUS)
 
   zmk_widget_layer_status_init(&layer_status_widget, screen);
@@ -56,7 +56,7 @@ lv_obj_t *zmk_display_status_screen() {
                              lv_theme_get_font_small(screen), LV_PART_MAIN);
   lv_obj_align(zmk_widget_layer_status_obj(&layer_status_widget), LV_ALIGN_TOP_LEFT, MARGIN_LEFT,
                y);
-  y += 14 + MARGIN_BOTTOM;
+  y += 12 + MARGIN_BOTTOM;
 #endif
 
 #if IS_ENABLED(CONFIG_ZMK_WIDGET_BATTERY_STATUS_80X128_MONO)
@@ -85,11 +85,11 @@ lv_obj_t *zmk_display_status_screen() {
 
   // TODO do something fun
 #if !IS_ENABLED(CONFIG_ZMK_SPLIT) || IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
-  create_label(screen, "Powered By", LV_ALIGN_BOTTOM_MID, 0, -40 - MARGIN_BOTTOM);
+  create_label(screen, "Powered By", LV_ALIGN_BOTTOM_MID, 0, -40 - MARGIN_BOTTOM * 2);
   lv_obj_t *zmk = lv_img_create(screen);
   LV_IMG_DECLARE(zmk_logo_40x40);
   lv_img_set_src(zmk, &zmk_logo_40x40);
-  lv_obj_align(zmk, LV_ALIGN_BOTTOM_MID, 0, -MARGIN_BOTTOM);
+  lv_obj_align(zmk, LV_ALIGN_BOTTOM_MID, 0, -MARGIN_BOTTOM * 2);
 #endif
 #if IS_ENABLED(CONFIG_ZMK_SPLIT) && !IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
   lv_obj_t *custom_logo = lv_img_create(screen);

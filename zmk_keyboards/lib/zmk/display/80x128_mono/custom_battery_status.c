@@ -26,46 +26,50 @@ struct battery_status_state {
 #endif
 };
 
-static void set_battery_symbol(lv_obj_t *label, struct battery_status_state state) {
-  char text[12] = {};
+static void set_battery_symbol(lv_obj_t *spangroup, struct battery_status_state state) {
+  char icon[4] = {};
+  char perc[12] = {};
 
   uint8_t level = state.level;
 
 #if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
   if (state.usb_present) {
-    strcpy(text, LV_SYMBOL_CHARGE);
+    strcpy(icon, LV_SYMBOL_CHARGE);
   } else {
     if (level > 95) {
-      strcat(text, LV_SYMBOL_BATTERY_FULL);
+      strcat(icon, LV_SYMBOL_BATTERY_FULL);
     } else if (level > 65) {
-      strcat(text, LV_SYMBOL_BATTERY_3);
+      strcat(icon, LV_SYMBOL_BATTERY_3);
     } else if (level > 35) {
-      strcat(text, LV_SYMBOL_BATTERY_2);
+      strcat(icon, LV_SYMBOL_BATTERY_2);
     } else if (level > 5) {
-      strcat(text, LV_SYMBOL_BATTERY_1);
+      strcat(icon, LV_SYMBOL_BATTERY_1);
     } else {
-      strcat(text, LV_SYMBOL_BATTERY_EMPTY);
+      strcat(icon, LV_SYMBOL_BATTERY_EMPTY);
     }
   }
-#endif /* IS_ENABLED(CONFIG_USB_DEVICE_STACK) */
-#if !IS_ENABLED(CONFIG_USB_DEVICE_STACK)
+#else
   if (level > 95) {
-    strcat(text, LV_SYMBOL_BATTERY_FULL);
+    strcat(icon, LV_SYMBOL_BATTERY_FULL);
   } else if (level > 65) {
-    strcat(text, LV_SYMBOL_BATTERY_3);
+    strcat(icon, LV_SYMBOL_BATTERY_3);
   } else if (level > 35) {
-    strcat(text, LV_SYMBOL_BATTERY_2);
+    strcat(icon, LV_SYMBOL_BATTERY_2);
   } else if (level > 5) {
-    strcat(text, LV_SYMBOL_BATTERY_1);
+    strcat(icon, LV_SYMBOL_BATTERY_1);
   } else {
-    strcat(text, LV_SYMBOL_BATTERY_EMPTY);
+    strcat(icon, LV_SYMBOL_BATTERY_EMPTY);
   }
-#endif
-  char perc[4] = {};
-  snprintf(perc, sizeof(perc), "%3u", level);
-  strcat(text, perc);
+#endif  // CONFIG_USB_DEVICE_STACK
+  snprintf(perc, sizeof(perc), " %u", level);
 
-  lv_label_set_text(label, text);
+  lv_span_t *span = lv_spangroup_get_child(spangroup, 0);
+  lv_span_set_text(span, icon);
+
+  span = lv_spangroup_get_child(spangroup, 1);
+  lv_span_set_text(span, perc);
+
+  lv_spangroup_refr_mode(spangroup);
 }
 
 void battery_status_update_cb(struct battery_status_state state) {
@@ -93,7 +97,14 @@ ZMK_SUBSCRIPTION(widget_battery_status, zmk_usb_conn_state_changed);
 #endif /* IS_ENABLED(CONFIG_USB_DEVICE_STACK) */
 
 int zmk_widget_battery_status_init(struct zmk_widget_battery_status *widget, lv_obj_t *parent) {
-  widget->obj = lv_label_create(parent);
+  widget->obj = lv_spangroup_create(parent);
+
+  // icon
+  lv_span_t *span = lv_spangroup_new_span(widget->obj);
+
+  // percentage
+  span = lv_spangroup_new_span(widget->obj);
+  lv_style_set_text_font(&span->style, lv_theme_get_font_small(parent));
 
   sys_slist_append(&widgets, &widget->node);
 

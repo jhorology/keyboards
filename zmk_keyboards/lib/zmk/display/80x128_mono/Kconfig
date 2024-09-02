@@ -4,12 +4,12 @@
 config ZMK_WIDGET_BATTERY_STATUS_80X128_MONO
     bool "Widget for battery charge information, using small icons"
     depends on BT
-    select LV_USE_LABEL
+    select LV_USE_SPAN
 
 config ZMK_WIDGET_OUTPUT_STATUS_80X128_MONO
     bool "Widget for keyboard output status icons"
     depends on BT && (!ZMK_SPLIT_BLE || ZMK_SPLIT_ROLE_CENTRAL)
-    select LV_USE_LABEL
+    select LV_USE_SPAN
 
 config ZMK_DISPLAY_STATUS_SCREEN_CUSTOM_80X128_MONO
     bool "Custom status screen form 80x128 mono display"
