@@ -30,12 +30,11 @@ LOG_MODULE_REGISTER(uc8175, CONFIG_DISPLAY_LOG_LEVEL);
 #define IS_BORDERED(config) \
   ((config->cdi & UC8175_CDI_MASK_VBD) == 0x40 || (config->cdi & UC8175_CDI_MASK_VBD) == 0x80)
 
-#define CHECK_SUSPENDED(dev)                                                                      \
-  COND_CODE_1(                                                                                    \
-    CONFIG_PM_DEVICE,                                                                             \
-    (enum pm_device_state state; (void)pm_device_state_get(dev, &state);                          \
-     if (state == PM_DEVICE_STATE_SUSPENDED || state == PM_DEVICE_STATE_SUSPENDING) return -EIO), \
-    ())
+// ZMK dosen't wait for pm_device_busy
+// #define PM_DEVICE_BUSY_SET(dev) pm_device_busy_set(dev)
+// #define PM_DEVICE_BUSY_CLEAR(dev) pm_device_busy_clear(dev)
+#define PM_DEVICE_BUSY_SET(dev)
+#define PM_DEVICE_BUSY_CLEAR(dev)
 
 /*
  *  power_saving mode
@@ -117,6 +116,9 @@ struct uc8175_data {
   uint8_t cur_cdi;
   uint8_t *cur_lutw;
   uint8_t *cur_lutb;
+#if IS_ENABLED(CONFIG_PM_DEVICE)
+  struct k_mutex lock;
+#endif
 };
 
 static inline void _busy_wait(const struct device *dev) {
@@ -697,6 +699,7 @@ static int _resume(const struct device *dev) {
   return 0;
 }
 
+#if IS_ENABLED(CONFIG_PM_DEVICE)
 static int _suspend(const struct device *dev) {
   const struct uc8175_config *config = dev->config;
   struct uc8175_data *data = dev->data;
@@ -771,6 +774,7 @@ static int _suspend(const struct device *dev) {
 
   return 0;
 }
+#endif
 
 /**
  * @brief Write data to display
@@ -789,8 +793,6 @@ static int uc8175_write(const struct device *dev, const uint16_t x, const uint16
   struct uc8175_data *data = dev->data;
   size_t buf_len;
   int err;
-
-  CHECK_SUSPENDED(dev);
 
   buf_len = MIN(desc->buf_size, config->height * config->width / UC8175_PIXELS_PER_BYTE);
 
@@ -873,6 +875,40 @@ static int uc8175_write(const struct device *dev, const uint16_t x, const uint16
   return 0;
 }
 
+#if IS_ENABLED(CONFIG_PM_DEVICE)
+static int uc8175_write_pm(const struct device *dev, const uint16_t x, const uint16_t y,
+                           const struct display_buffer_descriptor *desc, const void *buf) {
+  struct uc8175_data *data = dev->data;
+  enum pm_device_state state;
+  int ret;
+
+  (void)pm_device_state_get(dev, &state);
+  if (state == PM_DEVICE_STATE_SUSPENDED || state == PM_DEVICE_STATE_SUSPENDING) {
+    return -EIO;
+  }
+
+  (void)k_mutex_lock(&data->lock, K_FOREVER);
+
+#  if IS_ENABLED(CONFIG_PM_DEVICE_RUNTIME)
+  (void)pm_device_runtime_get(dev);
+#  else
+  PM_DEVICE_BUSY_SET(dev);
+#  endif
+
+  ret = uc8175_write(dev, x, y, desc, buf);
+
+#  if IS_ENABLED(CONFIG_PM_DEVICE_RUNTIME)
+  (void)pm_device_runtime_put(dev);
+#  else
+  PM_DEVICE_BUSY_CLEAR(dev);
+#  endif
+
+  (void)k_mutex_unlock(&data->lock);
+
+  return ret;
+}
+#endif
+
 /**
  * @brief Read data from display
  *
@@ -926,8 +962,6 @@ static int uc8175_blanking_on(const struct device *dev) {
   const struct uc8175_config *config = dev->config;
   struct uc8175_data *data = dev->data;
   int err;
-
-  CHECK_SUSPENDED(dev);
 
   LOG_DBG("start PS %u, sleep %u, blanking %u", config->power_saving, data->sleep,
           data->blanking_on);
@@ -996,6 +1030,39 @@ static int uc8175_blanking_on(const struct device *dev) {
   return 0;
 }
 
+#if IS_ENABLED(CONFIG_PM_DEVICE)
+static int uc8175_blanking_on_pm(const struct device *dev) {
+  struct uc8175_data *data = dev->data;
+  enum pm_device_state state;
+  int ret;
+
+  (void)pm_device_state_get(dev, &state);
+  if (state == PM_DEVICE_STATE_SUSPENDED || state == PM_DEVICE_STATE_SUSPENDING) {
+    return -EIO;
+  }
+
+  (void)k_mutex_lock(&data->lock, K_FOREVER);
+
+#  if IS_ENABLED(CONFIG_PM_DEVICE_RUNTIME)
+  (void)pm_device_runtime_get(dev);
+#  else
+  PM_DEVICE_BUSY_SET(dev);
+#  endif
+
+  ret = uc8175_blanking_on(dev);
+
+#  if IS_ENABLED(CONFIG_PM_DEVICE_RUNTIME)
+  (void)pm_device_runtime_put(dev);
+#  else
+  PM_DEVICE_BUSY_CLEAR(dev);
+#  endif
+
+  (void)k_mutex_unlock(&data->lock);
+
+  return ret;
+}
+#endif
+
 /**
  * @brief Turn display blanking off
  *
@@ -1011,8 +1078,6 @@ static int uc8175_blanking_off(const struct device *dev) {
   const struct uc8175_config *config = dev->config;
   struct uc8175_data *data = dev->data;
   int err;
-
-  CHECK_SUSPENDED(dev);
 
   LOG_DBG("start PS %u, sleep %u, blanking %u", config->power_saving, data->sleep,
           data->blanking_on);
@@ -1046,6 +1111,39 @@ static int uc8175_blanking_off(const struct device *dev) {
 
   return 0;
 }
+
+#if IS_ENABLED(CONFIG_PM_DEVICE)
+static int uc8175_blanking_off_pm(const struct device *dev) {
+  struct uc8175_data *data = dev->data;
+  enum pm_device_state state;
+  int ret;
+
+  (void)pm_device_state_get(dev, &state);
+  if (state == PM_DEVICE_STATE_SUSPENDED || state == PM_DEVICE_STATE_SUSPENDING) {
+    return -EIO;
+  }
+
+  (void)k_mutex_lock(&data->lock, K_FOREVER);
+
+#  if IS_ENABLED(CONFIG_PM_DEVICE_RUNTIME)
+  (void)pm_device_runtime_get(dev);
+#  else
+  PM_DEVICE_BUSY_SET(dev);
+#  endif
+
+  ret = uc8175_blanking_off(dev);
+
+#  if IS_ENABLED(CONFIG_PM_DEVICE_RUNTIME)
+  (void)pm_device_runtime_put(dev);
+#  else
+  PM_DEVICE_BUSY_CLEAR(dev);
+#  endif
+
+  (void)k_mutex_unlock(&data->lock);
+
+  return ret;
+}
+#endif
 
 /**
  * @brief Set the brightness of the display
@@ -1195,27 +1293,21 @@ static int uc8175_init(const struct device *dev) {
     return err;
   }
 
-#if IS_ENABLED(CONFIG_PM_DEVICE)
-  /* OPTIONAL: mark device as suspended if it is physically suspended */
-  // pm_device_init_suspended(dev);
-  err = _resume(dev);
-  if (err < 0) {
-    return err;
-  }
+  k_mutex_init(&data->lock);
 
-#  if IS_ENABLED(CONFIG_PM_DEVICE_RUNTIME)
+#if IS_ENABLED(CONFIG_PM_DEVICE_RUNTIME)
   /* enable device runtime power management */
+  pm_device_init_suspended(dev);
   err = pm_device_runtime_enable(dev);
   if ((err < 0) && (err != -ENOSYS)) {
     return err;
   }
-#  endif  // CONFIG_PM_DEVICE_RUNTIME
 #else
   err = _resume(dev);
   if (err < 0) {
     return err;
   }
-#endif  // CONFIG_PM_DEVICE
+#endif  // CONFIG_PM_DEVICE_RUNTIME
 
   LOG_DBG("end PS %u, sleep %u, blanking %u", config->power_saving, data->sleep, data->blanking_on);
 
@@ -1223,6 +1315,25 @@ static int uc8175_init(const struct device *dev) {
 }
 
 #if IS_ENABLED(CONFIG_PM_DEVICE)
+
+static int uc8175_suspend(const struct device *dev) {
+  struct uc8175_data *data = dev->data;
+  int ret;
+  (void)k_mutex_lock(&data->lock, K_FOREVER);
+  ret = _suspend(dev);
+  (void)k_mutex_unlock(&data->lock);
+  return ret;
+}
+
+static int uc8175_resume(const struct device *dev) {
+  struct uc8175_data *data = dev->data;
+  int ret;
+  (void)k_mutex_lock(&data->lock, K_FOREVER);
+  ret = _resume(dev);
+  (void)k_mutex_unlock(&data->lock);
+  return ret;
+}
+
 /**
  * @brief Device PM action callback.
  *
@@ -1241,13 +1352,13 @@ static int uc8175_pm_action(const struct device *dev, enum pm_device_action acti
           data->sleep, data->blanking_on);
   switch (action) {
     case PM_DEVICE_ACTION_SUSPEND:
-      err = _suspend(dev);
+      err = uc8175_suspend(dev);
       if (err < 0) {
         return err;
       }
       break;
     case PM_DEVICE_ACTION_RESUME:
-      err = _resume(dev);
+      err = uc8175_resume(dev);
       if (err < 0) {
         return err;
       }
@@ -1265,9 +1376,15 @@ static int uc8175_pm_action(const struct device *dev, enum pm_device_action acti
 #endif /* CONFIG_PM_DEVICE  */
 
 static const struct display_driver_api uc8175_display_api = {
+#if IS_ENABLED(CONFIG_PM_DEVICE)
+  .blanking_on = uc8175_blanking_on_pm,
+  .blanking_off = uc8175_blanking_off_pm,
+  .write = uc8175_write_pm,
+#else
   .blanking_on = uc8175_blanking_on,
   .blanking_off = uc8175_blanking_off,
   .write = uc8175_write,
+#endif
   .read = uc8175_read,
   .get_framebuffer = uc8175_get_framebuffer,
   .set_brightness = uc8175_set_brightness,
