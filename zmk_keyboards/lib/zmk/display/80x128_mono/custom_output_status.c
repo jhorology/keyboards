@@ -31,7 +31,9 @@ struct output_status_state {
   struct zmk_endpoint_instance selected_endpoint;
   bool active_profile_connected;
   bool active_profile_bonded;
+#if IS_ENABLED(CONFIG_ZMK_USB_HOST_OS)
   enum usb_host_os usb_host_os;
+#endif  // CONFIG_ZMK_USB_HOST_OS
 };
 
 static struct output_status_state get_state(const zmk_event_t *_eh) {
@@ -60,8 +62,11 @@ static void set_status_symbol(lv_obj_t *spangroup, struct output_status_state st
         case USB_HOST_OS_DARWIN:
           strcat(transport_desc_text, "Mac");
           break;
-        default:
+        case USB_HOST_OS_UNKNOWN:
           strcat(transport_desc_text, "Win");
+          break;
+        default:
+          strcat(transport_desc_text, "---");
           break;
       }
 #endif  // CONFIG_ZMK_USB_HOST_OS
@@ -89,6 +94,7 @@ static void set_status_symbol(lv_obj_t *spangroup, struct output_status_state st
 
   span = lv_spangroup_get_child(spangroup, 2);
   lv_span_set_text(span, ble_status_text);
+
   lv_spangroup_refr_mode(spangroup);
 }
 

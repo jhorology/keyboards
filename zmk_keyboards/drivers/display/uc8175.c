@@ -4,6 +4,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+#include "zephyr/kernel.h"
 #define DT_DRV_COMPAT ultrachip_uc8175_ya
 
 #include <zephyr/device.h>
@@ -121,14 +122,17 @@ struct uc8175_data {
 #endif
 };
 
-static inline void _busy_wait(const struct device *dev) {
+static inline void _busy_wait(const struct device *dev, bool command) {
   const struct uc8175_config *config = dev->config;
+  // The waiting interval form BUSY_N falling to the first FLG command must be longer than 200uS.
+  if (command) {
+    k_usleep(UC8175_BUSY_DELAY);
+  }
   int pin = gpio_pin_get_dt(&config->busy);
-
   while (pin > 0) {
     __ASSERT(pin >= 0, "Failed to get pin level");
     // LOG_DBG("wait %u", pin);
-    k_msleep(UC8175_BUSY_DELAY);
+    k_usleep(UC8175_BUSY_DELAY);
     pin = gpio_pin_get_dt(&config->busy);
   }
 }
@@ -139,7 +143,7 @@ static inline void _reset(const struct device *dev) {
   k_msleep(UC8175_RESET_DELAY);
   gpio_pin_set_dt(&config->reset, 0);
   k_msleep(UC8175_RESET_DELAY);
-  _busy_wait(dev);
+  _busy_wait(dev, false);
 }
 
 static int _write_cmd_data(const struct device *dev, uint8_t cmd, void *data, size_t len,
@@ -219,6 +223,37 @@ static inline int _write_cmd_fill_data(const struct device *dev, uint8_t cmd, ui
   return _write_cmd_data(dev, cmd, NULL, 0, fill_data, fill_len);
 }
 
+static inline int _power_on(const struct device *dev) {
+  int err = _write_cmd(dev, UC8175_CMD_PON);
+  if (err < 0) {
+    return err;
+  }
+  // k_msleep(UC8175_PON_DELAY);
+  _busy_wait(dev, true);
+  return 0;
+}
+
+static inline int _power_off(const struct device *dev) {
+  int err = _write_cmd(dev, UC8175_CMD_POF);
+  if (err < 0) {
+    return err;
+  }
+  return 0;
+}
+
+static inline int _sleep(const struct device *dev) {
+  struct uc8175_data *data = dev->data;
+  int err;
+
+  err = _write_cmd_uint8_data(dev, UC8175_CMD_DSLP, UC8175_DSLP_CODE);
+  if (err < 0) {
+    return err;
+  }
+  data->sleep = true;
+
+  return 0;
+}
+
 /**
  *  x0  top left horizontal position of partial window
  *  x1  bottom right horizontal position of partial window
@@ -242,8 +277,8 @@ static inline int _window(const struct device *dev, uint16_t x0, uint16_t x1, ui
 
 static inline int _window_partial(const struct device *dev, uint16_t x0, uint16_t x1, uint16_t y0,
                                   uint16_t y1) {
-  /* TODO why ? */
-  // return _window(dev, x0, x1, y0, y1, true);
+  //  const struct uc8175_config *config = dev->config;
+  // return _window(dev, x0, x1, y0, y1, !IS_XOR_REFRESH(config));
   return _window(dev, x0, x1, y0, y1, false);
 }
 
@@ -259,9 +294,44 @@ static int _window_full(const struct device *dev) {
   return 0;
 }
 
-static int _override_cdi_lut(const struct device *dev, bool force, enum blanking blanking) {
+static int _write_cdi_lut(const struct device *dev, uint8_t cdi, void *lutw, void *lutb) {
   const struct uc8175_config *config = dev->config;
   struct uc8175_data *data = dev->data;
+  int err;
+
+  if (data->cur_cdi != cdi) {
+    err = _write_cmd_uint8_data(dev, UC8175_CMD_CDI, cdi);
+    if (err < 0) {
+      return err;
+    }
+    LOG_DBG("CDI is %s.  %u -> %u.", cdi == config->cdi ? "restored" : "changed", data->cur_cdi,
+            cdi);
+    data->cur_cdi = cdi;
+  }
+
+  if (data->cur_lutw != lutw) {
+    err = _write_cmd_block_data(dev, UC8175_CMD_LUTW, lutw, UC8175_LUTW_REG_LENGTH);
+    if (err < 0) {
+      return err;
+    }
+    LOG_DBG("LUTW is %s.", lutw == config->lutw ? "restored to white" : "changed to black");
+    data->cur_lutw = lutw;
+  }
+
+  if (data->cur_lutb != lutb) {
+    err = _write_cmd_block_data(dev, UC8175_CMD_LUTB, lutb, UC8175_LUTB_REG_LENGTH);
+    if (err < 0) {
+      return err;
+    }
+    LOG_DBG("LUTB is %s.", lutb == config->lutb ? "restored to black" : "changed to white");
+    data->cur_lutb = lutb;
+  }
+
+  return 0;
+}
+
+static int _override_cdi_lut(const struct device *dev, enum blanking blanking) {
+  const struct uc8175_config *config = dev->config;
   uint8_t cdi = config->cdi;
   void *lutw = (void *)config->lutw;
   void *lutb = (void *)config->lutb;
@@ -289,66 +359,21 @@ static int _override_cdi_lut(const struct device *dev, bool force, enum blanking
       break;
   }
 
-  if (force || cdi != config->cdi) {
-    err = _write_cmd_uint8_data(dev, UC8175_CMD_CDI, cdi);
-    if (err < 0) {
-      return err;
-    }
-    data->cur_cdi = cdi;
-    LOG_DBG("CDI is temporaily changed. %u -> %u", config->cdi, cdi);
-  }
-
-  if (force || config->lutw != lutw) {
-    err = _write_cmd_block_data(dev, UC8175_CMD_LUTW, lutw, UC8175_LUTW_REG_LENGTH);
-    if (err < 0) {
-      return err;
-    }
-    data->cur_lutw = lutw;
-    LOG_DBG("LUTW is temporaily changed to Black");
-  }
-
-  if (force || config->lutb != lutb) {
-    err = _write_cmd_block_data(dev, UC8175_CMD_LUTB, lutb, UC8175_LUTB_REG_LENGTH);
-    if (err < 0) {
-      return err;
-    }
-    data->cur_lutb = lutb;
-    LOG_DBG("LUTB is temporaily changed to White");
+  err = _write_cdi_lut(dev, cdi, lutw, lutb);
+  if (err < 0) {
+    return err;
   }
 
   return 0;
 }
 
-static int _restore_cdi_lut(const struct device *dev, bool force) {
+static int _restore_cdi_lut(const struct device *dev) {
   const struct uc8175_config *config = dev->config;
-  struct uc8175_data *data = dev->data;
   int err;
 
-  if (force || data->cur_cdi != config->cdi) {
-    err = _write_cmd_uint8_data(dev, UC8175_CMD_CDI, config->cdi);
-    if (err < 0) {
-      return err;
-    }
-    LOG_DBG("CDI is restiored %u -> %u", data->cur_cdi, config->cdi);
-    data->cur_cdi = config->cdi;
-  }
-
-  if (force || data->cur_lutw != config->lutw) {
-    err = _write_cmd_block_data(dev, UC8175_CMD_LUTW, (void *)config->lutw, UC8175_LUTW_REG_LENGTH);
-    data->cur_lutw = (uint8_t *)config->lutw;
-    if (err < 0) {
-      return err;
-    }
-    LOG_DBG("LUTW is restored");
-  }
-
-  if (force || data->cur_lutb != config->lutb) {
-    err = _write_cmd_block_data(dev, UC8175_CMD_LUTB, (void *)config->lutb, UC8175_LUTB_REG_LENGTH);
-    data->cur_lutb = (uint8_t *)config->lutb;
-    if (err < 0) {
-      return err;
-    }
-    LOG_DBG("LUTB is restored");
+  err = _write_cdi_lut(dev, config->cdi, (void *)config->lutw, (void *)config->lutb);
+  if (err < 0) {
+    return err;
   }
 
   return 0;
@@ -359,18 +384,18 @@ static int _restore_cdi_lut(const struct device *dev, bool force) {
  * @param blanking blanking mode
  * @param post_process need post process
  */
-static int _refresh_full(const struct device *dev, bool blanking_on) {
+static int _refresh_full(const struct device *dev, bool blanking_on, enum blanking blanking) {
   const struct uc8175_config *config = dev->config;
   struct uc8175_data *data = dev->data;
-  enum blanking blanking = blanking_on ? config->blanking : KEEP_CONTENT;
   int err;
+
+  err = _override_cdi_lut(dev, blanking_on ? blanking : KEEP_CONTENT);
+  if (err < 0) {
+    return err;
+  }
 
   switch (config->power_saving) {
     case POWER_SAVING_NONE:
-      err = _override_cdi_lut(dev, false, blanking);
-      if (err < 0) {
-        return err;
-      }
 
       err = _write_cmd(dev, UC8175_CMD_DRF);
       if (err < 0) {
@@ -379,29 +404,19 @@ static int _refresh_full(const struct device *dev, bool blanking_on) {
       break;
 
     case POWER_SAVING_POF_ON_BLANKING:
-      err = _override_cdi_lut(dev, false, blanking);
-      if (err < 0) {
-        return err;
-      }
 
-      // blanking_off()
-      if (!blanking_on) {
-        err = _write_cmd(dev, UC8175_CMD_PON);
+      if (blanking_on) {
+        err = _write_cmd_uint8_data(dev, UC8175_CMD_AUTO, UC8175_AUTO_POF);
         if (err < 0) {
           return err;
         }
-        _busy_wait(dev);
-      }
 
-      err = _write_cmd(dev, UC8175_CMD_DRF);
-      if (err < 0) {
-        return err;
-      }
-      _busy_wait(dev);
-
-      // blanking_on()
-      if (blanking_on) {
-        err = _write_cmd(dev, UC8175_CMD_POF);
+      } else {
+        err = _power_on(dev);
+        if (err < 0) {
+          return err;
+        }
+        err = _write_cmd(dev, UC8175_CMD_DRF);
         if (err < 0) {
           return err;
         }
@@ -409,10 +424,6 @@ static int _refresh_full(const struct device *dev, bool blanking_on) {
       break;
 
     case POWER_SAVING_POF_ON_WRITE:
-      err = _override_cdi_lut(dev, false, blanking);
-      if (err < 0) {
-        return err;
-      }
 
       // 0xa5 = PON -> DRF -> POF
       err = _write_cmd_uint8_data(dev, UC8175_CMD_AUTO, UC8175_AUTO_POF);
@@ -422,11 +433,6 @@ static int _refresh_full(const struct device *dev, bool blanking_on) {
       break;
 
     case POWER_SAVING_DSLP_ON_BLANKING:
-      // CDI / LUT values are not writed in _wake()
-      err = _override_cdi_lut(dev, true, blanking);
-      if (err < 0) {
-        return err;
-      }
 
       err = _write_cmd_uint8_data(dev, UC8175_CMD_AUTO,
                                   blanking_on ? UC8175_AUTO_DSLP : UC8175_AUTO_POF);
@@ -439,11 +445,6 @@ static int _refresh_full(const struct device *dev, bool blanking_on) {
       break;
 
     case POWER_SAVING_DSLP_ON_WRITE:
-      // CDI / LUT values are not writed in _wake()
-      err = _override_cdi_lut(dev, true, blanking);
-      if (err < 0) {
-        return err;
-      }
 
       err = _write_cmd_uint8_data(dev, UC8175_CMD_AUTO, UC8175_AUTO_DSLP);
       if (err < 0) {
@@ -457,6 +458,46 @@ static int _refresh_full(const struct device *dev, bool blanking_on) {
   return 0;
 }
 
+static int _anti_ghosting(const struct device *dev, enum blanking blanking) {
+  const struct uc8175_config *config = dev->config;
+  bool is_black = blanking == BLANKING_BLACK || blanking == BLANKING_INVERT;
+  int err;
+
+  for (int i = 0; i < 2; i++) {
+    err = _window_full(dev);
+    if (err < 0) {
+      return err;
+    }
+
+    err = _override_cdi_lut(dev, is_black ? BLANKING_BLACK : BLANKING_WHITE);
+    is_black = !is_black;
+    if (err < 0) {
+      return err;
+    }
+    switch (config->power_saving) {
+      case POWER_SAVING_NONE:
+        err = _write_cmd(dev, UC8175_CMD_DRF);
+        if (err < 0) {
+          return err;
+        }
+        break;
+      case POWER_SAVING_POF_ON_BLANKING:
+      case POWER_SAVING_POF_ON_WRITE:
+      case POWER_SAVING_DSLP_ON_BLANKING:
+      case POWER_SAVING_DSLP_ON_WRITE:
+        err = _write_cmd_uint8_data(dev, UC8175_CMD_AUTO, UC8175_AUTO_POF);
+        if (err < 0) {
+          return err;
+        }
+        break;
+    }
+
+    _busy_wait(dev, true);
+  }
+
+  return 0;
+}
+
 /**
  * @param post_process need post process
  */
@@ -465,55 +506,58 @@ static int _refresh_partial(const struct device *dev, bool post_process) {
   struct uc8175_data *data = dev->data;
   int err;
 
+  err = _restore_cdi_lut(dev);
+
+  if (err < 0) {
+    return err;
+  }
   switch (config->power_saving) {
     case POWER_SAVING_NONE:
     case POWER_SAVING_POF_ON_BLANKING:
-      err = _restore_cdi_lut(dev, false);
-      if (err < 0) {
-        return err;
-      }
 
       err = _write_cmd(dev, UC8175_CMD_DRF);
       if (err < 0) {
         return err;
       }
+      if (post_process) {
+        _busy_wait(dev, true);
+      }
       break;
 
     case POWER_SAVING_POF_ON_WRITE:
     case POWER_SAVING_DSLP_ON_BLANKING:
-      err = _restore_cdi_lut(dev, false);
-      if (err < 0) {
-        return err;
-      }
 
-      // 0xa5 = PON -> DRF -> POF
       err = _write_cmd_uint8_data(dev, UC8175_CMD_AUTO, UC8175_AUTO_POF);
       if (err < 0) {
         return err;
       }
+      if (post_process) {
+        _busy_wait(dev, true);
+      }
       break;
 
     case POWER_SAVING_DSLP_ON_WRITE:
-      // CDI / LUT values are not writed in _wake()
-      err = _restore_cdi_lut(dev, true);
+
+      err = _write_cmd(dev, UC8175_CMD_POUT);
       if (err < 0) {
         return err;
       }
-
       err = _write_cmd_uint8_data(dev, UC8175_CMD_AUTO,
                                   post_process ? UC8175_AUTO_POF : UC8175_AUTO_DSLP);
       if (err < 0) {
         return err;
       }
 
-      if (!post_process) {
+      if (post_process) {
+        _busy_wait(dev, true);
+        err = _write_cmd(dev, UC8175_CMD_PIN);
+        if (err < 0) {
+          return err;
+        }
+      } else {
         data->sleep = true;
       }
       break;
-  }
-
-  if (post_process) {
-    _busy_wait(dev);
   }
 
   return 0;
@@ -605,13 +649,22 @@ static int _wake(const struct device *dev) {
     return err;
   }
 
-  if (config->power_saving == POWER_SAVING_NONE ||
-      config->power_saving == POWER_SAVING_POF_ON_BLANKING ||
-      config->power_saving == POWER_SAVING_POF_ON_WRITE) {
-    err = _restore_cdi_lut(dev, true);
-    if (err < 0) {
-      return err;
-    }
+  data->cur_cdi = 0;
+  data->cur_lutw = NULL;
+  data->cur_lutb = NULL;
+
+  switch (config->power_saving) {
+    case POWER_SAVING_NONE:
+    case POWER_SAVING_POF_ON_BLANKING:
+    case POWER_SAVING_POF_ON_WRITE:
+      err = _restore_cdi_lut(dev);
+      if (err < 0) {
+        return err;
+      }
+      break;
+    case POWER_SAVING_DSLP_ON_BLANKING:
+    case POWER_SAVING_DSLP_ON_WRITE:
+      break;
   }
 
   err = _write_cmd(dev, UC8175_CMD_PIN);
@@ -627,36 +680,6 @@ static int _wake(const struct device *dev) {
   data->sleep = false;
 
   LOG_DBG("end");
-  return 0;
-}
-
-static inline int _power_on(const struct device *dev) {
-  int err = _write_cmd(dev, UC8175_CMD_PON);
-  if (err < 0) {
-    return err;
-  }
-  _busy_wait(dev);
-  return 0;
-}
-
-static inline int _power_off(const struct device *dev) {
-  int err = _write_cmd(dev, UC8175_CMD_POF);
-  if (err < 0) {
-    return err;
-  }
-  return 0;
-}
-
-static inline int _sleep(const struct device *dev) {
-  struct uc8175_data *data = dev->data;
-  int err;
-
-  err = _write_cmd_uint8_data(dev, UC8175_CMD_DSLP, UC8175_DSLP_CODE);
-  if (err < 0) {
-    return err;
-  }
-  data->sleep = true;
-
   return 0;
 }
 
@@ -683,6 +706,7 @@ static int _resume(const struct device *dev) {
       if (err < 0) {
         return err;
       }
+
       err = _power_off(dev);
       if (err < 0) {
         return err;
@@ -691,10 +715,10 @@ static int _resume(const struct device *dev) {
 
     case POWER_SAVING_DSLP_ON_BLANKING:
     case POWER_SAVING_DSLP_ON_WRITE:
-      data->blanking_on = true;
       data->sleep = true;
       break;
   }
+  data->blanking_on = true;
 
   return 0;
 }
@@ -709,15 +733,16 @@ static int _suspend(const struct device *dev) {
     return 0;
   }
 
-  _busy_wait(dev);
+  _busy_wait(dev, false);
 
   if (config->blanking_on_suspend == KEEP_CONTENT && !config->anti_ghosting) {
-    err = _write_cmd(dev, UC8175_CMD_POF);
+    err = _power_off(dev);
     if (err < 0) {
       return err;
     }
-    _busy_wait(dev);
-    err = _write_cmd_uint8_data(dev, UC8175_CMD_DSLP, UC8175_DSLP_CODE);
+    _busy_wait(dev, true);
+
+    err = _sleep(dev);
     if (err < 0) {
       return err;
     }
@@ -733,25 +758,9 @@ static int _suspend(const struct device *dev) {
 
   // anti ghosting
   if (config->anti_ghosting) {
-    bool is_black = config->blanking_on_suspend == BLANKING_BLACK ||
-                    config->blanking_on_suspend == BLANKING_INVERT;
-    for (int i = 0; i < 2; i++) {
-      err = _window_full(dev);
-      if (err < 0) {
-        return err;
-      }
-
-      err = _override_cdi_lut(dev, true, is_black ? BLANKING_BLACK : BLANKING_WHITE);
-      is_black = !is_black;
-      if (err < 0) {
-        return err;
-      }
-
-      err = _write_cmd_uint8_data(dev, UC8175_CMD_AUTO, UC8175_AUTO_POF);
-      if (err < 0) {
-        return err;
-      }
-      _busy_wait(dev);
+    err = _anti_ghosting(dev, config->blanking_on_suspend);
+    if (err < 0) {
+      return err;
     }
   }
 
@@ -760,7 +769,7 @@ static int _suspend(const struct device *dev) {
     return err;
   }
 
-  err = _override_cdi_lut(dev, true, config->blanking_on_suspend);
+  err = _override_cdi_lut(dev, config->blanking_on_suspend);
   if (err < 0) {
     return err;
   }
@@ -816,7 +825,7 @@ static int uc8175_write(const struct device *dev, const uint16_t x, const uint16
       return err;
     }
   } else {
-    _busy_wait(dev);
+    _busy_wait(dev, false);
   }
 
   // NEW data
@@ -849,7 +858,6 @@ static int uc8175_write(const struct device *dev, const uint16_t x, const uint16
 
     // OLD data
 
-    // PTL setting is required after refresh
     err = _window_partial(dev, x, x + desc->width - 1, y, y + desc->height - 1);
     if (err < 0) {
       return err;
@@ -970,7 +978,7 @@ static int uc8175_blanking_on(const struct device *dev) {
   if (data->blanking_on) {
     return 0;
   }
-  _busy_wait(dev);
+  _busy_wait(dev, false);
 
   if (data->sleep) {
     err = _wake(dev);
@@ -981,35 +989,9 @@ static int uc8175_blanking_on(const struct device *dev) {
 
   // anti ghosting
   if (config->anti_ghosting) {
-    bool is_black = config->blanking == BLANKING_BLACK || config->blanking == BLANKING_INVERT;
-    for (int i = 0; i < 2; i++) {
-      err = _window_full(dev);
-      if (err < 0) {
-        return err;
-      }
-      err = _override_cdi_lut(dev, true, is_black ? BLANKING_BLACK : BLANKING_WHITE);
-      is_black = !is_black;
-      if (err < 0) {
-        return err;
-      }
-      switch (config->power_saving) {
-        case POWER_SAVING_NONE:
-        case POWER_SAVING_POF_ON_BLANKING:
-          err = _write_cmd(dev, UC8175_CMD_DRF);
-          if (err < 0) {
-            return err;
-          }
-          break;
-        case POWER_SAVING_POF_ON_WRITE:
-        case POWER_SAVING_DSLP_ON_BLANKING:
-        case POWER_SAVING_DSLP_ON_WRITE:
-          err = _write_cmd_uint8_data(dev, UC8175_CMD_AUTO, UC8175_AUTO_POF);
-          if (err < 0) {
-            return err;
-          }
-          break;
-      }
-      _busy_wait(dev);
+    err = _anti_ghosting(dev, config->blanking);
+    if (err < 0) {
+      return err;
     }
   }
 
@@ -1018,7 +1000,7 @@ static int uc8175_blanking_on(const struct device *dev) {
     return err;
   }
 
-  err = _refresh_full(dev, true);
+  err = _refresh_full(dev, true, config->blanking);
   if (err < 0) {
     return err;
   }
@@ -1092,7 +1074,7 @@ static int uc8175_blanking_off(const struct device *dev) {
       return err;
     }
   } else {
-    _busy_wait(dev);
+    _busy_wait(dev, false);
   }
 
   err = _window_full(dev);
@@ -1100,7 +1082,7 @@ static int uc8175_blanking_off(const struct device *dev) {
     return err;
   }
 
-  err = _refresh_full(dev, false);
+  err = _refresh_full(dev, false, KEEP_CONTENT);
   if (err < 0) {
     return err;
   }

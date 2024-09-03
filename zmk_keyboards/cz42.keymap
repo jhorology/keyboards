@@ -219,16 +219,25 @@
    * [4] DDX[0] Data Polarity  1  black on white 0=LUTB on 1=LUTW
    * [2:0] CDI   2  5hsync
    */
-  // cdi = <0x92>;
+   //  cdi = <0x92>;
 
   /*
-   *k CDI = 0x92 0b01010010
+   * CDI = 0x52 0b01010010
    * [7:6] VBD  Border        01b border colo is 0, depends on DDX[0]
    * [5] DDX[1] XOR Refresh    0  refresh all pixel
    * [4] DDX[0] Data Polarity  1  black on white 0=LUTB on 1=LUTW
    * [2:0] CDI   2  5hsync
    */
   cdi = <0x52>;
+
+  /*
+   * CDI = 0x72 0b01110010
+   * [7:6] VBD  Border        01b border colo is 0, depends on DDX[0]
+   * [5] DDX[1] XOR Refresh    1  refresh only OLD^NEW changed pixel
+   * [4] DDX[0] Data Polarity  1  black on white 0=LUTB on 1=LUTW
+   * [2:0] CDI   2  5hsync
+   */
+  // cdi = <0x72>;
 
   /*
    * CDI = 0x82 0b10000010
