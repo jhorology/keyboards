@@ -81,22 +81,22 @@
       //  if not wake on key press, connect/dis-connect USB.
       display-name = "Setting";
       bindings = <
-      &bootloader  &kp F13    &kp F14  &kp F15   &kp F16   &kp F17   &kp F18  &kp F19  &kp F20  &kp F21  &kp F22    &kp F23  &kp F24  &ota_bootloader  &sys_reset
-      ______       _BT_MAC1  _BT_MAC2  _BT_WIN1  _BT_MAC3  _BT_WIN2  ______   _USB     ______   ______   _SOFT_OFF  ______   _BT_CLR                   _BT_CLR_ALL
-      ______       ______    ______    ______    ______    ______    ______   ______   ______   ______   ______     ______                             ______
-      _X_SET       _MAC      _EP_OFF   _RGB_OFF  _BRI      _HUI      _SAI     _SPI     _EFF     ______   ______              ______                    ______
-                   ______    ______                                           ______                                ______   ______
+      &bootloader  &kp F13    &kp F14  &kp F15   &kp F16   &kp F17   &kp F18  &kp F19  &kp F20  &kp F21  &kp F22 &kp F23  &kp F24  &ota_bootloader  &sys_reset
+      ______       _BT_MAC1  _BT_MAC2  _BT_WIN1  _BT_MAC3  _BT_WIN2  ______   _USB     ______   ______   ______  ______   ______                    ______
+      ______       ______    ______    ______    ______    ______    ______   ______   ______   ______   ______  ______                             ______
+      _X_SET       _MAC      _EP_OFF   _RGB_OFF  _BRI      _HUI      _SAI     _SPI     _EFF     ______   ______           ______                    ______
+                   ______    ______                                           ______                             ______   ______
       >;
       sensor-bindings = <&trans_encoder>;
     };
     inverse_setting_layer {
       display-name = "~Setting";
       bindings = <
-      ______  ______    ______    ______    ______    ______    ______  ______  ______  ______  ______  ______  ______  ______  ______
-      ______  _BT_OFF0  _BT_OFF1  _BT_OFF2  _BT_OFF3  _BT_OFF4  ______  ______  ______  ______  ______  ______  ______  ______
-      ______  ______    ______    ______    ______    ______    ______  ______  ______  ______  ______  ______                  ______
-      ______  _WIN      _EP_ON    _RGB_ON   _BRD      _HUD      _SAD    _SPD    _EFR    ______  ______          ______          ______
-                        ______    ______                        ______                          ______  ______
+      ______  ______    ______       ______    ______    ______    ______  ______  ______  ______  ______    ______  ______  ______  ______
+      ______  _BT_OFF0  _BT_OFF1     _BT_OFF2  _BT_OFF3  _BT_OFF4  ______  ______  ______  ______  _SOFT_OFF ______  ______          ______
+      ______  _BT_CLR   _BT_CLR_ALL  ______    ______    ______    ______  ______  ______  ______  ______    ______                  ______
+      ______  _WIN      _EP_ON       _RGB_ON   _BRD      _HUD      _SAD    _SPD    _EFR    ______  ______            ______          ______
+                        ______    ______                           ______                          ______    ______
       >;
       sensor-bindings = <&trans_encoder>;
     };
