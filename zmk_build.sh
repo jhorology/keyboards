@@ -56,6 +56,7 @@ DOCSETS_DIR=$HOME/.docsets
 WIN_USBIPD="/mnt/c/Program Files/usbipd-win/usbipd.exe"
 WIN_GSUDO="/mnt/c/Program Files/gsudo/Current/gsudo.exe"
 # DOCSETS_DIR="$HOME/Library/Application Support/Dash/DockSets"
+ZMK_STUDIO_BRANCH=main
 
 # key: target
 #   [1]=board
@@ -99,6 +100,7 @@ zparseopts -D -E -F -- \
            -pip-upgrade=pip_upgrade \
            -zephyr-doc2dash=zephyr_doc2dash \
            -docker-shell=docker_shell \
+           -studio-app=studio_app \
            {d,-with-docker}=with_docker \
            {c,-with-clean}=with_clean \
            {g,-with-compile-db}=with_compile_db \
@@ -108,6 +110,7 @@ zparseopts -D -E -F -- \
            {p,-with-pp}=with_pp \
            {l,-with-logging}=with_logging \
            {s,-with-shell}=with_shell \
+           {z,-with-studio}=with_studio \
            -without-emacs=without_emacs \
   || return
 
@@ -128,6 +131,7 @@ help_usage() {
         "    $THIS_SCRIPT:t --pip-upgrade                   upgrade python packages" \
         "    $THIS_SCRIPT:t --zephyr-doc2dash               generate zephyr docsets" \
         "    $THIS_SCRIPT:t --docker-shell                  enter docker container shell" \
+        "    $THIS_SCRIPT:t --studio-app                    launch ZMK Studio app" \
         "    $THIS_SCRIPT:t [build options...] [TARGETS..]  build firmwares" \
         "" \
         "build options:" \
@@ -140,6 +144,7 @@ help_usage() {
         "    -p,--with-pp          Save preprocessor output" \
         "    -l,--with-logging     Enable USB logging" \
         "    -s,--with-shell       Enable Shell" \
+        "    -z,--with-studio      Enable ZMK Studio" \
         "    --without-emacs       don't generate emacs settings when --with-comile-db" \
        "" \
         "available targets:"
@@ -449,44 +454,48 @@ update_with_docker() {
 EOF
 }
 
-# $1 board
 build() {
   local target=$1
   local kbd=(${(@s/:/)KEYBOARDS[$target]})
   local board=$kbd[1]
   local shields=$kbd[6]
   local log_options=$kbd[7]
-  local opts=()
-  local pristine="auto"
+  local opts=(--board $board --build-dir build/$target)
+  local defs=("-DZMK_CONFIG='$PROJECT/zmk_keyboards'")
 
-  $WITH_UPDATE && pristine="always"
+  if $WITH_UPDATE; then
+    opts+=(--pristine=always)
+  else
+    opts+=(--pristine=auto)
+  fi
 
+  if (( $#with_studio )); then
+    opts+=(--snippet)
+    opts+=(studio-rpc-usb-uart)
+    defs+=(-DCONFIG_ZMK_STUDIO=y)
+  fi
   if (( $#with_logging )); then
-    opts=($opts "-DCONFIG_ZMK_USB_LOGGING=y" "-DCONFIG_LOG_THREAD_ID_PREFIX=y")
+    defs+=(-DCONFIG_ZMK_USB_LOGGING=y -DCONFIG_LOG_THREAD_ID_PREFIX=y)
     if [[ $log_options != none ]]; then
       echo $log_options
       for log_opt in ${(@s/,/)log_options}; do
-        opts=($opts "-D$log_opt=y")
+        defs+=("-D$log_opt=y")
       done
     fi
   fi
-  (( $#with_shell )) && opts=($opts "-DCONFIG_SHELL=y")
-  #  temporarily fix dependencie issue for nrf boards
-  (( $#with_shell )) && [[ $board = "bt60" || $board == "cyber60_rev_d" ]] && \
-    opts=($opts -DCONFIG_CBPRINTF_COMPLETE=y -DCONFIG_SHELL_BACKEND_SERIAL=y)
-  (( $#with_compile_db )) && opts=($opts "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON")
-  (( $#with_pp )) && opts=($opts "-DEXTRA_CFLAGS=-save-temps=obj")
-  [[ $shields != none ]] && opts+=("-DSHIELD=$shields")
-
+  (( $#with_shell )) && defs+=(-DCONFIG_SHELL=y)
+  (( $#with_pp )) && defs=+(-DEXTRA_CFLAGS=-save-temps=obj)
+  [[ $shields != none ]] && defs+=("-DSHIELD='$shields'")
   if (( $#with_compile_db )); then
+    defs+=(-DCMAKE_EXPORT_COMPILE_COMMANDS=ON)
     dot_clangd
     if $WITH_EMACS; then
       dot_dir_locals $target
       dot_projectile
     fi
   fi
-  west build --pristine=$pristine --board $board --build-dir build/$target zmk/app -- \
-       -DZMK_CONFIG=$PROJECT/zmk_keyboards $opts[*]
+
+  west build $opts[*] zmk/app -- $defs[*]
 
   if (( $#with_compile_db )); then
     mv $PROJECT/build/$target/compile_commands.json $PROJECT
@@ -500,24 +509,44 @@ build_with_docker() {
   local board=$kbd[1]
   local shields=$kbd[6]
   local log_options=$kbd[7]
-  local opts=()
-  local pristine="auto"
-  $WITH_UPDATE && pristine="always"
+  local opts=(--board $board --build-dir build/$target)
+  local defs=("-DZMK_CONFIG='$PROJECT/zmk_keyboards'")
 
+  if $WITH_UPDATE; then
+    opts+=(--pristine=always)
+  else
+    opts+=(--pristine=auto)
+  fi
+
+  if (( $#with_studio )); then
+    opts+=(--snippet)
+    opts+=(studio-rpc-usb-uart)
+    defs+=(-DCONFIG_ZMK_STUDIO=y)
+  fi
   if (( $#with_logging )); then
-    opts=($opts "-DCONFIG_ZMK_USB_LOGGING=y" "-DCONFIG_LOG_THREAD_ID_PREFIX=y")
+    defs+=(-DCONFIG_ZMK_USB_LOGGING=y -DCONFIG_LOG_THREAD_ID_PREFIX=y)
     if [[ $log_options != none ]]; then
       echo $log_options
       for log_opt in ${(@s/,/)log_options}; do
-        opts=($opts "-D$log_opt=y")
+        defs+=("-D$log_opt=y")
       done
     fi
   fi
-  (( $#with_shell )) && opts=($opts "-DCONFIG_SHELL=y")
-  (( $#with_pp )) && opts=($opts "-DEXTRA_CFLAGS=-save-temps=obj")
-  [[ $shields != none ]] && opts+=("-DSHIELD=$shields")
+  (( $#with_shell )) && defs+=(-DCONFIG_SHELL=y)
+  (( $#with_pp )) && defs=+(-DEXTRA_CFLAGS=-save-temps=obj)
+  [[ $shields != none ]] && defs+=("-DSHIELD='$shields'")
+  if (( $#with_compile_db )); then
+    defs+=(-DCMAKE_EXPORT_COMPILE_COMMANDS=ON)
+    dot_clangd
+    if $WITH_EMACS; then
+      dot_dir_locals $target
+      dot_projectile
+    fi
+  fi
+
+  west build $opts[*] zmk/app -- $defs[*]
   docker_exec -i <<-EOF
-    west build --pristine=$pristine --board $board --build-dir build/$target zmk/app -- -DZMK_CONFIG="$CONTAINER_WORKSPACE_DIR/zmk_keyboards" $opts[*]
+    west build $opts[*] zmk/app -- $defs[*]
 EOF
 }
 
@@ -548,6 +577,7 @@ dot_projectile() {
 -/via_app
 -/qmk_firmware
 -/qmk_keyboards
+-/zmk-studio
 EOS
 }
 
@@ -757,6 +787,45 @@ EOF
   git clean -dfx .
 }
 
+setup_studio_app() {
+  if [[ -d $PROJECT/zmk-studio ]]; then
+    cd $PROJECT/zmk-studio
+    local local_rev=$(git rev-parse $ZMK_STUDIO_BRANCH)
+    local remote_rev=$(git ls-remote --heads origin $ZMK_STUDIO_BRANCH | awk '{print $1}')
+    if [[ $local_rev != $remote_rev ]]; then
+      git reset --hard HEAD
+      cp package.json package.json.old
+      git pull
+      for patch in $(ls -v $PROJECT/patches/studio_app_${ZMK_STUDIO_BRANCH}_*.patch); do
+        git apply -3 --verbose $patch
+      done
+      if [[ ! -z $(diff package.json package.json.old) ]]; then
+        npm install
+      fi
+      rm package.json.old
+    fi
+  else
+    cd $PROJECT
+    git clone --depth 1 -b $ZMK_STUDIO_BRANCH https://github.com/zmkfirmware/zmk-studio.git
+    cd zmk-studio
+    for patch in $(ls -v $PROJECT/patches/studio_app_${ZMK_STUDIO_BRANCH}_*.patch); do
+      git apply -3 --verbose $patch
+    done
+    npm install
+  fi
+}
+
+run_studio_app() {
+
+  setup_studio_app
+
+  cd $PROJECT/zmk-studio
+
+  # start VIA
+  #______________________________________
+  npm run dev
+}
+
 #  sub commands
 # -----------------------------------
 if (( $#help )); then
@@ -787,6 +856,9 @@ elif (( $#setup_docker )); then
 elif (( $#docker_shell )); then
   setup_docker
   docker_exec -it
+  return
+elif (( $#studio_app )); then
+  run_studio_app
   return
 fi
 

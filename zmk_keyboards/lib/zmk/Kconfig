@@ -92,8 +92,4 @@ config ZMK_INDICATOR_LED
     select LED
     select ZMK_HID_INDICATORS
 
-config ZMK_RAW_HID_TEST
-    bool "Enable keymap raw HID"
-    default n
-
 rsource "display/Kconfig"

@@ -42,5 +42,6 @@ vial.json
 /.west/
 /zephyr/
 /zmk/
+/zmk-studio/
 /modules/
 /build/

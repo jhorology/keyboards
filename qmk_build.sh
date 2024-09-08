@@ -451,6 +451,7 @@ dot_projectile() {
 -/zephyr
 -/zmk
 -/zmk_keyboards
+-/zmk-studio
 EOS
 }
 
