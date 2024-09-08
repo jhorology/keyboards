@@ -138,12 +138,13 @@
 };
 
 
-&usbd {
+zephyr_udc0: &usbd {
   status = "okay";
   cdc_acm_uart: cdc_acm_uart {
     compatible = "zephyr,cdc-acm-uart";
   };
 };
+
 &pwm0 {
   //ch0-pin = <23>; //old imp.
   status = "okay";

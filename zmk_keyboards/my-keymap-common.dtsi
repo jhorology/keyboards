@@ -150,6 +150,10 @@
 #define _EFF &rgb_ug RGB_EFF
 #define _EFR &rgb_ug RGB_EFF
 
+// ZMK STUDIO
+//--------------------------------------------
+#define _STUDIO &studio_unlock
+
 // Emulate fn/globe shortcut keys for windows
 //--------------------------------------------
 

@@ -821,8 +821,6 @@ run_studio_app() {
 
   cd $PROJECT/zmk-studio
 
-  # start VIA
-  #______________________________________
   npm run dev
 }
 

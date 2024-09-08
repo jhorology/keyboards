@@ -125,7 +125,7 @@
   };
 };
 
-&usb {
+zephyr_udc0: &usb {
   status = "okay";
   /* pinctrl properties are required since zephyr 3.4 */
   pinctrl-0 = <&usb_dm_pa11 &usb_dp_pa12>;
