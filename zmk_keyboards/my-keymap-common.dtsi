@@ -6,6 +6,8 @@
 #include <dt-bindings/zmk/rgb.h>
 #include <dt-bindings/zmk/ext_power.h>
 
+#define ______ &trans
+
 // extra key code
 //--------------------------------------------
 
@@ -23,8 +25,9 @@
 #define _APPLE_FN_LAYER 3
 #define _WIN_FN_LAYER 4
 #define _SETTING_LAYER 5
-#define _L_THUMB_LAYER 6
-#define _R_THUMB_LAYER 7
+#define _INVERSE_SETTING_LAYER 6
+#define _L_THUMB_LAYER 7
+#define _R_THUMB_LAYER 8
 
 // key definitions other than kp/trans behavior
 //--------------------------------------------
@@ -46,9 +49,10 @@
 #define _DIP_SW &kc_dip_sw
 
 // select mac base layer
-// normal: mac
-// +shift: win
-#define _MAC_WIN &mac_win
+#define _MAC &to _MAC_BASE_LAYER
+
+// select win base layer
+#define _WIN &to _WIN_BASE_LAYER
 
 // Left Opt on mac base layer for HHKB layout
 // single: Left Option
@@ -105,6 +109,9 @@
 // Fn/Globe key on win base layer
 #define _W_FN &mo _WIN_FN_LAYER
 
+// Fn/Globe key on win base layer
+#define _X_SET &mo _INVERSE_SETTING_LAYER
+
 // APP key for ANSI/TSANGAN layout
 // single: APP
 // double: Momentaly setting layer
@@ -125,35 +132,23 @@
 
 // ext_power
 //--------------------------------------------
-
-// TODO dosen't work on split right side
-#define _EP &ep_sw
-
 #define _EP_ON &ext_power EP_ON
 #define _EP_OFF &ext_power EP_OFF
 
 // underglow
 //--------------------------------------------
-
-#define _RGB &rgb_sw
-#define _BRT &rgb_brt
-#define _HUE &rgb_hue
-#define _SAT &rgb_sat
-#define _SPD &rgb_spd
-#define _EFT &rgb_eft
-
-/* #define _RGB_ON &rgb_ug RGB_ON */
-/* #define _RGB_OFF &rgb_ug RGB_OFF */
-/* #define _RGB_BRI &rgb_ug RGB_BRI */
-/* #define _RGB_BRD &rgb_ug RGB_BRD */
-/* #define _RGB_HUI &rgb_ug RGB_HUI */
-/* #define _RGB_HUD &rgb_ug RGB_HUD */
-/* #define _RGB_SAI &rgb_ug RGB_SAI */
-/* #define _RGB_SAD &rgb_ug RGB_SAD */
-/* #define _RGB_SPI &rgb_ug RGB_SPI */
-/* #define _RGB_SPD &rgb_ug RGB_SPD */
-/* #define _RGB_EFF &rgb_ug RGB_EFF */
-/* #define _RGB_EFR &rgb_ug RGB_EFR */
+#define _RGB_ON &rgb_ug RGB_ON
+#define _RGB_OFF &rgb_ug RGB_OFF
+#define _BRI &rgb_ug RGB_BRI
+#define _BRD &rgb_ug RGB_BRD
+#define _HUI &rgb_ug RGB_HUI
+#define _HUD &rgb_ug RGB_HUD
+#define _SAI &rgb_ug RGB_SAI
+#define _SAD &rgb_ug RGB_SAD
+#define _SPI &rgb_ug RGB_SPI
+#define _SPD &rgb_ug RGB_SPD
+#define _EFF &rgb_ug RGB_EFF
+#define _EFR &rgb_ug RGB_EFF
 
 // Emulate fn/globe shortcut keys for windows
 //--------------------------------------------
@@ -319,55 +314,6 @@
       compatible = "zmk,behavior-reset";
       type = <0xA8>;
       #binding-cells = <0>;
-    };
-    /omit-if-no-ref/ mac_win: switch_mac_win {
-      compatible = "zmk,behavior-mod-morph";
-      #binding-cells = <0>;
-      bindings = <&to _MAC_BASE_LAYER>, <&to _WIN_BASE_LAYER>;
-      mods = <(MOD_LSFT|MOD_RSFT)>;
-    };
-
-    /omit-if-no-ref/ ep_sw: switch_ext_power {
-      compatible = "zmk,behavior-mod-morph";
-      #binding-cells = <0>;
-      bindings = <&ext_power EP_ON>, <&ext_power EP_OFF>;
-      mods = <(MOD_LSFT|MOD_RSFT)>;
-    };
-    /omit-if-no-ref/ rgb_sw: switch_rgb {
-      compatible = "zmk,behavior-mod-morph";
-      #binding-cells = <0>;
-      bindings = <&rgb_ug RGB_ON>, <&rgb_ug RGB_OFF>;
-      mods = <(MOD_LSFT|MOD_RSFT)>;
-    };
-    /omit-if-no-ref/ rgb_brt: adjust_rgb_brt {
-      compatible = "zmk,behavior-mod-morph";
-      #binding-cells = <0>;
-      bindings = <&rgb_ug RGB_BRI>, <&rgb_ug RGB_BRD>;
-      mods = <(MOD_LSFT|MOD_RSFT)>;
-    };
-    /omit-if-no-ref/ rgb_hue: adjust_rgb_hue {
-      compatible = "zmk,behavior-mod-morph";
-      #binding-cells = <0>;
-      bindings = <&rgb_ug RGB_HUI>, <&rgb_ug RGB_HUD>;
-      mods = <(MOD_LSFT|MOD_RSFT)>;
-    };
-    /omit-if-no-ref/ rgb_sat: adjust_rgb_sat {
-      compatible = "zmk,behavior-mod-morph";
-      #binding-cells = <0>;
-      bindings = <&rgb_ug RGB_SAI>, <&rgb_ug RGB_SAD>;
-      mods = <(MOD_LSFT|MOD_RSFT)>;
-    };
-    /omit-if-no-ref/ rgb_spd: adjust_rgb_spd {
-      compatible = "zmk,behavior-mod-morph";
-      #binding-cells = <0>;
-      bindings = <&rgb_ug RGB_SPI>, <&rgb_ug RGB_SPD>;
-      mods = <(MOD_LSFT|MOD_RSFT)>;
-    };
-    /omit-if-no-ref/ rgb_eft: adjust_rgb_eft {
-      compatible = "zmk,behavior-mod-morph";
-      #binding-cells = <0>;
-      bindings = <&rgb_ug RGB_EFF>, <&rgb_ug RGB_EFR>;
-      mods = <(MOD_LSFT|MOD_RSFT)>;
     };
   };
 

@@ -79,10 +79,10 @@
       //                    -------------------   --------------------
       // PRSCRN(F13) / SLCK(F14) / PAUSE_BREAK(F15) / F16 / F17 / F18 for Amethyst short-cuts
       bindings = <
-                  &kp CAPS  &kp F16  &kp F17  &kp F18  &trans           &trans            &kp PSCRN  &kp SLCK   &kp PAUSE_BREAK   &kp UP    &kp INS    &kp DEL
-                  &trans    &trans   &trans   &trans   &kp KP_MULTIPLY  &kp KP_DIVIDE     &kp HOME   &kp PG_UP  &kp LEFT          &kp DOWN  &kp RIGHT  &trans
-                  &trans    &trans   &trans   &trans   &kp KP_PLUS      &kp KP_MINUS      &kp END    &kp PG_DN  &trans            &trans    &trans     &trans
-                                              &trans   &trans           &trans            &trans     &trans     &trans
+                  &kp CAPS  &kp F16  &kp F17  &kp F18  ______           ______            &kp PSCRN  &kp SLCK   &kp PAUSE_BREAK   &kp UP    &kp INS    &kp DEL
+                  ______    ______   ______   ______   &kp KP_MULTIPLY  &kp KP_DIVIDE     &kp HOME   &kp PG_UP  &kp LEFT          &kp DOWN  &kp RIGHT  ______
+                  ______    ______   ______   ______   &kp KP_PLUS      &kp KP_MINUS      &kp END    &kp PG_DN  ______            ______    ______     ______
+                                              ______   ______           ______            ______     ______     ______
       >;
     };
 
@@ -97,10 +97,10 @@
       //                    -------------------   -------------------
       // fn + H Show desktop -> fn + G
       bindings = <
-                  &kp C_AL_LOCK  &trans  &trans  &trans  &trans  &trans    &kp F1  &kp F2  &kp F3  _SPOTLIGHT  _DICTATION  _DND
-                  &trans         &trans  &trans  &trans  &trans  &kp H     &kp F7  &kp F8  &kp F9  &kp F10     &kp F11     &kp F12
-                  &trans         &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans      &trans      &trans
-                                                 &trans  &trans  &trans    &trans  &trans  &trans
+                  &kp C_AL_LOCK  ______  ______  ______  ______  ______    &kp F1  &kp F2  &kp F3  _SPOTLIGHT  _DICTATION  _DND
+                  ______         ______  ______  ______  ______  &kp H     &kp F7  &kp F8  &kp F9  &kp F10     &kp F11     &kp F12
+                  ______         ______  ______  ______  ______  ______    ______  ______  ______  ______      ______      ______
+                                                 ______  ______  ______    ______  ______  ______
       >;
     };
 
@@ -114,10 +114,10 @@
       //                    -------------------   -------------------
       // fn + H Show desktop -> fn + G
       bindings = <
-                  &kp LG(L) _FN_Q   &trans  _FN_E   &trans  &trans    _FN_F1   _FN_F2  _FN_F3  _FN_F4   _FN_F5   _FN_F6
-                  &trans    _FN_A   &trans  &trans  _FN_F   _FN_H     _FN_F7   _FN_F8  _FN_F9  _FN_F10  _FN_F11  _FN_F12
-                  &trans     &trans  _FN_C  &trans  &trans  &trans    _FN_N    _FN_M   &trans  &trans  &trans   &trans
-                                            &trans  &trans  &trans    _FN_SPC  &trans  &trans
+                  &kp LG(L) _FN_Q   ______  _FN_E   ______  ______    _FN_F1   _FN_F2  _FN_F3  _FN_F4   _FN_F5   _FN_F6
+                  ______    _FN_A   ______  ______  _FN_F   _FN_H     _FN_F7   _FN_F8  _FN_F9  _FN_F10  _FN_F11  _FN_F12
+                  ______     ______  _FN_C  ______  ______  ______    _FN_N    _FN_M   ______  ______  ______   ______
+                                            ______  ______  ______    _FN_SPC  ______  ______
       >;
     };
 
@@ -131,10 +131,27 @@
       //                    -------------------   -------------------
       // Row2 +SHIFT for reverse action. mac->win / on->off / inc->dec / next->prev
       bindings = <
-                  &bootloader  _BT_MAC1  _BT_MAC2  _BT_WIN1  _BT_MAC3  _BT_WIN2    &trans   _USB         &trans  &trans  &soft_off  &bootloader
-                  &sys_reset   _BT_OFF0  _BT_OFF1  _BT_OFF2  _BT_OFF3  _BT_OFF4    _BT_CLR  _BT_CLR_ALL  &trans  &trans  &trans     &sys_reset
-                  &trans       _MAC_WIN  _EP       _RGB      _BRT      _HUE        _SAT     _EFT         _SPD    &trans  &trans     &trans
-                                                   &trans    &trans    &trans      &trans   &trans       &trans
+                  &bootloader  _BT_MAC1  _BT_MAC2  _BT_WIN1  _BT_MAC3  _BT_WIN2    ______  _USB    ______  ______  &soft_off  &bootloader
+                  &sys_reset   ______   ______     ______    ______    ______      ______  ______  ______  ______  ______     &sys_reset
+                  _X_SET       _MAC     _EP_OFF    _RGB_OFF  _BRI      _HUI        _SAI    _EFF    _SPI    ______  ______     ______
+                                                   ______    ______    ______      ______  ______  ______
+      >;
+    };
+
+    inverse_setting_layer {
+      display-name = "~Setting";
+      // --------------------------------------   --------------------------------------
+      // |      |     |     |     |     |     |   |     |     |     |     |     |      |
+      // |      |     |     |     |     |     |   |     |     |     |     |     |      |
+      // |      |     |     |     |     |     |   |     |     |     |     |     |      |
+      // -------------------|     |     |     |   |     |     |     |-------------------
+      //                    -------------------   -------------------
+      // Row2 +SHIFT for reverse action. mac->win / on->off / inc->dec / next->prev
+      bindings = <
+                  ______  _BT_OFF0  _BT_OFF1  _BT_OFF2  _BT_OFF3  _BT_OFF4    ______  ______  ______  ______  ______  ______
+                  ______  ______   ______     ______    ______    ______      ______  ______  ______  ______  ______  ______
+                  ______  _WIN     _EP_ON     _RGB_ON   _BRD      _HUD        _SAD    _EFR    _SPD    ______  ______  ______
+                                              ______    ______    ______      ______  ______  ______
       >;
     };
 
@@ -150,9 +167,9 @@
       // TODO F1-F24
       bindings = <
                   &kp TILDE  &kp EXCL   &kp AT    &kp HASH   &kp DLLR  &kp PRCNT     &kp N1     &kp N2     &kp N3    &kp N4    &kp N5    &kp ESC
-                  &trans     &kp CARET  &kp AMPS  &kp ASTRK  &kp LPAR  &kp RPAR      &kp N6     &kp N7     &kp N8    &kp N9    &kp N0    &kp GRAVE
-                  &trans     &kp UNDER  &kp PLUS  &kp PIPE   &kp LBRC  &kp RBRC      &kp MINUS  &kp EQUAL  &kp BSLH  &kp LBKT  &kp RBKT  &trans
-                                                  &trans     &trans     &trans       &trans     &trans     &trans
+                  ______     &kp CARET  &kp AMPS  &kp ASTRK  &kp LPAR  &kp RPAR      &kp N6     &kp N7     &kp N8    &kp N9    &kp N0    &kp GRAVE
+                  ______     &kp UNDER  &kp PLUS  &kp PIPE   &kp LBRC  &kp RBRC      &kp MINUS  &kp EQUAL  &kp BSLH  &kp LBKT  &kp RBKT  ______
+                                                  ______     ______    ______        ______     ______     ______
       >;
     };
     // &kp MINUS  &kp EQUAL  &kp BSLH  &kp LBKT  &kp RBKT
@@ -168,9 +185,9 @@
       // TODO F1-F24
       bindings = <
                   &kp GRAVE  &kp N1     &kp N2    &kp N3    &kp N4    &kp N5       &kp EXCL   &kp AT    &kp HASH   &kp DLLR  &kp PRCNT &kp ESC
-                  &trans     &kp N6     &kp N7    &kp N8    &kp N9    &kp N0       &kp CARET  &kp AMPS  &kp ASTRK  &kp LPAR  &kp RPAR  &kp TILDE
-                  &trans     &kp MINUS  &kp EQUAL &kp BSLH  &kp LBKT  &kp RBKT     &kp UNDER  &kp PLUS  &kp PIPE   &kp LBRC  &kp RBRC  &trans
-                                                  &trans    &trans    &trans       &trans     &trans    &trans
+                  ______     &kp N6     &kp N7    &kp N8    &kp N9    &kp N0       &kp CARET  &kp AMPS  &kp ASTRK  &kp LPAR  &kp RPAR  &kp TILDE
+                  ______     &kp MINUS  &kp EQUAL &kp BSLH  &kp LBKT  &kp RBKT     &kp UNDER  &kp PLUS  &kp PIPE   &kp LBRC  &kp RBRC  ______
+                                                  ______    ______    ______       ______     ______    ______
       >;
     };
   };
