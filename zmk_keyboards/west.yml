@@ -8,9 +8,6 @@ manifest:
     - name: zmk
       remote: zmkfirmware
       revision: main
-      # remote: petejohanson
-      # revision: core/zephyr-3.5-update
-      # revision: studio/raw-hid-exploration
       clone-depth: 1
       import: app/west.yml
   self:

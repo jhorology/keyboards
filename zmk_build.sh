@@ -486,7 +486,7 @@ build() {
     fi
   fi
   (( $#with_shell )) && defs+=(-DCONFIG_SHELL=y)
-  (( $#with_pp )) && defs=+(-DEXTRA_CFLAGS=-save-temps=obj)
+  (( $#with_pp )) && defs+=(-DEXTRA_CFLAGS=-save-temps=obj)
   [[ $shields != none ]] && defs+=("-DSHIELD='$shields'")
   if (( $#with_compile_db )); then
     defs+=(-DCMAKE_EXPORT_COMPILE_COMMANDS=ON)
@@ -512,7 +512,7 @@ build_with_docker() {
   local shields=$kbd[6]
   local log_options=$kbd[7]
   local opts=(--board $board --build-dir build/$target)
-  local defs=("-DZMK_CONFIG='$PROJECT/zmk_keyboards'")
+  local defs=("-DZMK_CONFIG='$CONTAINER_WORKSPACE_DIR/zmk_keyboards'")
 
   if $WITH_UPDATE; then
     opts+=(--pristine=always)
@@ -535,7 +535,7 @@ build_with_docker() {
     fi
   fi
   (( $#with_shell )) && defs+=(-DCONFIG_SHELL=y)
-  (( $#with_pp )) && defs=+(-DEXTRA_CFLAGS=-save-temps=obj)
+  (( $#with_pp )) && defs+=(-DEXTRA_CFLAGS=-save-temps=obj)
   [[ $shields != none ]] && defs+=("-DSHIELD='$shields'")
   if (( $#with_compile_db )); then
     defs+=(-DCMAKE_EXPORT_COMPILE_COMMANDS=ON)
@@ -546,7 +546,6 @@ build_with_docker() {
     fi
   fi
 
-  west build $opts[*] zmk/app -- $defs[*]
   docker_exec -i <<-EOF
     west build $opts[*] zmk/app -- $defs[*]
 EOF
@@ -818,11 +817,21 @@ setup_studio_app() {
   fi
 }
 
-run_studio_app() {
+open_browser() {
+  sleep $1
+  if [[ $os == "macos" ]]; then
+    open $2
+  elif [[ $os = "fedora" ]]; then
+    /mnt/c/Windows/System32/cmd.exe /c start $2 2> /dev/null
+  fi
+}
 
+run_studio_app() {
   setup_studio_app
 
   cd $PROJECT/zmk-studio
+
+  open_browser 2 http://localhost:5173 &!
 
   npm run dev
 }
@@ -948,3 +957,4 @@ for target in $TARGETS; do
     fi
   fi
 done
+,
