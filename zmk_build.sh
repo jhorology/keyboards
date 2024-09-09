@@ -370,6 +370,8 @@ setup() {
   # install python packages
   cd $PROJECT
   pip_install
+
+  setup_studio_app
 }
 
 update() {
@@ -603,6 +605,7 @@ dist_firmware() {
   local variant=""
   (( $#with_logging )) && variant="_logging"
   (( $#with_shell )) && variant="_shell"
+  (( $#with_studio )) && variant="_studio"
   local dst=dist/${firmware_name}_${version}$variant.$firmware_ext
   cp $src $dst
   echo $dst
@@ -796,7 +799,7 @@ setup_studio_app() {
       git reset --hard HEAD
       cp package.json package.json.old
       git pull
-      for patch in $(ls -v $PROJECT/patches/studio_app_${ZMK_STUDIO_BRANCH}_*.patch); do
+      for patch in $PROJECT/patches/studio_app_${ZMK_STUDIO_BRANCH}_*.patch(N); do
         git apply -3 --verbose $patch
       done
       if [[ ! -z $(diff package.json package.json.old) ]]; then
@@ -808,7 +811,7 @@ setup_studio_app() {
     cd $PROJECT
     git clone --depth 1 -b $ZMK_STUDIO_BRANCH https://github.com/zmkfirmware/zmk-studio.git
     cd zmk-studio
-    for patch in $(ls -v $PROJECT/patches/studio_app_${ZMK_STUDIO_BRANCH}_*.patch); do
+    for patch in $PROJECT/patches/studio_app_${ZMK_STUDIO_BRANCH}_*.patch(N); do
       git apply -3 --verbose $patch
     done
     npm install
