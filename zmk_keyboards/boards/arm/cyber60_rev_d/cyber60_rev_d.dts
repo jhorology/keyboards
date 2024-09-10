@@ -21,8 +21,6 @@
     zmk,matrix_transform = &default_transform;
     zmk,underglow = &led_strip;
     zmk,battery = &vbatt;
-    zephyr,console = &cdc_acm_uart;
-    zephyr,shell-uart = &cdc_acm_uart;
   };
 
   vbatt: vbatt {
@@ -140,9 +138,6 @@
 
 zephyr_udc0: &usbd {
   status = "okay";
-  cdc_acm_uart: cdc_acm_uart {
-    compatible = "zephyr,cdc-acm-uart";
-  };
 };
 
 &pwm0 {

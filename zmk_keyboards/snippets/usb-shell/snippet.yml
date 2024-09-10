@@ -1,0 +1,4 @@
+name: usb-shell
+append:
+  EXTRA_CONF_FILE: usb-shell.conf
+  EXTRA_DTC_OVERLAY_FILE: usb-shell.overlay

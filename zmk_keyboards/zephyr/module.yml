@@ -3,3 +3,4 @@ build:
   cmake: .
   settings:
     dts_root: .
+    snippet_root: .

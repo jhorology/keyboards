@@ -1,0 +1,17 @@
+/*
+ * Copyright (c) 2024 The ZMK Contributors
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
+/ {
+  chosen {
+    zephyr,shell-uart = &snippet_usb_shell_uart;
+  };
+};
+
+&zephyr_udc0 {
+  snippet_usb_shell_uart: snippet_usb_shell_uart {
+    compatible = "zephyr,cdc-acm-uart";
+  };
+};
