@@ -472,12 +472,15 @@ build() {
   fi
 
   if (( $#with_studio )); then
-    opts+=(--snippet)
-    opts+=(studio-rpc-usb-uart)
+    opts+=(--snippet studio-rpc-usb-uart)
     defs+=(-DCONFIG_ZMK_STUDIO=y)
+    if (( $#with_logging )); then
+      defs+=(-DCONFIG_ZMK_STUDIO_LOG_LEVEL=4)
+    fi
   fi
   if (( $#with_logging )); then
-    defs+=(-DCONFIG_ZMK_USB_LOGGING=y -DCONFIG_LOG_THREAD_ID_PREFIX=y)
+    opts+=(--snippet zmk-usb-logging)
+    defs+=(-DCONFIG_LOG_THREAD_ID_PREFIX=y)
     if [[ $log_options != none ]]; then
       echo $log_options
       for log_opt in ${(@s/,/)log_options}; do
@@ -485,7 +488,9 @@ build() {
       done
     fi
   fi
-  (( $#with_shell )) && defs+=(-DCONFIG_SHELL=y)
+  if (( $#with_shell )); then
+    opts+=(--snippet usb-shell)
+  fi
   (( $#with_pp )) && defs+=(-DEXTRA_CFLAGS=-save-temps=obj)
   [[ $shields != none ]] && defs+=("-DSHIELD='$shields'")
   if (( $#with_compile_db )); then
@@ -521,12 +526,15 @@ build_with_docker() {
   fi
 
   if (( $#with_studio )); then
-    opts+=(--snippet)
-    opts+=(studio-rpc-usb-uart)
+    opts+=(--snippet studio-rpc-usb-uart)
     defs+=(-DCONFIG_ZMK_STUDIO=y)
+    if (( $#with_logging )); then
+      defs+=(-DCONFIG_ZMK_STUDIO_LOG_LEVEL=4)
+    fi
   fi
   if (( $#with_logging )); then
-    defs+=(-DCONFIG_ZMK_USB_LOGGING=y -DCONFIG_LOG_THREAD_ID_PREFIX=y)
+    opts+=(--snippet zmk-usb-logging)
+    defs+=(-DCONFIG_LOG_THREAD_ID_PREFIX=y)
     if [[ $log_options != none ]]; then
       echo $log_options
       for log_opt in ${(@s/,/)log_options}; do
@@ -534,7 +542,9 @@ build_with_docker() {
       done
     fi
   fi
-  (( $#with_shell )) && defs+=(-DCONFIG_SHELL=y)
+  if (( $#with_shell )); then
+    opts+=(--snippet usb-shell)
+  fi
   (( $#with_pp )) && defs+=(-DEXTRA_CFLAGS=-save-temps=obj)
   [[ $shields != none ]] && defs+=("-DSHIELD='$shields'")
   if (( $#with_compile_db )); then
@@ -957,4 +967,3 @@ for target in $TARGETS; do
     fi
   fi
 done
-,

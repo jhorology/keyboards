@@ -13,15 +13,15 @@ if ((NOT CONFIG_ZMK_SPLIT) OR CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
     target_sources(app PRIVATE behaviors/behavior_rc_dial.c)
   endif()
 
-  if (CONFIG_ZMK_INDICATOR_LED)
-    target_sources(app PRIVATE indicator_led.c)
-  endif()
+  target_sources_ifdef(CONFIG_ZMK_INDICATOR_LED app PRIVATE indicator_led.c)
+
+  target_sources_ifdef(CONFIG_ZMK_PWM_BUZZER app PRIVATE pwm_buzzer.c)
+  target_sources_ifdef(CONFIG_ZMK_OUTPUT_STATUS_BEEP app PRIVATE output_status_beep.c)
 
 endif()
 
 # TODO generalize
 if (CONFIG_BOARD_CYBER60_REV_D)
-  target_sources(app PRIVATE cyber60_buzzer.c)
   target_sources(app PRIVATE cyber60_led.c)
 endif()
 

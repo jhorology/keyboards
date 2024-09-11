@@ -1,10 +1,12 @@
 #include <zephyr/init.h>
+#include <zephyr/usb/class/hid.h>
 
 #include <zmk/usb_host_os.h>
 #include <zmk/event_manager.h>
+#include <zmk/workqueue.h>
 #include <zmk/events/usb_host_os_changed.h>
 #include <zmk/events/usb_conn_state_changed.h>
-#include "zephyr/usb/class/hid.h"
+#include "zephyr/kernel.h"
 
 #define USB_HID_SETUP_TIMEOUT_MS 500
 
@@ -50,7 +52,8 @@ void zmk_usb_host_os_trace_hid_setup(struct usb_setup_packet *setup) {
     if (setup->bRequest == USB_HID_SET_REPORT && setup->wValue == 0x0309) {
       detected_os = USB_HOST_OS_DARWIN;
     }
-    k_work_reschedule(&usb_host_os_work, K_MSEC(USB_HID_SETUP_TIMEOUT_MS));
+    k_work_reschedule_for_queue(zmk_workqueue_lowprio_work_q(), &usb_host_os_work,
+                                K_MSEC(USB_HID_SETUP_TIMEOUT_MS));
   }
 }
 
@@ -73,7 +76,8 @@ static int usb_conn_listener(const zmk_event_t *eh) {
     detecting = true;
     packet_cnt = 0;
     detected_os = USB_HOST_OS_UNDEFINED;
-    k_work_reschedule(&usb_host_os_work, K_MSEC(USB_HID_SETUP_TIMEOUT_MS));
+    k_work_reschedule_for_queue(zmk_workqueue_lowprio_work_q(), &usb_host_os_work,
+                                K_MSEC(USB_HID_SETUP_TIMEOUT_MS));
   }
   conn_state = ev->conn_state;
   return 0;

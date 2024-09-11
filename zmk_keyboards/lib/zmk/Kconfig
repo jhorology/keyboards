@@ -92,4 +92,11 @@ config ZMK_INDICATOR_LED
     select LED
     select ZMK_HID_INDICATORS
 
+config ZMK_PWM_BUZZER
+    bool "Enable PWM buzzer"
+
+config ZMK_OUTPUT_STATUS_BEEP
+    bool "Enable beep for output status"
+    select ZMK_PWM_BUZZER
+
 rsource "display/Kconfig"
