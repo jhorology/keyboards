@@ -8,42 +8,49 @@
 #include <zmk/events/endpoint_changed.h>
 #include <zmk/events/ble_active_profile_changed.h>
 
-#include "zmk/pwm_buzzer.h"
+#include <zmk/pwm_buzzer.h>
+
+#define BEEP_ON_DURATION K_MSEC(60)
+#define BEEP_OFF_DURATION K_MSEC(50)
+
+static inline void beep(uint32_t period) {
+  (void)pwm_buzzer_beep(period, period / 2, BEEP_ON_DURATION, BEEP_OFF_DURATION);
+}
 
 static void play_sound_ble_0() {
-  (void)pwm_buzzer_beep(1000000);
-  pwm_buzzer_beep(500000);
-  pwm_buzzer_beep(250000);
-  pwm_buzzer_beep(100000);
-  pwm_buzzer_beep(50000);
+  beep(1000000);
+  beep(500000);
+  beep(250000);
+  beep(100000);
+  beep(50000);
 }
 
 static void play_sound_ble_1() {
-  pwm_buzzer_beep(1500000);
-  pwm_buzzer_beep(3900000);
-  pwm_buzzer_beep(1500000);
-  pwm_buzzer_beep(1500000);
+  beep(1500000);
+  beep(3900000);
+  beep(1500000);
+  beep(1500000);
 }
 
 static void play_sound_ble_2() {
-  pwm_buzzer_beep(1500000);
-  pwm_buzzer_beep(3900000);
+  beep(1500000);
+  beep(3900000);
 }
 
 static void play_sound_ble_3() {
-  pwm_buzzer_beep(2000000);
-  pwm_buzzer_beep(3900000);
+  beep(2000000);
+  beep(3900000);
 }
 
 static void play_sound_ble_4() {
-  pwm_buzzer_beep(2500000);
-  pwm_buzzer_beep(3900000);
+  beep(2500000);
+  beep(3900000);
 }
 
 static void play_sound_usb() {
-  pwm_buzzer_beep(3000000);
-  pwm_buzzer_beep(1500000);
-  pwm_buzzer_beep(750000);
+  beep(3000000);
+  beep(1500000);
+  beep(750000);
 }
 
 static void play_beep(uint8_t index) {

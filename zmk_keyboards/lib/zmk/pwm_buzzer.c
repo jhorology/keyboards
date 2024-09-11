@@ -17,12 +17,9 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #if !DT_NODE_HAS_STATUS(BUZZER_NODE, okay)
 #  error "Unsupported board: buzzer devicetree alias is not defined"
-#else
-
 #endif
+
 #define PWM_BUZZER_BEEP_QUEUE_SIZE 16
-#define BEEP_ON_DURATION_DEFAULT K_MSEC(60)
-#define BEEP_OFF_DURATION_DEFAULT K_MSEC(50)
 
 static const struct pwm_dt_spec pwm = PWM_DT_SPEC_GET(BUZZER_NODE);
 static enum beep_state { IDLE, ON, OFF } state = IDLE;
@@ -140,8 +137,8 @@ static void pwm_buzzer_beep_handler(struct k_work* work) {
   }
 }
 
-int pwm_buzzer_beep_with_params(uint32_t period, uint32_t pulse, k_timeout_t on_duration,
-                                k_timeout_t off_duration) {
+int pwm_buzzer_beep(uint32_t period, uint32_t pulse, k_timeout_t on_duration,
+                    k_timeout_t off_duration) {
   int err;
   struct beep_data beep = {
     .period = period, .pulse = pulse, .on_duration = on_duration, .off_duration = off_duration};
@@ -158,10 +155,9 @@ int pwm_buzzer_beep_with_params(uint32_t period, uint32_t pulse, k_timeout_t on_
   }
 
   if (state == IDLE) {
-    err =
-      k_work_schedule_for_queue(zmk_workqueue_lowprio_work_q(), &pwm_buzzer_beep_work, K_NO_WAIT);
+    err = beep_on();
     if (err < 0) {
-      LOG_ERR("FAILED TO SCEHDULE BEEP WORK: %d", err);
+      return err;
     }
   }
 
@@ -172,11 +168,6 @@ int pwm_buzzer_beep_with_params(uint32_t period, uint32_t pulse, k_timeout_t on_
   }
 
   return 0;
-}
-
-int pwm_buzzer_beep(uint32_t period) {
-  return pwm_buzzer_beep_with_params(period, period / 2, BEEP_ON_DURATION_DEFAULT,
-                                     BEEP_OFF_DURATION_DEFAULT);
 }
 
 static int pwm_buzzer_init(void) {
