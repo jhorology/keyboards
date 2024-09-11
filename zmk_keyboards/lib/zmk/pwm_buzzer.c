@@ -155,10 +155,7 @@ int pwm_buzzer_beep(uint32_t period, uint32_t pulse, k_timeout_t on_duration,
   }
 
   if (state == IDLE) {
-    err = beep_on();
-    if (err < 0) {
-      return err;
-    }
+    (void)beep_on();
   }
 
   err = k_mutex_unlock(&lock);
