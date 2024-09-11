@@ -1,0 +1,8 @@
+# Copyright (c) 2020 The ZMK Contributors
+# SPDX-License-Identifier: MIT
+
+description: Beep control Behavior
+
+compatible: "zmk,behavior-beep"
+
+include: one_param.yaml

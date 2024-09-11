@@ -35,8 +35,10 @@ static int on_keymap_binding_pressed(struct zmk_behavior_binding *binding,
   return ret;
 }
 
-static const struct behavior_driver_api behavior_rc_dial_driver_api = {.binding_pressed =
-                                                                         on_keymap_binding_pressed};
+static const struct behavior_driver_api behavior_rc_dial_driver_api = {
+  .binding_pressed = on_keymap_binding_pressed,
+  .locality = BEHAVIOR_LOCALITY_CENTRAL,
+};
 
 #  define RC_DIAL_INST(n)                                                                       \
     static const struct behavior_rc_dial_config behavior_rc_dial_config_##n = {                 \

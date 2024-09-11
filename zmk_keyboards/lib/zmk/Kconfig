@@ -96,7 +96,7 @@ config ZMK_PWM_BUZZER
     bool "Enable PWM buzzer"
     depends on PWM
 
-config ZMK_OUTPUT_STATUS_BEEP
+config ZMK_BEEP
     bool "Enable beep for output status"
     select ZMK_PWM_BUZZER
 

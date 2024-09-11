@@ -36,7 +36,10 @@ static int on_keymap_binding_released(struct zmk_behavior_binding *binding,
 }
 
 static const struct behavior_driver_api behavior_rc_button_driver_api = {
-  .binding_pressed = on_keymap_binding_pressed, .binding_released = on_keymap_binding_released};
+  .binding_pressed = on_keymap_binding_pressed,
+  .binding_released = on_keymap_binding_released,
+  .locality = BEHAVIOR_LOCALITY_CENTRAL,
+};
 
 BEHAVIOR_DT_INST_DEFINE(0, behavior_rc_button_init, NULL, NULL, NULL, POST_KERNEL,
                         CONFIG_KERNEL_INIT_PRIORITY_DEFAULT, &behavior_rc_button_driver_api);

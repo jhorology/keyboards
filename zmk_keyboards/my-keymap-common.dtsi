@@ -1,10 +1,12 @@
 #include <behaviors.dtsi>
 #include <behaviors/radial_controller.dtsi>
+#include <behaviors/beep.dtsi>
 #include <dt-bindings/zmk/keys.h>
 #include <dt-bindings/zmk/outputs.h>
 #include <dt-bindings/zmk/bt.h>
 #include <dt-bindings/zmk/rgb.h>
 #include <dt-bindings/zmk/ext_power.h>
+#include <dt-bindings/zmk/beep.h>
 
 #define ______ &trans
 
@@ -149,6 +151,12 @@
 #define _SPD &rgb_ug RGB_SPD
 #define _EFF &rgb_ug RGB_EFF
 #define _EFR &rgb_ug RGB_EFF
+
+// beep
+//--------------------------------------------
+#define _BP_ON &beep BEEP_ON
+#define _BP_OFF &beep BEEP_OFF
+#define _BP_PLY &beep BEEP_PLY
 
 // ZMK STUDIO
 //--------------------------------------------

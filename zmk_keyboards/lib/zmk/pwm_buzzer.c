@@ -22,8 +22,9 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define PWM_BUZZER_BEEP_QUEUE_SIZE 16
 
 static const struct pwm_dt_spec pwm = PWM_DT_SPEC_GET(BUZZER_NODE);
-static enum beep_state { IDLE, ON, OFF } state = IDLE;
+static enum beep_state { NOT_READY, IDLE, ON, OFF } state = NOT_READY;
 struct k_mutex lock;
+
 struct beep_data {
   uint32_t period;
   uint32_t pulse;
@@ -45,12 +46,6 @@ static int beep_on() {
   if (err == -ENOMSG) {
     state = IDLE;
     return 0;
-  }
-
-  err = device_is_ready(pwm.dev);
-  if (err < 0) {
-    LOG_ERR("PWM DEVICE IS NOT READY: %d", err);
-    goto err_exit;
   }
 
   err = pwm_set_dt(&pwm, beep.period, beep.pulse);
@@ -81,13 +76,6 @@ static int beep_off() {
   int err = k_msgq_get(&pwm_buzzer_beep_msgq, &beep, K_NO_WAIT);
   if (err == -ENOMSG) {
     LOG_ERR("BEEP MESSAGE QUEUE IS EMPTY: %d", err);
-    state = IDLE;
-    return err;
-  }
-
-  err = device_is_ready(pwm.dev);
-  if (err < 0) {
-    LOG_ERR("PWM DEVICE IS NOT READY: %d", err);
     state = IDLE;
     return err;
   }
@@ -137,11 +125,17 @@ static void pwm_buzzer_beep_handler(struct k_work* work) {
   }
 }
 
-int pwm_buzzer_beep(uint32_t period, uint32_t pulse, k_timeout_t on_duration,
-                    k_timeout_t off_duration) {
+int zmk_pwm_buzzer_beep(uint32_t period, uint32_t pulse, k_timeout_t on_duration,
+                        k_timeout_t off_duration) {
   int err;
   struct beep_data beep = {
     .period = period, .pulse = pulse, .on_duration = on_duration, .off_duration = off_duration};
+
+  if (state == NOT_READY) {
+    LOG_ERR("NOT INITIALIZED");
+    return -EIO;
+  }
+
   err = k_msgq_put(&pwm_buzzer_beep_msgq, &beep, K_NO_WAIT);
   if (err < 0) {
     LOG_ERR("FAILED TO PUT BEEP TO QUEUE: %d", err);
@@ -168,7 +162,26 @@ int pwm_buzzer_beep(uint32_t period, uint32_t pulse, k_timeout_t on_duration,
 }
 
 static int pwm_buzzer_init(void) {
-  k_mutex_init(&lock);
+  int err = device_is_ready(pwm.dev);
+  if (err < 0) {
+    LOG_ERR("PWM DEVICE IS NOT READY: %d", err);
+    return err;
+  }
+
+  err = pwm_set_dt(&pwm, 0, 0);
+  if (err < 0) {
+    LOG_ERR("FAILED TO SET PWM PERIOD AND PULSE: %d", err);
+    state = IDLE;
+    return err;
+  }
+
+  err = k_mutex_init(&lock);
+  if (err < 0) {
+    LOG_ERR("FAILED TO INITIALIZE MUTEX: %d", err);
+    return err;
+  }
+
+  state = IDLE;
   return 0;
 }
 
