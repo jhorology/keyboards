@@ -475,7 +475,7 @@ build() {
     opts+=(--snippet studio-rpc-usb-uart)
     defs+=(-DCONFIG_ZMK_STUDIO=y)
     if (( $#with_logging )); then
-      defs+=(-DCONFIG_ZMK_STUDIO_LOG_LEVEL=4)
+      defs+=(-DCONFIG_ZMK_STUDIO_LOG_LEVEL_DBG=y)
     fi
   fi
   if (( $#with_logging )); then
@@ -529,7 +529,7 @@ build_with_docker() {
     opts+=(--snippet studio-rpc-usb-uart)
     defs+=(-DCONFIG_ZMK_STUDIO=y)
     if (( $#with_logging )); then
-      defs+=(-DCONFIG_ZMK_STUDIO_LOG_LEVEL=4)
+      defs+=(-DCONFIG_ZMK_STUDIO_LOG_LEVEL_DBG=y)
     fi
   fi
   if (( $#with_logging )); then
@@ -712,22 +712,38 @@ fedora_flash_bin() {
 macos_log_console() {
   local firmware=$1
   local log_file=logs/${firmware:t:r}.txt
+  local tty_devs=()
+  local not_found=true
+
   cd $PROJECT
-  mkdir -p logs
   echo -n "waiting for debug output device to be connected.."
-  while true; do
-    echo -n "."
-    sleep 1
+  while $not_found; do
     for tty_dev in /dev/tty.usbmodem*(N); do
       if [[ $tty_dev -nt $firmware ]]; then
-        echo "found tty device [$tty_dev]"
-        # to exit tio, [Ctrl + t][q]
-        sudo chmod +urw $tty_dev
-        tio --log --log-file=$log_file $tty_dev
-        return
+        not_found=false
       fi
     done
+    sleep 1
+    echo -n "."
   done
+  sleep 1
+
+  # may exist 2 tty devices log and studio
+  for tty_dev in /dev/tty.usbmodem*(N); do
+    if [[ $tty_dev -nt $firmware ]]; then
+      tty_devs+=($tty_dev)
+    fi
+  done
+
+  if (( $#tty_devs )); then
+    tty_devs=(${(O)tty_devs})
+    echo "found tty device [${tty_devs[1]}]"
+    # to exit tio, [Ctrl + t][q]
+    sudo chmod +urw $tty_devs[1]
+    tio --log --log-file=$log_file $tty_devs[1]
+  else
+    error_exit 1 'unfound tty device'
+  fi
 }
 
 fedora_log_console() {
