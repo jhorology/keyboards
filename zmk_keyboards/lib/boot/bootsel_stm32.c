@@ -4,9 +4,9 @@
 #include <cmsis_core.h>
 #include <zephyr/fatal.h>
 #include <zephyr/init.h>
-#include <zephyr/linker/section_tags.h>
+#include <zephyr/linker/sections.h>
 
-static __noinit uint32_t magic;
+static __boot_noinit uint32_t magic;
 
 #if IS_ENABLED(CONFIG_ARM_MPU)
 extern void arm_core_mpu_disable(void);
@@ -25,8 +25,7 @@ static int bootsel_stm32_check(void) {
 #endif  // CONFIG_ARM_MPU
     __set_MSP(*(uint32_t *)CONFIG_BOOTSEL_STM32_BOOTLOADER_ADDRESS);
     ((void (*)(void))(*((uint32_t *)(CONFIG_BOOTSEL_STM32_BOOTLOADER_ADDRESS + 4))))();
-    while (1)
-      ;
+    while (1);
   }
   return 0;
 }

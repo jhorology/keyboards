@@ -3,7 +3,7 @@
 
 #include <zephyr/init.h>
 #include <zephyr/kernel.h>
-#include <zephyr/linker/section_tags.h>
+#include <zephyr/linker/sections.h>
 #include <zephyr/sys/reboot.h>
 
 static __noinit uint32_t magic;
