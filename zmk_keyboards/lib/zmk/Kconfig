@@ -46,6 +46,7 @@ endif # ZMK_HID_EXTRA_KEYS
 
 config ZMK_USB_HOST_OS
     bool "Enable detecting USB host os"
+    select ZMK_LOW_PRIORITY_WORK_QUEUE
 
 if ZMK_USB_HOST_OS
 
@@ -95,6 +96,7 @@ config ZMK_INDICATOR_LED
 config ZMK_PWM_BUZZER
     bool "Enable PWM buzzer"
     depends on PWM
+    select ZMK_LOW_PRIORITY_WORK_QUEUE
 
 config ZMK_BEEP
     bool "Enable beep for output status"

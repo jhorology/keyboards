@@ -12,14 +12,11 @@ CONFIG_STACK_ALIGN_DOUBLE_WORD=n
 # enable clock control
 CONFIG_CLOCK_CONTROL=y
 
-# enable pin controller
+# Enable pin controller
 CONFIG_PINCTRL=y
 
 # Code partition needed to target the correct flash range
 CONFIG_USE_DT_CODE_PARTITION=y
-
-# default: 0 since zephyer 3.5, dosen't work with 0
-CONFIG_HEAP_MEM_POOL_SIZE=1024
 
 # maybe need to adjust indivisual gap
 # default 0

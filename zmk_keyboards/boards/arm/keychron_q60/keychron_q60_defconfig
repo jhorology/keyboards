@@ -5,13 +5,6 @@ CONFIG_SOC_SERIES_STM32L4X=y
 CONFIG_SOC_STM32L432XX=y
 CONFIG_BOARD_KEYCHRON_Q60=y
 
-# Enable MPU
-CONFIG_ARM_MPU=y
-
-# Enable HW stack protection
-# ??? this option cause problems with tap-dance since zephyr 3.5
-# CONFIG_HW_STACK_PROTECTION=y
-
 # enable clock control
 CONFIG_CLOCK_CONTROL=y
 
