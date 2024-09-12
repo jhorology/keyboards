@@ -101,6 +101,7 @@ zparseopts -D -E -F -- \
            -zephyr-doc2dash=zephyr_doc2dash \
            -docker-shell=docker_shell \
            -studio-app=studio_app \
+           -studio-web=studio_web \
            {d,-with-docker}=with_docker \
            {c,-with-clean}=with_clean \
            {g,-with-compile-db}=with_compile_db \
@@ -131,6 +132,7 @@ help_usage() {
         "    $THIS_SCRIPT:t --pip-upgrade                   upgrade python packages" \
         "    $THIS_SCRIPT:t --zephyr-doc2dash               generate zephyr docsets" \
         "    $THIS_SCRIPT:t --docker-shell                  enter docker container shell" \
+        "    $THIS_SCRIPT:t --studio-web                    launch ZMK Studio web" \
         "    $THIS_SCRIPT:t --studio-app                    launch ZMK Studio app" \
         "    $THIS_SCRIPT:t [build options...] [TARGETS..]  build firmwares" \
         "" \
@@ -371,7 +373,7 @@ setup() {
   cd $PROJECT
   pip_install
 
-  setup_studio_app
+  setup_zmk_studio
 }
 
 update() {
@@ -815,7 +817,7 @@ EOF
   git clean -dfx .
 }
 
-setup_studio_app() {
+setup_zmk_studio() {
   if [[ -d $PROJECT/zmk-studio ]]; then
     cd $PROJECT/zmk-studio
     local local_rev=$(git rev-parse $ZMK_STUDIO_BRANCH)
@@ -853,7 +855,15 @@ open_browser() {
 }
 
 run_studio_app() {
-  setup_studio_app
+  setup_zmk_studio
+
+  cd $PROJECT/zmk-studio
+
+  npx tauri dev
+}
+
+run_studio_web() {
+  setup_zmk_studio
 
   cd $PROJECT/zmk-studio
 
@@ -895,6 +905,9 @@ elif (( $#docker_shell )); then
   return
 elif (( $#studio_app )); then
   run_studio_app
+  return
+elif (( $#studio_web )); then
+  run_studio_web
   return
 fi
 
