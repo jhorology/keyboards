@@ -16,6 +16,8 @@ logs/
 *.log
 
 .venv
+.renv
+.rustenv
 .vscode
 .projectile
 .dir-locals.el

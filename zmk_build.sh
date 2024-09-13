@@ -328,6 +328,7 @@ pip_install() {
   pip3 install ninja
   pip3 install pip-review
   pip3 install doc2dash
+  pip3 install rustenv
   pip3 cache purge
 }
 
@@ -818,8 +819,9 @@ EOF
 }
 
 setup_zmk_studio() {
-  if [[ -d $PROJECT/zmk-studio ]]; then
-    cd $PROJECT/zmk-studio
+  cd $PROJECT
+  if [[ -d zmk-studio ]]; then
+    cd zmk-studio
     local local_rev=$(git rev-parse $ZMK_STUDIO_BRANCH)
     local remote_rev=$(git ls-remote --heads origin $ZMK_STUDIO_BRANCH | awk '{print $1}')
     if [[ $local_rev != $remote_rev ]]; then
@@ -856,6 +858,12 @@ open_browser() {
 
 run_studio_app() {
   setup_zmk_studio
+
+  cd $PROJECT
+  if [[ ! -d .rustenv ]]; then
+    rustenv .rustenv
+  fi
+  source .rustenv/bin/activate
 
   cd $PROJECT/zmk-studio
 
