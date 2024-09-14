@@ -1,5 +1,5 @@
 diff --git a/app/src/usb_hid.c b/app/src/usb_hid.c
-index cd3ef92..71aa0ba 100644
+index 9db1095..2f250bc 100644
 --- a/app/src/usb_hid.c
 +++ b/app/src/usb_hid.c
 @@ -17,6 +17,9 @@
@@ -12,27 +12,22 @@ index cd3ef92..71aa0ba 100644
  
  LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
  
-@@ -56,10 +59,14 @@ static uint8_t *get_keyboard_report(size_t *len) {
- 
+@@ -57,6 +60,10 @@ static uint8_t *get_keyboard_report(size_t *len) {
  static int get_report_cb(const struct device *dev, struct usb_setup_packet *setup, int32_t *len,
                           uint8_t **data) {
+ 
 +#if IS_ENABLED(CONFIG_ZMK_USB_HOST_OS)
 +    zmk_usb_host_os_trace_hid_setup(setup);
 +#endif // IS_ENABLED(CONFIG_ZMK_USB_HOST_OS)
- 
++
      /*
--     * 7.2.1 of the HID v1.11 spec is unclear about handling requests for reports that do not exist
--     * For requested reports that aren't input reports, return -ENOTSUP like the Zephyr subsys does
-+     * 7.2.1 of the HID v1.11 spec is unclear about handling requests for reports that do not
-+     * exist For requested reports that aren't input reports, return -ENOTSUP like the Zephyr
-+     * subsys does
-      */
-     if ((setup->wValue & HID_GET_REPORT_TYPE_MASK) != HID_REPORT_TYPE_INPUT) {
-         LOG_ERR("Unsupported report type %d requested", (setup->wValue & HID_GET_REPORT_TYPE_MASK)
-@@ -88,6 +95,10 @@ static int get_report_cb(const struct device *dev, struct usb_setup_packet *setu
+      * 7.2.1 of the HID v1.11 spec is unclear about handling requests for reports that do not exist
+      * For requested reports that aren't input reports, return -ENOTSUP like the Zephyr subsys does
+@@ -88,6 +95,11 @@ static int get_report_cb(const struct device *dev, struct usb_setup_packet *setu
  
  static int set_report_cb(const struct device *dev, struct usb_setup_packet *setup, int32_t *len,
                           uint8_t **data) {
++
 +#if IS_ENABLED(CONFIG_ZMK_USB_HOST_OS)
 +    zmk_usb_host_os_trace_hid_setup(setup);
 +#endif // IS_ENABLED(CONFIG_ZMK_USB_HOST_OS)
