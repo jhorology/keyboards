@@ -2,11 +2,13 @@
 
 #include <zmk/events/hid_indicators_changed.h>
 
+#define INDICATORS num_lock, caps_lock, scroll_lock, compose, kana
+
 #define DT_HAS_INDICATOR_LED(id) DT_NODE_HAS_COMPAT(DT_PARENT(DT_NODELABEL(id##_led)), gpio_leds)
 
 #define DT_HAS_ANY_INDICATOR_LED(...) (FOR_EACH(DT_HAS_INDICATOR_LED, (||), __VA_ARGS__))
 
-#if DT_HAS_ANY_INDICATOR_LED(num_lock, caps_lock, scroll_lock, compose, kana)
+#if DT_HAS_ANY_INDICATOR_LED(INDICATORS)
 
 #  define LED_CHILD_IDX(id) DT_NODE_CHILD_IDX(DT_NODELABEL(id##_led))
 
@@ -14,7 +16,7 @@
     IF_ENABLED(DT_HAS_INDICATOR_LED(id), (static const struct device *const id##_leds = \
                                             DEVICE_DT_GET(DT_PARENT(DT_NODELABEL(id##_led)))));
 
-FOR_EACH(DECLARE_LED_DEVICE, (;), num_lock, caps_lock, scroll_lock, compose, kana);
+FOR_EACH(DECLARE_LED_DEVICE, (;), INDICATORS);
 
 #  define IMPLEMENT_INDICATOR_LED(idx, id)                                       \
     IF_ENABLED(DT_HAS_INDICATOR_LED(id),                                         \
@@ -29,7 +31,7 @@ static int indicator_led_listener(const zmk_event_t *eh) {
   prev_indicators = ev->indicators;
 
   // FOR_EACH_IDX doesn't work if exist LOG code inside macro
-  FOR_EACH_IDX(IMPLEMENT_INDICATOR_LED, (;), num_lock, caps_lock, scroll_lock, compose, kana);
+  FOR_EACH_IDX(IMPLEMENT_INDICATOR_LED, (;), INDICATORS);
 
   return ZMK_EV_EVENT_BUBBLE;
 }
