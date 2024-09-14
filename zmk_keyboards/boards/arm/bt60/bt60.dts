@@ -106,7 +106,8 @@
     /* it seems getting better for kscan debounce */
     unused_pins {
       gpios
-        = <&gpio0 22 GPIO_ACTIVE_HIGH> /* unused row */
+        = <&gpio1 6 GPIO_ACTIVE_HIGH> /* unused col */
+        , <&gpio0 22 GPIO_ACTIVE_HIGH> /* unused row */
         , <&gpio0 26 GPIO_ACTIVE_HIGH> /* encode_2 a */
         , <&gpio0 6 GPIO_ACTIVE_HIGH> /* encode_2 b */
         , <&gpio0 9 GPIO_ACTIVE_HIGH> /* encode_3 a */
