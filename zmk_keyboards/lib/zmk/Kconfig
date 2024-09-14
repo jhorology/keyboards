@@ -12,7 +12,8 @@ if ZMK_HID_EXTRA_KEYS
 #   bb bit16..23: usage for collection if aa != 0
 #                 usage page if aa == 0
 #   cccc bit0..15: usage
-#  keycode in keymap -> 0x00bbcccc
+#  keycode in keymap -> 0x00ff000x
+#    x 0-7 extra key index
 #  TODO  16bit usage/usage_page is not supported
 #  TODO  maybe better to define in device-tree
 # --------------------------------------------

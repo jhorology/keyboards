@@ -112,6 +112,7 @@ zparseopts -D -E -F -- \
            {l,-with-logging}=with_logging \
            {s,-with-shell}=with_shell \
            {z,-with-studio}=with_studio \
+           {r,-with-ram-report}=with_ram_report \
            -without-emacs=without_emacs \
   || return
 
@@ -147,6 +148,7 @@ help_usage() {
         "    -l,--with-logging     Enable USB logging" \
         "    -s,--with-shell       Enable Shell" \
         "    -z,--with-studio      Enable ZMK Studio" \
+        "    -r,--with-ram-report  Enable ram_report" \
         "    --without-emacs       don't generate emacs settings when --with-comile-db" \
        "" \
         "available targets:"
@@ -504,7 +506,9 @@ build() {
       dot_projectile
     fi
   fi
-
+  if (( $with_ram_report )); then
+    opts+=(--target ram_report)
+  fi
   west build $opts[*] zmk/app -- $defs[*]
 
   if (( $#with_compile_db )); then

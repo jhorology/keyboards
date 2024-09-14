@@ -12,7 +12,8 @@
  *       usage page if aa == 0
  *   cccc: usage id
  *
- *  keycode in keymap -> 0x00bbcccc
+ *  keycode in keymap -> 0x00ff000x
+ *   x: 0-7 index
  *
  *  TODO 16bit usage/usage page is not supported.
  *
@@ -289,7 +290,7 @@
 #  if _NUM_EXTRA_KEYS > 7 && _USAGE_PAGE(6) == _USAGE_PAGE(7)
 #    define _HID_EXTRA_KEY_6 _HID_EXTRA_KEY_6_S
 #  else
-#    if _C_USAGE_PAGE(7)
+#    if _C_USAGE_PAGE(6)
 #      define _HID_EXTRA_KEY_6 _HID_EXTRA_KEY_6_S, _END_COLLECTION(_REPORT_COUNT_6)
 #    else
 #      define _HID_EXTRA_KEY_6 _HID_EXTRA_KEY_6_S, _END_PAGE(_REPORT_COUNT_6)
@@ -320,6 +321,10 @@
 #  endif
 #endif
 
+/**
+ * HID_EXTRA_KEYS_DESC
+ * report descriptor for extra keys
+ */
 #if _NUM_EXTRA_KEYS < 8
 #  define HID_EXTRA_KEYS_DESC \
     _HID_EXTRA_KEYS, HID_REPORT_SIZE(8 - _NUM_EXTRA_KEYS), HID_REPORT_COUNT(0x01), HID_INPUT(0x03)
@@ -327,14 +332,7 @@
 #  define HID_EXTRA_KEYS_DESC _HID_EXTRA_KEYS
 #endif
 
-#define _EXTRA_KEY_MATCH_CODE(idx, keycode) \
-  if (_EXTRA_KEY_CODE(idx) == keycode) return idx
-static inline int zmk_hid_extra_keys_find(uint32_t keycode) {
-  LISTIFY(_NUM_EXTRA_KEYS, _EXTRA_KEY_MATCH_CODE, (;), keycode);
-  return -1;
-}
-
-#define _EXTRA_KEY_ANY_USAGE_PAGE(idx, usage_page) (_EXTRA_KEY_USAGE_PAGE(idx) == usage_page)
-static inline bool zmk_hid_extra_keys_contains_usage_page(uint16_t usage_page) {
-  return LISTIFY(_NUM_EXTRA_KEYS, _EXTRA_KEY_ANY_USAGE_PAGE, (||), usage_page);
-}
+/**
+ * alternate usage page for extra keys
+ */
+#define HID_ALT_USAGE_EXTRA_KEY 0xff

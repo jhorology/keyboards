@@ -2,6 +2,7 @@
 #include <behaviors/radial_controller.dtsi>
 #include <behaviors/beep.dtsi>
 #include <dt-bindings/zmk/keys.h>
+#include <dt-bindings/zmk/extra_keys.h>
 #include <dt-bindings/zmk/outputs.h>
 #include <dt-bindings/zmk/bt.h>
 #include <dt-bindings/zmk/rgb.h>
@@ -10,13 +11,34 @@
 
 #define ______ &trans
 
-// extra key code
+// extra key
 //--------------------------------------------
 
-// Apple Vendor Top Case - keyboard fn
-#define APPLE_FN (0x00ff0003)
-// System Control - Do not disturb
-#define SC_DND (0x0080009b)
+// keyboard Page F16
+#undef F16
+#define F16 EXTRA_KEY_0
+
+// keyboard Page F17
+#undef F17
+#define F17 EXTRA_KEY_1
+
+// keyboard Page F18
+#undef F18
+#define F18 EXTRA_KEY_2
+
+// keyboard Page LANG1
+#undef LANG1
+#define LANG1 EXTRA_KEY_3
+
+// keyboard Page LANG2
+#undef LANG2
+#define LANG2 EXTRA_KEY_4
+
+// AVT Page keyboardFn
+#define APPLE_FN EXTRA_KEY_5
+
+// System Control Page Do Not Disturbbb
+#define SC_DND EXTRA_KEY_6
 
 // common layers
 //--------------------------------------------

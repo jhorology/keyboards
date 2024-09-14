@@ -38,25 +38,34 @@ index 766fb9c..cc7bbe7 100644
      uint8_t keys[DIV_ROUND_UP(ZMK_HID_KEYBOARD_NKRO_MAX_USAGE + 1, 8)];
  #elif IS_ENABLED(CONFIG_ZMK_HID_REPORT_TYPE_HKRO)
 diff --git a/app/src/endpoints.c b/app/src/endpoints.c
-index b17a664..052dd03 100644
+index b17a664..b90ad91 100644
 --- a/app/src/endpoints.c
 +++ b/app/src/endpoints.c
-@@ -197,6 +197,11 @@ int zmk_endpoints_send_report(uint16_t usage_page) {
-         return send_consumer_report();
-     }
+@@ -195,6 +195,11 @@ int zmk_endpoints_send_report(uint16_t usage_page) {
  
+     case HID_USAGE_CONSUMER:
+         return send_consumer_report();
++
 +#if IS_ENABLED(CONFIG_ZMK_HID_EXTRA_KEYS)
-+    if (zmk_hid_extra_keys_contains_usage_page(usage_page))
++    case HID_ALT_USAGE_EXTRA_KEY:
 +        return send_keyboard_report();
 +#endif
-+
+     }
+ 
      LOG_ERR("Unsupported usage page %d", usage_page);
-     return -ENOTSUP;
- }
 diff --git a/app/src/hid.c b/app/src/hid.c
-index df0715e..dac7563 100644
+index df0715e..9cad41a 100644
 --- a/app/src/hid.c
 +++ b/app/src/hid.c
+@@ -4,7 +4,7 @@
+  * SPDX-License-Identifier: MIT
+  */
+ 
+-#include "zmk/keys.h"
++#include <sys/_stdint.h>
+ #include <zephyr/logging/log.h>
+ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
+ 
 @@ -13,7 +13,8 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
  
  static struct zmk_hid_keyboard_report keyboard_report = {
@@ -67,43 +76,49 @@ index df0715e..dac7563 100644
  
  static struct zmk_hid_consumer_report consumer_report = {.report_id = ZMK_HID_REPORT_ID_CONSUMER,
                                                           .body = {.keys = {0}}};
-@@ -347,6 +348,13 @@ int zmk_hid_press(uint32_t usage) {
+@@ -346,6 +347,15 @@ int zmk_hid_press(uint32_t usage) {
+         return zmk_hid_keyboard_press(ZMK_HID_USAGE_ID(usage));
      case HID_USAGE_CONSUMER:
          return zmk_hid_consumer_press(ZMK_HID_USAGE_ID(usage));
-     }
 +#if IS_ENABLED(CONFIG_ZMK_HID_EXTRA_KEYS)
-+    int index = zmk_hid_extra_keys_find(usage);
-+    if (index >= 0) {
-+        keyboard_report.body.extra_keys |= 1 << index;
-+        return 0;
-+    }
++    case HID_ALT_USAGE_EXTRA_KEY:
++        uint16_t idx = ZMK_HID_USAGE_ID(usage);
++        if (idx < 8) {
++            keyboard_report.body.extra_keys |= 1 << idx;
++            return 0;
++        }
++        break;
 +#endif
+     }
      return -EINVAL;
  }
- 
-@@ -357,6 +365,13 @@ int zmk_hid_release(uint32_t usage) {
+@@ -356,6 +366,15 @@ int zmk_hid_release(uint32_t usage) {
+         return zmk_hid_keyboard_release(ZMK_HID_USAGE_ID(usage));
      case HID_USAGE_CONSUMER:
          return zmk_hid_consumer_release(ZMK_HID_USAGE_ID(usage));
-     }
 +#if IS_ENABLED(CONFIG_ZMK_HID_EXTRA_KEYS)
-+    int index = zmk_hid_extra_keys_find(usage);
-+    if (index >= 0) {
-+        keyboard_report.body.extra_keys &= ~(1 << index);
-+        return 0;
-+    }
++    case HID_ALT_USAGE_EXTRA_KEY:
++        uint16_t idx = ZMK_HID_USAGE_ID(usage);
++        if (idx < 8) {
++            keyboard_report.body.extra_keys &= ~(1 << idx);
++            return 0;
++        }
++        break;
 +#endif
+     }
      return -EINVAL;
  }
- 
-@@ -367,6 +382,11 @@ bool zmk_hid_is_pressed(uint32_t usage) {
+@@ -366,6 +385,13 @@ bool zmk_hid_is_pressed(uint32_t usage) {
+         return zmk_hid_keyboard_is_pressed(ZMK_HID_USAGE_ID(usage));
      case HID_USAGE_CONSUMER:
          return zmk_hid_consumer_is_pressed(ZMK_HID_USAGE_ID(usage));
-     }
 +#if IS_ENABLED(CONFIG_ZMK_HID_EXTRA_KEYS)
-+    int index = zmk_hid_extra_keys_find(usage);
-+    if (index >= 0)
-+        return (keyboard_report.body.extra_keys & (1 << index)) != 0;
++    case HID_ALT_USAGE_EXTRA_KEY:
++        uint16_t idx = ZMK_HID_USAGE_ID(usage);
++        if (idx < 8)
++            return (keyboard_report.body.extra_keys & (1 << idx)) != 0;
++        break;
 +#endif
+     }
      return false;
  }
- 
