@@ -91,22 +91,6 @@
     status = "disabled";
   };
 
-  encoder_2: encoder_2 {
-    compatible = "alps,ec11";
-    a-gpios = <&gpio0 26 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
-    b-gpios = <&gpio0 6 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
-    steps = <36>;
-    status = "disabled";
-  };
-
-  encoder_3: encoder_3 {
-    compatible = "alps,ec11";
-    a-gpios = <&gpio0 9 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
-    b-gpios = <&gpio0 10 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
-    steps = <36>;
-    status = "disabled";
-  };
-
   backlight: pwmleds {
     compatible = "pwm-leds";
     pwm_led_0 {
@@ -120,8 +104,14 @@
       gpios = <&gpio0 15 GPIO_ACTIVE_HIGH>;
     };
     /* it seems getting better for kscan debounce */
-    unused_row_pin {
-      gpios = <&gpio0 22 GPIO_ACTIVE_HIGH>;
+    unused_pins {
+      gpios
+        = <&gpio0 22 GPIO_ACTIVE_HIGH> /* unused row */
+        , <&gpio0 26 GPIO_ACTIVE_HIGH> /* encode_2 a */
+        , <&gpio0 6 GPIO_ACTIVE_HIGH> /* encode_2 b */
+        , <&gpio0 9 GPIO_ACTIVE_HIGH> /* encode_3 a */
+        , <&gpio0 10 GPIO_ACTIVE_HIGH> /* encode_3 b */
+        ;
     };
   };
 
