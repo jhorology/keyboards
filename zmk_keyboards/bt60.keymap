@@ -1,5 +1,15 @@
 #include "my-keymap-common.dtsi"
 
+
+/*
+ * Enable encoder_1
+ * EC11E18244A5
+ * https://tech.alpsalpine.com/e/products/detail/EC11E18244A5
+ */
+&encoder_1 {
+  status = "okay";
+};
+
 / {
 
   soft_off_wakers {

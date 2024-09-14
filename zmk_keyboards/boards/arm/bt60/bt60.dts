@@ -69,7 +69,6 @@
       ;
 
     row-gpios
-      // = <&gpio0 22 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
       = <&gpio1 0 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
       , <&gpio1 3 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
       , <&gpio1 1 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
@@ -84,16 +83,12 @@
     control-gpios = <&gpio0 13 GPIO_ACTIVE_HIGH>;
   };
 
-  /*
-   * EC11E18244A5
-   * https://tech.alpsalpine.com/e/products/detail/EC11E18244A5
-   */
   encoder_1: encoder_1 {
     compatible = "alps,ec11";
     a-gpios = <&gpio0 21 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
     b-gpios = <&gpio0 19 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
     steps = <36>;
-    status = "okay";
+    status = "disabled";
   };
 
   encoder_2: encoder_2 {
@@ -123,6 +118,10 @@
     compatible = "gpio-leds";
     blue_led: led_0 {
       gpios = <&gpio0 15 GPIO_ACTIVE_HIGH>;
+    };
+    /* it seems getting better for kscan debounce */
+    unused_row_pin {
+      gpios = <&gpio0 22 GPIO_ACTIVE_HIGH>;
     };
   };
 
