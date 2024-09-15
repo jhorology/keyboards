@@ -1,3 +1,10 @@
+#pragma once
+
+/**
+ * MIDI note number (0 - 127)
+ * range C-1 NOTE_C(-1) - G9 NOTE_G(9)
+ * In generarlly, A4 NOTE_A(4) = 440Hz
+ */
 #define NOTE_C(octave) (0 + (octave + 1) * 12)
 #define NOTE_Cs(octave) (1 + (octave + 1) * 12)
 #define NOTE_Db(octave) (1 + (octave + 1) * 12)
