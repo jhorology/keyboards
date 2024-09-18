@@ -133,8 +133,8 @@
       bindings = <
                   &bootloader  _BT_MAC1  _BT_MAC2  _BT_WIN1  _BT_MAC3  _BT_WIN2    ______  _USB    ______  ______  &soft_off  &bootloader
                   &sys_reset   ______   ______     ______    ______    ______      ______  ______  ______  ______  ______     &sys_reset
-                  _X_SET       _MAC     _EP_OFF    _RGB_OFF  _BRI      _HUI        _SAI    _EFF    _SPI    ______  ______     ______
-                                                   ______    ______    ______      ______  ______  ______
+                  ______       _MAC     _EP_OFF    _RGB_OFF  _BRI      _HUI        _SAI    _EFF    _SPI    ______  ______     ______
+                                                   _X_SET    ______    ______      ______  ______  _X_SET
       >;
     };
 
