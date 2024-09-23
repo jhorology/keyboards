@@ -32,17 +32,19 @@ struct beep_data {
   k_timeout_t off_duration;
 };
 
+static char beep_msgq_buffer[sizeof(struct beep_data) * PWM_BUZZER_BEEP_QUEUE_SIZE];
+static struct k_msgq beep_msgq;
+
 static int beep_on(void);
 static int beep_off(void);
 static void pwm_buzzer_beep_handler(struct k_work* work);
 
-K_MSGQ_DEFINE(pwm_buzzer_beep_msgq, sizeof(struct beep_data), PWM_BUZZER_BEEP_QUEUE_SIZE, 4);
 K_WORK_DELAYABLE_DEFINE(pwm_buzzer_beep_work, pwm_buzzer_beep_handler);
 
 static int beep_on() {
   struct beep_data beep;
 
-  int err = k_msgq_peek(&pwm_buzzer_beep_msgq, &beep);
+  int err = k_msgq_peek(&beep_msgq, &beep);
   if (err == -ENOMSG) {
     state = IDLE;
     return 0;
@@ -65,7 +67,7 @@ static int beep_on() {
   return 0;
 
 err_exit:
-  (void)k_msgq_get(&pwm_buzzer_beep_msgq, &beep, K_NO_WAIT);
+  (void)k_msgq_get(&beep_msgq, &beep, K_NO_WAIT);
   state = IDLE;
   return err;
 }
@@ -73,7 +75,7 @@ err_exit:
 static int beep_off() {
   struct beep_data beep;
 
-  int err = k_msgq_get(&pwm_buzzer_beep_msgq, &beep, K_NO_WAIT);
+  int err = k_msgq_get(&beep_msgq, &beep, K_NO_WAIT);
   if (err == -ENOMSG) {
     LOG_ERR("BEEP MESSAGE QUEUE IS EMPTY: %d", err);
     state = IDLE;
@@ -136,7 +138,7 @@ int zmk_pwm_buzzer_beep(uint32_t period, uint32_t pulse, k_timeout_t on_duration
     return -EIO;
   }
 
-  err = k_msgq_put(&pwm_buzzer_beep_msgq, &beep, K_NO_WAIT);
+  err = k_msgq_put(&beep_msgq, &beep, K_NO_WAIT);
   if (err < 0) {
     LOG_ERR("FAILED TO PUT BEEP TO QUEUE: %d", err);
     return err;
@@ -180,6 +182,8 @@ static int pwm_buzzer_init(void) {
     LOG_ERR("FAILED TO INITIALIZE MUTEX: %d", err);
     return err;
   }
+
+  k_msgq_init(&beep_msgq, beep_msgq_buffer, sizeof(struct beep_data), PWM_BUZZER_BEEP_QUEUE_SIZE);
 
   state = IDLE;
   return 0;
