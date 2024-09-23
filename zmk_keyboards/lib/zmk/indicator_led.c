@@ -4,7 +4,9 @@
 
 #define INDICATORS num_lock, caps_lock, scroll_lock, compose, kana
 
-#define DT_HAS_INDICATOR_LED(id) DT_NODE_HAS_COMPAT(DT_PARENT(DT_NODELABEL(id##_led)), gpio_leds)
+#define DT_HAS_INDICATOR_LED(id)                                             \
+  UTIL_AND(DT_NODE_HAS_COMPAT(DT_PARENT(DT_NODELABEL(id##_led)), gpio_leds), \
+           DT_NODE_HAS_STATUS(DT_PARENT(DT_NODELABEL(id##_led)), okay))
 
 #define DT_HAS_ANY_INDICATOR_LED(...) (FOR_EACH(DT_HAS_INDICATOR_LED, (||), __VA_ARGS__))
 
