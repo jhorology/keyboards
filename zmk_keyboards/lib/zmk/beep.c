@@ -80,8 +80,7 @@ struct output_status {
 static struct output_status status = {.output_num = 0xff, .is_connected = false};
 
 static void play_output_status(struct output_status *status) {
-  // if (!state.on || num > 9) return;
-  if (status->output_num > 9) return;
+  if (!state.on || status->output_num > 9) return;
 
   uint8_t code = morse_num_codes[status->output_num];
   for (int i = 0; i < 5; i++) {
@@ -151,6 +150,7 @@ int zmk_beep_play() {
 
 int zmk_beep_on(void) {
   state.on = true;
+  play_output_status(&status);
   return zmk_beep_update_and_save();
 }
 
