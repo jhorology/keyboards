@@ -62,7 +62,7 @@ static const uint8_t morse_num_codes[] = {0x0, 0x1, 0x3, 0x7, 0xf, 0x1f, 0x1e, 0
 #define MORSE_DOT_UNIT K_MSEC(MORSE_UNIT_MSEC)
 #define MORSE_DASH_UNIT K_MSEC(MORSE_UNIT_MSEC * 3)
 #define MORSE_DOT_NOTE NOTE_Fs(5)
-#define MORSE_DASH_NOTE NOTE_C(5)
+#define MORSE_DASH_NOTE NOTE_C(6)
 
 struct beep_entity_state {
   bool on;
