@@ -285,9 +285,9 @@ docker_exec() {
 fedora_install_packages() {
   # https://docs.zephyrproject.org/3.5.0/develop/getting_started/index.html#select-and-update-os
   sudo dnf update
-  sudo dnf install wget git cmake gperf python3 dtc wget xz file \
+  sudo dnf install -y wget git cmake gperf python3 dtc wget xz file \
        make gcc SDL2-devel file-libs \
-       tio fd-find ripgrep fzf
+       tio fd-find ripgrep fzf protobuf-compiler
   # gcc-multilib g++-multilib
   sudo dnf autoremove
   sudo dnf clean all
@@ -306,7 +306,7 @@ macos_install_packages() {
   brew update
   brew install wget git cmake gperf python3 qemu dtc libmagic \
        doxygen graphviz librsvg \
-       tio fd rg fzf
+       tio fd rg fzf protobuf
 
   # if PDF is needed
   # brew install mactex
@@ -357,7 +357,14 @@ setup() {
     tar xvf ${sdk_minimal_file_name}
     rm ${sdk_minimal_file_name}
   fi
+
   cd "${ZEPHYR_SDK_INSTALL_DIR}/zephyr-sdk-${ZEPHYR_SDK_VERSION}"
+
+  # wget2 as wget in fedora40
+  if [[ $os == "fedora" ]]; then
+    sed -i -e "s/wget -q --show-progress/wget -q/g" setup.sh
+  fi
+
   for toolchain in $TARGET_TOOLCHAINS; do
     if [[ ! -d $toolchain ]]; then
       ./setup.sh -h -c -t $toolchain
@@ -915,12 +922,6 @@ elif (( $#docker_shell )); then
   setup_docker
   docker_exec -it
   return
-elif (( $#studio_app )); then
-  run_studio_app
-  return
-elif (( $#studio_web )); then
-  run_studio_web
-  return
 fi
 
 if (( $#with_docker )); then
@@ -953,6 +954,12 @@ else
     return
   elif (( $#zephyr_doc2dash )); then
     zephyr_doc2dash
+    return
+  elif (( $#studio_app )); then
+    run_studio_app
+    return
+  elif (( $#studio_web )); then
+    run_studio_web
     return
   fi
 fi
