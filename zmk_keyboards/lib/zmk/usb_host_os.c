@@ -6,6 +6,8 @@
 #include <zmk/event_manager.h>
 #include <zmk/events/usb_host_os_changed.h>
 #include <zmk/events/usb_conn_state_changed.h>
+#include "zephyr/drivers/usb/usb_dc.h"
+#include "zmk/usb.h"
 
 #define USB_HID_SETUP_TIMEOUT_MS 500
 
@@ -67,16 +69,42 @@ struct usb_setup_packet *get_usb_hid_setup_log_item(uint8_t index) {
 #endif  // CONFIG_ZMK_USB_HOST_OS_DEBUG
 
 static int usb_conn_listener(const zmk_event_t *eh) {
-  static enum zmk_usb_conn_state conn_state = ZMK_USB_CONN_NONE;
   const struct zmk_usb_conn_state_changed *ev = as_zmk_usb_conn_state_changed(eh);
-  if (ev->conn_state != ZMK_USB_CONN_NONE && !detecting) {
+  static enum zmk_usb_conn_state prev_conn_state = ZMK_USB_CONN_NONE;
+  /*
+   * NRF (battery powered)
+   *  reset keybaod
+   *      USB_DC_RESET -> USB_DC_CONFIGURED
+   *  disconnect cable
+   *     USB_DC_CONFIGURED -> USB_DC_SUSPENND -> USB_DC_DISCONNECTED
+   *  connnect cable
+   *    USB_DC_DISCONNECTED -> USB_DC_RESUME -> USB_DC_CONFIGURED
+   *  host os sleep
+   *    USB_DC_CONFIGURED->USB_DC_SUSPENND
+   *  host os wakep
+   *    USB_DC_SUSPENND->USB_DC_CONFIGURED
+   */
+  /*
+  static uint8_t status_log[32];
+  static uint8_t status_log_ptr;
+  if (zmk_usb_get_status() == USB_DC_RESET) {
+    memset(status_log, 0, 32);
+    status_log_ptr = 0;
+  }
+  status_log[status_log_ptr++] = zmk_usb_get_status();
+  LOG_HEXDUMP_DBG(status_log, 32, "USB Status log:");
+ */
+
+  if (!detecting &&
+      (zmk_usb_get_status() == USB_DC_RESET ||
+       (prev_conn_state == ZMK_USB_CONN_NONE && ev->conn_state == ZMK_USB_CONN_HID))) {
     LOG_DBG("os detection start");
     detecting = true;
     packet_cnt = 0;
     detected_os = USB_HOST_OS_UNDEFINED;
     k_work_reschedule(&usb_host_os_work, K_MSEC(USB_HID_SETUP_TIMEOUT_MS));
   }
-  conn_state = ev->conn_state;
+  prev_conn_state = ev->conn_state;
   return 0;
 }
 
