@@ -76,13 +76,13 @@ static int usb_conn_listener(const zmk_event_t *eh) {
    *  reset keybaod
    *      USB_DC_RESET -> USB_DC_CONFIGURED
    *  disconnect cable
-   *     USB_DC_CONFIGURED -> USB_DC_SUSPENND -> USB_DC_DISCONNECTED
+   *     USB_DC_CONFIGURED -> USB_DC_SUSPEND -> USB_DC_DISCONNECTED
    *  connnect cable
    *    USB_DC_DISCONNECTED -> USB_DC_RESUME -> USB_DC_CONFIGURED
    *  host os sleep
-   *    USB_DC_CONFIGURED->USB_DC_SUSPENND
-   *  host os wakep
-   *    USB_DC_SUSPENND->USB_DC_CONFIGURED
+   *    USB_DC_CONFIGURED -> USB_DC_SUSPEND
+   *  host os wake
+   *    USB_DC_SUSPEND -> USB_DC_RESUME -> USB_DC_CONFIGURED
    */
   /*
   static uint8_t status_log[32];
@@ -93,8 +93,7 @@ static int usb_conn_listener(const zmk_event_t *eh) {
   }
   status_log[status_log_ptr++] = zmk_usb_get_status();
   LOG_HEXDUMP_DBG(status_log, 32, "USB Status log:");
- */
-
+  */
   if (!detecting &&
       (zmk_usb_get_status() == USB_DC_RESET ||
        (prev_conn_state == ZMK_USB_CONN_NONE && ev->conn_state == ZMK_USB_CONN_HID))) {
