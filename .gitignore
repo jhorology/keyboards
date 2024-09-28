@@ -5,8 +5,8 @@ dist/
 .config
 secure_config.h
 
-node_modules/
-logs/
+/node_modules
+/logs
 
 .DS_Store
 *~
@@ -36,14 +36,14 @@ via_app/
 # qmk
 vial.json
 /.qmk_config
-/qmk_firmware/
-.build/
+/qmk_firmware
 
 # zmk
+/.local
 /.zmk_config
-/.west/
-/zephyr/
-/zmk/
-/zmk-studio/
-/modules/
-/build/
+/.west
+/zephyr
+/zmk
+/zmk-studio
+/modules
+/build

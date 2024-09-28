@@ -21,7 +21,7 @@ ZEPHYR_SDK_VERSION=0.16.8
 # $HOME/bin
 # /opt
 # /usr/local
-ZEPHYR_SDK_INSTALL_DIR=$HOME/.local
+export ZEPHYR_SDK_INSTALL_DIR=$PROJECT/.local
 
 # Supported Toolchains:
 #
@@ -57,6 +57,8 @@ WIN_USBIPD="/mnt/c/Program Files/usbipd-win/usbipd.exe"
 WIN_GSUDO="/mnt/c/Program Files/gsudo/Current/gsudo.exe"
 # DOCSETS_DIR="$HOME/Library/Application Support/Dash/DockSets"
 ZMK_STUDIO_BRANCH=main
+PROTOC_INSTALL_DIR=$PROJECT/.local
+PROTOC_VERSION=28.2
 
 # key: target
 #   [1]=board
@@ -287,7 +289,7 @@ fedora_install_packages() {
   sudo dnf update
   sudo dnf install -y wget git cmake gperf python3 dtc wget xz file \
        make gcc SDL2-devel file-libs \
-       tio fd-find ripgrep fzf protobuf-compiler
+       tio fd-find ripgrep fzf
   # gcc-multilib g++-multilib
   sudo dnf autoremove
   sudo dnf clean all
@@ -306,7 +308,7 @@ macos_install_packages() {
   brew update
   brew install wget git cmake gperf python3 qemu dtc libmagic \
        doxygen graphviz librsvg \
-       tio fd rg fzf protobuf
+       tio fd rg fzf
 
   # if PDF is needed
   # brew install mactex
@@ -335,15 +337,13 @@ pip_install() {
 }
 
 pip_upgrade() {
+  cd $PROJECT
   pip_install
   pip-review -a
   pip3 cache purge
 }
 
-setup() {
-  cd $PROJECT
-  ${os}_install_packages
-
+install_zephyr_sdk() {
   if [[ ! -d "${ZEPHYR_SDK_INSTALL_DIR}/zephyr-sdk-${ZEPHYR_SDK_VERSION}" ]]; then
     mkdir -p "$ZEPHYR_SDK_INSTALL_DIR"
     cd "$ZEPHYR_SDK_INSTALL_DIR"
@@ -378,10 +378,54 @@ setup() {
       rm -rf $sdk
     fi
   done
+}
+
+install_protoc() {
+  local protoc_dir="${PROTOC_INSTALL_DIR}/protoc-${PROTOC_VERSION}"
+  if [[ ! -d $protoc_dir ]]; then
+    mkdir -p $protoc_dir
+    cd $protoc_dir
+
+    # https://github.com/protocolbuffers/protobuf/releases/download/v28.2/protoc-28.2-osx-x86_64.zip
+    # https://github.com/protocolbuffers/protobuf/releases/download/v28.2/protoc-28.2-osx-aarch_64.zip
+    # https://github.com/protocolbuffers/protobuf/releases/download/v28.2/protoc-28.2-osx-universal_binary.zip
+    # https://github.com/protocolbuffers/protobuf/releases/download/v28.2/protoc-28.2-linux-x86_64.zip
+    # https://github.com/protocolbuffers/protobuf/releases/download/v28.2/protoc-28.2-linux-aarch_64.zip
+
+    local file=protoc-${PROTOC_VERSION}-
+    if [[ $HOST_OS == macos ]]; then
+      file=${file}osx-
+    elif [[ $HOST_OS == linux ]]; then
+      file=${file}linux-
+    fi
+    if [[ $HOST_ARCHITECTURE == aarch64 ]]; then
+      file=${file}aarch_64.zip
+    elif [[ $HOST_ARCHITECTURE == x86_64 ]]; then
+      file=${file}x86_64.zip
+    fi
+    wget "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/$file"
+    unzip $file
+    rm -f $file
+  fi
+
+  # remove old protoc
+  cd "$PROTOC_INSTALL_DIR"
+  for protoc in protoc-*; do
+    if [[ $protoc != protoc-${PROTOC_VERSION} ]]; then
+      rm -rf $protoc
+    fi
+  done
+}
+
+setup() {
+  ${os}_install_packages
+
+  install_zephyr_sdk
 
   # install python packages
-  cd $PROJECT
   pip_install
+
+  install_protoc
 
   setup_zmk_studio
 }
@@ -516,7 +560,9 @@ build() {
   if (( $with_ram_report )); then
     opts+=(--target ram_report)
   fi
-  west build $opts[*] zmk/app -- $defs[*]
+
+  path=($PROTOC_INSTALL_DIR/protoc-$PROTOC_VERSION/bin $path) \
+      west build $opts[*] zmk/app -- $defs[*]
 
   if (( $#with_compile_db )); then
     mv $PROJECT/build/$target/compile_commands.json $PROJECT
