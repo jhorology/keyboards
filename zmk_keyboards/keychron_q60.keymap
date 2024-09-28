@@ -17,87 +17,94 @@
     compatible = "zmk,keymap";
     mac_base_layer {
       display-name = "Mac Base";
-      bindings = <
-      _DIP_SW
+      bindings =
+        <
+         _DIP_SW
 
-      &kp GRAVE  &kp N1    &kp N2    &kp N3  &kp N4  &kp N5  &kp N6  &kp N7  &kp N8     &kp N9   &kp N0    &kp MINUS  &kp EQUAL  &kp BSLH  &kp ESC
-      &kp TAB    &kp Q     &kp W     &kp E   &kp R   &kp T   &kp Y   &kp U   &kp I      &kp O    &kp P     &kp LBKT   &kp RBKT             &kp BSPC
-      &kp LCTRL  &kp A     &kp S     &kp D   &kp F   &kp G   &kp H   &kp J   &kp K      &kp L    &kp SEMI  &kp SQT                         &kp RET
-      &kp LSHFT  &kp Z     &kp X     &kp C   &kp V   &kp B   &kp N   &kp M   &kp COMMA  &kp DOT  &kp FSLH             &kp RSHIFT           _H_FN
-                 _H_M_LOPT _LCMD                             &kp SPACE                           _RCMD     _H_ROPT
-      >;
+         &kp GRAVE  &kp N1    &kp N2    &kp N3  &kp N4  &kp N5  &kp N6  &kp N7  &kp N8     &kp N9   &kp N0    &kp MINUS  &kp EQUAL  &kp BSLH  &kp ESC
+         &kp TAB    &kp Q     &kp W     &kp E   &kp R   &kp T   &kp Y   &kp U   &kp I      &kp O    &kp P     &kp LBKT   &kp RBKT             &kp BSPC
+         &kp LCTRL  &kp A     &kp S     &kp D   &kp F   &kp G   &kp H   &kp J   &kp K      &kp L    &kp SEMI  &kp SQT                         &kp RET
+         &kp LSHFT  &kp Z     &kp X     &kp C   &kp V   &kp B   &kp N   &kp M   &kp COMMA  &kp DOT  &kp FSLH             &kp RSHIFT           _H_FN
+         /**/       _H_M_LOPT _LCMD                             &kp SPACE                           _RCMD     _H_ROPT
+        >;
     };
     win_base_layer {
       display-name = "Win Base";
-      bindings = <
-      ______
+      bindings =
+        <
+         ______
 
-      &kp GRAVE  &kp N1    &kp N2  &kp N3  &kp N4  &kp N5  &kp N6  &kp N7  &kp N8     &kp N9   &kp N0    &kp MINUS  &kp EQUAL  &kp BSLH  &kp ESC
-      &kp TAB    &kp Q     &kp W   &kp E   &kp R   &kp T   &kp Y   &kp U   &kp I      &kp O    &kp P     &kp LBKT   &kp RBKT             &kp BSPC
-      &kp LCTRL  &kp A     &kp S   &kp D   &kp F   &kp G   &kp H   &kp J   &kp K      &kp L    &kp SEMI  &kp SQT                         &kp RET
-      &kp LSHFT  &kp Z     &kp X   &kp C   &kp V   &kp B   &kp N   &kp M   &kp COMMA  &kp DOT  &kp FSLH             &kp RSHIFT           _H_FN
-                 _H_W_LOPT _LCMD                           &kp SPACE                           _RCMD     _H_ROPT
-      >;
+         &kp GRAVE  &kp N1    &kp N2  &kp N3  &kp N4  &kp N5  &kp N6  &kp N7  &kp N8     &kp N9   &kp N0    &kp MINUS  &kp EQUAL  &kp BSLH  &kp ESC
+         &kp TAB    &kp Q     &kp W   &kp E   &kp R   &kp T   &kp Y   &kp U   &kp I      &kp O    &kp P     &kp LBKT   &kp RBKT             &kp BSPC
+         &kp LCTRL  &kp A     &kp S   &kp D   &kp F   &kp G   &kp H   &kp J   &kp K      &kp L    &kp SEMI  &kp SQT                         &kp RET
+         &kp LSHFT  &kp Z     &kp X   &kp C   &kp V   &kp B   &kp N   &kp M   &kp COMMA  &kp DOT  &kp FSLH             &kp RSHIFT           _H_FN
+         /**/       _H_W_LOPT _LCMD                           &kp SPACE                           _RCMD     _H_ROPT
+        >;
     };
     hhkb_fn_layer {
       display-name = "HHKB Fn";
-      bindings = <
-      ______
+      bindings =
+        <
+         ______
 
-      &kp ESC   &kp F1   &kp F2   &kp F3   &kp F4  &kp F5   &kp F6           &kp F7         &kp F8     &kp F9     &kp F10          &kp F11   &kp F12  &kp INS  &kp DEL
-      &kp CAPS  &kp F16  &kp F17  &kp F18  ______  ______   ______           ______         &kp PSCRN  &kp SLCK   &kp PAUSE_BREAK  &kp UP    ______            &kp KP_CLEAR
-      ______    ______   ______   ______   ______  ______   &kp KP_MULTIPLY  &kp KP_DIVIDE  &kp HOME   &kp PG_UP  &kp LEFT         &kp RIGHT                   &kp KP_ENTER
-      ______    ______   ______   ______   ______  ______   &kp KP_PLUS      &kp KP_MINUS   &kp END    &kp PG_DN  &kp DOWN                   ______            ______
-                ______   ______                             ______                                                ______           ______
-      >;
+         &kp ESC   &kp F1   &kp F2   &kp F3   &kp F4  &kp F5   &kp F6           &kp F7         &kp F8     &kp F9     &kp F10          &kp F11   &kp F12  &kp INS  &kp DEL
+         &kp CAPS  &kp F16  &kp F17  &kp F18  ______  ______   ______           ______         &kp PSCRN  &kp SLCK   &kp PAUSE_BREAK  &kp UP    ______            &kp KP_CLEAR
+         ______    ______   ______   ______   ______  ______   &kp KP_MULTIPLY  &kp KP_DIVIDE  &kp HOME   &kp PG_UP  &kp LEFT         &kp RIGHT                   &kp KP_ENTER
+         ______    ______   ______   ______   ______  ______   &kp KP_PLUS      &kp KP_MINUS   &kp END    &kp PG_DN  &kp DOWN                   ______            ______
+         /**/      ______   ______                             ______                                                ______           ______
+        >;
     };
     apple_fn_layer {
       display-name = "Apple Fn";
-      bindings = <
-      ______
+      bindings =
+        <
+         ______
 
-      ______  &kp F1  &kp F2  &kp F3  _SPOTLIGHT _DICTATION  _DND    &kp F7  &kp F8  &kp F9  &kp F10  &kp F11  &kp F12  ______  &kp C_AL_LOCK
-      ______  ______  ______  ______  ______     ______      ______  ______  ______  ______  ______   ______   ______           ______
-      ______  ______  ______  ______  ______     ______      ______  ______  ______  ______  ______   ______                    ______
-      ______  ______  ______  ______  ______     ______      ______  ______  ______  ______  ______            ______           ______
-              ______  ______                                         ______                  ______   ______
-      >;
+         ______  &kp F1  &kp F2  &kp F3  _SPOTLIGHT _DICTATION  _DND    &kp F7  &kp F8  &kp F9  &kp F10  &kp F11  &kp F12  ______  &kp C_AL_LOCK
+         ______  ______  ______  ______  ______     ______      ______  ______  ______  ______  ______   ______   ______           ______
+         ______  ______  ______  ______  ______     ______      ______  ______  ______  ______  ______   ______                    ______
+         ______  ______  ______  ______  ______     ______      ______  ______  ______  ______  ______            ______           ______
+         /**/    ______  ______                                         ______                  ______   ______
+        >;
     };
     win_fn_layer {
       display-name = "Win Fn";
-      bindings = <
-      ______
+      bindings =
+        <
+         ______
 
-      ______  _FN_F1  _FN_F2  _FN_F3   _FN_F4  _FN_F5  _FN_F6  _FN_F7  _FN_F8  _FN_F9  _FN_F10 _FN_F11 _FN_F12  ______  ______
-      ______  _FN_Q   ______  _FN_E    ______  ______  ______  ______  ______  ______  ______  ______  ______           _FN_BS
-      ______  _FN_A   ______  ______  _FN_F    ______  _FN_H   ______  ______  ______  ______  ______                   ______
-      ______  ______  ______  _FN_C    ______  ______  _FN_N   _FN_M   ______  ______  ______          ______           ______
-              ______  ______                                   _FN_SPC                 ______  ______
-      >;
+         ______  _FN_F1  _FN_F2  _FN_F3   _FN_F4  _FN_F5  _FN_F6  _FN_F7  _FN_F8  _FN_F9  _FN_F10 _FN_F11 _FN_F12  ______  ______
+         ______  _FN_Q   ______  _FN_E    ______  ______  ______  ______  ______  ______  ______  ______  ______           _FN_BS
+         ______  _FN_A   ______  ______  _FN_F    ______  _FN_H   ______  ______  ______  ______  ______                   ______
+         ______  ______  ______  _FN_C    ______  ______  _FN_N   _FN_M   ______  ______  ______          ______           ______
+         /**/    ______  ______                                   _FN_SPC                 ______  ______
+        >;
     };
     setting_layer {
       display-name = "Setting";
-      bindings = <
-      ______
+      bindings =
+        <
+         ______
 
-      &bootloader  ______  ______  ______  ______  ______  ______  ______  ______  ______  ______  ______  ______  ______  &sys_reset
-      ______       ______  ______  ______  ______  ______  ______  ______  ______  ______  ______  ______  ______          ______
-      ______       ______  ______  ______  ______  ______  ______  ______  ______  ______  ______  ______                  ______
-      _X_SET       _MAC    ______  ______  ______  ______  ______  ______  ______  ______  ______          ______          ______
-                   ______  ______                          ______                          ______  ______
-      >;
+         &bootloader  ______  ______  ______  ______  ______  ______  ______  ______  ______  ______  ______  ______  ______  &sys_reset
+         ______       ______  ______  ______  ______  ______  ______  ______  ______  ______  ______  ______  ______          ______
+         ______       ______  ______  ______  ______  ______  ______  ______  ______  ______  ______  ______                  ______
+         _X_SET       _MAC    ______  ______  ______  ______  ______  ______  ______  ______  ______          ______          ______
+         /**/         ______  ______                          ______                          ______  ______
+        >;
     };
     inverse_setting_layer {
-      display-name = "Setting";
-      bindings = <
-      ______
+      display-name = "~Setting";
+      bindings =
+        <
+         ______
 
-      ______  ______  ______  ______  ______  ______   ______  ______  ______  ______  ______  ______  ______  ______  ______
-      ______  ______  ______  ______  ______  ______   ______  ______  ______  ______  ______  ______  ______          ______
-      ______  ______  ______  ______  ______  _STUDIO  ______  ______  ______  ______  ______  ______                  ______
-      ______  _WIN    ______  ______  ______  ______   ______  ______  ______  ______  ______          ______          ______
-             ______   ______                           ______                          ______  ______
-      >;
+         ______  ______  ______  ______  ______  ______   ______  ______  ______  ______  ______  ______  ______  ______  ______
+         ______  ______  ______  ______  ______  ______   ______  ______  ______  ______  ______  ______  ______          ______
+         ______  ______  ______  ______  ______  _STUDIO  ______  ______  ______  ______  ______  ______                  ______
+         ______  _WIN    ______  ______  ______  ______   ______  ______  ______  ______  ______          ______          ______
+         /**/    ______   ______                           ______                          ______  ______
+        >;
     };
   };
 };
