@@ -149,12 +149,18 @@ int zmk_beep_play() {
 }
 
 int zmk_beep_on(void) {
+  if (state.on) {
+    return 0;
+  }
   state.on = true;
   play_output_status(&status);
   return zmk_beep_update_and_save();
 }
 
 int zmk_beep_off(void) {
+  if (!state.on) {
+    return 0;
+  }
   state.on = false;
   return zmk_beep_update_and_save();
 }

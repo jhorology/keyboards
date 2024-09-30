@@ -821,9 +821,8 @@ macos_shell_console() {
     sleep 1
     for cu_dev in /dev/cu.usbmodem*(N); do
       if [[ $cu_dev -nt $firmware ]]; then
-        echo "found cu device [$cu_dev]"
+        echo "Found cu device [$cu_dev], To exit shell, [~]<wait a second>[.][enter]"
         sleep 3
-        # to exit cu, [~][.][enter]
         sudo cu -l $cu_dev
         return
       fi
