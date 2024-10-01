@@ -58,13 +58,13 @@
 
 // mod + emacs commands leader key
 // hold   mod
-// single tap spacemacs leader key
-#define _MOD_EMACS(mod) &mt mod RA(X)
+// single tap emacs command leader key
+#define _MOD_EMACS(mod) &safe_mod_leader mod RA(X)
 
 // mod + spacemacs evil leader key
 // hold   mod
 // single tap spacemacs leader key
-#define _MOD_EVIL(mod) &mt mod RA(M)
+#define _MOD_EVIL(mod) &safe_mod_leader mod RA(M)
 
 // keychron DIP SW
 // off: mac base layer
@@ -249,6 +249,17 @@
 
 / {
   behaviors {
+    // Mod-Tap with IME off
+    // leader keys of most application are not work correctly when IME is on.
+    /omit-if-no-ref/ safe_mod_leader: safe_mod_leader {
+      compatible = "zmk,behavior-hold-tap";
+      #binding-cells = <2>;
+      flavor = "hold-preferred";
+      tapping-term-ms = <200>;
+      //          Mod    Tap
+      bindings = <&kp>, <&ime_off_tap>;
+    };
+
     // Left Option key on mac base layer for HHKB layout
     // hold -> Left Optoon
     // single tap ->  emacs command leader key
@@ -258,8 +269,8 @@
       compatible = "zmk,behavior-hold-tap-dance";
       #binding-cells = <0>;
       tapping-term-ms = <200>;
-      //          hold       tap           tap-hold     multi-tap
-      bindings = <&kp LALT>, <&kp RA(X)>, <&fn_globe>, <&kp APPLE_FN>;
+      //          hold        tap                   tap-hold     multi-tap
+      bindings = <&kp LALT>, <&ime_off_tap RA(X)>, <&fn_globe>, <&kp APPLE_FN>;
     };
 
     // Left Option key on win base layer for HHKB layout
@@ -271,8 +282,8 @@
       compatible = "zmk,behavior-hold-tap-dance";
       #binding-cells = <0>;
       tapping-term-ms = <200>;
-      //          hold        tap          tap-hold             multi-tap
-      bindings = <&kp LALT>, <&kp RA(X)>, <&mo _WIN_FN_LAYER>, <&kp LALT>;
+      //          hold        tap                   tap-hold             multi-tap
+      bindings = <&kp LALT>, <&ime_off_tap RA(X)>, <&mo _WIN_FN_LAYER>, <&kp LALT>;
     };
 
     // Right Command key
@@ -441,6 +452,18 @@
         = <&macro_tap &to _WIN_BASE_LAYER>
         , <&macro_pause_for_release>
         , <&macro_tap &to _MAC_BASE_LAYER>
+        ;
+    };
+
+    // Tap IME-off + kp
+    // param_1 keycode
+    /omit-if-no-ref/ ime_off_tap: ime_off_tap {
+      compatible = "zmk,behavior-macro-one-param";
+      #binding-cells = <1>;
+      bindings
+        = <&macro_tap &kp LANG2>
+        , <&macro_param_1to1>
+        , <&macro_tap &kp MACRO_PLACEHOLDER>
         ;
     };
   };

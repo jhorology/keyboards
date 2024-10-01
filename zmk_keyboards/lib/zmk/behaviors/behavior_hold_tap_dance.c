@@ -25,6 +25,8 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #  define ZMK_BHV_HOLD_TAP_DANCE_POSITION_FREE UINT32_MAX
 
+enum decided_reason { NOT_YET, BY_INTERRUPT, BY_TIMEOUT };
+
 struct behavior_hold_tap_dance_config {
   uint32_t tapping_term_ms;
   size_t behavior_count;
@@ -45,6 +47,7 @@ struct active_hold_tap_dance {
   bool timer_started;
   bool timer_cancelled;
   struct zmk_behavior_binding *behavior_binding;
+  enum decided_reason decided;
   int64_t release_at;
   struct k_work_delayable release_timer;
 };
@@ -79,6 +82,7 @@ static int new_hold_tap_dance(struct zmk_behavior_binding_event *event,
       ref_dance->timer_started = true;
       ref_dance->timer_cancelled = false;
       ref_dance->behavior_binding = NULL;
+      ref_dance->decided = NOT_YET;
       *tap_dance = ref_dance;
       return 0;
     }
@@ -145,7 +149,7 @@ static inline struct zmk_behavior_binding *get_behavior_binding(
 }
 
 static inline int press_hold_tap_dance_behavior(struct active_hold_tap_dance *hold_tap_dance,
-                                                int64_t timestamp) {
+                                                enum decided_reason reason, int64_t timestamp) {
   struct zmk_behavior_binding_event event = {
     .position = hold_tap_dance->position,
     .timestamp = timestamp,
@@ -153,6 +157,7 @@ static inline int press_hold_tap_dance_behavior(struct active_hold_tap_dance *ho
     .source = hold_tap_dance->source,
 #  endif
   };
+  hold_tap_dance->decided = reason;
   if ((hold_tap_dance->behavior_binding = get_behavior_binding(hold_tap_dance, timestamp)) !=
       NULL) {
     return zmk_behavior_invoke_binding(hold_tap_dance->behavior_binding, event, true);
@@ -205,7 +210,7 @@ static int on_hold_tap_dance_binding_released(struct zmk_behavior_binding *bindi
     return ZMK_BEHAVIOR_OPAQUE;
   }
   hold_tap_dance->is_pressed = false;
-  if (hold_tap_dance->behavior_binding != NULL) {
+  if (hold_tap_dance->decided != NOT_YET) {
     release_hold_tap_dance_behavior(hold_tap_dance, event.timestamp);
   }
   return ZMK_BEHAVIOR_OPAQUE;
@@ -223,7 +228,7 @@ void behavior_hold_tap_dance_timer_handler(struct k_work *item) {
   }
   LOG_DBG("Hold-Tap dance has been decided via timer. Counter reached: %d",
           hold_tap_dance->counter);
-  press_hold_tap_dance_behavior(hold_tap_dance, hold_tap_dance->release_at);
+  press_hold_tap_dance_behavior(hold_tap_dance, BY_TIMEOUT, hold_tap_dance->release_at);
   if (hold_tap_dance->is_pressed) {
     return;
   }
@@ -262,8 +267,8 @@ static int hold_tap_dance_position_state_changed_listener(const zmk_event_t *eh)
     }
     stop_timer(hold_tap_dance);
     LOG_DBG("Tap dance interrupted, activating hold-tap-dance at %d", hold_tap_dance->position);
-    if (hold_tap_dance->behavior_binding == NULL) {
-      press_hold_tap_dance_behavior(hold_tap_dance, ev->timestamp);
+    if (hold_tap_dance->decided == NOT_YET) {
+      press_hold_tap_dance_behavior(hold_tap_dance, BY_INTERRUPT, ev->timestamp);
       if (!hold_tap_dance->is_pressed) {
         release_hold_tap_dance_behavior(hold_tap_dance, ev->timestamp);
       }
