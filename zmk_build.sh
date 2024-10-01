@@ -76,7 +76,7 @@ local -A KEYBOARDS=(
   q60        keychron_q60:keychron_q60:bin:0483:df11:none:none
   qk60       qk60_wired:qk60_wired_hhkb:bin:1688:2220:none:none
   tf60       kbdfans_tofu60_v2:tofu60_hhkb:uf2:RPI-RP2:none:none:none
-  ju60       cyber60_rev_d:hibi_june60:uf2:CYBER60_D:none:none:none
+  ju60       cyber60_rev_d:hibi_june60:uf2:CYBER60_D:none:none:"CONFIG_BT_SMP_LOG_LEVEL_DBG,CONFIG_BT_HCI_CORE_LOG_LEVEL_DBG"
 )
 TARGETS=(cz42l cz42r d60 fk68 q60 qk60 tf60 ju60)
 
@@ -800,6 +800,8 @@ macos_log_console() {
     echo "found tty device [${tty_devs[1]}]"
     # to exit tio, [Ctrl + t][q]
     sudo chmod +urw $tty_devs[1]
+    mkdir logs
+    rm -f $log_file
     tio --log --log-file=$log_file $tty_devs[1]
   else
     error_exit 1 'unfound tty device'

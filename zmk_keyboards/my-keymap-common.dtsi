@@ -37,7 +37,7 @@
 // AVT Page keyboardFn
 #define APPLE_FN EXTRA_KEY_5
 
-// System Control Page Do Not Disturbbb
+// System Control Page Do Not Disturb
 #define SC_DND EXTRA_KEY_6
 
 // common layers
@@ -56,16 +56,15 @@
 // key definitions other than kp/trans behavior
 //--------------------------------------------
 
-// mod + lang2 + lang1
-// hold   mod
-// single tap LANG2(英数)
-// double tap LANG1(かな)
-#define _MOD_LANG(mod) &mod_lang21 mod 0
-
-// mod + spacemacs leader key
+// mod + emacs commands leader key
 // hold   mod
 // single tap spacemacs leader key
-#define _MOD_EMACS(mod) &mt mod RA(M)
+#define _MOD_EMACS(mod) &mt mod RA(X)
+
+// mod + spacemacs evil leader key
+// hold   mod
+// single tap spacemacs leader key
+#define _MOD_EVIL(mod) &mt mod RA(M)
 
 // keychron DIP SW
 // off: mac base layer
@@ -79,50 +78,38 @@
 #define _WIN &to _WIN_BASE_LAYER
 
 // Left Opt on mac base layer for HHKB layout
-// single: Left Option
-// double: fn/globe with momentaly apple fn layer
-#define _H_M_LOPT &hhkb_mac_l_opt
+#define _H_M_LOPT &hhkb_mac_lopt
 
 // Left Opt on mac base layer for HHKB layout
-// single: Left Option
-// double: momentary win fn layer
-#define _H_W_LOPT &hhkb_win_l_opt
+#define _H_W_LOPT &hhkb_win_lopt
 
 // Left Command
-// tap: spacemacs leader key
-// hold: Left Command
-#define _LCMD _MOD_EMACS(LCMD)
+#define _LCMD _MOD_EVIL(LCMD)
+
+// Left Opt
+#define _LOPT _MOD_EMACS(LALT)
 
 // Right Command
-// tap: LANG2(英数)
-// double tap: LANG1(かな)
-// hold: Left Command
-#define _RCMD _MOD_LANG(RCMD)
+#define _RCMD &rcmd_lang21
 
 // Right Opt for HHKB layout
-// single: Right Option
-// double: Momentaly setting layer
-#define _H_ROPT &hhkb_r_opt
+#define _H_ROPT &hhkb_ropt
 
 // Right Shift for corne keyboard
-// single: Left Shift
-// double: Momentaly setting layer
-#define _C_LSHFT &corne_l_shift
+#define _C_LSHFT &corne_lshift
 
 // Right Shift for corne keyboard
-// single: Right Shift
-// double: Momentaly setting layer
-#define _C_RSHFT &corne_r_shift
+#define _C_RSHFT &corne_rshift
 
 // Left Enter for corne keyboard
 // hold: Momentaly L Thumb layer
 // tap: ENTER
-#define _C_LENT &qlt _L_THUMB_LAYER ENTER
+#define _C_LENT &lt _L_THUMB_LAYER ENTER
 
 // Right SPACE for corne keyboard
 // hold: Momentaly R Thumb layer
 // tap: ENTER
-#define _C_RSPC &qlt _R_THUMB_LAYER SPC
+#define _C_RSPC &lt _R_THUMB_LAYER SPC
 
 // HHKB fn
 #define _H_FN &mo _HHKB_FN_LAYER
@@ -137,8 +124,6 @@
 #define _X_SET &mo _INVERSE_SETTING_LAYER
 
 // APP key for ANSI/TSANGAN layout
-// single: APP
-// double: Momentaly setting layer
 #define _APP &ansi_app
 
 // Spotlight key on apple fn Layer
@@ -188,56 +173,56 @@
 //--------------------------------------------
 
 // F1 : decrease brightness
-// F2 : decrease brightness
-// F3 : mission cntrol
-// F4 : spotlight
-// F5 : dictation, long press for "Hey Siri"
-// F6 : do not disturb TODO
-// F7 : media prev
-// F8 : media play/pause
-// F9 : media next
-// F10 : mute audio
-// F11 : decrease audio volume
-// F12 : increase audio volume
-// SPC : Hey Siri -> Copilot
-// Q : Quck Notes
-// E : Emoji & Symbols
-// A : Focus Dock
-// F : Full Screen Mode
-// H : Show Desktop
-// C : Show Control Center
-// N : Show Notification
-// M : Focus Menubar
-// Backspace: Forward delete
-// Right : Scroll to the end of a documen
-// Left :  Scroll to the beginning of a document
-// Down : Scroll down one page
-// UP : Scroll up one page
 #define _FN_F1 &kp C_BRI_DN
+// F2 : decrease brightness
 #define _FN_F2 &kp C_BRI_UP
+// F3 : mission cntrol
 #define _FN_F3 &kp RG(TAB)
+// F4 : spotlight
 #define _FN_F4 &kp RA(SPC)
+// F5 : dictation, long press for "Hey Siri"
 #define _FN_F5 &kp RG(H)
+// F6 : do not disturb TODO
 #define _FN_F6 &kp F6
+// F7 : media prev
 #define _FN_F7 &kp C_PREV
+// F8 : media play/pause
 #define _FN_F8 &kp C_PP
+// F9 : media next
 #define _FN_F9 &kp C_NEXT
+// F10 : mute audio
 #define _FN_F10 &kp C_MUTE
+// F11 : decrease audio volume
 #define _FN_F11 &kp C_VOL_DN
+// F12 : increase audio volume
 #define _FN_F12 &kp C_VOL_UP
+// SPC : Hey Siri -> Copilot
 #define _FN_SPC &kp RG(C)
+// Q : Quck Notes
 #define _FN_Q &kp RG(RA(N))
+// E : Emoji & Symbols
 #define _FN_E &kp RG(DOT)
+// A : Focus Dock
 #define _FN_A &kp RG(B)
+// F : Full Screen Mode
 #define _FN_F &kp F11
+// H : Show Desktop
 #define _FN_H &kp RG(COMMA)
+// C : Show Control Center
 #define _FN_C &kp RG(A)
+// N : Show Notification
 #define _FN_N &kp RG(N)
+// M : Focus Menubar
 #define _FN_M &kp RALT
+// Backspace: Forward delete
 #define _FN_BS &kp DEL
+// Right : Scroll to the end of a documen
 #define _FN_RIGHT &kp KC_END
+// Left :  Scroll to the beginning of a document
 #define _FN_LEFT &kp KC_HOME
+// Down : Scroll down one page
 #define _FN_DOWN &kp KC_PGDN
+// UP : Scroll up one page
 #define _FN_UP &kp KC_PGUP
 
 // select output
@@ -264,88 +249,97 @@
 
 / {
   behaviors {
-    /omit-if-no-ref/ qlt: quick_layer_tap {
-      compatible = "zmk,behavior-hold-tap";
-      #binding-cells = <2>;
-      flavor = "hold-preferred";
-      tapping-term-ms = <200>;
-      quick-tap-ms = <200>;
-      retro-tap;
-      bindings = <&mo>, <&kp>;
-    };
-
-    // single tap -> LANG2(英数)
-    // double tap -> LANG1(かな)
-    /omit-if-no-ref/ lang21: lang21 {
-      compatible = "zmk,behavior-tap-dance";
-      #binding-cells = <0>;
-      tapping-term-ms = <200>;
-      bindings = <&kp LANG2>, <&kp LANG1>;
-    };
-
-    // hold -> param 1
-    // single tap -> LANG2(英数)
-    // double tap -> LANG1(かな)
-    /omit-if-no-ref/ mod_lang21: mod_lang21 {
-      compatible = "zmk,behavior-hold-tap";
-      #binding-cells = <2>;
-      flavor = "tap-preferred";
-      tapping-term-ms = <200>;
-      quick-tap-ms = <200>;
-      bindings = <&kp>, <&lang21>;
-      retro-tap;
-    };
-
     // Left Option key on mac base layer for HHKB layout
-    // single -> LALT
-    // double -> APPLE_FNn + MO(_MAC_FN_LAYER)
-    /omit-if-no-ref/ hhkb_mac_l_opt: hhkb_mac_l_opt {
-      compatible = "zmk,behavior-tap-dance";
+    // hold -> Left Optoon
+    // single tap ->  emacs command leader key
+    // tap hold -> APPLE_FN + MO(_MAC_FN_LAYER)
+    // double tap -> APPLE_FN
+    /omit-if-no-ref/ hhkb_mac_lopt: hhkb_mac_lopt {
+      compatible = "zmk,behavior-hold-tap-dance";
       #binding-cells = <0>;
       tapping-term-ms = <200>;
-      bindings = <&kp LALT>, <&fn_globe>;
+      //          hold       tap           tap-hold     multi-tap
+      bindings = <&kp LALT>, <&kp RA(X)>, <&fn_globe>, <&kp APPLE_FN>;
     };
+
     // Left Option key on win base layer for HHKB layout
-    // single -> LALT
-    // double -> MO(_WIN_FN_LAYER)
-    /omit-if-no-ref/ hhkb_win_l_opt: hhkb_win_l_opt {
-      compatible = "zmk,behavior-tap-dance";
+    // hold -> Left Alt
+    // single tap ->  emacs command leader key
+    // tap hold -> MO(_WIN_FN_LAYER)
+    // double tap -> Left Alt
+    /omit-if-no-ref/ hhkb_win_lopt: hhkb_win_lopt {
+      compatible = "zmk,behavior-hold-tap-dance";
       #binding-cells = <0>;
       tapping-term-ms = <200>;
-      bindings = <&kp LALT>, <&mo _WIN_FN_LAYER>;
+      //          hold        tap          tap-hold             multi-tap
+      bindings = <&kp LALT>, <&kp RA(X)>, <&mo _WIN_FN_LAYER>, <&kp LALT>;
     };
-    // single -> RALT
-    // double -> MO(_SETTING_LAYER)
-    /omit-if-no-ref/ hhkb_r_opt: hhkb_r_opt {
-      compatible = "zmk,behavior-tap-dance";
+
+    // Right Command key
+    // hold -> Right Cmd
+    // single tap ->  LANG2(英数)
+    // tap hold -> Right CMd
+    // double tap -> LANG1(かな)
+    /omit-if-no-ref/ rcmd_lang21: rcmd_lang21 {
+      compatible = "zmk,behavior-hold-tap-dance";
       #binding-cells = <0>;
       tapping-term-ms = <200>;
-      bindings = <&kp RALT>, <&mo _SETTING_LAYER>;
+      //          hold       tap          tap-hold     multi-tap
+      bindings = <&kp RCMD>, <&kp LANG2>, <&kp RCMD>, <&kp LANG1>;
     };
-    // single -> RSHFT
-    // double -> MO(_SETTING_LAYER)
-    /omit-if-no-ref/ corne_l_shift: corne_l_shift {
-      compatible = "zmk,behavior-tap-dance";
+
+    // Right Option key for HHKB layout
+    // hold -> Right Alt
+    // single tap ->  Right Alt
+    // tap hold -> MO(_SETTING_LAYER)
+    // double tap -> Left Alt
+    /omit-if-no-ref/ hhkb_ropt: hhkb_ropt {
+      compatible = "zmk,behavior-hold-tap-dance";
       #binding-cells = <0>;
       tapping-term-ms = <200>;
-      bindings = <&kp LSHFT>, <&mo _SETTING_LAYER>;
+      //          hold        tap         tap-hold
+      bindings = <&kp RALT>, <&kp RALT>, <&mo _SETTING_LAYER>;
     };
-    // single -> RSHFT
-    // double -> MO(_SETTING_LAYER)
-    /omit-if-no-ref/ corne_r_shift: corne_r_shift {
-      compatible = "zmk,behavior-tap-dance";
+
+    // Left Shift key for 6c Corne layout
+    // hold -> Left Shift
+    // single tap ->  Left SHift
+    // tap hold -> MO(_SETTING_LAYER)
+    // double tap -> Left Shift
+    /omit-if-no-ref/ corne_lshift: corne_lshift {
+      compatible = "zmk,behavior-hold-tap-dance";
       #binding-cells = <0>;
       tapping-term-ms = <200>;
-      bindings = <&kp RSHFT>, <&mo _SETTING_LAYER>;
+      //          hold         tap         tap-hold
+      bindings = <&kp LSHFT>, <&kp LSHFT>, <&mo _SETTING_LAYER>;
     };
-    // single -> APP
-    // double -> MO(3)
+
+    // Right Shift key for 6c Corne layout
+    // hold -> Right Shift
+    // single tap ->  Right SHift
+    // tap hold -> MO(_SETTING_LAYER)
+    // double tap -> Right Shift
+    /omit-if-no-ref/ corne_rshift: corne_rshift {
+      compatible = "zmk,behavior-hold-tap-dance";
+      #binding-cells = <0>;
+      tapping-term-ms = <200>;
+      //          hold         tap          tap-hold
+      bindings = <&kp RSHFT>, <&kp RSHFT>, <&mo _SETTING_LAYER>;
+    };
+
+    // App key for ANSI layout
+    // hold -> App
+    // single tap ->  App
+    // tap hold -> MO(_SETTING_LAYER)
+    // double tap -> App
     /omit-if-no-ref/ ansi_app: ansi_app {
-      compatible = "zmk,behavior-tap-dance";
+      compatible = "zmk,behavior-hold-tap-dance";
       #binding-cells = <0>;
       tapping-term-ms = <200>;
-      bindings = <&kp K_APP>, <&mo _SETTING_LAYER>;
+      //          hold         tap          tap-hold
+      bindings = <&kp K_APP>, <&kp K_APP>, <&mo _SETTING_LAYER>;
     };
+
     /omit-if-no-ref/ ota_bootloader: ota_bootloader {
       compatible = "zmk,behavior-reset";
       type = <0xA8>;
@@ -370,6 +364,7 @@
         , <&macro_tap &to MACRO_PLACEHOLDER>
         ;
     };
+
     // Select BT 3 profile & output for Mobile Device
     // param_1: base layer
     /omit-if-no-ref/ ble_mobile3: ble_mobile3 {
@@ -383,6 +378,7 @@
         , <&macro_tap &to MACRO_PLACEHOLDER>
         ;
     };
+
     // Select BT 4 profile & output for Mobile Device
     // param_1: base layer
     /omit-if-no-ref/ ble_mobile4: ble_mobile4 {
@@ -396,6 +392,7 @@
         , <&macro_tap &to MACRO_PLACEHOLDER>
         ;
     };
+
     // Select BT 4 profile & output for Mobile Device
     // param_1: base layer
     /omit-if-no-ref/ out_usb: out_usb {
@@ -407,6 +404,7 @@
         , <&macro_tap &out OUT_USB>
         ;
     };
+
     // fn_globe key with momentaly apple fn layer
     /omit-if-no-ref/ fn_globe: fn_globe {
       compatible = "zmk,behavior-macro";
@@ -417,6 +415,7 @@
         , <&macro_release &mo _APPLE_FN_LAYER &kp APPLE_FN>
         ;
     };
+
     // send key with temporarily releasing fn/globe
     //  *some consumer or system control keys dosen't work with fn/globe key
     // param_1: keycode
@@ -433,6 +432,7 @@
         , <&macro_release &kp MACRO_PLACEHOLDER>
         ;
     };
+
     // keychron dip-sw
     /omit-if-no-ref/ kc_dip_sw: kc_dip_sw {
       compatible = "zmk,behavior-macro";
@@ -450,18 +450,21 @@
     #sensor-binding-cells = <0>;
     bindings = <&kp C_VOL_UP>, <&kp C_VOL_DN>;
   };
+
   // radial controller
   /omit-if-no-ref/ radial_controller: radial_controller {
     compatible = "zmk,behavior-sensor-rotate";
     #sensor-binding-cells = <0>;
     bindings = <&rc_cw>, <&rc_ccw>;
   };
+
   // radial controller 1/4 fine
   /omit-if-no-ref/ radial_controller_fine: radial_controller_fine {
     compatible = "zmk,behavior-sensor-rotate";
     #sensor-binding-cells = <0>;
     bindings = <&rc_cw_fine>, <&rc_ccw_fine>;
   };
+
   /omit-if-no-ref/ trans_encoder: trans_encoder {
     compatible = "zmk,behavior-sensor-rotate";
     #sensor-binding-cells = <0>;
@@ -472,5 +475,4 @@
     compatible = "zmk,behavior-soft-off";
     #binding-cells = <0>;
   };
-
 };
