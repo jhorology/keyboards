@@ -252,6 +252,7 @@
     // Mod-Tap with IME off
     // leader keys of most application are not work correctly when IME is on.
     /omit-if-no-ref/ safe_mod_leader: safe_mod_leader {
+      display-name = "Safe Mod-Leader";
       compatible = "zmk,behavior-hold-tap";
       #binding-cells = <2>;
       flavor = "hold-preferred";
@@ -266,6 +267,7 @@
     // tap hold -> APPLE_FN + MO(_MAC_FN_LAYER)
     // double tap -> APPLE_FN
     /omit-if-no-ref/ hhkb_mac_lopt: hhkb_mac_lopt {
+      display-name = "X HHKB LOPT";
       compatible = "zmk,behavior-hold-tap-dance";
       #binding-cells = <0>;
       tapping-term-ms = <200>;
@@ -279,6 +281,7 @@
     // tap hold -> MO(_WIN_FN_LAYER)
     // double tap -> Left Alt
     /omit-if-no-ref/ hhkb_win_lopt: hhkb_win_lopt {
+      display-name = "X HHKB LALT";
       compatible = "zmk,behavior-hold-tap-dance";
       #binding-cells = <0>;
       tapping-term-ms = <200>;
@@ -292,6 +295,7 @@
     // tap hold -> Right CMd
     // double tap -> LANG1(かな)
     /omit-if-no-ref/ rcmd_lang21: rcmd_lang21 {
+      display-name = "X RCMD";
       compatible = "zmk,behavior-hold-tap-dance";
       #binding-cells = <0>;
       tapping-term-ms = <200>;
@@ -305,6 +309,7 @@
     // tap hold -> MO(_SETTING_LAYER)
     // double tap -> Left Alt
     /omit-if-no-ref/ hhkb_ropt: hhkb_ropt {
+      display-name = "X HHKB ROPT";
       compatible = "zmk,behavior-hold-tap-dance";
       #binding-cells = <0>;
       tapping-term-ms = <200>;
@@ -318,6 +323,7 @@
     // tap hold -> MO(_SETTING_LAYER)
     // double tap -> Left Shift
     /omit-if-no-ref/ corne_lshift: corne_lshift {
+      display-name = "X CORNE LSHIFT";
       compatible = "zmk,behavior-hold-tap-dance";
       #binding-cells = <0>;
       tapping-term-ms = <200>;
@@ -331,6 +337,7 @@
     // tap hold -> MO(_SETTING_LAYER)
     // double tap -> Right Shift
     /omit-if-no-ref/ corne_rshift: corne_rshift {
+      display-name = "X CORNE RSHIFT";
       compatible = "zmk,behavior-hold-tap-dance";
       #binding-cells = <0>;
       tapping-term-ms = <200>;
@@ -344,6 +351,7 @@
     // tap hold -> MO(_SETTING_LAYER)
     // double tap -> App
     /omit-if-no-ref/ ansi_app: ansi_app {
+      display-name = "X APP";
       compatible = "zmk,behavior-hold-tap-dance";
       #binding-cells = <0>;
       tapping-term-ms = <200>;
@@ -352,8 +360,44 @@
     };
 
     /omit-if-no-ref/ ota_bootloader: ota_bootloader {
+      display-name = "OTA Bootloader";
       compatible = "zmk,behavior-reset";
       type = <0xA8>;
+      #binding-cells = <0>;
+    };
+
+    /omit-if-no-ref/ volume_encoder: volume_encoder {
+      display-name = "Audio Volume";
+      compatible = "zmk,behavior-sensor-rotate";
+      #sensor-binding-cells = <0>;
+      bindings = <&kp C_VOL_UP>, <&kp C_VOL_DN>;
+    };
+
+    // radial controller
+    /omit-if-no-ref/ radial_controller: radial_controller {
+      display-name = "RC Dial";
+      compatible = "zmk,behavior-sensor-rotate";
+      #sensor-binding-cells = <0>;
+      bindings = <&rc_cw>, <&rc_ccw>;
+    };
+
+    // radial controller 1/4 fine
+    /omit-if-no-ref/ radial_controller_fine: radial_controller_fine {
+      display-name = "RC Dial Fine";
+      compatible = "zmk,behavior-sensor-rotate";
+      #sensor-binding-cells = <0>;
+      bindings = <&rc_cw_fine>, <&rc_ccw_fine>;
+    };
+
+    /omit-if-no-ref/ trans_encoder: trans_encoder {
+      compatible = "zmk,behavior-sensor-rotate";
+      #sensor-binding-cells = <0>;
+      bindings = <&trans>, <&trans>;
+    };
+
+    /omit-if-no-ref/ soft_off_on_release: soft_off_on_release {
+      display-name = "Soft Off";
+      compatible = "zmk,behavior-soft-off";
       #binding-cells = <0>;
     };
   };
@@ -363,6 +407,7 @@
     // param_1: index number(0-2) of bt profile
     // param_2: base layer
     /omit-if-no-ref/ ble_desktop: ble_desktop {
+      display-name = "BT(1-3) Profile & Layer for Desktop";
       compatible = "zmk,behavior-macro-two-param";
       #binding-cells = <2>;
       bindings
@@ -379,6 +424,7 @@
     // Select BT 3 profile & output for Mobile Device
     // param_1: base layer
     /omit-if-no-ref/ ble_mobile3: ble_mobile3 {
+      display-name = "BT4 Profile & Layer for Mobile";
       compatible = "zmk,behavior-macro-one-param";
       #binding-cells = <1>;
       bindings
@@ -393,6 +439,7 @@
     // Select BT 4 profile & output for Mobile Device
     // param_1: base layer
     /omit-if-no-ref/ ble_mobile4: ble_mobile4 {
+      display-name = "BT5 Profile & Layer for Mobile";
       compatible = "zmk,behavior-macro-one-param";
       #binding-cells = <1>;
       bindings
@@ -407,6 +454,7 @@
     // Select BT 4 profile & output for Mobile Device
     // param_1: base layer
     /omit-if-no-ref/ out_usb: out_usb {
+      display-name = "USB output";
       compatible = "zmk,behavior-macro";
       #binding-cells = <0>;
       bindings
@@ -418,6 +466,7 @@
 
     // fn_globe key with momentaly apple fn layer
     /omit-if-no-ref/ fn_globe: fn_globe {
+      display-name = "fn🌐 Layer";
       compatible = "zmk,behavior-macro";
       #binding-cells = <0>;
       bindings
@@ -446,6 +495,7 @@
 
     // keychron dip-sw
     /omit-if-no-ref/ kc_dip_sw: kc_dip_sw {
+      display-name = "Mac-Win dip-sw";
       compatible = "zmk,behavior-macro";
       #binding-cells = <0>;
       bindings
@@ -458,6 +508,7 @@
     // Tap IME-off + kp
     // param_1 keycode
     /omit-if-no-ref/ ime_off_tap: ime_off_tap {
+      display-name = "IME off + Tap";
       compatible = "zmk,behavior-macro-one-param";
       #binding-cells = <1>;
       bindings
@@ -466,36 +517,5 @@
         , <&macro_tap &kp MACRO_PLACEHOLDER>
         ;
     };
-  };
-
-  /omit-if-no-ref/ volume_encoder: volume_encoder {
-    compatible = "zmk,behavior-sensor-rotate";
-    #sensor-binding-cells = <0>;
-    bindings = <&kp C_VOL_UP>, <&kp C_VOL_DN>;
-  };
-
-  // radial controller
-  /omit-if-no-ref/ radial_controller: radial_controller {
-    compatible = "zmk,behavior-sensor-rotate";
-    #sensor-binding-cells = <0>;
-    bindings = <&rc_cw>, <&rc_ccw>;
-  };
-
-  // radial controller 1/4 fine
-  /omit-if-no-ref/ radial_controller_fine: radial_controller_fine {
-    compatible = "zmk,behavior-sensor-rotate";
-    #sensor-binding-cells = <0>;
-    bindings = <&rc_cw_fine>, <&rc_ccw_fine>;
-  };
-
-  /omit-if-no-ref/ trans_encoder: trans_encoder {
-    compatible = "zmk,behavior-sensor-rotate";
-    #sensor-binding-cells = <0>;
-    bindings = <&trans>, <&trans>;
-  };
-
-  /omit-if-no-ref/ soft_off_on_release: soft_off_on_release {
-    compatible = "zmk,behavior-soft-off";
-    #binding-cells = <0>;
   };
 };
