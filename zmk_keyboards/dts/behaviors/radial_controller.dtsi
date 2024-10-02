@@ -9,26 +9,31 @@
     /omit-if-no-ref/ rc_btn: rcbtn {
       compatible = "zmk,behavior-rc-button";
       #binding-cells = <0>;
+      display-name = "RC Button";
     };
     /omit-if-no-ref/ rc_cw: rcdialcw {
       compatible = "zmk,behavior-rc-dial";
       degrees-per-click-x10 = <100>;
       #binding-cells = <0>;
+      display-name = "RC Dial CW";
     };
     /omit-if-no-ref/ rc_cw_fine: rcdialcwfine {
       compatible = "zmk,behavior-rc-dial";
       degrees-per-click-x10 = <25>;
       #binding-cells = <0>;
+      display-name = "RC Dial CW Fine";
     };
     /omit-if-no-ref/ rc_ccw: rcdialccw {
       compatible = "zmk,behavior-rc-dial";
       degrees-per-click-x10 = <(-100)>;
       #binding-cells = <0>;
+      display-name = "RC Dial CCW";
     };
     /omit-if-no-ref/ rc_ccw_fine: rcdialccwfine {
       compatible = "zmk,behavior-rc-dial";
       degrees-per-click-x10 = <(-25)>;
       #binding-cells = <0>;
+      display-name = "RC Dial CCW Fine";
     };
   };
 };

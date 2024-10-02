@@ -367,7 +367,6 @@
     };
 
     /omit-if-no-ref/ volume_encoder: volume_encoder {
-      display-name = "Audio Volume";
       compatible = "zmk,behavior-sensor-rotate";
       #sensor-binding-cells = <0>;
       bindings = <&kp C_VOL_UP>, <&kp C_VOL_DN>;
@@ -375,7 +374,6 @@
 
     // radial controller
     /omit-if-no-ref/ radial_controller: radial_controller {
-      display-name = "RC Dial";
       compatible = "zmk,behavior-sensor-rotate";
       #sensor-binding-cells = <0>;
       bindings = <&rc_cw>, <&rc_ccw>;
@@ -383,7 +381,6 @@
 
     // radial controller 1/4 fine
     /omit-if-no-ref/ radial_controller_fine: radial_controller_fine {
-      display-name = "RC Dial Fine";
       compatible = "zmk,behavior-sensor-rotate";
       #sensor-binding-cells = <0>;
       bindings = <&rc_cw_fine>, <&rc_ccw_fine>;
