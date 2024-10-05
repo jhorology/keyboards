@@ -410,9 +410,9 @@
       bindings
         = <&macro_param_1to2>
         , <&macro_tap &bt BT_SEL MACRO_PLACEHOLDER>
+        , <&macro_tap &out OUT_BLE>
         , <&macro_tap &bt BT_DISC 3> /* disconnect mobile device */
         , <&macro_tap &bt BT_DISC 4> /* disconnect mobile device */
-        , <&macro_tap &out OUT_BLE>
         , <&macro_param_2to1>
         , <&macro_tap &to MACRO_PLACEHOLDER>
         ;
@@ -426,8 +426,8 @@
       #binding-cells = <1>;
       bindings
         = <&macro_tap &bt BT_SEL 3>
-        , <&macro_tap &bt BT_DISC 4> /* disconnect other mobile device */
         , <&macro_tap &out OUT_BLE>
+        , <&macro_tap &bt BT_DISC 4> /* disconnect other mobile device */
         , <&macro_param_1to1>
         , <&macro_tap &to MACRO_PLACEHOLDER>
         ;
@@ -441,8 +441,8 @@
       #binding-cells = <1>;
       bindings
         = <&macro_tap &bt BT_SEL 4>
-        , <&macro_tap &bt BT_DISC 3> /* disconnect other mobile device */
         , <&macro_tap &out OUT_BLE>
+        , <&macro_tap &bt BT_DISC 3> /* disconnect other mobile device */
         , <&macro_param_1to1>
         , <&macro_tap &to MACRO_PLACEHOLDER>
         ;
@@ -455,9 +455,9 @@
       compatible = "zmk,behavior-macro";
       #binding-cells = <0>;
       bindings
-        = <&macro_tap &bt BT_DISC 3> /* disconnect mobile device */
+        = <&macro_tap &out OUT_USB>
+        , <&macro_tap &bt BT_DISC 3> /* disconnect mobile device */
         , <&macro_tap &bt BT_DISC 4> /* disconnect mobile device */
-        , <&macro_tap &out OUT_USB>
         ;
     };
 

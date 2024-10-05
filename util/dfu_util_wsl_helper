@@ -12,7 +12,7 @@
 #      sudo dnf install usbip hwdata
 #
 WIN_USBIPD="/mnt/c/Program Files/usbipd-win/usbipd.exe"
-WIN_GSUDO="/mnt/c/Program Files/gsudo/Current/gsudo.exe"
+WIN_SUDO="/mnt/c/Windows/System32/sudo.exe"
 
 # sudo for later use
 sudo echo -n
@@ -23,12 +23,12 @@ if [[ -z $dfu_device ]]; then
 fi
 
 if [[ $dfu_device =~ "Not shared" ]]; then
-  $WIN_GSUDO "$(wslpath -w $WIN_USBIPD)" bind --hardware-id $DFU_HARDWARE_ID
+  $WIN_SUDO "$(wslpath -w $WIN_USBIPD)" bind --hardware-id $DFU_HARDWARE_ID
   exit 1
 fi
 
 if [[ $dfu_device =~ "Shared" ]]; then
-  $WIN_GSUDO "$(wslpath -w $WIN_USBIPD)" attach --wsl --hardware-id $DFU_HARDWARE_ID
+  $WIN_SUDO "$(wslpath -w $WIN_USBIPD)" attach --wsl --hardware-id $DFU_HARDWARE_ID
   exit 1
 fi
 

@@ -167,7 +167,6 @@ fedora_install_packages() {
     winget=${winget%$'\r'}
     winget=$(wslpath -u $winget)
     $winget install dorssel.usbipd-win || true
-    $winget install gerardog.gsudo || true
   fi
 }
 

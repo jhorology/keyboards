@@ -1,0 +1,21 @@
+diff --git a/app/src/endpoints.c b/app/src/endpoints.c
+index b17a664..27c2df2 100644
+--- a/app/src/endpoints.c
++++ b/app/src/endpoints.c
+@@ -282,6 +282,8 @@ static bool is_ble_ready(void) {
+ }
+ 
+ static enum zmk_transport get_selected_transport(void) {
++    return preferred_transport;
++    /*
+     if (is_ble_ready()) {
+         if (is_usb_ready()) {
+             LOG_DBG("Both endpoint transports are ready. Using %d", preferred_transport);
+@@ -299,6 +301,7 @@ static enum zmk_transport get_selected_transport(void) {
+ 
+     LOG_DBG("No endpoint transports are ready.");
+     return DEFAULT_TRANSPORT;
++    */
+ }
+ 
+ static struct zmk_endpoint_instance get_selected_instance(void) {

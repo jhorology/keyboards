@@ -54,7 +54,7 @@ WITH_EMACS=true
 CONTAINER_WORKSPACE_DIR=/workspace
 DOCSETS_DIR=$HOME/.docsets
 WIN_USBIPD="/mnt/c/Program Files/usbipd-win/usbipd.exe"
-WIN_GSUDO="/mnt/c/Program Files/gsudo/Current/gsudo.exe"
+WIN_SUDO="/mnt/c/Windows/System32/sudo.exe"
 # DOCSETS_DIR="$HOME/Library/Application Support/Dash/DockSets"
 ZMK_STUDIO_BRANCH=main
 PROTOC_INSTALL_DIR=$PROJECT/.local
@@ -76,7 +76,7 @@ local -A KEYBOARDS=(
   q60        keychron_q60:keychron_q60:bin:0483:df11:none:none
   qk60       qk60_wired:qk60_wired_hhkb:bin:1688:2220:none:none
   tf60       kbdfans_tofu60_v2:tofu60_hhkb:uf2:RPI-RP2:none:none:none
-  ju60       cyber60_rev_d:hibi_june60:uf2:CYBER60_D:none:none:"CONFIG_BT_SMP_LOG_LEVEL_DBG,CONFIG_BT_HCI_CORE_LOG_LEVEL_DBG"
+  ju60       cyber60_rev_d:hibi_june60:uf2:CYBER60_D:none:none:none
 )
 TARGETS=(cz42l cz42r d60 fk68 q60 qk60 tf60 ju60)
 
@@ -299,7 +299,6 @@ fedora_install_packages() {
     winget=${winget%$'\r'}
     winget=$(wslpath -u $winget)
     $winget install dorssel.usbipd-win || true
-    $winget install gerardog.gsudo || true
   fi
 }
 
@@ -729,7 +728,7 @@ fedora_flash_uf2() {
       echo ""
       echo "copying firmware [$firmware] to drive [$dfu_drive]..."
       sleep 1
-      $WIN_GSUDO c:\\Windows\\System32\\xcopy.exe "$(wslpath -w $firmware)" $dfu_drive\\
+      $WIN_SUDO c:\\Windows\\System32\\xcopy.exe "$(wslpath -w $firmware)" $dfu_drive\\
       echo "flashing firmware finished successfully."
       break
     else
@@ -755,9 +754,9 @@ fedora_flash_bin() {
     dfu_device=$($WIN_USBIPD list 2> /dev/null | grep "$hardware_id" || echo -n "")
     if [[ ! -z $dfu_device ]]; then
       if [[ $dfu_device =~ "Not shared" ]]; then
-        $WIN_GSUDO "$(wslpath -w $WIN_USBIPD)" bind --hardware-id $hardware_id
+        $WIN_SUDO "$(wslpath -w $WIN_USBIPD)" bind --hardware-id $hardware_id
       elif [[ $dfu_device =~ "Shared" ]]; then
-        $WIN_GSUDO "$(wslpath -w $WIN_USBIPD)" attach --wsl --hardware-id $hardware_id
+        $WIN_SUDO "$(wslpath -w $WIN_USBIPD)" attach --wsl --hardware-id $hardware_id
       elif [[ $dfu_device =~ "Attached" ]]; then
         sudo chmod -R 777 /dev/bus/usb
         west flash --build-dir build/$target || true
@@ -800,7 +799,7 @@ macos_log_console() {
     echo "found tty device [${tty_devs[1]}]"
     # to exit tio, [Ctrl + t][q]
     sudo chmod +urw $tty_devs[1]
-    mkdir logs
+    mkdir -p logs
     rm -f $log_file
     tio --log --log-file=$log_file $tty_devs[1]
   else
