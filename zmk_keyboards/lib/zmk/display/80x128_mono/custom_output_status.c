@@ -16,6 +16,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include <zmk/event_manager.h>
 #include <zmk/events/ble_active_profile_changed.h>
 #include <zmk/events/endpoint_changed.h>
+#include <zmk/events/usb_conn_state_changed.h>
 #include <zmk/usb.h>
 #include <zmk/ble.h>
 #include <zmk/endpoints.h>
@@ -57,19 +58,25 @@ static void set_status_symbol(lv_obj_t *spangroup, struct output_status_state st
   switch (state.selected_endpoint.transport) {
     case ZMK_TRANSPORT_USB:
       strcat(transport_icon_text, LV_SYMBOL_USB);
+      if (zmk_usb_get_conn_state() == ZMK_USB_CONN_HID) {
 #if IS_ENABLED(CONFIG_ZMK_USB_HOST_OS)
-      switch (zmk_usb_host_os_detected()) {
-        case USB_HOST_OS_DARWIN:
-          strcat(transport_desc_text, "Mac");
-          break;
-        case USB_HOST_OS_UNKNOWN:
-          strcat(transport_desc_text, "Win");
-          break;
-        default:
-          strcat(transport_desc_text, "---");
-          break;
-      }
+        switch (zmk_usb_host_os_detected()) {
+          case USB_HOST_OS_DARWIN:
+            strcat(transport_desc_text, "Mac");
+            break;
+          case USB_HOST_OS_UNKNOWN:
+            strcat(transport_desc_text, "Win");
+            break;
+          default:
+            strcat(transport_desc_text, "---");
+            break;
+        }
+#else
+        strcat(transport_desc_text, " " LV_SYMBOL_OK);
 #endif  // CONFIG_ZMK_USB_HOST_OS
+      } else {
+        strcat(transport_desc_text, " " LV_SYMBOL_CLOSE);
+      }
       break;
     case ZMK_TRANSPORT_BLE:
       strcat(transport_icon_text, LV_SYMBOL_WIFI);
@@ -111,6 +118,9 @@ ZMK_SUBSCRIPTION(widget_output_status, zmk_endpoint_changed);
 #if defined(CONFIG_ZMK_BLE)
 ZMK_SUBSCRIPTION(widget_output_status, zmk_ble_active_profile_changed);
 #endif  // CONFIG_ZMK_BLE
+#if defined(CONFIG_ZMK_USB)
+ZMK_SUBSCRIPTION(widget_output_status, zmk_usb_conn_state_changed);
+#endif
 
 #if defined(CONFIG_ZMK_USB_HOST_OS)
 ZMK_SUBSCRIPTION(widget_output_status, zmk_usb_host_os_changed);

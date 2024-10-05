@@ -9,8 +9,10 @@
 #include <zmk/event_manager.h>
 #include <zmk/endpoints.h>
 #include <zmk/pwm_buzzer.h>
-#include <zmk/events/endpoint_changed.h>
+#include <zmk/usb.h>
 #include <zmk/events/ble_active_profile_changed.h>
+#include <zmk/events/endpoint_changed.h>
+#include <zmk/events/usb_conn_state_changed.h>
 
 #include <dt-bindings/zmk/midi.h>
 
@@ -173,10 +175,11 @@ bool zmk_beep_is_on(void) { return state.on; }
 
 static int output_status_listener(const zmk_event_t *eh) {
   uint8_t output_num = 0;
-  bool is_connected = true;
+  bool is_connected;
   switch (zmk_endpoints_selected().transport) {
     case ZMK_TRANSPORT_USB:
       output_num = 6;
+      is_connected = zmk_usb_get_conn_state() == ZMK_USB_CONN_HID;
       break;
     case ZMK_TRANSPORT_BLE:
       output_num = zmk_ble_active_profile_index() + 1;
@@ -192,7 +195,12 @@ static int output_status_listener(const zmk_event_t *eh) {
 }
 
 ZMK_LISTENER(output_status_beep, output_status_listener)
+#if defined(CONFIG_ZMK_BLE)
 ZMK_SUBSCRIPTION(output_status_beep, zmk_ble_active_profile_changed);
+#endif  // CONFIG_ZMK_BLE
 ZMK_SUBSCRIPTION(output_status_beep, zmk_endpoint_changed);
+#if defined(CONFIG_ZMK_USB)
+ZMK_SUBSCRIPTION(output_status_beep, zmk_usb_conn_state_changed);
+#endif
 
 SYS_INIT(zmk_beep_init, APPLICATION, CONFIG_APPLICATION_INIT_PRIORITY);
