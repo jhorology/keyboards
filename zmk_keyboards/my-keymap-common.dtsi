@@ -135,6 +135,27 @@
 // Do Not Disturb on apple fn Layer
 #define _DND &de_fn_kp SC_DND
 
+// mac power control
+//--------------------------------------------
+// sscreen lock / sceen saver
+#define _MAC_SCLK &kp C_AL_LOCK
+
+// display sleep
+// *In sometimes, macos external display dosen't work after KVM switching
+//  Press twice this key and then press any key to resolve the issue.
+#define _MAC_DSLP &kp RC(RS(K_PWR))
+
+// system sleep
+#define _MAC_SSLP &kp RA(RG(K_PWR))
+
+// system sleep or shutdown or restart
+#define _MAC_SLRS &kp RC(K_PWR)
+
+// windows power control
+//--------------------------------------------
+// sscreen lock / sceen saver
+#define _WIN_SCLK &kp RG(L)
+
 // soft off
 //--------------------------------------------
 #define _SOFT_OFF &soft_off_on_release

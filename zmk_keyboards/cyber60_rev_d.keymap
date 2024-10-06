@@ -1,5 +1,4 @@
 #include "my-keymap-common.dtsi"
-#include <dt-bindings/zmk/matrix_transform.h>
 
 / {
   keymap {
@@ -41,29 +40,29 @@
       display-name = "HHKB Fn";
       bindings =
         <
-         ______    &kp F1     &kp F2   &kp F3   &kp F4  &kp F5  &kp F6           &kp F7         &kp F8     &kp F9     &kp F10          &kp F11   &kp F12  &kp INS  ______
-         &kp CAPS  &kp F16    &kp F17  &kp F18  ______  ______  ______           ______         &kp PSCRN  &kp SLCK   &kp PAUSE_BREAK  &kp UP    ______            &kp DEL
-         ______    ______     ______   ______   ______  ______  &kp KP_MULTIPLY  &kp KP_DIVIDE  &kp HOME   &kp PG_UP  &kp LEFT         &kp RIGHT                   &kp KP_ENTER
-         ______    ______     ______   ______   ______  ______  &kp KP_PLUS      &kp KP_MINUS   &kp END    &kp PG_DN  &kp DOWN                   ______            ______
-         ______    ______     ______                                             ______                                                ______    ______            ______
+         &kp K_PWR  &kp F1     &kp F2   &kp F3   &kp F4  &kp F5  &kp F6           &kp F7         &kp F8     &kp F9     &kp F10          &kp F11   &kp F12  &kp INS  &kp DEL
+         &kp CAPS   &kp F16    &kp F17  &kp F18  ______  ______  ______           ______         &kp PSCRN  &kp SLCK   &kp PAUSE_BREAK  &kp UP    ______            &kp KP_CLEAR
+         ______     ______     ______   ______   ______  ______  &kp KP_MULTIPLY  &kp KP_DIVIDE  &kp HOME   &kp PG_UP  &kp LEFT         &kp RIGHT                   &kp KP_ENTER
+         ______     ______     ______   ______   ______  ______  &kp KP_PLUS      &kp KP_MINUS   &kp END    &kp PG_DN  &kp DOWN                   ______            ______
+         ______     ______     ______                                             ______                                                ______    ______            ______
         >;
     };
     apple_fn_layer {
       display-name = "Apple Fn";
       bindings =
         <
-         ______  &kp F1  &kp F2  &kp F3  _SPOTLIGHT _DICTATION  _DND    &kp F7  &kp F8  &kp F9  &kp F10  &kp F11  &kp F12  ______  &kp C_AL_LOCK
-         ______  ______  ______  ______  ______     ______      ______  ______  ______  ______  ______   ______   ______           ______
-         ______  ______  ______  ______  ______     ______      ______  ______  ______  ______  ______   ______                    ______
-         ______  ______  ______  ______  ______     ______      ______  ______  ______  ______  ______            ______           ______
-         ______  ______  ______                                 ______                                   ______   ______           ______
+         _MAC_SLRS  &kp F1  &kp F2  &kp F3  _SPOTLIGHT _DICTATION  _DND    &kp F7  &kp F8  &kp F9  &kp F10  &kp F11  &kp F12  _MAC_DSLP  _MAC_SCLK
+         ______     ______  ______  ______  ______     ______      ______  ______  ______  ______  ______   ______   ______              ______
+         ______     ______  ______  ______  ______     ______      ______  ______  ______  ______  ______   ______                       ______
+         ______     ______  ______  ______  ______     ______      ______  ______  ______  ______  ______            ______              ______
+         ______     ______  ______                                 ______                                   ______   ______              ______
         >;
     };
     win_fn_layer {
       display-name = "Win Fn";
       bindings =
         <
-         ______  _FN_F1  _FN_F2  _FN_F3  _FN_F4  _FN_F5  _FN_F6  _FN_F7  _FN_F8  _FN_F9  _FN_F10 _FN_F11 _FN_F12  ______  ______
+         ______  _FN_F1  _FN_F2  _FN_F3  _FN_F4  _FN_F5  _FN_F6  _FN_F7  _FN_F8  _FN_F9  _FN_F10 _FN_F11 _FN_F12  ______  _WIN_SCLK
          ______  _FN_Q   ______  _FN_E   ______  ______  ______  ______  ______  ______  ______  ______  ______           _FN_BS
          ______  _FN_A   ______  ______  _FN_F   ______  _FN_H   ______  ______  ______  ______  ______                   ______
          ______  ______  ______  _FN_C   ______  ______  _FN_N   _FN_M   ______  ______  ______          ______           ______

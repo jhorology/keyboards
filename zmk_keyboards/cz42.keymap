@@ -25,16 +25,22 @@
       //                    -------------------   --------------------
       // *under construction
       //
-      //         Left Thumb cluster                 Right Thumb cluster
+      //   Left Thumb cluster                    Right Thumb cluster
       //
-      //         1 OPT single LOPT                  1 RCMD hold   RCMD
-      //               double+hold APPLE Fn                singl  LANG2(英数)
-      //                                                   doubl  LANG1(かな)
-      //         2 ENT hold L.Thumb layer
-      //               taps ENTER                   2 SPCE hold R.Thumb layer
-      //                                                   tap  SPACE
-      //         3 LCMD hold LCMD
-      //                tap spacemacs leader key    3 fn   HHKB fn layer
+      //   1 OPT                                   1 RCMD
+      //        hold: LOPT                               hold: RCMD
+      //      single: emacs command leader             single: LANG2(英数)
+      //    tap-hold: APPLE Fn                       tap-hold: RCMD
+      //      double: APPLE Fn(Rotate input mode)     dobuile: LANG1(かな)
+      //
+      //   2 ENT                                   2 SPC
+      //        hold: L.Thumb layer                    hold: R.Thumb layer
+      //         tap: ENTER                             tap: SPACE
+      //
+      //   3 LCMD                                  3 Fn HHKB fn layer
+      //        hold: LCMD
+      //      single: spacemacs evil leader
+      //                tap spacemacs leader key
       //
       // --------------------------------------------------------------------------------
       //  LSHFT/RSHFT single  SHIFT
@@ -88,36 +94,36 @@
     apple_fn_layer {
       display-name = "Apple Fn";
       // --------------------------------------   --------------------------------------
-      // | 🔐   |  Q  |     |     |  E  |     |   | 🔅  | 🔆  | ⧉  | 🔎  | 🎤  | 🌙  |
+      // |  ⏻   |  Q  |     |     |  E  |     |   | 🔅  | 🔆  | ⧉  | 🔎  | 🎤  | 🌙  |
       // |      |  A  |     |     |  F  |  H  |   | ⏪️  | ⏯️  | ⏩️  | 🔇  | 🔉  | 🔊  |
-      // |      |     |  C  |     |     |     |   | B   | M   |     |     |     |      |
+      // |      |     |  C  |     |     |     |   |  B  |  M  |     |     |  🖥️ |  🔐  |
       // -------------------|     |     |     |   |     | SPC |     |-------------------
       //                    -------------------   -------------------
       // fn + H Show desktop -> fn + G
       bindings =
         <
-         &kp C_AL_LOCK  ______  ______  ______  ______  ______    &kp F1  &kp F2  &kp F3  _SPOTLIGHT  _DICTATION  _DND
-         ______         ______  ______  ______  ______  &kp H     &kp F7  &kp F8  &kp F9  &kp F10     &kp F11     &kp F12
-         ______         ______  ______  ______  ______  ______    ______  ______  ______  ______      ______      ______
-         /**/                           ______  ______  ______    ______  ______  ______
+         _MAC_SLRS  ______  ______  ______  ______  ______     &kp F1  &kp F2  &kp F3  _SPOTLIGHT  _DICTATION  _DND
+         ______     ______  ______  ______  ______  &kp H      &kp F7  &kp F8  &kp F9  &kp F10     &kp F11     &kp F12
+         ______     ______  ______  ______  ______  ______     ______  ______  ______  ______      _MAC_DSLP   _MAC_SCLK
+         /**/                       ______  ______  ______     ______  ______  ______
         >;
     };
 
     win_fn_layer {
       display-name = "Win Fn";
       // --------------------------------------   --------------------------------------
-      // | 🔐   |  Q  |     |     |  E  |     |   | 🔅  | 🔆  | ⧉  | 🔎  | 🎤  | 🌙  |
+      // |      |  Q  |     |     |  E  |     |   | 🔅  | 🔆  | ⧉  | 🔎  | 🎤  | 🌙  |
       // |      |  A  |     |     |  F  |  H  |   | ⏪️  | ⏯️  | ⏩️  | 🔇  | 🔉  | 🔊  |
-      // |      |     |  C  |     |     |     |   | B   | M   |     |     |     |      |
+      // |      |     |  C  |     |     |     |   | B   | M   |     |     |     |  🔐  |
       // -------------------|     |     |     |   |     | SPC |     |-------------------
       //                    -------------------   -------------------
       // fn + H Show desktop -> fn + G
       bindings =
         <
-         &kp LG(L) _FN_Q   ______  _FN_E   ______  ______    _FN_F1   _FN_F2  _FN_F3  _FN_F4   _FN_F5   _FN_F6
-         ______    _FN_A   ______  ______  _FN_F   _FN_H     _FN_F7   _FN_F8  _FN_F9  _FN_F10  _FN_F11  _FN_F12
-         ______     ______  _FN_C  ______  ______  ______    _FN_N    _FN_M   ______  ______  ______   ______
-         /**/                      ______  ______  ______    _FN_SPC  ______  ______
+         ______  _FN_Q   ______  _FN_E   ______  ______    _FN_F1   _FN_F2  _FN_F3  _FN_F4   _FN_F5   _FN_F6
+         ______  _FN_A   ______  ______  _FN_F   _FN_H     _FN_F7   _FN_F8  _FN_F9  _FN_F10  _FN_F11  _FN_F12
+         ______   ______  _FN_C  ______  ______  ______    _FN_N    _FN_M   ______  ______   ______   _WIN_SCLK
+         /**/                    ______  ______  ______    _FN_SPC  ______  ______
         >;
     };
 
