@@ -46,8 +46,8 @@
     };
   };
 
-  /* spi1 for ledt strip */
-  spi1_default: spi1_default {
+  /* spi3 for ledt strip */
+  spi3_default: spi3_default {
     group1 {
       psels
         = <NRF_PSEL(SPIM_MOSI, 1, 12)>
@@ -55,7 +55,7 @@
     };
   };
 
-  spi1_sleep: spi1_sleep {
+  spi3_sleep: spi3_sleep {
     group1 {
       psels
         = <NRF_PSEL(SPIM_MOSI, 1, 12)>
