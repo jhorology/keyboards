@@ -89,9 +89,9 @@
          ______
 
          /* Joystick */
-         /**/    ______
-         ______  &mkp RCLK  ______
-         /**/    ______
+         /**/            &msc MOVE_UP
+         &msc MOVE_LEFT  &mkp LCLK  &msc MOVE_RIGHT
+         /**/            &msc MOVE_DOWN
         >;
       sensor-bindings = <&trans_encoder>;
     };
@@ -166,6 +166,14 @@
          &sys_reset   ______   ______     ______    ______    ______      ______  ______  ______  ______  ______     &sys_reset
          ______       _MAC     _EP_OFF    _RGB_OFF  _BRI      _HUI        _SAI    _EFF    _SPI    ______  ______     ______
          /**/                             _X_SET    ______    ______      ______  ______  _X_SET
+
+         /* EC11 */
+         ______
+
+         /* Joystick */
+         /**/    ______
+         ______  ______  ______
+         /**/    ______
         >;
       sensor-bindings = <&trans_encoder>;
     };
@@ -224,7 +232,7 @@
         >;
       sensor-bindings = <&trans_encoder>;
     };
-    // &kp MINUS  &kp EQUAL  &kp BSLH  &kp LBKT  &kp RBKT
+
     right_thumb_layer {
       display-name = "R Thumb";
       // --------------------------------------   --------------------------------------
