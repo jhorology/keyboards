@@ -39,6 +39,13 @@ config ZMK_WIDGET_OUTPUT_STATUS
 config ZMK_DISPLAY_DEDICATED_THREAD_STACK_SIZE
     default 4096
 
+# TODO need font
+# Font looks too thin
+# default: LV_COLOR_DEPTH_16
+# choice LV_COLOR_DEPTH
+#    default LV_COLOR_DEPTH_1
+# endchoice
+
 config LV_FONT_MONTSERRAT_12
     default y
 

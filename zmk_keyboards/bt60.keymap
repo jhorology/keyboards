@@ -102,6 +102,12 @@
       sensor-bindings = <&trans_encoder>;
     };
   };
+
+  sensors {
+    compatible = "zmk,keymap-sensors";
+    sensors = <&encoder_1>;
+    triggers-per-rotation = <36>;
+  };
 };
 
 /*
@@ -111,4 +117,5 @@
  */
 &encoder_1 {
   status = "okay";
+  steps = <72>;
 };

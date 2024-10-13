@@ -19,12 +19,14 @@
 // tap dance
 // [single tap, single hold, multi tap, tap hold, tapping term]
 const tap_dance_entry_t PROGMEM tap_dance_predefined_entries[NUM_TAP_DANCE_PREDEFINED_ENTRIES] = {
-  // TD(0) - LCMD + Spacemacs leader key
-  [0] = {A(KC_M), KC_LGUI, KC_LGUI, KC_LGUI, TAPPING_TERM},
-  // TD(1) - RCMD + LANG2/LANG1
-  [1] = {KC_LNG2, KC_RGUI, KC_LNG1, KC_RGUI, TAPPING_TERM},
-  // TD(2) - Protect layer 3 from misstouch, MENU + MO(3)
-  [2] = {KC_APP, KC_APP, KC_APP, MO(3), TAPPING_TERM}};
+  // TD(0) - LOPT + emacs command leader key
+  [0] = {A(KC_X), KC_LALT, KC_LALT, KC_LALT, TAPPING_TERM},
+  // TD(1) - LCMD + Spacemacs evil leader key
+  [1] = {A(KC_M), KC_LGUI, KC_LGUI, KC_LGUI, TAPPING_TERM},
+  // TD(2) - RCMD + LANG2/LANG1
+  [2] = {KC_LNG2, KC_RGUI, KC_LNG1, KC_RGUI, TAPPING_TERM},
+  // TD(3) - Protect layer 3 from misstouch, MENU + MO(3)
+  [3] = {KC_APP, KC_APP, KC_APP, MO(3), TAPPING_TERM}};
 
 // since QMK 0.26, tap_dance_actions must be defined in keyma.c
 tap_dance_action_t tap_dance_actions[TAP_DANCE_ENTRIES];
@@ -37,7 +39,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_TAB,   KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_LBRC, KC_RBRC,          KC_BSPC,
     KC_LCTL,  KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_QUOT,                   KC_ENT,
     KC_LSFT,           KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH,          KC_RSFT, MO(2),
-    APPLE_FF, KC_LALT, TD(0),                              KC_SPC,                                               TD(1),   KC_RALT, TD(2)
+    APPLE_FF, TD(0),   TD(1),                              KC_SPC,                                               TD(2),   KC_RALT, TD(3)
   ),
   // standard base layer
   [1] = LAYOUT_60_tsangan_hhkb(
@@ -45,7 +47,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_TAB,   KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_LBRC, KC_RBRC,          KC_BSPC,
     KC_LCTL,  KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_QUOT,                   KC_ENT,
     KC_LSFT,           KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH,          KC_RSFT, MO(2),
-    APPLE_FF, KC_LALT, TD(0),                              KC_SPC,                                               TD(1),   KC_RALT, TD(2)
+    APPLE_FF, TD(0),   TD(1),                              KC_SPC,                                               TD(2),   KC_RALT, TD(3)
   ),
   // HHKB-like fn layer
   [2] = LAYOUT_60_tsangan_hhkb(

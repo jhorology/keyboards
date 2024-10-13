@@ -1,0 +1,256 @@
+/*
+ * Copyright (c) 2020 The ZMK Contributors
+ * SPDX-License-Identifier: MIT
+ */
+
+#include "my-keymap-common.dtsi"
+#include <behaviors/mouse_keys.dtsi>
+#include <dt-bindings/zmk/mouse.h>
+
+#define LEFT_KEYS  0 1 2 3  4  5 12 13 14 15 16 17 24 25 26 27 28 29
+#define RIGHT_KEYS 6 7 8 9 10 11 18 19 20 21 22 23 30 31 32 33 34 35
+#define LEFT_THUMB_KEYS  36 37 38
+#define RIGHT_THUMB_KEYS 39 40 41
+#define THUMB_KEYS LEFT_THUMB_KEYS RIGHT_THUMB_KEYS
+
+/ {
+  keymap {
+    compatible = "zmk,keymap";
+
+    mac_base_layer {
+      display-name = "Mac Base";
+      // --------------------------------------   ---------------------------------------
+      // |  TAB |  Q  |  W  |  E  |  R  |  T  |   |  Y  |  U   |  I  |  O  |  P  | BKSP |
+      // | CTRL |  A  |  S  |  D  |  F  |  G  |   |  H  |  J   |  K  |  L  |  ;  |  '   |
+      // | SHFT |  Z  |  X  |  C  |  V  |  B  |   |  N  |  M   |  ,  |  .  |  /  | SHIFT|
+      // -------------------| OPT | ENT | LCMD|   | RCMD| SPC  | fn  |------------------
+      //                    -------------------   --------------------
+      bindings =
+        <
+         &kp TAB    &kp Q  &kp W  &kp E      &kp R    &kp T     &kp Y   &kp U   &kp I      &kp O    &kp P     &kp BSPC
+         &kp LCTRL  &kp A  &kp S  &kp D      &kp F    &kp G     &kp H   &kp J   &kp K      &kp L    &kp SEMI  &kp SQT
+         _C_LSHFT   &kp Z  &kp X  &kp C      &kp V    &kp B     &kp N   &kp M   &kp COMMA  &kp DOT  &kp FSLH  _C_RSHFT
+         /**/                     _H_M_LOPT  _C_LENT  _LCMD     _RCMD  _C_RSPC  _H_FN
+
+         /* EC11 */
+          &kp C_MUTE
+
+         /* Joystick */
+         /**/           &mmv MOVE_UP
+         &mmv MOVE_LEFT &mkp LCLK  &mmv MOVE_RIGHT
+         /**/           &mmv MOVE_DOWN
+        >;
+      sensor-bindings = <&volume_encoder>;
+    };
+
+    win_base_layer {
+      display-name = "Win Base";
+      // --------------------------------------   ---------------------------------------
+      // |  TAB |  Q  |  W  |  E  |  R  |  T  |   |  Y  |  U   |  I  |  O  |  P  | BKSP |
+      // | CTRL |  A  |  S  |  D  |  F  |  G  |   |  H  |  J   |  K  |  L  |  ;  |  '   |
+      // | SHFT |  Z  |  X  |  C  |  V  |  B  |   |  N  |  M   |  ,  |  .  |  /  | SHIFT|
+      // -------------------| LALT| ENT | LWIN|   | RWIN| SPC  | fn  |------------------
+      //                    -------------------   --------------------
+      bindings =
+        <
+         &kp TAB    &kp Q  &kp W  &kp E      &kp R    &kp T     &kp Y  &kp U    &kp I      &kp O    &kp P     &kp BSPC
+         &kp LCTRL  &kp A  &kp S  &kp D      &kp F    &kp G     &kp H  &kp J    &kp K      &kp L    &kp SEMI  &kp SQT
+         _C_LSHFT   &kp Z  &kp X  &kp C      &kp V    &kp B     &kp N  &kp M    &kp COMMA  &kp DOT  &kp FSLH  _C_RSHFT
+         /**/                     _H_W_LOPT  _C_LENT  _LCMD     _RCMD  _C_RSPC  _H_FN
+
+         /* EC11 */
+         &rc_btn
+
+         /* Joystick */
+         /**/            &mmv MOVE_UP
+         &mmv MOVE_LEFT  &mkp LCLK  &mmv MOVE_RIGHT
+         /**/            &mmv MOVE_DOWN
+        >;
+      sensor-bindings = <&radial_controller>;
+    };
+
+    hhkb_fn_layer {
+      display-name = "HHKB Fn";
+      // --------------------------------------   ---------------------------------------
+      // | CAPS | F16 | F17 | F18 |     |     |   |PSCRN|  SLCK|  PB |  UP | INS | DEL  |
+      // | CTRL |     |     |     | [*] | [/] |   | HOME| P.UP | LEFT| DOWN|RIGHT|  '   |
+      // | SHFT |     |     |     | [+] | [-] |   | END | P.DN |     |     |     | ESC  |
+      // -------------------|     |     |     |   |     |      |     |-------------------
+      //                    -------------------   --------------------
+      // PRSCRN(F13) / SLCK(F14) / PAUSE_BREAK(F15) / F16 / F17 / F18 for Amethyst short-cuts
+      bindings =
+        <
+         &kp CAPS  &kp F16  &kp F17  &kp F18  ______           ______            &kp PSCRN  &kp SLCK   &kp PAUSE_BREAK   &kp UP    &kp INS    &kp DEL
+         ______    ______   ______   ______   &kp KP_MULTIPLY  &kp KP_DIVIDE     &kp HOME   &kp PG_UP  &kp LEFT          &kp DOWN  &kp RIGHT  ______
+         ______    ______   ______   ______   &kp KP_PLUS      &kp KP_MINUS      &kp END    &kp PG_DN  ______            ______    ______     ______
+         /**/                        ______   ______           ______            ______     ______     ______
+
+         /* EC11 */
+         ______
+
+         /* Joystick */
+         /**/    ______
+         ______  &mkp RCLK  ______
+         /**/    ______
+        >;
+      sensor-bindings = <&trans_encoder>;
+    };
+
+
+    apple_fn_layer {
+      display-name = "Apple Fn";
+      // --------------------------------------   --------------------------------------
+      // |  ⏻   |  Q  |     |     |  E  |     |   | 🔅  | 🔆  | ⧉  | 🔎  | 🎤  | 🌙  |
+      // |      |  A  |     |     |  F  |  H  |   | ⏪️  | ⏯️  | ⏩️  | 🔇  | 🔉  | 🔊  |
+      // |      |     |  C  |     |     |     |   |  B  |  M  |     |     |  🖥️ |  🔐  |
+      // -------------------|     |     |     |   |     | SPC |     |-------------------
+      //                    -------------------   -------------------
+      // fn + H Show desktop -> fn + G
+      bindings =
+        <
+         _MAC_SLRS  ______  ______  ______  ______  ______       &kp F1  &kp F2  &kp F3  _SPOTLIGHT  _DICTATION  _DND
+         ______     ______  ______  ______  ______  &kp H        &kp F7  &kp F8  &kp F9  &kp F10     &kp F11     &kp F12
+         ______     ______  ______  ______  ______  ______       ______  ______  ______  ______      _MAC_DSLP   _MAC_SCLK
+         /**/                       ______  ______  ______       ______  ______  ______
+
+         /* EC11 */
+         ______
+
+         /* Joystick */
+         /**/    ______
+         ______  ______  ______
+         /**/    ______
+        >;
+      sensor-bindings = <&trans_encoder>;
+    };
+
+    win_fn_layer {
+      display-name = "Win Fn";
+      // --------------------------------------   --------------------------------------
+      // |      |  Q  |     |     |  E  |     |   | 🔅  | 🔆  | ⧉  | 🔎  | 🎤  | 🌙  |
+      // |      |  A  |     |     |  F  |  H  |   | ⏪️  | ⏯️  | ⏩️  | 🔇  | 🔉  | 🔊  |
+      // |      |     |  C  |     |     |     |   | B   | M   |     |     |     |  🔐  |
+      // -------------------|     |     |     |   |     | SPC |     |-------------------
+      //                    -------------------   -------------------
+      // fn + H Show desktop -> fn + G
+      bindings =
+        <
+         ______  _FN_Q   ______  _FN_E   ______  ______      _FN_F1   _FN_F2  _FN_F3  _FN_F4   _FN_F5   _FN_F6
+         ______  _FN_A   ______  ______  _FN_F   _FN_H       _FN_F7   _FN_F8  _FN_F9  _FN_F10  _FN_F11  _FN_F12
+         ______   ______  _FN_C  ______  ______  ______      _FN_N    _FN_M   ______  ______   ______   _WIN_SCLK
+         /**/                    ______  ______  ______      _FN_SPC  ______  ______
+
+         /* EC11 */
+         ______
+
+         /* Joystick */
+         /**/    ______
+         ______  ______  ______
+         /**/    ______
+        >;
+      sensor-bindings = <&trans_encoder>;
+    };
+
+    setting_layer {
+      display-name = "Setting";
+      // --------------------------------------   --------------------------------------
+      // |      |     |     |     |     |     |   |     |     |     |     |     |      |
+      // |      |     |     |     |     |     |   |     |     |     |     |     |      |
+      // |      |     |     |     |     |     |   |     |     |     |     |     |      |
+      // -------------------|     |     |     |   |     |     |     |-------------------
+      //                    -------------------   -------------------
+      // Row2 +SHIFT for reverse action. mac->win / on->off / inc->dec / next->prev
+      bindings =
+        <
+         &bootloader  _BT_MAC1  _BT_MAC2  _BT_WIN   _BT_IOS   _BT_AOS     ______  _USB    ______  ______  &soft_off  &bootloader
+         &sys_reset   ______   ______     ______    ______    ______      ______  ______  ______  ______  ______     &sys_reset
+         ______       _MAC     _EP_OFF    _RGB_OFF  _BRI      _HUI        _SAI    _EFF    _SPI    ______  ______     ______
+         /**/                             _X_SET    ______    ______      ______  ______  _X_SET
+        >;
+      sensor-bindings = <&trans_encoder>;
+    };
+
+    inverse_setting_layer {
+      display-name = "~Setting";
+      // --------------------------------------   --------------------------------------
+      // |      |     |     |     |     |     |   |     |     |     |     |     |      |
+      // |      |     |     |     |     |     |   |     |     |     |     |     |      |
+      // |      |     |     |     |     |     |   |     |     |     |     |     |      |
+      // -------------------|     |     |     |   |     |     |     |-------------------
+      //                    -------------------   -------------------
+      // Row2 +SHIFT for reverse action. mac->win / on->off / inc->dec / next->prev
+      bindings =
+        <
+         ______  _BT_OFF0  _BT_OFF1     _BT_OFF2  _BT_OFF3  _BT_OFF4    ______  ______  ______  ______  ______  ______
+         ______  _BT_CLR   _BT_CLR_ALL  ______    ______    _STUDIO     ______  ______  ______  ______  ______  ______
+         ______  _WIN     _EP_ON        _RGB_ON   _BRD      _HUD        _SAD    _EFR    _SPD    ______  ______  ______
+         /**/                           ______    ______    ______      ______  ______  ______
+
+         /* EC11 */
+         ______
+
+         /* Joystick */
+         /**/    ______
+         ______  ______  ______
+         /**/    ______
+        >;
+      sensor-bindings = <&trans_encoder>;
+    };
+
+    left_thumb_layer {
+      display-name = "L Thumb";
+      // --------------------------------------   --------------------------------------
+      // |  ~   |  !  |  @  |  #  |  &  |  %  |   |  1  |  2  |  3  |  4  | 5   | ESC  |
+      // |      |  ^  |  &  |  *  |  (  |  )  |   |  6  |  7  |  8  |  9  | 0   |  `   |
+      // |      |  _  |  +  |  |  |  {  |  }  |   |  -  |  =  |  \  |  [  | ]   |      |
+      // -------------------|     |     |     |   |     |     |     |-------------------
+      //                    -------------------   -------------------
+      // *under construction
+      // TODO F1-F24
+      bindings =
+        <
+         &kp TILDE  &kp EXCL   &kp AT    &kp HASH   &kp DLLR  &kp PRCNT     &kp N1     &kp N2     &kp N3    &kp N4    &kp N5    &kp ESC
+         ______     &kp CARET  &kp AMPS  &kp ASTRK  &kp LPAR  &kp RPAR      &kp N6     &kp N7     &kp N8    &kp N9    &kp N0    &kp GRAVE
+         ______     &kp UNDER  &kp PLUS  &kp PIPE   &kp LBRC  &kp RBRC      &kp MINUS  &kp EQUAL  &kp BSLH  &kp LBKT  &kp RBKT  ______
+         /**/                            ______     ______    ______        ______     ______     ______
+
+         /* EC11 */
+         ______
+
+         /* Joystick */
+         /**/    ______
+         ______  ______  ______
+         /**/    ______
+        >;
+      sensor-bindings = <&trans_encoder>;
+    };
+    // &kp MINUS  &kp EQUAL  &kp BSLH  &kp LBKT  &kp RBKT
+    right_thumb_layer {
+      display-name = "R Thumb";
+      // --------------------------------------   --------------------------------------
+      // |   `  |  1  |  2  |  3  |  4  |  5  |   |  !  |  @  |  #  |  &  |  %  | ESC  |
+      // |      |  6  |  7  |  8  |  9  |  0  |   |  ^  |  &  |  *  |  (  |  )  |  ~   |
+      // |      |  -  |  =  |  \  |  [  |  ]  |   |  _  |  +  |  |  |  {  |  }  |      |
+      // -------------------|     |     |     |   |     |     |     |-------------------
+      //                    -------------------   -------------------
+      // *under construction
+      // TODO F1-F24
+      bindings =
+        <
+         &kp GRAVE  &kp N1     &kp N2    &kp N3    &kp N4    &kp N5       &kp EXCL   &kp AT    &kp HASH   &kp DLLR  &kp PRCNT &kp ESC
+         ______     &kp N6     &kp N7    &kp N8    &kp N9    &kp N0       &kp CARET  &kp AMPS  &kp ASTRK  &kp LPAR  &kp RPAR  &kp TILDE
+         ______     &kp MINUS  &kp EQUAL &kp BSLH  &kp LBKT  &kp RBKT     &kp UNDER  &kp PLUS  &kp PIPE   &kp LBRC  &kp RBRC  ______
+         /**/                            ______    ______    ______       ______     ______    ______
+
+         /* EC11 */
+         ______
+
+         /* Joystick */
+         /**/    ______
+         ______  ______  ______
+         /**/    ______
+        >;
+      sensor-bindings = <&trans_encoder>;
+    };
+  };
+};

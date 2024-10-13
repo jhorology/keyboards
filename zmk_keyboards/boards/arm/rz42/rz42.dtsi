@@ -1,0 +1,257 @@
+/*
+ * Copyright (c) 2024 The ZMK Contributors
+ * SPDX-License-Identifier: MIT
+ */
+
+#include <nordic/nrf52840_qiaa.dtsi>
+#include <physical_layouts.dtsi>
+#include <dt-bindings/zmk/matrix_transform.h>
+#include <dt-bindings/led/led.h>
+#include "rz42-pinctrl.dtsi"
+
+/ {
+  chosen {
+    zephyr,code-partition = &code_partition;
+    zephyr,sram = &sram0;
+    zephyr,flash = &flash0;
+    zmk,battery = &vbatt;
+    zmk,kscan = &kscan0;
+    zmk,underglow = &led_strip;
+    // TODO what?
+    // zmk,backlight = &backlight_leds;
+  };
+
+  default_transform: keymap_transform_0 {
+    compatible = "zmk,matrix-transform";
+    columns = <13>;
+    rows = <5>;
+
+    map =
+      <
+       RC(0,0) RC(0,1) RC(0,2) RC(0,3) RC(0,4) RC(0,5)    RC(0,7) RC(0,8) RC(0,9) RC(0,10) RC(0,11) RC(0,12)
+       RC(1,0) RC(1,1) RC(1,2) RC(1,3) RC(1,4) RC(1,5)    RC(1,7) RC(1,8) RC(1,9) RC(1,10) RC(1,11) RC(1,12)
+       RC(2,0) RC(2,1) RC(2,2) RC(2,3) RC(2,4) RC(2,5)    RC(2,7) RC(2,8) RC(2,9) RC(2,10) RC(2,11) RC(2,12)
+       /**/                    RC(3,3) RC(3,4) RC(3,5)    RC(3,7) RC(3,8) RC(3,9)
+
+       /**/                         /* EC11 on left */    /* Joystick on right */
+       /**/                              RC(3,2)                   RC(0,6)
+       /**/                                                RC(2,6) RC(4,6) RC(3,6)
+       /**/                                                        RC(1,6)
+      >;
+  };
+
+  kscan0: kscan {
+    compatible = "zmk,kscan-gpio-matrix";
+    wakeup-source;
+    diode-direction = "col2row";
+    row-gpios
+      = <&gpio0 19 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+      , <&gpio0 8 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+      , <&gpio0 12 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+      , <&gpio0 11 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+      , <&gpio1 9 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+      ;
+  };
+
+  soft_off_wakers: soft_off_wakers {
+    compatible = "zmk,soft-off-wakeup-sources";
+    wakeup-sources = <&kscan0>;
+  };
+
+  layout0: layout0 {
+    compatible = "zmk,physical-layout";
+    display-name = "Corne 6C 3M Plus";
+    kscan = <&kscan0>;
+    transform = <&default_transform>;
+    keys  //                   w   h    x    y     rot    rx    ry
+      // row 0 Left
+      = <&key_physical_attrs 100 100    0   25       0     0     0>
+      , <&key_physical_attrs 100 100  100   25       0     0     0>
+      , <&key_physical_attrs 100 100  200   12       0     0     0>
+      , <&key_physical_attrs 100 100  300    0       0     0     0>
+      , <&key_physical_attrs 100 100  400   12       0     0     0>
+      , <&key_physical_attrs 100 100  500   25       0     0     0>
+      // row 0 Right
+      , <&key_physical_attrs 100 100  850   25       0     0     0>
+      , <&key_physical_attrs 100 100  950   12       0     0     0>
+      , <&key_physical_attrs 100 100 1050    0       0     0     0>
+      , <&key_physical_attrs 100 100 1150   12       0     0     0>
+      , <&key_physical_attrs 100 100 1250   25       0     0     0>
+      , <&key_physical_attrs 100 100 1350   25       0     0     0>
+      // row 1 Left
+      , <&key_physical_attrs 100 100    0  125       0     0     0>
+      , <&key_physical_attrs 100 100  100  125       0     0     0>
+      , <&key_physical_attrs 100 100  200  112       0     0     0>
+      , <&key_physical_attrs 100 100  300  100       0     0     0>
+      , <&key_physical_attrs 100 100  400  112       0     0     0>
+      , <&key_physical_attrs 100 100  500  125       0     0     0>
+      // row 1 Right
+      , <&key_physical_attrs 100 100  850  125       0     0     0>
+      , <&key_physical_attrs 100 100  950  112       0     0     0>
+      , <&key_physical_attrs 100 100 1050  100       0     0     0>
+      , <&key_physical_attrs 100 100 1150  112       0     0     0>
+      , <&key_physical_attrs 100 100 1250  125       0     0     0>
+      , <&key_physical_attrs 100 100 1350  125       0     0     0>
+      // row 2 Left
+      , <&key_physical_attrs 100 100    0  225       0     0     0>
+      , <&key_physical_attrs 100 100  100  225       0     0     0>
+      , <&key_physical_attrs 100 100  200  212       0     0     0>
+      , <&key_physical_attrs 100 100  300  200       0     0     0>
+      , <&key_physical_attrs 100 100  400  212       0     0     0>
+      , <&key_physical_attrs 100 100  500  225       0     0     0>
+      // row 2 Right
+      , <&key_physical_attrs 100 100  850  225       0     0     0>
+      , <&key_physical_attrs 100 100  950  212       0     0     0>
+      , <&key_physical_attrs 100 100 1050  200       0     0     0>
+      , <&key_physical_attrs 100 100 1150  212       0     0     0>
+      , <&key_physical_attrs 100 100 1250  225       0     0     0>
+      , <&key_physical_attrs 100 100 1350  225       0     0     0>
+
+      // row 3 Left
+      , <&key_physical_attrs 100 100  465  350    1500   515   400>
+      , <&key_physical_attrs 100 100  580  400    3000   630   450>
+
+      // row 2 Right
+      , <&key_physical_attrs 100 100  770  400 (-3000)   820   450>
+      , <&key_physical_attrs 100 100  885  350 (-1500)   935   400>
+      , <&key_physical_attrs 100 100 1000  325       0     0     0>
+
+      // EC11 on Left
+      , <&key_physical_attrs  80  80  610  275       0     0     0> // button
+
+      // Joystick on Right
+      , <&key_physical_attrs  50  50  800  250       0     0     0> // ↑
+      , <&key_physical_attrs  50  50  750  300       0     0     0> // ←
+      , <&key_physical_attrs  50  50  800  300       0     0     0> // button
+      , <&key_physical_attrs  50  50  850  300       0     0     0> // →
+      , <&key_physical_attrs  50  50  800  350       0     0     0> // ↓
+      ;
+  };
+
+  leds {
+    compatible = "gpio-leds";
+    /* led for indicating bootloader mode (not used in app) */
+    blue_led: led_0 {
+      gpios = <&gpio0 15 GPIO_ACTIVE_HIGH>;
+    };
+  };
+
+  /* TODO ??? I don't see this on borad */
+  /*
+  backlight_leds: pwmleds {
+    compatible = "pwm-leds";
+    pwm_led_0 {
+      pwms = <&pwm0 0 PWM_MSEC(10) PWM_POLARITY_NORMAL>;
+    };
+  };
+  */
+
+  // Node name must match original "EXT_POWER" label to preserve user settings.
+  EXT_POWER {
+    compatible = "zmk,ext-power-generic";
+    control-gpios = <&gpio0 13 GPIO_ACTIVE_HIGH>;
+    init-delay-ms = <50>;
+  };
+
+  vbatt: vbatt {
+    compatible = "zmk,battery-nrf-vddh";
+  };
+};
+
+zephyr_udc0: &usbd {
+  status = "okay";
+};
+
+&adc {
+  status = "okay";
+};
+
+&gpio0 {
+  status = "okay";
+};
+
+&gpio1 {
+  status = "okay";
+};
+
+/* TODO ???? */
+/*
+&pwm0 {
+  status = "okay";
+  pinctrl-0 = <&pwm0_default>;
+  pinctrl-1 = <&pwm0_sleep>;
+  pinctrl-names = "default", "sleep";
+};
+*/
+
+/*
+  spi for nice!view compatible display
+  need nice_vieiw.overlay for now
+ */
+nice_view_spi: &spi0 {
+  status = "okay";
+  compatible = "nordic,nrf-spim";
+  pinctrl-0 = <&spi0_default>;
+  pinctrl-1 = <&spi0_sleep>;
+  pinctrl-names = "default", "sleep";
+  cs-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
+};
+
+/* spi for led strip */
+&spi1 {
+  status = "okay";
+  pinctrl-0 = <&spi1_default>;
+  pinctrl-1 = <&spi1_sleep>;
+  pinctrl-names = "default", "sleep";
+
+  led_strip: ws2812@0 {
+    compatible = "worldsemi,ws2812-spi";
+
+    /* SPI */
+    reg = <0>; /* ignored, but necessary for SPI bindings */
+    spi-max-frequency = <4000000>;
+
+    /* WS2812 */
+    chain-length = <6>;
+    spi-one-frame = <0x70>;
+    spi-zero-frame = <0x40>;
+
+    color-mapping = <LED_COLOR_ID_GREEN LED_COLOR_ID_RED LED_COLOR_ID_BLUE>;
+  };
+};
+
+&flash0 {
+  /*
+   * For more information, see:
+   * http://docs.zephyrproject.org/latest/devices/dts/flash_partitions.html
+   */
+  partitions {
+    compatible = "fixed-partitions";
+    #address-cells = <1>;
+    #size-cells = <1>;
+
+    sd_partition: partition@0 {
+      reg = <0x00000000 0x00026000>;
+    };
+    code_partition: partition@26000 {
+      reg = <0x00026000 0x000c6000>;
+    };
+
+    /*
+     * The flash starting at 0x000ec000 and ending at
+     * 0x000f3fff is reserved for use by the application.
+     */
+
+    /*
+     * Storage partition will be used by FCB/LittleFS/NVS
+     * if enabled.
+     */
+    storage_partition: partition@ec000 {
+      reg = <0x000ec000 0x00008000>;
+    };
+
+    boot_partition: partition@f4000 {
+      reg = <0x000f4000 0x0000c000>;
+    };
+  };
+};

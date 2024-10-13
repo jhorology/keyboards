@@ -69,10 +69,12 @@ PROTOC_VERSION=28.2
 #   [6]=shields
 #   [7]=-additional options when --with-logging
 local -A KEYBOARDS=(
-  cz42l      nice_nano_v2:cz42_left:uf2:NICENANO:none:"cz42_left;gooddisplay_adapter;gooddisplay_gdew0102t4":"CONFIG_LV_LOG_LEVEL_TRACE,CONFIG_DISPLAY_LOG_LEVEL_DBG"
-  cz42r      nice_nano_v2:cz42_right:uf2:NICENANO:none:"cz42_right;gooddisplay_adapter;gooddisplay_gdew0102t4":"CONFIG_LV_LOG_LEVEL_TRACE,CONFIG_DISPLAY_LOG_LEVEL_DBG"
+  cz42l      nice_nano_v2:cz42_left:uf2:CZ42_L:none:"cz42_left;gooddisplay_adapter;gooddisplay_gdew0102t4":"CONFIG_LV_LOG_LEVEL_TRACE,CONFIG_DISPLAY_LOG_LEVEL_DBG"
+  cz42r      nice_nano_v2:cz42_right:uf2:CZ42_R:none:"cz42_right;gooddisplay_adapter;gooddisplay_gdew0102t4":"CONFIG_LV_LOG_LEVEL_TRACE,CONFIG_DISPLAY_LOG_LEVEL_DBG"
   d60        bt60:d60_lite_hhkb_ec11:uf2:CKP:none:none:none
   fk68       fk680pro_v2:fk680pro_v2:uf2:"ZhaQian DFU":none:none:none
+  rz42l      rz42_left:rz42_left:uf2:RZ42_L:none:nice_view:none
+  rz42r      rz42_right:rz42_right:uf2:RZ42_R:none:nice_view:none
   q60        keychron_q60:keychron_q60:bin:0483:df11:none:none
   qk60       qk60_wired:qk60_wired_hhkb:bin:1688:2220:none:none
   tf60       kbdfans_tofu60_v2:tofu60_hhkb:uf2:RPI-RP2:none:none:none
@@ -456,10 +458,8 @@ update() {
       git apply -3 --verbose ../patches/zephyr_*.patch
       cd ..
       cd zmk
-      # temporary patch
-      if [[ -f ../patches/_zmk_master.patch ]]; then
-        git apply -3 --verbose ../patches/_zmk_master.patch
-      fi
+      # zmk draft
+      git apply -3 --verbose ../patches/draft_zmk_*.patch
       git apply -3 --verbose ../patches/zmk_*.patch
       cd ..
     fi
