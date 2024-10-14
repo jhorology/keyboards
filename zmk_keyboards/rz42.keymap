@@ -162,10 +162,10 @@
       // Row2 +SHIFT for reverse action. mac->win / on->off / inc->dec / next->prev
       bindings =
         <
-         &bootloader  _BT_MAC1  _BT_MAC2  _BT_WIN   _BT_IOS   _BT_AOS     ______  _USB    ______  ______  &soft_off  &bootloader
-         &sys_reset   ______   ______     ______    ______    ______      ______  ______  ______  ______  ______     &sys_reset
-         ______       _MAC     _EP_OFF    _RGB_OFF  _BRI      _HUI        _SAI    _EFF    _SPI    ______  ______     ______
-         /**/                             _X_SET    ______    ______      ______  ______  _X_SET
+         &bootloader  _BT_MAC1  _BT_MAC2  _BT_WIN   _BT_IOS  _BT_AOS      ______  _USB    ______  ______  &soft_off  &bootloader
+         &sys_reset   ______    ______    ______    ______   ______       ______  ______  ______  ______  ______     &sys_reset
+         ______       _MAC      _EP_OFF   _RGB_OFF  _BRI      _HUI        _SAI    _EFF    _SPI    ______  ______     ______
+         /**/                             _X_SET    ______   ______       ______  ______  _X_SET
 
          /* EC11 */
          ______

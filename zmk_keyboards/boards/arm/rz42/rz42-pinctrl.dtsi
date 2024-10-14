@@ -4,26 +4,6 @@
  */
 
 &pinctrl {
-  /* powm0 for ??? */
-  /*
-  pwm0_default: pwm0_default {
-    group1 {
-      psels
-        = <NRF_PSEL(PWM_OUT0, 1, 13)>
-        ;
-    };
-  };
-
-  pwm0_sleep: pwm0_sleep {
-    group1 {
-      psels
-        = <NRF_PSEL(PWM_OUT0, 1, 13)>
-        ;
-      low-power-enable;
-    };
-  };
-  */
-
   /* spi0 for nice!view comaptible display */
   spi0_default: spi0_default {
     group1 {
@@ -46,7 +26,7 @@
     };
   };
 
-  /* spi3 for ledt strip */
+  /* spi3 for led strip */
   spi3_default: spi3_default {
     group1 {
       psels
