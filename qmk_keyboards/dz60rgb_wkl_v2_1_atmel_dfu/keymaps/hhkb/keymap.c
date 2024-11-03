@@ -3,8 +3,8 @@
 // tap dance
 // [single tap, single hold, multi tap, tap hold, tapping term]
 const tap_dance_entry_t PROGMEM tap_dance_predefined_entries[NUM_TAP_DANCE_PREDEFINED_ENTRIES] = {
-  // TD(0) - Left Alt, Alt + Apple fn
-  [0] = {KC_LALT, KC_LALT, KC_LALT, APPLE_FF, TAPPING_TERM},
+  // TD(0) - LALT + emacs leader key + Apple fn
+  [0] = {A(KC_X), KC_LALT, KC_LALT, APPLE_FF, TAPPING_TERM},
   // TD(1) - LCMD + Spacemacs leader key
   [1] = {A(KC_M), KC_LGUI, KC_LGUI, KC_LGUI, TAPPING_TERM},
   // TD(2) - RCMD + LANG2/LANG1
