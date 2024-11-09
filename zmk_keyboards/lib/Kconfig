@@ -1,3 +1,4 @@
 rsource "boot/Kconfig"
+# rsource "lvgl/Kconfig"
 rsource "shell/Kconfig"
 rsource "zmk/Kconfig"
