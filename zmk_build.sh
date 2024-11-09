@@ -335,11 +335,13 @@ setup() {
 
   _install_protoc
 
-  _activate_python_venm
+  _activate_python_venv
   _install_python_packages
 
-  _activate_rust_venm
+  _activate_rust_venv
   _install_rust_packages
+
+  _install_node_modules
 
   _setup_zmk_studio
 }
@@ -491,7 +493,7 @@ _install_python_packages() {
 }
 
 _install_rust_packages() {
-  cargo install icu_tool
+  # cargo install icu_tool
 }
 
 _install_zephyr_sdk() {
@@ -568,7 +570,7 @@ _install_protoc() {
   done
 }
 
-_install_npm_modules() {
+_install_node_modules() {
   cd $PROJECT
   npm install
 }

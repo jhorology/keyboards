@@ -1,0 +1,53 @@
+{
+  "description": "Remap ropt + I,O,P,Q,W,E to F13,F14,F15,F16,F17,F18",
+  "manipulators": [
+    {
+      "from": {
+        "key_code": "i",
+        "modifiers": { "mandatory": ["right_option"], "optional": ["any"] }
+      },
+      "to": [{ "key_code": "f13" }],
+      "type": "basic"
+    },
+    {
+      "from": {
+        "key_code": "o",
+        "modifiers": { "mandatory": ["right_option"], "optional": ["any"] }
+      },
+      "to": [{ "key_code": "f14" }],
+      "type": "basic"
+    },
+    {
+      "from": {
+        "key_code": "p",
+        "modifiers": { "mandatory": ["right_option"], "optional": ["any"] }
+      },
+      "to": [{ "key_code": "f15" }],
+      "type": "basic"
+    },
+    {
+      "from": {
+        "key_code": "q",
+        "modifiers": { "mandatory": ["right_option"], "optional": ["any"] }
+      },
+      "to": [{ "key_code": "f16" }],
+      "type": "basic"
+    },
+    {
+      "from": {
+        "key_code": "w",
+        "modifiers": { "mandatory": ["right_option"], "optional": ["any"] }
+      },
+      "to": [{ "key_code": "f17" }],
+      "type": "basic"
+    },
+    {
+      "from": {
+        "key_code": "e",
+        "modifiers": { "mandatory": ["right_option"], "optional": ["any"] }
+      },
+      "to": [{ "key_code": "f18" }],
+      "type": "basic"
+    }
+  ]
+}
