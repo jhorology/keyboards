@@ -37,6 +37,30 @@ struct output_status_state {
 #endif  // CONFIG_ZMK_USB_HOST_OS
 };
 
+LV_FONT_DECLARE(pixel_mplus_bold_ascii_10);
+LV_FONT_DECLARE(cozetta_icons_13);
+
+/* 0x0e615  nf-seti-config */
+#define NF_SETI_CONFIG "\xEE\x98\x95"
+/* 0x0f00c  nf-fa-check */
+#define NF_FA_CHECK "\xEF\x80\x8C"
+/* 0x0f00d  nf-fa-close nf-fa-times nf-fa-xmark */
+#define NF_FA_CLOSE "\xEF\x80\x8D"
+/* 0x0f179  nf-fa-apple */
+#define NF_FA_APPLE "\xEF\x85\xB9"
+/* 0x0f17a  nf-fa-windows */
+#define NF_FA_WINDOWS "\xEF\x85\xBA"
+/* 0x0f293  nf-fa-bluetooth */
+#define NF_FA_BLUETOOTH "\xEF\x8A\x93"
+/* 0x0e725  nf-dev-git_branch */
+#define NF_DEV_GIT_BRANCH "\xEE\x9C\xA5"
+/* 0x0f5b1=>0xf00b2 =>󰂲 nf-md-bluetooth_off */
+#define NF_MDI_BLUETOOTH_OFF "\xEF\x96\xB1"
+#define NF_MD_BLUETOOTH_OFF "\xF3\xB0\x82\xb2"
+/* 0x0f5b2=>0xf00b3 =>󰂳 nf-md-bluetooth_settings */
+#define NF_MDI_BLUETOOTH_SETTING "\xEF\x96\xB2"
+#define NF_MD_BLUETOOTH_OFF "\xF3\xB0\x82\xb3"
+
 static struct output_status_state get_state(const zmk_event_t *_eh) {
   return (struct output_status_state){
     .selected_endpoint = zmk_endpoints_selected(),
@@ -51,56 +75,59 @@ static struct output_status_state get_state(const zmk_event_t *_eh) {
 }
 
 static void set_status_symbol(lv_obj_t *spangroup, struct output_status_state state) {
-  char transport_icon_text[4] = {};
-  char transport_desc_text[13] = {};
-  char ble_status_text[4] = {};
+  char span_0_text[10] = {};
+  char span_1_icon[10] = {};
+  char span_2_text[10] = {};
+  char span_3_icon[10] = {};
 
   switch (state.selected_endpoint.transport) {
     case ZMK_TRANSPORT_USB:
-      strcat(transport_icon_text, LV_SYMBOL_USB);
+      strcat(span_0_text, "USB ");
       if (zmk_usb_get_conn_state() == ZMK_USB_CONN_HID) {
 #if IS_ENABLED(CONFIG_ZMK_USB_HOST_OS)
         switch (zmk_usb_host_os_detected()) {
           case USB_HOST_OS_DARWIN:
-            strcat(transport_desc_text, "Mac");
+            strcat(span_1_icon, NF_FA_APPLE);
             break;
           case USB_HOST_OS_UNKNOWN:
-            strcat(transport_desc_text, "Win");
+            strcat(span_1_icon, NF_FA_WINDOWS);
             break;
           default:
-            strcat(transport_desc_text, "---");
+            strcat(span_0_text, "--");
             break;
         }
 #else
-        strcat(transport_desc_text, " " LV_SYMBOL_OK);
+        strcat(span_3_icon, NF_FA_CHECK);
 #endif  // CONFIG_ZMK_USB_HOST_OS
       } else {
-        strcat(transport_desc_text, " " LV_SYMBOL_CLOSE);
+        strcat(span_3_icon, NF_FA_CLOSE);
       }
       break;
     case ZMK_TRANSPORT_BLE:
-      strcat(transport_icon_text, LV_SYMBOL_WIFI);
-      snprintf(transport_desc_text, sizeof(transport_desc_text), "%i ",
-               state.selected_endpoint.ble.profile_index + 1);
       if (state.active_profile_bonded) {
         if (state.active_profile_connected) {
-          strcat(ble_status_text, LV_SYMBOL_OK);
+          strcat(span_1_icon, NF_FA_BLUETOOTH);
         } else {
-          strcat(ble_status_text, LV_SYMBOL_CLOSE);
+          strcat(span_1_icon, NF_MDI_BLUETOOTH_OFF);
         }
       } else {
-        strcat(ble_status_text, LV_SYMBOL_SETTINGS);
+        strcat(span_1_icon, NF_MDI_BLUETOOTH_SETTING);
       }
+      snprintf(span_2_text, sizeof(span_2_text), "%i",
+               state.selected_endpoint.ble.profile_index + 1);
       break;
   }
   lv_span_t *span = lv_spangroup_get_child(spangroup, 0);
-  lv_span_set_text(span, transport_icon_text);
+  lv_span_set_text(span, span_0_text);
 
   span = lv_spangroup_get_child(spangroup, 1);
-  lv_span_set_text(span, transport_desc_text);
+  lv_span_set_text(span, span_1_icon);
 
   span = lv_spangroup_get_child(spangroup, 2);
-  lv_span_set_text(span, ble_status_text);
+  lv_span_set_text(span, span_2_text);
+
+  span = lv_spangroup_get_child(spangroup, 3);
+  lv_span_set_text(span, span_3_icon);
 
   lv_spangroup_refr_mode(spangroup);
 }
@@ -129,15 +156,21 @@ ZMK_SUBSCRIPTION(widget_output_status, zmk_usb_host_os_changed);
 int zmk_widget_output_status_init(struct zmk_widget_output_status *widget, lv_obj_t *parent) {
   widget->obj = lv_spangroup_create(parent);
 
-  // transport icon
+  // span_0_text
   lv_span_t *span = lv_spangroup_new_span(widget->obj);
+  lv_style_set_text_font(&span->style, &pixel_mplus_bold_ascii_10);
 
-  // transport desc text
+  // span_1_icon
   span = lv_spangroup_new_span(widget->obj);
-  lv_style_set_text_font(&span->style, lv_theme_get_font_small(parent));
+  lv_style_set_text_font(&span->style, &cozetta_icons_13);
 
-  // ble status icon
+  // span_2_text
   span = lv_spangroup_new_span(widget->obj);
+  lv_style_set_text_font(&span->style, &pixel_mplus_bold_ascii_10);
+
+  // span_3_icon
+  span = lv_spangroup_new_span(widget->obj);
+  lv_style_set_text_font(&span->style, &cozetta_icons_13);
 
   sys_slist_append(&widgets, &widget->node);
 

@@ -343,6 +343,8 @@ setup() {
 
   _install_node_modules
 
+  _download_fonts
+
   _setup_zmk_studio
 }
 
@@ -427,8 +429,9 @@ studio_web() {
 
 
 _fedora_install_packages() {
+  # --no-best some copr repos doesn't support fc41 yet
+  sudo dnf update --no-best
   # https://docs.zephyrproject.org/3.5.0/develop/getting_started/index.html#select-and-update-os
-  sudo dnf update
   sudo dnf install -y wget git cmake gperf python3 dtc wget xz file \
        make gcc SDL2-devel file-libs \
        tio fd-find ripgrep fzf
@@ -573,6 +576,29 @@ _install_protoc() {
 _install_node_modules() {
   cd $PROJECT
   npm install
+}
+
+_download_fonts() {
+  cd $PROJECT
+  mkdir -p fonts
+  cd fonts
+  if [[ ! -d CozetteFonts ]]; then
+    wget https://github.com/slavfox/Cozette/releases/download/v.1.25.2/CozetteFonts-v-1-25-2.zip
+    unzip CozetteFonts-v-1-25-2.zip
+    rm -f CozetteFonts-v-1-25-2.zip
+  fi
+
+  if [[ ! -d fonts-DSEG_v046 ]]; then
+    wget https://github.com/keshikan/DSEG/releases/download/v0.46/fonts-DSEG_v046.zip
+    unzip fonts-DSEG_v046.zip
+    rm -f fonts-DSEG_v046.zip
+  fi
+
+  if [[ ! -d PixelMplus-20130602 ]]; then
+    wget https://github.com/itouhiro/PixelMplus/releases/download/v1.0.0/PixelMplus-20130602.zip
+    unzip PixelMplus-20130602.zip
+    rm -f PixelMplus-20130602.zip
+  fi
 }
 
 _setup_zmk_studio() {

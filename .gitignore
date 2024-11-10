@@ -7,6 +7,7 @@ secure_config.h
 
 /node_modules
 /logs
+/fonts
 
 .DS_Store
 *~
