@@ -1,0 +1,5 @@
+target_sources_ifdef(CONFIG_ZMK_WIDGET_BLE_STATUS_16X12 app PRIVATE ble_status_16x12.c)
+target_sources_ifdef(CONFIG_ZMK_WIDGET_USB_STATUS_16X12 app PRIVATE usb_status_16x12.c)
+target_sources_ifdef(CONFIG_ZMK_WIDGET_BATTERY_STATUS_32X12 app PRIVATE battery_status_32x12.c)
+target_sources_ifdef(CONFIG_ZMK_WIDGET_LAYER_STATUS_H15 app PRIVATE layer_status_h15.c)
+target_sources_ifdef(CONFIG_ZMK_WIDGET_PERIPHERAL_STATUS_36X12 app PRIVATE peripheral_status_36x12.c)

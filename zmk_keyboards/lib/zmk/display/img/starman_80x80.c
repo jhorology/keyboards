@@ -16,12 +16,12 @@
 #  define LV_ATTRIBUTE_MEM_ALIGN
 #endif
 
-#ifndef LV_ATTRIBUTE_IMG_CUSTOM_LOGO_80X80
-#  define LV_ATTRIBUTE_IMG_CUSTOM_LOGO_80X80
+#ifndef LV_ATTRIBUTE_IMG_STARMAN_80X80
+#  define LV_ATTRIBUTE_IMG_STARMAN_80X80
 #endif
 
-const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMG_CUSTOM_LOGO_80X80 uint8_t
-  custom_logo_80x80_map[] = {
+const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMG_STARMAN_80X80 uint8_t
+  starman_80x80_map[] = {
     0xff, 0xff, 0xff, 0xff, /*Color of index 0*/
     0x00, 0x00, 0x00, 0xfe, /*Color of index 1*/
 
@@ -77,12 +77,12 @@ const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMG_CUSTOM_LO
     0xff, 0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 };
 
-const lv_img_dsc_t custom_logo_80x80 = {
+const lv_img_dsc_t starman_80x80 = {
   .header.cf = LV_IMG_CF_INDEXED_1BIT,
   .header.always_zero = 0,
   .header.reserved = 0,
   .header.w = 80,
   .header.h = 80,
   .data_size = 808,
-  .data = custom_logo_80x80_map,
+  .data = starman_80x80_map,
 };

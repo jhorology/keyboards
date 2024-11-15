@@ -1,9 +1,20 @@
 diff --git a/app/src/endpoints.c b/app/src/endpoints.c
-index b17a664..27c2df2 100644
+index b17a664..f4b9af4 100644
 --- a/app/src/endpoints.c
 +++ b/app/src/endpoints.c
-@@ -282,6 +282,8 @@ static bool is_ble_ready(void) {
+@@ -265,6 +265,7 @@ SETTINGS_STATIC_HANDLER_DEFINE(endpoints, "endpoints", NULL, endpoints_handle_se
+ 
+ #endif /* IS_ENABLED(CONFIG_SETTINGS) */
+ 
++/*
+ static bool is_usb_ready(void) {
+ #if IS_ENABLED(CONFIG_ZMK_USB)
+     return zmk_usb_is_hid_ready();
+@@ -280,8 +281,11 @@ static bool is_ble_ready(void) {
+     return false;
+ #endif
  }
++*/
  
  static enum zmk_transport get_selected_transport(void) {
 +    return preferred_transport;
@@ -11,7 +22,7 @@ index b17a664..27c2df2 100644
      if (is_ble_ready()) {
          if (is_usb_ready()) {
              LOG_DBG("Both endpoint transports are ready. Using %d", preferred_transport);
-@@ -299,6 +301,7 @@ static enum zmk_transport get_selected_transport(void) {
+@@ -299,6 +303,7 @@ static enum zmk_transport get_selected_transport(void) {
  
      LOG_DBG("No endpoint transports are ready.");
      return DEFAULT_TRANSPORT;

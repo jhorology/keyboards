@@ -1,0 +1,2 @@
+target_sources_ifdef(CONFIG_ZMK_IMG_LOGO_40X40 app PRIVATE zmk_logo_40x40.c)
+target_sources_ifdef(CONFIG_ZMK_IMG_STARMAN_80X80 app PRIVATE starman_80x80.c)

@@ -1,0 +1,30 @@
+#------------------------------------------------------------------------------
+# PixelMplus font
+# https://github.com/itouhiro/PixelMplus
+#------------------------------------------------------------------------------
+config ZMK_FONT_PIXEL_MPLUS_10
+    bool "Enable pixel_mplus_10 font"
+
+config ZMK_FONT_PIXEL_MPLUS_12
+    bool "Enable pixel_mplus_12 font"
+
+config ZMK_FONT_PIXEL_MPLUS_BOLD_10
+    bool "Enable pixel_mplus_bold_10 font"
+
+config ZMK_FONT_PIXEL_MPLUS_BOLD_12
+    bool "Enable pixel_mplus_bold_12 font"
+
+#------------------------------------------------------------------------------
+# teko
+# https://github.com/googlefonts/teko
+# condensed, propotional
+#------------------------------------------------------------------------------
+config ZMK_FONT_TEKO_BOLD_15
+    bool "Enable teko_bold_15 font"
+
+#------------------------------------------------------------------------------
+# Cozetta 6x13 pixel font
+# https://github.com/slavfox/Cozette
+#------------------------------------------------------------------------------
+config ZMK_FONT_COZETTA_ICONS_13
+    bool "Enable cozeeta_icons_13 font for 13pix icons"

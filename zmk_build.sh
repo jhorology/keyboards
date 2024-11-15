@@ -599,6 +599,13 @@ _download_fonts() {
     unzip PixelMplus-20130602.zip
     rm -f PixelMplus-20130602.zip
   fi
+
+  if [[ -d teko ]]; then
+    cd teko
+    git pull
+  else
+    git clone --depth 1 https://github.com/googlefonts/teko.git
+  fi
 }
 
 _setup_zmk_studio() {

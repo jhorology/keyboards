@@ -1,4 +1,13 @@
 # Copyright (c) 2024 The ZMK Contributors
 # SPDX-License-Identifier: MIT
 
-rsource "80x128_mono/Kconfig"
+config ZMK_CUSTOM_KEYNOARD_LOGO
+    bool "Enable custom keyboard logo"
+
+config ZMK_WIDGET_ENDPOINT_INDICATOR
+    bool "Enable indicating selected endpoint"
+
+rsource "Kconfig.80x128_mono"
+rsource "widgets/Kconfig"
+rsource "fonts/Kconfig"
+rsource "img/Kconfig"

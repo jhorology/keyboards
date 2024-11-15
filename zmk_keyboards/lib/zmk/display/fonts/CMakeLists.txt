@@ -1,67 +1,104 @@
-if (CONFIG_ZMK_DISPLAY_STATUS_SCREEN_CUSTOM_80X128_MONO)
-  target_sources(app PRIVATE custom_status_screen.c)
-  target_sources_ifdef(CONFIG_ZMK_WIDGET_BATTERY_STATUS_80X128_MONO app PRIVATE custom_battery_status.c)
-  target_sources_ifdef(CONFIG_ZMK_WIDGET_OUTPUT_STATUS_80X128_MONO app PRIVATE custom_output_status.c)
-  target_sources_ifdef(CONFIG_ZMK_WIDGET_LAYER_STATUS_80X128_MONO app PRIVATE custom_layer_status.c)
-  target_sources_ifdef(CONFIG_ZMK_WIDGET_PERIPHERAL_STATUS_80X128_MONO app PRIVATE custom_peripheral_status.c)
 
-  if ((NOT CONFIG_ZMK_SPLIT) OR CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
-    target_sources(app PRIVATE zmk_logo_40x40.c)
-  endif()
+# TODO include only if any font is enabled
+include(${ZEPHYR_CURRENT_MODULE_DIR}/cmake/lv_font_conv.cmake NO_POLICY_SCOPE)
 
-  if (CONFIG_ZMK_SPLIT AND (NOT CONFIG_ZMK_SPLIT_ROLE_CENTRAL))
-    # custom logo image should be named "<keymap name>_80x80.png" and
-    # placed in same directory with .keymap file
-    set(custom_logo_file "${KEYMAP_FILE}")
-    cmake_path(REMOVE_EXTENSION custom_logo_file LAST_ONLY)
-    set(custom_logo_file "${custom_logo_file}_80x80.png")
-    if (EXISTS ${custom_logo_file})
-      message(STATUS "Custom logo image: ${custom_logo_file}")
-      include(${ZEPHYR_CURRENT_MODULE_DIR}/cmake/lv_img_conv.cmake NO_POLICY_SCOPE)
-      generate_lv_image_for_target(app ${custom_logo_file} custom_logo_80x80 CF_INDEXED_1_BIT)
-    else()
-      target_sources(app PRIVATE custom_logo_80x80.c)
-    endif()
-  endif()
+#------------------------------------------------------------------------------
+# PixelMplus font
+# https://github.com/itouhiro/PixelMplus
+#------------------------------------------------------------------------------
 
-  include(${ZEPHYR_CURRENT_MODULE_DIR}/cmake/lv_font_conv.cmake NO_POLICY_SCOPE)
-
-  #------------------------------------------------------------------------------
-  # PixelMplus font
-  # https://github.com/itouhiro/PixelMplus
-  #------------------------------------------------------------------------------
+if(CONFIG_ZMK_FONT_PIXEL_MPLUS_10)
+  # 5x10 mono
   generate_lv_font_for_target(
     app
-    ${ZEPHYR_BASE}/../fonts/PixelMplus-20130602/PixelMplus12-Bold.ttf
-    pixel_mplus_bold_ascii_12  # structure name
+    ${ZEPHYR_BASE}/../fonts/PixelMplus-20130602/PixelMplus10-Regular.ttf
+    pixel_mplus_10  # structure name
+    1                          # bpp
+    10                         # size
+    --autohint-off
+    --range 0x20-0x7f          # only ascii glyph
+    --range 0x30A0-0x30ff      # full-width Katakana
+  )
+endif()
+
+if(CONFIG_ZMK_FONT_PIXEL_MPLUS_12)
+  # 6x12 mono
+  generate_lv_font_for_target(
+    app
+    ${ZEPHYR_BASE}/../fonts/PixelMplus-20130602/PixelMplus12-Regular.ttf
+    pixel_mplus_12        # structure name
     1                          # bpp
     12                         # size
-    --range 0x20-0x7f          # only ascii glyph
+    --autohint-off
+    --range 0x20-0x7f          # ascii
   )
+endif()
+
+if(CONFIG_ZMK_FONT_PIXEL_MPLUS_BOLD_10)
+  # 5x10 mono
   generate_lv_font_for_target(
     app
     ${ZEPHYR_BASE}/../fonts/PixelMplus-20130602/PixelMplus10-Bold.ttf
-    pixel_mplus_bold_ascii_10  # structure name
+    pixel_mplus_bold_10  # structure name
     1                          # bpp
     10                         # size
+    --autohint-off
     --range 0x20-0x7f          # only ascii glyph
   )
+endif()
 
-  #------------------------------------------------------------------------------
-  # Cozetta 6x13 pixel font
-  # https://github.com/slavfox/Cozette
-  #
-  # TODO delete unnecessary icons
-  #
-  # *use nerd-font to see correct icons
-  #------------------------------------------------------------------------------
+if(CONFIG_ZMK_FONT_PIXEL_MPLUS_BOLD_12)
+  # 6x12 mono
+  generate_lv_font_for_target(
+    app
+    ${ZEPHYR_BASE}/../fonts/PixelMplus-20130602/PixelMplus12-Bold.ttf
+    pixel_mplus_bold_12        # structure name
+    1                          # bpp
+    12                         # size
+    --autohint-off
+    --range 0x20-0x7f          # ascii
+  )
+endif()
+
+#------------------------------------------------------------------------------
+# teko
+# https://github.com/googlefonts/teko
+# condensed, propotional
+#------------------------------------------------------------------------------
+if(CONFIG_ZMK_FONT_TEKO_BOLD_15)
+  generate_lv_font_for_target(
+    app
+    ${ZEPHYR_BASE}/../fonts/teko/fonts/ttf/Teko-SemiBold.ttf
+    teko_bold_15               # structure name
+    1                          # bpp
+    15                         # size
+    # --autohint-off
+    --range 0x20-0x7f          # only ascii glyph
+  )
+endif()
+
+#------------------------------------------------------------------------------
+# Cozetta 6x13 pixel font
+# https://github.com/slavfox/Cozette
+#
+# TODO delete unnecessary icons
+# TODO search pixel perfect icons in a little bigger size
+#
+# *use nerd-font to see correct icons
+#------------------------------------------------------------------------------
+if(CONFIG_ZMK_FONT_COZETTA_ICONS_13)
   generate_lv_font_for_target(
     app
     ${ZEPHYR_BASE}/../fonts/CozetteFonts/CozetteVector.ttf
     cozetta_icons_13           # structure name
     1                          # bpp
     13                         # size (cozzeta is 6x13 pixel font)
+
+    # space
     --range 0x20
+
+    # vertical bar |
+    --range 0x7c
 
     # 0x023fb ⏻ nf-iec-power
     # 0x023fc ⏼ nf-iec-toggle_power
