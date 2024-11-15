@@ -10,8 +10,8 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@swc/core": "^1.9.1",
-    "@swc/wasm": "^1.9.1",
+    "@swc/core": "^1.9.2",
+    "@swc/wasm": "^1.9.2",
     "@the-via/reader": "^1.9.0",
     "eslint": "^9.14.0",
     "eslint-config": "^0.3.0",
