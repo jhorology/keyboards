@@ -11,7 +11,18 @@ HOST_OS=$(uname)
 HOST_ARCHITECTURE=$(uname -m)
 [[ $HOST_OS = macos ]] && [[ $HOST_ARCHITECTURE = arm64 ]] && HOST_ARCHITECTURE=aarch64
 ZEPHYR_VERSION=3.5.0
-ZEPHYR_SDK_VERSION=0.16.8
+ZEPHYR_SDK_VERSION=0.16.9
+
+# failed to build on error with 17.0
+# ..../.local/zephyr-sdk-0.17.0/arm-zephyr-eabi/picolibc/include/sys/_stdint.h:14:13: error: expected ';' before 'typedef'
+# 14 | _BEGIN_STD_C
+#         |             ^
+#         |             ;
+#         ......
+#         18 | typedef __int8_t int8_t ;
+#         | ~~~~~~~
+#         c
+# ZEPHYR_SDK_VERSION=0.17.0
 
 # it is recommended to extract the Zephyr SDK bundle at one of the following default locations:
 #
