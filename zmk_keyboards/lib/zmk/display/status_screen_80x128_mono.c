@@ -66,7 +66,7 @@ static inline lv_obj_t *split_left_status_bar(lv_obj_t *parent) {
   lv_obj_set_flex_grow(placeholder, 1);
 
 #  if IS_ENABLED(CONFIG_ZMK_WIDGET_BATTERY_STATUS_32X12)
-  zmk_lv_battery_status_create(container, container_default, LV_ALIGN_OUT_RIGHT_TOP);
+  zmk_lv_battery_status_create(container, container_default, LV_ALIGN_TOP_RIGHT);
 #  endif
 
   return container;
