@@ -36,6 +36,8 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define WIDTH 16
 #define HEIGHT 12
 
+enum icon { ICON_OPEN, ICON_CLOSE, ICON_SETTING };
+
 struct ble_status_state {
   struct zmk_endpoint_instance selected_endpoint;
   bool active_profile_connected;
@@ -46,6 +48,7 @@ LV_FONT_DECLARE(pixel_mplus_bold_10);
 LV_FONT_DECLARE(cozetta_icons_13);
 
 static struct zmk_lv_ble_status_user_data user_data;
+static bool initialized;
 
 static struct ble_status_state get_state(const zmk_event_t *eh) {
   return (struct ble_status_state){
@@ -56,22 +59,44 @@ static struct ble_status_state get_state(const zmk_event_t *eh) {
 
 static void ble_status_update_cb(struct ble_status_state state) {
 #if IS_ENABLED(CONFIG_ZMK_WIDGET_ENDPOINT_INDICATOR)
-  bool is_endpoint_ble = state.selected_endpoint.transport == ZMK_TRANSPORT_BLE;
-  lv_obj_t *container = lv_obj_get_parent(user_data.icon_label);
-
-  lv_obj_set_style_bg_color(container, is_endpoint_ble ? lv_color_black() : lv_color_white(),
-                            LV_PART_MAIN);
-  lv_obj_set_style_text_color(container, is_endpoint_ble ? lv_color_white() : lv_color_black(),
+  static bool is_ble;
+  bool new_is_ble = state.selected_endpoint.transport == ZMK_TRANSPORT_BLE;
+  if (initialized || new_is_ble != is_ble) {
+    is_ble = new_is_ble;
+    lv_obj_t *container = lv_obj_get_parent(user_data.icon_label);
+    lv_obj_set_style_bg_color(container, is_ble ? lv_color_black() : lv_color_white(),
                               LV_PART_MAIN);
+    lv_obj_set_style_text_color(container, is_ble ? lv_color_white() : lv_color_black(),
+                                LV_PART_MAIN);
+  }
 #endif
 
-  if (state.active_profile_bonded) {
-    lv_label_set_text(user_data.icon_label,
-                      state.active_profile_connected ? NF_FA_BLUETOOTH : NF_MDI_BLUETOOTH_OFF);
-  } else {
-    lv_label_set_text(user_data.icon_label, NF_MDI_BLUETOOTH_SETTING);
+  static enum icon icon;
+  enum icon new_icon = !state.active_profile_bonded     ? ICON_SETTING
+                       : state.active_profile_connected ? ICON_OPEN
+                                                        : ICON_CLOSE;
+  if (initialized || new_icon != icon) {
+    icon = new_icon;
+    switch (icon) {
+      case ICON_OPEN:
+        lv_label_set_text(user_data.icon_label, NF_FA_BLUETOOTH);
+        break;
+      case ICON_CLOSE:
+        lv_label_set_text(user_data.icon_label, NF_MDI_BLUETOOTH_OFF);
+        break;
+      case ICON_SETTING:
+        lv_label_set_text(user_data.icon_label, NF_MDI_BLUETOOTH_SETTING);
+        break;
+    }
   }
-  lv_label_set_text_fmt(user_data.index_label, "%i", state.selected_endpoint.ble.profile_index + 1);
+
+  static uint8_t index;
+  uint8_t new_index = state.selected_endpoint.ble.profile_index;
+  if (initialized || new_index != index) {
+    index = new_index;
+    lv_label_set_text_fmt(user_data.index_label, "%i", index + 1);
+  }
+  if (initialized) initialized = false;
 }
 
 ZMK_DISPLAY_WIDGET_LISTENER(widget_ble_status, struct ble_status_state, ble_status_update_cb,
@@ -105,5 +130,6 @@ lv_obj_t *zmk_lv_ble_status_create(lv_obj_t *parent, lv_obj_t *(*container_defau
 
   widget_ble_status_init();
 
+  initialized = true;
   return container;
 }
