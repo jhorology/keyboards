@@ -36,19 +36,15 @@ properties:
       If connected directly the MCU pin should be configured
       as active low.
 
-  power-saving:
-    type: int
-    default: 3
+  power-off-on-write:
+    type: boolean
     description: |
-      Power-saving Mode
+      Request power-off(POF) command on display_write()
 
-      0: none
-      1: POF (power-off) on blanking_on()
-      2: POF (power-off) on blanking_on() and write()
-      3: POF (power-off) on anking_on() and write()
-         DSLP (deep sleep) on blanking_on()
-      3: POF (power-off) on blanking_on() and write()
-         DSLP (deep sleep) on blanking_on() and write()
+  deep-sleep-on-blanking:
+    type: boolean
+    description: |
+      Request deep-sleep(DSLP) command on display_blanking_on()
 
   blanking:
     type: int
@@ -65,7 +61,7 @@ properties:
     type: int
     default: 1
     description: |
-      Blanking Mode
+      Blanking Mode on suspend
 
       0: Keep display content
       1: White (1-indexed color)

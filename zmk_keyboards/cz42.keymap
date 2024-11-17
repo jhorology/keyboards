@@ -208,17 +208,16 @@
   // for debugging
 
   /*
-   * power_saving mode
-   *
-   *   0: none
-   *   1: POF (power-off) on blanking_on()
-   *   2: POF (power-off) on blanking_on() and write()
-   *   3: POF (power-off) on blanking_on() and write()
-   *      DSLP (deep sleep) on blanking_on()
-   *   4: POF (power-off) on blanking_on() and write()
-   *      DSLP (deep sleep) on blanking_on() and write()
+   *  Request power-off(POF) command on display_wrote()
    */
-  power-saving = <3>;
+  // power-off-on-write;
+  /delete-property/ power-off-on-write;
+
+  /*
+   *  Request deep-sleep(DSLP) command on display_blanking_on()
+   */
+  // deep-sleep-on-blanking;
+  // /delete-property/ deep-sleep-on-blanking;
 
   /*
    *  Blanking mode
@@ -230,7 +229,7 @@
   blanking = <3>;
 
   /*
-   *  Blanking mode
+   *  Blanking mode on suspend
    *   0: keep content
    *   1: white (backgroun color)
    *   2: black (foreground color)
@@ -238,6 +237,7 @@
    */
   blanking-on-suspend = <1>;
 
+  /* full-screen refresh on blanking and suspend */
   anti-ghosting;
 
   /*

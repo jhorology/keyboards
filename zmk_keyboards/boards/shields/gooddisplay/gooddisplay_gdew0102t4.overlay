@@ -26,7 +26,6 @@
      *
      * To invert screen, swap lutw and lutb or modify cdi
      *
-     * power-saving = <3>;        // 0:4
      * blanking = <3>;            // 0: Keep content 1: White 2: Black 3: Invert
      * blanking_on_suspend = <1>; // 0: Keep content 1: White 2: Black 3: Invert
      * psr = <0x6f>;
@@ -41,6 +40,17 @@
      * lutw = [ 60 01 01 00 00 01 80 0f 00 00 00 01 ];
      * lutb = [ 90 01 01 00 00 01 40 0f 00 00 00 01 ];
      */
+
+    /*
+     * Request power-off(POF) command on evry display_write()
+     */
+    power-off-on-write;
+
+
+    /*
+     *  Request deep-sleep(DSLP) command on display_blanking_on()
+     */
+    deep-sleep-on-blanking;
 
     /* full black/white refresh twice on blanking */
     anti-ghosting;
