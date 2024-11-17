@@ -48,7 +48,7 @@
 
 
     /*
-     *  Request deep-sleep(DSLP) command on display_blanking_on()
+     * Request deep-sleep(DSLP) command on display_blanking_on()
      */
     deep-sleep-on-blanking;
 

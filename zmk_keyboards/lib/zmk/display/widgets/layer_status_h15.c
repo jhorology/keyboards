@@ -27,6 +27,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define HEIGHT 15
 
 LV_FONT_DECLARE(teko_bold_15);
+LV_FONT_DECLARE(pixel_mplus_bold_10);
 
 struct layer_status_state {
   zmk_keymap_layer_index_t index;
@@ -59,18 +60,19 @@ lv_obj_t *zmk_lv_layer_status_create(lv_obj_t *parent, lv_obj_t *(*container_def
   lv_obj_set_size(container, width, HEIGHT);
   lv_obj_set_flex_flow(container, LV_FLEX_FLOW_ROW);
   lv_obj_set_style_pad_gap(container, 1, LV_PART_MAIN);
-  ALIGN_FLEX_FLOW_ROW_COMPOSITE_WIDGET(container, align, LV_FLEX_ALIGN_END);
+  ALIGN_FLEX_FLOW_ROW_COMPOSITE_WIDGET(container, align, LV_FLEX_ALIGN_CENTER);
 
   lv_obj_set_style_pad_gap(container, 2, LV_PART_MAIN);
 
   lv_obj_t *index_label = lv_label_create(container);
-  lv_obj_set_width(index_label, 13);
+  lv_obj_set_size(index_label, 11, 13);
 
   lv_obj_set_style_bg_opa(index_label, LV_OPA_COVER, LV_PART_MAIN);
   lv_obj_set_style_bg_color(index_label, lv_color_black(), LV_PART_MAIN);
-  lv_obj_set_style_text_font(index_label, &teko_bold_15, LV_PART_MAIN);
+  lv_obj_set_style_text_font(index_label, &pixel_mplus_bold_10, LV_PART_MAIN);
   lv_obj_set_style_text_color(index_label, lv_color_white(), LV_PART_MAIN);
   lv_obj_set_style_text_align(index_label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
+  lv_obj_set_style_pad_top(index_label, 2, LV_PART_MAIN);
   lv_obj_set_style_radius(index_label, 2, LV_PART_MAIN);
 
   lv_obj_t *name_label = lv_label_create(container);

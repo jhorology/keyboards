@@ -36,8 +36,10 @@ LV_FONT_DECLARE(pixel_mplus_bold_10);
 #if !IS_ENABLED(CONFIG_ZMK_SPLIT) || IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
 
 LV_IMG_DECLARE(zmk_logo_40x40);
-LV_FONT_DECLARE(teko_bold_15);
+#  if IS_ENABLED(CONFIG_ZMK_WIDGET_BLE_STATUS_16X12) && \
+    IS_ENABLED(CONFIG_ZMK_WIDGET_USB_STATUS_16X12)
 LV_FONT_DECLARE(cozetta_icons_13);
+#  endif
 
 static inline lv_obj_t *split_left_status_bar(lv_obj_t *parent) {
   lv_obj_t *container = container_default(parent);
@@ -106,7 +108,7 @@ static inline lv_obj_t *split_left_body(lv_obj_t *parent) {
   // product logo
 
   lv_obj_t *zmk_desc = lv_label_create(container);
-  lv_obj_set_style_text_font(zmk_desc, &teko_bold_15, 0);
+  lv_obj_set_style_text_font(zmk_desc, &pixel_mplus_bold_10, 0);
   lv_label_set_text_static(zmk_desc, "Powered By");
 
   lv_obj_t *zmk_logo = lv_img_create(container);

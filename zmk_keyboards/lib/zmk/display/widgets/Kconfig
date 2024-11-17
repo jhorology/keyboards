@@ -24,6 +24,7 @@ config ZMK_WIDGET_BATTERY_STATUS_32X12
 config ZMK_WIDGET_LAYER_STATUS_H15
     bool "Widget for layer status"
     depends on !ZMK_SPLIT || ZMK_SPLIT_ROLE_CENTRAL
+    select ZMK_FONT_PIXEL_MPLUS_BOLD_10
     select ZMK_FONT_TEKO_BOLD_15
     select LV_USE_FLEX
     select LV_USE_LABEL

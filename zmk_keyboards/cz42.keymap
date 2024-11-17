@@ -208,15 +208,15 @@
   // for debugging
 
   /*
-   *  Request power-off(POF) command on display_wrote()
+   *  Request power-off(POF) command on display_write()
    */
-  // power-off-on-write;
-  /delete-property/ power-off-on-write;
+  power-off-on-write;
+  // /delete-property/ power-off-on-write;
 
   /*
    *  Request deep-sleep(DSLP) command on display_blanking_on()
    */
-  // deep-sleep-on-blanking;
+  deep-sleep-on-blanking;
   // /delete-property/ deep-sleep-on-blanking;
 
   /*
