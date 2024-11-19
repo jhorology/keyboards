@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: MIT
  */
 
+#define POWER_SAVE
+
 &spi_gooddisplay {
   status = "okay";
   gooddisplay_gdew0102t4: uc8175@0 {
@@ -41,18 +43,24 @@
      * lutb = [ 90 01 01 00 00 01 40 0f 00 00 00 01 ];
      */
 
-    /*
-     * Request power-off(POF) command on evry display_write()
-     */
-    // power-off-on-write;
+    /* power-saving set */
 
     /*
-     * Request deep-sleep(DSLP) command on display_blanking_on()
-     */
+    power-off-on-write;
     deep-sleep-on-blanking;
-
-    /* full black/white refresh twice on blanking */
     anti-ghosting;
+    */
+
+
+    /* performace set */
+
+    /* 90Hz */
+    pll = <35>;
+    /* forcing full-screen refresh */
+    full-screen-refresh;
+    /* 90Hz + Black without anti-ghosting = black half dimming */
+    blanking=<2>;
+    pwr = [03 00 2b 2b];
   };
 };
 

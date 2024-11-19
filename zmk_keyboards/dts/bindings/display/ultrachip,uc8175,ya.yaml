@@ -68,6 +68,11 @@ properties:
       2: Black (0-indexed color)
       3: Invert
 
+  full-screen-refresh:
+    type: boolean
+    description: |
+      forcing full-screen refresh
+
   anti-ghosting:
     type: boolean
     description: |

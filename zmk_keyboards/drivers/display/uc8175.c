@@ -35,6 +35,8 @@ LOG_MODULE_REGISTER(uc8175, CONFIG_DISPLAY_LOG_LEVEL);
 // #define PM_DEVICE_BUSY_CLEAR(dev) pm_device_busy_clear(dev)
 #define PM_DEVICE_BUSY_SET(dev)
 #define PM_DEVICE_BUSY_CLEAR(dev)
+/* anti_ghosting() PLL clock 11 = 30Hz */
+#define ANTI_GHOSTING_PLL 11U
 
 /*
  * Blanking mode
@@ -63,6 +65,7 @@ struct uc8175_config {
   enum blanking blanking;
   enum blanking blanking_on_suspend;
 
+  bool full_screen_refresh;
   bool anti_ghosting;
 
   uint8_t psr;
@@ -365,6 +368,7 @@ static int _anti_ghosting(const struct device *dev, enum blanking blanking) {
     }
     _busy_wait(dev, true);
   }
+
   return 0;
 }
 
@@ -522,6 +526,11 @@ static int _suspend(const struct device *dev) {
     }
   }
 
+  err = _write_cmd_uint8_data(dev, UC8175_CMD_PLL, ANTI_GHOSTING_PLL);
+  if (err < 0) {
+    return err;
+  }
+
   // anti ghosting
   if (config->anti_ghosting) {
     err = _anti_ghosting(dev, config->blanking_on_suspend);
@@ -626,12 +635,12 @@ static int uc8175_write(const struct device *dev, const uint16_t x, const uint16
   }
 
   // if PLL is higer value, maybe better than anti-ghosting optioon
-  /*
+  if (config->full_screen_refresh) {
     err = _window_full(dev);
     if (err < 0) {
       return err;
     }
-  */
+  }
 
   if (config->pof_on_write) {
     err = _write_cmd_uint8_data(dev, UC8175_CMD_AUTO, UC8175_AUTO_POF);
@@ -770,6 +779,10 @@ static int uc8175_blanking_on(const struct device *dev) {
 
   // anti ghosting
   if (config->anti_ghosting) {
+    err = _write_cmd_uint8_data(dev, UC8175_CMD_PLL, ANTI_GHOSTING_PLL);
+    if (err < 0) {
+      return err;
+    }
     err = _anti_ghosting(dev, config->blanking);
     if (err < 0) {
       return err;
@@ -790,6 +803,14 @@ static int uc8175_blanking_on(const struct device *dev) {
                               config->dslp_on_blanking ? UC8175_AUTO_DSLP : UC8175_AUTO_POF);
   if (err < 0) {
     return err;
+  }
+
+  // restore PLL
+  if (config->anti_ghosting && !config->dslp_on_blanking) {
+    err = _write_cmd_uint8_data(dev, UC8175_CMD_PLL, config->pll);
+    if (err < 0) {
+      return err;
+    }
   }
 
   if (config->dslp_on_blanking) {
@@ -1192,6 +1213,7 @@ static const struct display_driver_api uc8175_display_api = {
     .dslp_on_blanking = DT_INST_PROP(n, deep_sleep_on_blanking),                           \
     .blanking = DT_INST_PROP(n, blanking),                                                 \
     .blanking_on_suspend = DT_INST_PROP(n, blanking_on_suspend),                           \
+    .full_screen_refresh = DT_INST_PROP(n, full_screen_refresh),                           \
     .anti_ghosting = DT_INST_PROP(n, anti_ghosting),                                       \
     .psr = DT_INST_PROP(n, psr),                                                           \
     .pwr = DT_INST_PROP(n, pwr),                                                           \
