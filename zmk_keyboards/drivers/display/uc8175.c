@@ -136,15 +136,17 @@ static int _write_cmd_data(const struct device *dev, uint8_t cmd, void *data, si
 
   LOG_DBG("Succeed to write cmd: 0x%02x: data length: %d", cmd, len);
 
-  if (data != NULL && len > 0) {
-    buf.buf = data;
-    buf.len = len;
-
+  if ((data != NULL && len > 0) || fill_len > 0) {
     err = gpio_pin_set_dt(&config->dc, 0);
     if (err < 0) {
       LOG_ERR("Failed to set DC GPIO to data mode. cmd: %02x err: %d", cmd, err);
       goto spi_out;
     }
+  }
+
+  if (data != NULL && len > 0) {
+    buf.buf = data;
+    buf.len = len;
 
     err = spi_write_dt(&config->spi, &buf_set);
     if (err < 0) {
@@ -241,13 +243,6 @@ static inline int _window(const struct device *dev, uint16_t x0, uint16_t x1, ui
   }
 
   return 0;
-}
-
-static inline int _window_partial(const struct device *dev, uint16_t x0, uint16_t x1, uint16_t y0,
-                                  uint16_t y1) {
-  //  const struct uc8175_config *config = dev->config;
-  // return _window(dev, x0, x1, y0, y1, !IS_XOR_REFRESH(config));
-  return _window(dev, x0, x1, y0, y1, false);
 }
 
 static int _window_full(const struct device *dev) {
@@ -352,16 +347,17 @@ static int _anti_ghosting(const struct device *dev, enum blanking blanking) {
   int err;
 
   for (int i = 0; i < 2; i++) {
-    err = _window_full(dev);
-    if (err < 0) {
-      return err;
-    }
-
     err = _override_cdi_lut(dev, is_black ? BLANKING_BLACK : BLANKING_WHITE);
     if (err < 0) {
       return err;
     }
+
     is_black = !is_black;
+
+    err = _window_full(dev);
+    if (err < 0) {
+      return err;
+    }
 
     err = _write_cmd_uint8_data(dev, UC8175_CMD_AUTO, UC8175_AUTO_POF);
     if (err < 0) {
@@ -381,17 +377,19 @@ static inline int _clear_frame_buffer(const struct device *dev) {
   if (err < 0) {
     return err;
   }
-
-  err = _write_cmd_fill_data(dev, UC8175_CMD_DTM1, 0xff, buf_len);
+  err = _write_cmd_fill_data(dev, UC8175_CMD_DTM1, 0x0, buf_len);
   if (err < 0) {
     return err;
   }
 
+  err = _window_full(dev);
+  if (err < 0) {
+    return err;
+  }
   err = _write_cmd_fill_data(dev, UC8175_CMD_DTM2, 0xff, buf_len);
   if (err < 0) {
     return err;
   }
-
   return 0;
 }
 
@@ -405,11 +403,12 @@ static int _wake(const struct device *dev) {
 
   _reset(dev);
 
-  // unknown cmd 0xd2
+  /*
   err = _write_cmd_uint8_data(dev, 0xd2, 0x3f);
   if (err < 0) {
     return err;
   }
+   */
 
   // PSR Panerl Setting
   err = _write_cmd_uint8_data(dev, UC8175_CMD_PSR, config->psr);
@@ -478,7 +477,6 @@ static int _wake(const struct device *dev) {
     _clear_frame_buffer(dev);
     data->initialized = true;
   }
-
   data->sleep = false;
 
   LOG_DBG("end");
@@ -515,25 +513,7 @@ static int _suspend(const struct device *dev) {
   struct uc8175_data *data = dev->data;
   int err;
 
-  if (data->sleep && config->blanking_on_suspend == KEEP_CONTENT && !config->anti_ghosting) {
-    return 0;
-  }
-
   _busy_wait(dev, false);
-
-  if (config->blanking_on_suspend == KEEP_CONTENT && !config->anti_ghosting) {
-    err = _power_off(dev);
-    if (err < 0) {
-      return err;
-    }
-    _busy_wait(dev, true);
-
-    err = _sleep(dev);
-    if (err < 0) {
-      return err;
-    }
-    return 0;
-  }
 
   if (data->sleep) {
     err = _wake(dev);
@@ -550,21 +530,31 @@ static int _suspend(const struct device *dev) {
     }
   }
 
-  err = _window_full(dev);
-  if (err < 0) {
-    return err;
-  }
-
   err = _override_cdi_lut(dev, config->blanking_on_suspend);
   if (err < 0) {
     return err;
   }
 
-  err = _write_cmd_uint8_data(dev, UC8175_CMD_AUTO, UC8175_AUTO_DSLP);
+  err = _window_full(dev);
   if (err < 0) {
     return err;
   }
-  data->sleep = true;
+
+  err = _write_cmd_uint8_data(dev, UC8175_CMD_AUTO, UC8175_AUTO_POF);
+  if (err < 0) {
+    return err;
+  }
+
+  // Soft reset & CHarge pump OFF
+  _busy_wait(dev, true);
+  err = _write_cmd_uint8_data(dev, UC8175_CMD_PSR, config->psr & 0xfc);
+  if (err < 0) {
+    return err;
+  }
+  err = _sleep(dev);
+  if (err < 0) {
+    return err;
+  }
   data->blanking_on = true;
 
   return 0;
@@ -615,12 +605,12 @@ static int uc8175_write(const struct device *dev, const uint16_t x, const uint16
   }
 
   // NEW data
-  err = _window_partial(dev, x, x + desc->width - 1, y, y + desc->height - 1);
+  err = _window(dev, x, x + desc->width - 1, y, y + desc->height - 1, false);
   if (err < 0) {
     return err;
   }
 
-  err = _write_cmd_block_data(dev, UC8175_CMD_DTM2, (void *)buf, buf_len);
+  _write_cmd_block_data(dev, UC8175_CMD_DTM2, (void *)buf, buf_len);
   if (err < 0) {
     return err;
   }
@@ -635,25 +625,29 @@ static int uc8175_write(const struct device *dev, const uint16_t x, const uint16
     return 0;
   }
 
-  if (IS_XOR_REFRESH(config)) {
-    err = _restore_cdi_lut(dev);
+  // if PLL is higer value, maybe better than anti-ghosting optioon
+  /*
+    err = _window_full(dev);
     if (err < 0) {
       return err;
     }
+  */
 
-    if (config->pof_on_write) {
-      err = _write_cmd_uint8_data(dev, UC8175_CMD_AUTO, UC8175_AUTO_POF);
-    } else {
-      err = _write_cmd(dev, UC8175_CMD_DRF);
-    }
-    if (err < 0) {
-      return err;
-    }
+  if (config->pof_on_write) {
+    err = _write_cmd_uint8_data(dev, UC8175_CMD_AUTO, UC8175_AUTO_POF);
+  } else {
+    err = _write_cmd(dev, UC8175_CMD_DRF);
+  }
+  if (err < 0) {
+    return err;
+  }
+
+  /*
+  if (IS_XOR_REFRESH(config)) {
+    // OLD data
     _busy_wait(dev, true);
 
-    // OLD data
-
-    err = _window_partial(dev, x, x + desc->width - 1, y, y + desc->height - 1);
+    err = _window(dev, x, x + desc->width - 1, y, y + desc->height - 1, false);
     if (err < 0) {
       return err;
     }
@@ -662,13 +656,8 @@ static int uc8175_write(const struct device *dev, const uint16_t x, const uint16
     if (err < 0) {
       return err;
     }
-  } else {
-    if (config->pof_on_write) {
-      err = _write_cmd_uint8_data(dev, UC8175_CMD_AUTO, UC8175_AUTO_POF);
-    } else {
-      err = _write_cmd(dev, UC8175_CMD_DRF);
-    }
   }
+  */
 
   LOG_DBG("end");
 
@@ -787,12 +776,12 @@ static int uc8175_blanking_on(const struct device *dev) {
     }
   }
 
-  err = _window_full(dev);
+  err = _override_cdi_lut(dev, config->blanking);
   if (err < 0) {
     return err;
   }
 
-  err = _override_cdi_lut(dev, config->blanking);
+  err = _window_full(dev);
   if (err < 0) {
     return err;
   }
@@ -877,28 +866,34 @@ static int uc8175_blanking_off(const struct device *dev) {
     _busy_wait(dev, false);
   }
 
+  err = _override_cdi_lut(dev, KEEP_CONTENT);
+  if (err < 0) {
+    return err;
+  }
+
   err = _window_full(dev);
   if (err < 0) {
     return err;
   }
 
+  err = _write_cmd_uint8_data(dev, UC8175_CMD_AUTO, UC8175_AUTO_POF);
+  if (err < 0) {
+    return err;
+  }
+
+  if (!config->pof_on_write) {
+    err = _power_on(dev);
+    if (err < 0) {
+      return err;
+    }
+  }
+
+  _busy_wait(dev, true);
   err = _restore_cdi_lut(dev);
   if (err < 0) {
     return err;
   }
 
-  if (config->pof_on_write) {
-    err = _write_cmd_uint8_data(dev, UC8175_CMD_AUTO, UC8175_AUTO_POF);
-  } else {
-    err = _power_on(dev);
-    if (err < 0) {
-      return err;
-    }
-    err = _write_cmd(dev, UC8175_CMD_DRF);
-    if (err < 0) {
-      return err;
-    }
-  }
   data->blanking_on = false;
 
   LOG_DBG("end");
@@ -987,7 +982,7 @@ static void uc8175_get_capabilities(const struct device *dev, struct display_cap
   caps->current_pixel_format = PIXEL_FORMAT_MONO10;
   // ignore SCREEN_INFO_EPD I don't like LVGL behaivior for EPD
   // caps->screen_info = SCREEN_INFO_MONO_MSB_FIRST | SCREEN_INFO_EPD;
-  caps->screen_info = SCREEN_INFO_MONO_MSB_FIRST | (config->anti_ghosting ? 0 : SCREEN_INFO_EPD);
+  caps->screen_info = SCREEN_INFO_MONO_MSB_FIRST;
 }
 
 /**

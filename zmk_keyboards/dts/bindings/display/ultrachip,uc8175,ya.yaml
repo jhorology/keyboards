@@ -108,8 +108,7 @@ properties:
 
   pwr:
     type: uint8-array
-    default: [0x03, 0x00, 0x2b, 0x2b]
-    # default: [0x03, 0x00, 0x26, 0x26]
+    default: [0x03, 0x00, 0x26, 0x26]
     description: |
       Power Setting (PWR) values
 
@@ -171,13 +170,13 @@ properties:
 
   pll:
     type: int
-    default: 19
+    default: 17  # 11:30Hz  17:45Hz  19:50Hz  23:60Hz  35:90Hz 39:100Hz
     description: |
-      Clock frequency
+      Clock fre,quency
 
         [5:0] clock frequency
           Range 0...39 (2.5Hz ... 100Hz)
-          2.5Hz + 2.5Hz * n (Default n=19 50Hz)
+          2.5Hz + 2.5Hz * n (Default n=17 45Hz)
 
   cdi:
     type: int

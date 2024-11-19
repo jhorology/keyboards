@@ -71,6 +71,6 @@
 /* Time constants in ms */
 #define UC8175_RESET_DELAY 1U
 #define UC8175_PON_DELAY 80U
-#define UC8175_BUSY_DELAY 200U
+#define UC8175_BUSY_DELAY 300U
 
 #endif /* ZEPHYR_DRIVERS_DISPLAY_UC8175_REGS_H_ */

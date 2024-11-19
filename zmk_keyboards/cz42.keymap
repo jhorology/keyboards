@@ -210,8 +210,8 @@
   /*
    *  Request power-off(POF) command on display_write()
    */
-  power-off-on-write;
-  // /delete-property/ power-off-on-write;
+  // power-off-on-write;
+  /delete-property/ power-off-on-write;
 
   /*
    *  Request deep-sleep(DSLP) command on display_blanking_on()
@@ -241,15 +241,6 @@
   anti-ghosting;
 
   /*
-   * CDI = 0x92 0b10010010
-   * [7:6] VBD  Border        10b border color 1, depends on DDX[0]
-   * [5] DDX[1] XOR Refresh    0  refresh all pixel
-   * [4] DDX[0] Data Polarity  1  black on white 0=LUTB on 1=LUTW
-   * [2:0] CDI   2  5hsync
-   */
-  //  cdi = <0x92>;
-
-  /*
    * CDI = 0x52 0b01010010
    * [7:6] VBD  Border        01b border colo is 0, depends on DDX[0]
    * [5] DDX[1] XOR Refresh    0  refresh all pixel
@@ -259,6 +250,8 @@
   cdi = <0x52>;
 
   /*
+   * TODO diferential refresh
+   *
    * CDI = 0x72 0b01110010
    * [7:6] VBD  Border        01b border colo is 0, depends on DDX[0]
    * [5] DDX[1] XOR Refresh    1  refresh only OLD^NEW changed pixel
@@ -266,40 +259,4 @@
    * [2:0] CDI   2  5hsync
    */
   // cdi = <0x72>;
-
-  /*
-   * CDI = 0x82 0b10000010
-   * [7:6] VBD  Border        10b border color 1, depends on DDX[0]
-   * [5] DDX[1] XOR Refresh    0  refresh all pixel
-   * [4] DDX[0] Data Polarity  0  white on black 0=LUTW on 1=LUTB
-   * [2:0] CDI   2  5hsync
-   */
-  // cdi = <0x82>;
-
-  /*
-   * CDI = 0xb2 0b10110010
-   * [7:6] VBD  Border       10b border color 1, depends on DDX[0]
-   * [5] DDX[1] XOR Refresh   1  refresh only OLD^NEW changed pixel
-   * [4] DDX[0] Data Polarity 1  black on white 0=LUTB on 1=LUTW
-   * [2:0] CDI   2  5hsync
-   */
-  // cdi = <0xb2>;
-
-  /*
-   * CDI = 0xd2 0b11010010
-   * [7:6] VBD  Border        11b keep previous color even after reset, not depends on DDX[0]
-   * [5] DDX[1] XOR Refresh    0  refresh all pixel
-   * [4] DDX[0] Data Polarity  0  black on white 0=LUTB on 1=LUTW
-   * [2:0] CDI   2  5hsync
-   */
-  // cdi = <0xd2>;
-
-  /*
-   * CDI = 0xd2 0b00010010
-   * [7:6] VBD  Border         00b keep previous color even after reset, not depends on DDX[0]
-   * [5] DDX[1] XOR Refresh     0  refresh all pixel
-   * [4] DDXk[0] Data Polarity  1  black on white 0=LUTB on 1=LUTW
-   * [2:0] CDI   2  5hsync
-   */
-  // cdi = <0x12>;
 };

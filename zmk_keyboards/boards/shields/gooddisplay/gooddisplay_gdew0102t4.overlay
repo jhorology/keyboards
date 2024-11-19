@@ -29,10 +29,10 @@
      * blanking = <3>;            // 0: Keep content 1: White 2: Black 3: Invert
      * blanking_on_suspend = <1>; // 0: Keep content 1: White 2: Black 3: Invert
      * psr = <0x6f>;
-     * pwr = [03 00 2b 2b];
+     * pwr = [03 00 26 26];
      * cpset = <0x3f>;
      * luptopt = [00 00];
-     * pll = <19>;         // n = 0..39 (2.5Hz ~ 100Hz)  2.5Hz + 2.5Hz * n,  default 50Hz, Higer value to reduce flicker
+     * pll = <17>;         // n = 0..39 (2.5Hz ~ 100Hz)  2.5Hz + 2.5Hz * n,  default 45Hz, Higer value to reduce flicker and increase ghosting
      * cdi = <0x52>;
      * vdcs = <18>;        // n = 0...58 (-0.1v ~ -3v)   -0.1v - 0.05v * n, default -1v, Higer value to increase contrast
      * pws = <0x33>;
@@ -44,8 +44,7 @@
     /*
      * Request power-off(POF) command on evry display_write()
      */
-    power-off-on-write;
-
+    // power-off-on-write;
 
     /*
      * Request deep-sleep(DSLP) command on display_blanking_on()
