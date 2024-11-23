@@ -1,0 +1,9 @@
+# Copyright (c) 2024 The ZMK Contributors
+# SPDX-License-Identifier: MIT
+
+if SHIELD_LIBRA_MINI
+
+config ZMK_KEYBOARD_NAME
+    default "Libra Mini"
+
+endif # SHIELD_LIBRA_MINI

@@ -40,7 +40,6 @@ local -A KEYBOARDS=(
   ec60       ec_60:default:bin:0483:df11
   fk68       fk680pro_v2:default:uf2:"ZhaQian DFU":none
   i68        ikki68_aurora:default:hex:03eb:2ff4
-  libra      libra_mini:default:hex:2341:0036
   prime_e    prime_e_rgb:default:hex:03eb:2ff4
   q60        q60_ansi:default:bin:0483:df11
   qk60       qk60:default:bin:1688:2220

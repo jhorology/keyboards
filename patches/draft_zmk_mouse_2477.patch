@@ -1,7 +1,7 @@
-From d94a109d651c89d01a7f9ad46737dd8b16f99b7d Mon Sep 17 00:00:00 2001
+From e54c7e7211814ccf7089d5d3daf438544683cd79 Mon Sep 17 00:00:00 2001
 From: Cem Aksoylar <caksoylar@users.noreply.github.com>
 Date: Wed, 15 Nov 2023 21:11:41 -0800
-Subject: [PATCH 1/2] feat(mouse): Add mouse move and scroll support
+Subject: [PATCH 1/8] feat(mouse): Add mouse move and scroll support
 
 * Use Zephyr input subsystem for all pointers.
 * Input processors for modifying events, e.g. scaling, swapping
@@ -3379,10 +3379,10 @@ index 26bef8ccce8..553676ec4d2 100644
 +&msc MOVE_LEFT
 +```
 
-From 032f42111b0d111723a7c04c687466e9c95ac093 Mon Sep 17 00:00:00 2001
+From aaa23e95a11fffbe904404ed10b770d85ca881c0 Mon Sep 17 00:00:00 2001
 From: Peter Johanson <peter@peterjohanson.com>
 Date: Tue, 15 Oct 2024 13:53:00 -0600
-Subject: [PATCH 2/2] feat: Add input split support.
+Subject: [PATCH 2/8] feat: Add input split support.
 
 ---
  app/CMakeLists.txt                        |   2 +-
@@ -4106,3 +4106,945 @@ index 9529d51613c..def883b0c08 100644
  static int service_init(void) {
      static const struct k_work_queue_config queue_config = {
          .name = "Split Peripheral Notification Queue"};
+
+From 8b1c263646e25ff5072387544139df58dd8b4cfd Mon Sep 17 00:00:00 2001
+From: Peter Johanson <peter@peterjohanson.com>
+Date: Wed, 30 Oct 2024 10:59:43 -0600
+Subject: [PATCH 3/8] SQUASH SPLIT: tweaks for dedicated input split init
+ priority
+
+---
+ app/src/mouse/Kconfig       | 8 ++++++++
+ app/src/mouse/input_split.c | 8 +++-----
+ 2 files changed, 11 insertions(+), 5 deletions(-)
+
+diff --git a/app/src/mouse/Kconfig b/app/src/mouse/Kconfig
+index ae6440cf4d2..a3ebff8087a 100644
+--- a/app/src/mouse/Kconfig
++++ b/app/src/mouse/Kconfig
+@@ -55,4 +55,12 @@ config ZMK_INPUT_SPLIT
+     default y
+     depends on DT_HAS_ZMK_INPUT_SPLIT_ENABLED && ZMK_SPLIT
+ 
++if ZMK_INPUT_SPLIT
++
++config ZMK_INPUT_SPLIT_INIT_PRIORITY
++    int "Input Split initialization priority"
++    default INPUT_INIT_PRIORITY
++
++endif # ZMK_INPUT_SPLIT
++
+ endif
+diff --git a/app/src/mouse/input_split.c b/app/src/mouse/input_split.c
+index d79f4e76b24..55a84ea4624 100644
+--- a/app/src/mouse/input_split.c
++++ b/app/src/mouse/input_split.c
+@@ -40,9 +40,7 @@ int zmk_input_split_report_peripheral_event(uint8_t reg, uint8_t type, uint16_t
+ 
+ #define ZIS_INST(n)                                                                                \
+     DEVICE_DT_INST_DEFINE(n, NULL, NULL, NULL, NULL, POST_KERNEL,                                  \
+-                          CONFIG_KERNEL_INIT_PRIORITY_DEFAULT, NULL);
+-
+-DT_INST_FOREACH_STATUS_OKAY(ZIS_INST)
++                          CONFIG_ZMK_INPUT_SPLIT_INIT_PRIORITY, NULL);
+ 
+ #else
+ 
+@@ -66,6 +64,6 @@ DT_INST_FOREACH_STATUS_OKAY(ZIS_INST)
+     }                                                                                              \
+     INPUT_CALLBACK_DEFINE(DEVICE_DT_GET(DT_INST_PHANDLE(n, device)), split_input_handler_##n);
+ 
+-DT_INST_FOREACH_STATUS_OKAY(ZIS_INST)
++#endif
+ 
+-#endif
+\ No newline at end of file
++DT_INST_FOREACH_STATUS_OKAY(ZIS_INST)
+\ No newline at end of file
+
+From 672ea9be0d69f9a79b6d9e275dc58000057dbe9e Mon Sep 17 00:00:00 2001
+From: Peter Johanson <peter@peterjohanson.com>
+Date: Wed, 30 Oct 2024 11:29:42 -0600
+Subject: [PATCH 4/8] SQUASH CORE: Drop default scroll value again.
+
+* Drop the default scroll value again. In theory you only want the
+  higher value *IF* you enable the smooth scrolling Kconfig setting.
+---
+ app/include/dt-bindings/zmk/mouse.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/app/include/dt-bindings/zmk/mouse.h b/app/include/dt-bindings/zmk/mouse.h
+index 99a35a508c9..f9d0c939a24 100644
+--- a/app/include/dt-bindings/zmk/mouse.h
++++ b/app/include/dt-bindings/zmk/mouse.h
+@@ -28,7 +28,7 @@
+ #endif
+ 
+ #ifndef ZMK_MOUSE_DEFAULT_SCRL_VAL
+-#define ZMK_MOUSE_DEFAULT_SCRL_VAL 300
++#define ZMK_MOUSE_DEFAULT_SCRL_VAL 10
+ #endif
+ 
+ /* Mouse move behavior */
+
+From cdcd9c9f0cc63726dfa45f8498c512acc73bc77e Mon Sep 17 00:00:00 2001
+From: Peter Johanson <peter@peterjohanson.com>
+Date: Fri, 1 Nov 2024 15:37:48 -0600
+Subject: [PATCH 5/8] docs: Add initial pointer docs.
+
+---
+ docs/docs/config/pointers.md                  |  67 +++++++++
+ .../hardware-integration/pointers.md          | 127 ++++++++++++++++++
+ docs/docs/features/pointers.md                |  39 ++++++
+ .../docs/keymaps/behaviors/mouse-emulation.md |  30 +++++
+ .../keymaps/input-processors/code-mapper.md   |  59 ++++++++
+ docs/docs/keymaps/input-processors/index.md   |  50 +++++++
+ docs/docs/keymaps/input-processors/scaler.md  |  70 ++++++++++
+ .../keymaps/input-processors/temp-layer.md    |  26 ++++
+ .../keymaps/input-processors/transformer.md   |  67 +++++++++
+ docs/docs/keymaps/input-processors/usage.md   |  57 ++++++++
+ docs/sidebars.js                              |  19 +++
+ 11 files changed, 611 insertions(+)
+ create mode 100644 docs/docs/config/pointers.md
+ create mode 100644 docs/docs/development/hardware-integration/pointers.md
+ create mode 100644 docs/docs/features/pointers.md
+ create mode 100644 docs/docs/keymaps/input-processors/code-mapper.md
+ create mode 100644 docs/docs/keymaps/input-processors/index.md
+ create mode 100644 docs/docs/keymaps/input-processors/scaler.md
+ create mode 100644 docs/docs/keymaps/input-processors/temp-layer.md
+ create mode 100644 docs/docs/keymaps/input-processors/transformer.md
+ create mode 100644 docs/docs/keymaps/input-processors/usage.md
+
+diff --git a/docs/docs/config/pointers.md b/docs/docs/config/pointers.md
+new file mode 100644
+index 00000000000..64c03b85159
+--- /dev/null
++++ b/docs/docs/config/pointers.md
+@@ -0,0 +1,67 @@
++---
++title: Pointer Configuration
++sidebar_label: Pointers
++---
++
++These are settings related to the pointer/mouse support in ZMK.
++
++See [Configuration Overview](index.md) for instructions on how to change these settings.
++
++## Kconfig
++
++Definition file: [zmk/app/mouse/Kconfig](https://github.com/zmkfirmware/zmk/blob/main/app/mouse/Kconfig)
++
++### General
++
++| Config                              | Type | Description                                                                | Default |
++| ----------------------------------- | ---- | -------------------------------------------------------------------------- | ------- |
++| `CONFIG_ZMK_MOUSE`                  | bool | Enable the general pointer/mouse functionality                             | n       |
++| `CONFIG_ZMK_MOUSE_SMOOTH_SCROLLING` | bool | Enable smooth scrolling HID functionality (via HID Resolution Multipliers) | n       |
++
++### Zephyr Settings
++
++The following settings are from Zephyr, and should be defaulted to sane values, but can be adjusted if you encounter problems
++
++| Config                           | Type | Description                                                | Default                         |
++| -------------------------------- | ---- | ---------------------------------------------------------- | ------------------------------- |
++| `CONFIG_INPUT_THREAD_STACK_SIZE` | int  | Stack size for the dedicated input event processing thread | 512 (1024 on split peripherals) |
++
++## Input Listener
++
++TODO: Complete description
++
++### Devicetree
++
++Applies to: `compatible = "zmk,input-listener"`
++
++Definition file: [zmk/app/dts/bindings/zmk,input-listener.yaml](https://github.com/zmkfirmware/zmk/blob/main/app/dts/bindings/zmk%2Cinput-listener.yaml)
++
++| Property           | Type   | Description                                                         | Default |
++| ------------------ | ------ | ------------------------------------------------------------------- | ------- |
++| `device`           | handle | Input device handle                                                 |         |
++| `input-processors` | array  | List of input processors (with parameters) to apply to input events |         |
++
++#### Child Properties
++
++Additional properties can be set on child nodes, which allows changing the settings when certain layers are enabled:
++
++| Property           | Type  | Description                                                                                      | Default |
++| ------------------ | ----- | ------------------------------------------------------------------------------------------------ | ------- |
++| `layers`           | array | List of layer indexes. This config will apply if any layer in the list is active.                |         |
++| `input-processors` | array | List of input processors (with parameters) to apply to input events                              |         |
++| `inherit`          | flag  | Whether to first apply the base input processors before the processors specific to this override |         |
++
++## Input Split
++
++TODO: Complete description
++
++### Devicetree
++
++Applies to: `compatible = "zmk,input-split"`
++
++Definition file: [zmk/app/dts/bindings/zmk,input-split.yaml](https://github.com/zmkfirmware/zmk/blob/main/app/dts/bindings/zmk%2Cinput-split.yaml)
++
++| Property           | Type   | Description                                                         | Default |
++| ------------------ | ------ | ------------------------------------------------------------------- | ------- |
++| `device`           | handle | Input device handle                                                 |         |
++| `input-processors` | array  | List of input processors (with parameters) to apply to input events |         |
+diff --git a/docs/docs/development/hardware-integration/pointers.md b/docs/docs/development/hardware-integration/pointers.md
+new file mode 100644
+index 00000000000..d6c0a099541
+--- /dev/null
++++ b/docs/docs/development/hardware-integration/pointers.md
+@@ -0,0 +1,127 @@
++---
++title: Pointing Devices
++sidebar_label: Pointers
++---
++
++ZMK's pointer support builds upon the Zephyr [input API](https://docs.zephyrproject.org/3.5.0/services/input/index.html) to offer pointer/mouse functionality with various hardware. A limited number of input drivers are available in the Zephyr 3.5 version currently used by ZMK, but additional drivers can be found in [external modules](../../features/modules.mdx) for a variety of hardware.
++
++## Input Device
++
++The starting point to any integration of a physical pointing device is the device node itself. The specifics of where this node goes will depend on the specific hardware. _Most_ pointing hardware uses either SPI or I2C for communication, and will be nested under a properly configured bus node, e.g. `&pro_micro_i2c` or for a complete onboard setup, `&i2c3`. See the documentation on [pin control](./pinctrl.mdx) if you need to configure the pins for an I2C or SPI bus.
++
++For example, if setting up a device that uses SPI, you may have a node like:
++
++```dts
++&pro_micro_spi {
++    status = "okay";
++    cs-gpios = <&pro_micro 19 GPIO_ACTIVE_LOW>;
++
++    glidepoint: glidepoint@0 {
++        compatible = "cirque,pinnacle";
++        reg = <0>;
++        spi-max-frequency = <1000000>;
++        status = "okay";
++        dr-gpios = <&pro_micro 5 (GPIO_ACTIVE_HIGH)>;
++
++        sensitivity = "4x";
++        sleep;
++        no-taps;
++    };
++};
++```
++
++The specifics of the properties required to set for a given driver will vary; always consult the devicetree bindings file for the specific driver to see what properties can be set.
++
++## Listener
++
++Every input device needs an associated listener added that listens for events from the device and processes them before sending the events to the host using a HID mouse report. See [input listener configuration](../../config/pointers.md#input-listener) for the full details. For example, to add a listener for the above device:
++
++```dts
++/ {
++    glidepoint_listener {
++        compatible = "zmk,input-listener";
++        device = <&glidepoint>;
++    };
++};
++```
++
++## Input Processors
++
++Some physical pointing devices may be generating input events that need some adjustment before being sent to hosts. For example a trackpad might be integrated into a keyboard rotated 90° and need the X/Y data adjusted appropriately. This can be accomplished with [input processors](../../keymaps/input-processors/index.md). You could enhande the above listener with:
++
++```dts
++#include <dt-bindings/zmk/input_transform.h>
++
++/ {
++    glidepoint_listener {
++        compatible = "zmk,input-listener";
++        device = <&glidepoint>;
++        input-processors = <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>;
++    };
++};
++```
++
++## Split
++
++Pointing devices are supported on split peripherals, with some additional configuration using the [input split];(../../config/pointers.md#input-split). All split pointers are identified using a unique integer value, which is specified using the `reg` property and in the `@#` suffix for the node. If adding multiple peripheral pointers, be sure that each is given a unique identifier.
++
++### Shared
++
++Both peripheral and central make use of a `zmk,input-split` device, which functions differently depending on where is is used. To avoid duplicating work, this node can be defined in a common `.dtsi` file that is included into both central and peripheral `.overlay`/`.dts` files.
++
++:::note
++
++Input splits need to be nested under a parent node that properly sets the `#address-cells` and `#size-cells` values appropriately. These settings are what allow us to use a single integer number for the `reg` value.
++
++:::
++
++```dts
++/ {
++    split_inputs {
++        #address-cells = <1>;
++        #size-cells = <0>;
++
++        glidepoint_split: glidepoint_split@0 {
++            compatible = "zmk,input-split";
++            reg = <0>;
++        };
++    };
++};
++```
++
++### Peripheral
++
++On the peripheral, first include the shared file, and then update the input split to reference the pointer device that should be proxied:
++
++```dts
++#include "common.dtsi"
++
++&glidepoint_split {
++    device = <&glidepoint>;
++};
++```
++
++If needed, the split can also have basic input processors applied to fix up the input data before it is sent to the central:
++
++```dts
++&glidepoint_split {
++    device = <&glidepoint>;
++
++    input-processors = <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>;
++};
++```
++
++### Central
++
++On the central, the input split acts as an input device, receiving events from the peripheral and raising them locally. First, include the shared file, and then add an [input listener](#listener) to the input split:
++
++```dts
++#include "common.dtsi"
++
++/ {
++    glidepoint_listener: glidepoint_listener {
++        compatible = "zmk,input-listener";
++        device = <&glidepoint_split>;
++    };
++};
++```
+diff --git a/docs/docs/features/pointers.md b/docs/docs/features/pointers.md
+new file mode 100644
+index 00000000000..7a7d99fd542
+--- /dev/null
++++ b/docs/docs/features/pointers.md
+@@ -0,0 +1,39 @@
++---
++title: Pointers
++---
++
++ZMK supports physical pointing devices, as well as [mouse emulation behaviors](../keymaps/behaviors/mouse-emulation.md) for sending HID pointing events to hosts.
++
++## Configuration
++
++To enable the pointer functionality, you must set `CONFIG_ZMK_MOUSE=y` in your config. See the [pointer configuration](../config/pointers.md) for the full details.
++
++:::warning
++
++When enabling the feature, changes are made to the HID report descriptor, which may not get picked up automatically over BLE to some hosts. Be sure to remove and re-pair to your hosts once you enable the feature
++
++:::
++
++## Mouse Emulation
++
++Mouse emulation allows you to use your keyboard as a pointing device without using dedicated pointer hardware, like an integrated trackpad, trackball, etc. By adding new bindings in your keymap like `&mmv MOVE_UP` you can make key presses send mouse HID events to your connected hosts.
++
++See the [mouse emulation behaviors](../keymaps/behaviors/mouse-emulation.md) for details.
++
++## Physical Pointers
++
++There are a few drivers available for supported physical pointing devices integrated into ZMK powered device. When doing so, you can use your device as both a keyboard and a pointing device with any connected hosts. The functionality can be extended further, e.g. slow mode, scroll mode, temporary mouse layers, etc. by configuring input processors linked to the physical pointing device.
++
++For more information, refer to the [pointer hardware integration](../development/hardware-integration/pointers.md) documentation.
++
++## Input Processors
++
++Input processors are small pieces of functionality that process and optionally modify events generated from emulated and physical pointing devices. Processors can do things like scaling movement values to make them larger or smaller for detailed work, swapping the event types to turn movements into scroll events, or temporarily enabling an extra layer while the pointer is in use.
++
++For more details, see the [input processors](../keymaps/input-processors/index.md) section of the keymap documentation.
++
++## Input Listeners
++
++Listeners are the key piece that integrate the low level input devices to the rest of the ZMK system. In particular, listeners subscribe to input events from the linked device, and when a given event occurs (e.g. X/Y movement), apply any input processors before sending those events to the HID system for notification to the host. The main way to modify the way a pointer behaves is by configuring the input processors for a given listener.
++
++For more details on assigning processors to your listeners, see the [input processor usage](../keymaps/input-processors/usage.md) documentation.
+diff --git a/docs/docs/keymaps/behaviors/mouse-emulation.md b/docs/docs/keymaps/behaviors/mouse-emulation.md
+index 553676ec4d2..161dd51296e 100644
+--- a/docs/docs/keymaps/behaviors/mouse-emulation.md
++++ b/docs/docs/keymaps/behaviors/mouse-emulation.md
+@@ -67,6 +67,16 @@ This example will send press of the fourth mouse button when the binding is trig
+ &mkp MB4
+ ```
+ 
++### Input Processors
++
++If you want to apply any [input processors](../input-processors/index.md#input-processors-overview) to `&mkp` you can do so by referencing `&mkp_input_listener`, e.g.:
++
++```dts
++&mkp_input_listener {
++    input-processors = <&zip_temp_layer 2 2000>;
++}
++```
++
+ ## Mouse Move
+ 
+ This behavior sends mouse X/Y movement events to the connected host.
+@@ -99,6 +109,16 @@ The following will send a left mouse movement event to the host when pressed/hel
+ &mmv MOVE_LEFT
+ ```
+ 
++### Input Processors
++
++If you want to apply any [input processors](../input-processors/index.md#input-processors-overview) to `&mmv` you can do so by referencing `&mmv_input_listener`, e.g.:
++
++```dts
++&mmv_input_listener {
++    input-processors = <&zip_temp_layer 2 2000>;
++}
++```
++
+ ## Mouse Scroll
+ 
+ This behavior sends vertical and horizontal scroll events to the connected host.
+@@ -130,3 +150,13 @@ The following will send a scroll left event to the host when pressed/held:
+ ```
+ &msc MOVE_LEFT
+ ```
++
++### Input Processors
++
++If you want to apply any [input processors](../input-processors/index.md#input-processors-overview) to `&msc` you can do so by referencing `&msc_input_listener`, e.g.:
++
++```dts
++&msc_input_listener {
++    input-processors = <&zip_temp_layer 2 2000>;
++}
++```
+diff --git a/docs/docs/keymaps/input-processors/code-mapper.md b/docs/docs/keymaps/input-processors/code-mapper.md
+new file mode 100644
+index 00000000000..48c4c2e6751
+--- /dev/null
++++ b/docs/docs/keymaps/input-processors/code-mapper.md
+@@ -0,0 +1,59 @@
++---
++title: Code Mapper Input Processor
++sidebar_label: Code Mapper
++---
++
++## Overview
++
++The scaler input processor is used to map the code of an event to a new one, e.g. changing a vertical Y movement event into a scroll event.
++
++## Usage
++
++When used, a code mapper takes no parameters, as the code mappings are specified in the definition of the specific mapper instance, e.g.:
++
++```dts
++&zip_xy_to_scroll_mapper
++```
++
++## Pre-Defined Instances
++
++Three pre-defined instance of the code mapper input processor are available:
++
++| Reference                  | Description                                                                                                                                  |
++| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
++| `&zip_xy_to_scroll_mapper` | Map X/Y movement events to horizontal wheel/wheel events, respectively.                                                                      |
++| `&zip_xy_swap_mapper`      | Map X to Y, and Y to X for movements. This can also be accomplished with the [transformer](transformer.md#pre-defined-instances) processors. |
++
++## User Defined Instances
++
++Users can define new instances of the code mapper input processor if they want to target different codes.
++
++### Example
++
++```dts
++#include <zephyr/dt-bindings/input/input-event-codes.h>
++
++/ {
++    input_processors {
++        zip_click_to_middle_click_mapper: zip_click_to_middle_click_mapper {
++            compatible = "zmk,input-processor-code-mapper";
++            #input-processor-cells = <0>;
++            type = <INPUT_EV_KEY>;
++            map = <INPUT_BTN_0 INPUT_BTN_2>;
++        };
++    };
++}
++```
++
++### Compatible
++
++The code mapper input processor uses a `compatible` property of `"zmk,input-processor-code-mapper"`.
++
++### Standard Properties
++
++- `#input-processor-cells` - required to be constant value of `<0>`.
++
++### User Properties
++
++- `type` - The [type](https://github.com/zmkfirmware/zephyr/blob/v3.5.0%2Bzmk-fixes/include/zephyr/dt-bindings/input/input-event-codes.h#L25) of events to scale. Usually, this is `INPUT_EV_REL` for relative events and `INPUT_EV_KEY` for key/button events.
++- `map` - The specific codes of the given type to map, e.g. [relative event codes](https://github.com/zmkfirmware/zephyr/blob/v3.5.0%2Bzmk-fixes/include/zephyr/dt-bindings/input/input-event-codes.h#L245). This list must be an even number of entries, which is process as a list of pairs of codes, with the first is the source code, and the second is the code to map it to.
+diff --git a/docs/docs/keymaps/input-processors/index.md b/docs/docs/keymaps/input-processors/index.md
+new file mode 100644
+index 00000000000..096ad55c68a
+--- /dev/null
++++ b/docs/docs/keymaps/input-processors/index.md
+@@ -0,0 +1,50 @@
++---
++title: Input Processor Overview
++sidebar_label: Overview
++---
++
++# Input Processors Overview
++
++"Input processors" are small pieces of functionality that process and optionally modify events generated from emulated and physical pointing devices. Processors can do things like scaling movement values to make them larger or smaller for detailed work, swapping the event types to turn movements into scroll events, or temporarily enabling an extra layer while the pointer is in use.
++
++## Usage
++
++For information on using input processors with a given pointing device, see [input processor usage](usage.md).
++
++# Available Processors
++
++Below is a summary of pre-defined input processors and user-definable input processors available in ZMK, with references to documentation pages describing them.
++
++## Pre-Defined Processors
++
++A set of predefined input processors is available by adding the following at the top of your keymap/overlay file:
++
++```
++#include <input/processors.dtsi>
++```
++
++Once included, you can use the following:
++
++| Binding                    | Processor                                                   | Description                                                         |
++| -------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------- |
++| `&zip_xy_scaler`           | [XY Scaler](scaler.md#pre-defined-instances)                | Scale a the X/Y input events using a multiplier and divisor         |
++| `&zip_x_scaler`            | [X Scaler](scaler.md#pre-defined-instances)                 | Scale a the X input events using a multiplier and divisor           |
++| `&zip_y_scaler`            | [Y Scaler](scaler.md#pre-defined-instances)                 | Scale a the Y input events using a multiplier and divisor           |
++| `&zip_xy_transform`        | [XY Transform](transformer.md#pre-defined-instances)        | Transform X/Y values, e.g. inverting or swapping                    |
++| `&zip_scroll_transform`    | [Scroll Transform](transformer.md#pre-defined-instances)    | Transform wheel/horizontal wheel values, e.g. inverting or swapping |
++| `&zip_xy_to_scroll_mapper` | [XY To Scroll Mapper](code-mapper.md#pre-defined-instances) | Map X/Y values to scroll wheel/horizontal wheel events              |
++| `&zip_xy_swap_mapper`      | [XY Swap Mapper](code-mapper.md#pre-defined-instances)      | Swap X/Y values                                                     |
++| `&zip_temp_layer`          | [Temporary Layer](temp-layer.md#pre-defined-instances)      | Temporarily enable a layer during pointer use                       |
++
++## Used-Defined Processors
++
++Several of the input processors that have predefined instances, e.g. `&zip_xy_scaler` or `&zip_xy_to_scroll_mapper` can also have new instances created with custom properties around which input codes to scale, or which codes to map, etc.
++
++| Compatible                        | Processor                                            | Description                                      |
++| --------------------------------- | ---------------------------------------------------- | ------------------------------------------------ |
++| `zmk,input-processor-transform`   | [Transform](transformer.md#user-defined-instances)   | Perform various transforms like inverting values |
++| `zmk,input-processor-code-mapper` | [Code Mapper](code-mapper.md#user-defined-instances) | Perform various transforms like inverting values |
++
++## External Processors
++
++Much like behaviors, custom input processors can also be added to [external modules](../../features/modules.mdx) to allow complete control of the processing operation. See [`input_processor.h`](https://github.com/zmkfirmware/zmk/blob/main/app/include/drivers/input_processor.h) for the definition of the driver API.
+diff --git a/docs/docs/keymaps/input-processors/scaler.md b/docs/docs/keymaps/input-processors/scaler.md
+new file mode 100644
+index 00000000000..0fd9dbb1766
+--- /dev/null
++++ b/docs/docs/keymaps/input-processors/scaler.md
+@@ -0,0 +1,70 @@
++---
++title: Scaler Input Processor
++sidebar_label: Scaler
++---
++
++## Overview
++
++The scaler input processor is used to scale the value of an input event that has a code matching the codes set on the scaler. Events with other codes will be ignored. Values are scaled by multiplying by the multiplier parameter, and then dividing by the divisor parameter.
++
++## Usage
++
++When used, a scaler takes two parameters, a multiplier and a divisor, e.g.:
++
++```dts
++&zip_xy_scaler 2 1
++```
++
++which will double all the X/Y movement, or:
++
++```dts
++&zip_xy_scaler 1 3
++```
++
++which will make movements more granular.
++
++## Pre-Defined Instances
++
++Three pre-defined instance of the scaler input processor are available:
++
++| Reference        | Description                                   |
++| ---------------- | --------------------------------------------- |
++| `&zip_xy_scaler` | Scale X- and Y-axis values by the same amount |
++| `&zip_x_scaler`  | Scale X-axis values                           |
++| `&zip_y_scaler`  | Scale X-axis values                           |
++
++## User Defined Instances
++
++Users can define new instances of the scaler input processor if they want to target different codes.
++
++### Example
++
++```dts
++#include <zephyr/dt-bindings/input/input-event-codes.h>
++
++/ {
++    input_processors {
++        zip_wheel_scaler: zip_wheel_scaler {
++            compatible = "zmk,input-processor-scaler";
++            #input-processor-cells = <2>;
++            type = <INPUT_EV_REL>;
++            codes = <INPUT_REL_WHEEL>;
++            track-remainders;
++        };
++    };
++}
++```
++
++### Compatible
++
++The scaler input processor uses a `compatible` property of `"zmk,input-processor-scaler"`.
++
++### Standard Properties
++
++- `#input-processor-cells` - required to be constant value of `<2>`.
++- `track-remainders` - boolean flag that indicates callers should allow the processor to track remainders between events.
++
++### User Properties
++
++- `type` - The [type](https://github.com/zmkfirmware/zephyr/blob/v3.5.0%2Bzmk-fixes/include/zephyr/dt-bindings/input/input-event-codes.h#L25) of events to scale. Usually, this is `INPUT_EV_REL` for relative events.
++- `codes` - The specific codes within the given type to scale, e.g. [relative event codes](https://github.com/zmkfirmware/zephyr/blob/v3.5.0%2Bzmk-fixes/include/zephyr/dt-bindings/input/input-event-codes.h#L245)
+diff --git a/docs/docs/keymaps/input-processors/temp-layer.md b/docs/docs/keymaps/input-processors/temp-layer.md
+new file mode 100644
+index 00000000000..2b73ee8088a
+--- /dev/null
++++ b/docs/docs/keymaps/input-processors/temp-layer.md
+@@ -0,0 +1,26 @@
++---
++title: Temporary Layer Input Processor
++sidebar_label: Temporary Layer
++---
++
++## Overview
++
++The temporary layer input processor is used to enable a layer when input events are received, and automatically disabling the layer when no further events are received in the given timeout duration. This most frequently is used to temporarily enable a layer with a set of [mouse button emulation behaviors](../behaviors/mouse-emulation.md#mouse-button-press) on it, so you can press various mouse buttons with the normal keyboard keys while using a physical pointer device for X/Y movement.
++
++## Usage
++
++When used, the temporary layer input processor takes two parameters, the layer index to enabled and a timeout value in milliseconds:
++
++```dts
++&zip_temp_layer 2 2000
++```
++
++which will enable the third layer and automatically disable it again after 2 seconds with no events from this pointing device.
++
++## Pre-Defined Instances
++
++Three pre-defined instance of the scaler input processor are available:
++
++| Reference         | Description                                                     |
++| ----------------- | --------------------------------------------------------------- |
++| `&zip_temp_layer` | Enable a certain layer temporarily until no events are received |
+diff --git a/docs/docs/keymaps/input-processors/transformer.md b/docs/docs/keymaps/input-processors/transformer.md
+new file mode 100644
+index 00000000000..33f6d1eedf5
+--- /dev/null
++++ b/docs/docs/keymaps/input-processors/transformer.md
+@@ -0,0 +1,67 @@
++---
++title: Transformer Input Processor
++sidebar_label: Transformer
++---
++
++## Overview
++
++The transform input processor is used to perform various transforms on the value of an input event that has a code matching the codes set on the transformer. Events with other codes will be ignored.
++
++## Available Transforms
++
++- `INPUT_TRANSFORM_XY_SWAP` - When encountering a value with matching type, swap the type of the event to the other axis, e.g. change an event of type `INPUT_REL_X` to type `INPUT_REL_Y`.
++- `INPUT_TRANSFORM_X_INVERT` - Invert the values of any events that match the configured `x-codes` of the processor, by multiplying by negative one.
++- `INPUT_TRANSFORM_Y_INVERT` - Invert the values of any events that match the configured `y-codes` of the processor, by multiplying by negative one.
++
++## Usage
++
++When used, a transformer takes one parameter, a combination of flags indicating which transforms to apply:
++
++```dts
++&zip_xy_transform (INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)
++```
++
++## Pre-Defined Instances
++
++Three pre-defined instance of the scaler input processor are available:
++
++| Reference               | Description                                                   |
++| ----------------------- | ------------------------------------------------------------- |
++| `&zip_xy_transform`     | Applies the given transforms to X/Y movement events           |
++| `&zip_scroll_transform` | Applies the given transforms to wheel/horizontal wheel events |
++
++## User Defined Instances
++
++Users can define new instances of the transform input processor if they want to target different codes.
++
++### Example
++
++```dts
++#include <zephyr/dt-bindings/input/input-event-codes.h>
++
++/ {
++    input_processors {
++        my_rotation_event_transform: my_rotation_event_transform {
++            compatible = "zmk,input-processor-transform";
++            #input-processor-cells = <1>;
++            type = <INPUT_EV_REL>;
++            y-codes = <INPUT_REL_RY>;
++            x-codes = <INPUT_REL_RX>;
++        };
++    };
++}
++```
++
++### Compatible
++
++The transform input processor uses a `compatible` property of `"zmk,input-processor-transform"`.
++
++### Standard Properties
++
++- `#input-processor-cells` - required to be constant value of `<1>`.
++
++### User Properties
++
++- `type` - The [type](https://github.com/zmkfirmware/zephyr/blob/v3.5.0%2Bzmk-fixes/include/zephyr/dt-bindings/input/input-event-codes.h#L25) of events to transform. Usually, this is `INPUT_EV_REL` for relative events.
++- `x-codes` - The specific X codes within the given type to transform, e.g. [relative event codes](https://github.com/zmkfirmware/zephyr/blob/v3.5.0%2Bzmk-fixes/include/zephyr/dt-bindings/input/input-event-codes.h#L245)
++- `y-codes` - The specific Y codes within the given type to transform, e.g. [relative event codes](https://github.com/zmkfirmware/zephyr/blob/v3.5.0%2Bzmk-fixes/include/zephyr/dt-bindings/input/input-event-codes.h#L245)
+diff --git a/docs/docs/keymaps/input-processors/usage.md b/docs/docs/keymaps/input-processors/usage.md
+new file mode 100644
+index 00000000000..fdbad4c29b8
+--- /dev/null
++++ b/docs/docs/keymaps/input-processors/usage.md
+@@ -0,0 +1,57 @@
++---
++title: Input Processor Usage
++sidebar_label: Usage
++---
++
++Input processors are used by assigning them to a given [input listener](../../features/pointers.md#input-listeners). A base set of processors is assigned to a listener, and then overrides can be set that are only active when certain [layers](../index.mdx#layers) are active. The following assumes you are adding processors to the `&trackpad` device which is set up with a `&trackpad_listener`:
++
++### Base Processors
++
++Base processors are assigned in the `input-processors` property, and when events are generated, the events are process in the sequence in the order the processors are listed. For example, if you wanted your trackpad to always scale the values to increase the movements, you would assign the [scaler](scaler.md#pre-defined-instances) to the property:
++
++```dts
++#include <input/processors.dtsi>
++
++&trackpad_listener {
++    input-processors = <&zip_xy_scaler 3 2>;
++}
++```
++
++### Layer Specific Overrides
++
++Additional overrides can be added that only apply when the associated layer is active. For example, to make the trackpad work as a scroll device when your layer `1` is active, nest a child node on the listener and set the `layers` and `input-processors` properties:
++
++```dts
++#include <input/processors.dtsi>
++
++&trackpad_listener {
++    input-processors = <&zip_xy_scaler 3 2>;
++
++    scroller {
++        layers = <1>;
++        input-processors = <&zip_xy_to_scoll_mapper>;
++    };
++}
++```
++
++:::note
++
++Overrides are processed in the order they are declared, from top to bottom, _not_ in any way tied to the layers specified in the `layers` property.
++
++:::
++
++If you want to have later overrides, or your base processors applied _after_ your overrides, add the `inherit` property to your child node, e.g.:
++
++```dts
++#include <input/processors.dtsi>
++
++&trackpad_listener {
++    input-processors = <&zip_xy_scaler 3 2>;
++
++    scroller {
++        layers = <1>;
++        input-processors = <&zip_xy_to_scoll_mapper>;
++        inherit;
++    };
++}
++```
+diff --git a/docs/sidebars.js b/docs/sidebars.js
+index e7975fb2d57..459af0d42b1 100644
+--- a/docs/sidebars.js
++++ b/docs/sidebars.js
+@@ -39,6 +39,7 @@ module.exports = {
+         "features/battery",
+         "features/low-power-states",
+         "features/encoders",
++        "features/pointers",
+         "features/displays",
+         "features/backlight",
+         "features/underglow",
+@@ -92,6 +93,22 @@ module.exports = {
+         "keymaps/combos",
+         "keymaps/conditional-layers",
+         "keymaps/list-of-keycodes",
++        {
++          type: "category",
++          label: "Input Processors",
++          link: {
++            type: "doc",
++            id: "keymaps/input-processors/index",
++          },
++          collapsed: true,
++          items: [
++            "keymaps/input-processors/usage",
++            "keymaps/input-processors/scaler",
++            "keymaps/input-processors/transformer",
++            "keymaps/input-processors/code-mapper",
++            "keymaps/input-processors/temp-layer",
++          ],
++        },
+       ],
+     },
+     {
+@@ -110,6 +127,7 @@ module.exports = {
+         "config/combos",
+         "config/displays",
+         "config/encoders",
++        "config/pointers",
+         "config/keymap",
+         "config/layout",
+         "config/kscan",
+@@ -134,6 +152,7 @@ module.exports = {
+             "development/hardware-integration/shift-registers",
+             "development/hardware-integration/encoders",
+             "development/hardware-integration/soft-off-setup",
++            "development/hardware-integration/pointers",
+           ],
+         },
+         {
+
+From e7518c6952e952df69a66f1962f03026f1271267 Mon Sep 17 00:00:00 2001
+From: Peter Johanson <peter@peterjohanson.com>
+Date: Fri, 15 Nov 2024 15:19:05 -0700
+Subject: [PATCH 6/8] fixup! feat(mouse): Add mouse move and scroll support
+
+---
+ app/src/hid.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/app/src/hid.c b/app/src/hid.c
+index 480a5c01d5b..2356b450a31 100644
+--- a/app/src/hid.c
++++ b/app/src/hid.c
+@@ -448,8 +448,7 @@ void zmk_hid_mouse_movement_update(int16_t hwheel, int16_t wheel) {
+ void zmk_hid_mouse_scroll_set(int8_t hwheel, int8_t wheel) {
+     mouse_report.body.d_scroll_x = hwheel;
+     mouse_report.body.d_scroll_y = wheel;
+-    // mouse_report.body.d_scroll_x = (hwheel / (16 - mouse_res_feature_report.body.hwheel_res));
+-    // mouse_report.body.d_scroll_y = (wheel / (16 - mouse_res_feature_report.body.wheel_res));
++
+     LOG_DBG("Mouse scroll set to %d/%d", mouse_report.body.d_scroll_x,
+             mouse_report.body.d_scroll_y);
+ }
+@@ -457,8 +456,7 @@ void zmk_hid_mouse_scroll_set(int8_t hwheel, int8_t wheel) {
+ void zmk_hid_mouse_scroll_update(int8_t hwheel, int8_t wheel) {
+     mouse_report.body.d_scroll_x += hwheel;
+     mouse_report.body.d_scroll_y += wheel;
+-    // mouse_report.body.d_scroll_x += (hwheel / (16 - mouse_res_feature_report.body.hwheel_res));
+-    // mouse_report.body.d_scroll_y += (wheel / (16 - mouse_res_feature_report.body.wheel_res));
++
+     LOG_DBG("Mouse scroll updated to X: %d/%d", mouse_report.body.d_scroll_x,
+             mouse_report.body.d_scroll_y);
+ }
+
+From ab5aadb9efade4e74c075eba7001217e56e22427 Mon Sep 17 00:00:00 2001
+From: Peter Johanson <peter@peterjohanson.com>
+Date: Fri, 15 Nov 2024 15:48:13 -0700
+Subject: [PATCH 7/8] fixup! feat(mouse): Add mouse move and scroll support
+
+---
+ app/src/main.c | 4 ----
+ 1 file changed, 4 deletions(-)
+
+diff --git a/app/src/main.c b/app/src/main.c
+index fcf1d11531f..60df1a45d83 100644
+--- a/app/src/main.c
++++ b/app/src/main.c
+@@ -14,10 +14,6 @@ LOG_MODULE_REGISTER(zmk, CONFIG_ZMK_LOG_LEVEL);
+ 
+ #include <zmk/display.h>
+ 
+-#ifdef CONFIG_ZMK_MOUSE
+-#include <zmk/mouse.h>
+-#endif /* CONFIG_ZMK_MOUSE */
+-
+ int main(void) {
+     LOG_INF("Welcome to ZMK!\n");
+ 
+
+From 053913daf618abc7baf47a052f36313d3cbfe86d Mon Sep 17 00:00:00 2001
+From: Peter Johanson <peter@peterjohanson.com>
+Date: Wed, 20 Nov 2024 17:07:25 -0700
+Subject: [PATCH 8/8] fixup! docs: Add initial pointer docs.
+
+---
+ .../hardware-integration/pointers.md            | 17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
+
+diff --git a/docs/docs/development/hardware-integration/pointers.md b/docs/docs/development/hardware-integration/pointers.md
+index d6c0a099541..12ba3e3ce2c 100644
+--- a/docs/docs/development/hardware-integration/pointers.md
++++ b/docs/docs/development/hardware-integration/pointers.md
+@@ -67,7 +67,7 @@ Pointing devices are supported on split peripherals, with some additional config
+ 
+ ### Shared
+ 
+-Both peripheral and central make use of a `zmk,input-split` device, which functions differently depending on where is is used. To avoid duplicating work, this node can be defined in a common `.dtsi` file that is included into both central and peripheral `.overlay`/`.dts` files.
++Both peripheral and central make use of a `zmk,input-split` device, which functions differently depending on where is is used. To avoid duplicating work, this node can be defined in a common `.dtsi` file that is included into both central and peripheral `.overlay`/`.dts` files. Second, the input listener for the central side is added here, but disabled, so that keymaps (which are included for central and peripheral builds) can reference the listener to add input processors without issue.
+ 
+ :::note
+ 
+@@ -86,6 +86,12 @@ Input splits need to be nested under a parent node that properly sets the `#addr
+             reg = <0>;
+         };
+     };
++
++    glidepoint_listener: glidepoint_listener {
++        compatible = "zmk,input-listener";
++        status = "disabled";
++        device = <&glidepoint_split>;
++    };
+ };
+ ```
+ 
+@@ -113,15 +119,12 @@ If needed, the split can also have basic input processors applied to fix up the
+ 
+ ### Central
+ 
+-On the central, the input split acts as an input device, receiving events from the peripheral and raising them locally. First, include the shared file, and then add an [input listener](#listener) to the input split:
++On the central, the input split acts as an input device, receiving events from the peripheral and raising them locally. First, include the shared file, and then enabled the [input listener](#listener) that is created, but disabled, in our shared file:
+ 
+ ```dts
+ #include "common.dtsi"
+ 
+-/ {
+-    glidepoint_listener: glidepoint_listener {
+-        compatible = "zmk,input-listener";
+-        device = <&glidepoint_split>;
+-    };
++&glidepoint_listener {
++    status = "okay";
+ };
+ ```
