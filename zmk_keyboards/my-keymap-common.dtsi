@@ -111,6 +111,16 @@
 // tap: ENTER
 #define _C_RSPC &lt _R_THUMB_LAYER SPC
 
+// Left SPACE for alice keyboard
+// hold: Momentaly L Thumb layer
+// tap: SPACE
+#define _A_LSPC &lt _L_THUMB_LAYER SPC
+
+// Right SPACE for alice keyboard
+// hold: Momentaly R Thumb layer
+// tap: SPACE
+#define _A_RSPC &lt _R_THUMB_LAYER SPC
+
 // HHKB fn
 #define _H_FN &mo _HHKB_FN_LAYER
 
