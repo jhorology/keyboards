@@ -13,7 +13,7 @@
       display-name = "Mac Base";
       // --------------------------------------        -------------------------------------------
       // |  TAB |  Q  |  W  |  E  |  R  |  T  |        |  Y  |  U  |  I  |  O  |  P  |  \  |BKSP |
-      // |  CTRL  |  A  |  S  |  D  |  F  |  G  |        |  H  |  J   |  K  |  L  |  ;  |  '     |
+      // |  CTRL  |  A  |  S  |  D  |  F  |  G  |        |  H  |  J   |  K  |  L  |  ;  | ENTER  |
       // | SHFT    |  Z  |  X  |  C  |  V  |  B  |   |  B  |  N  |  M  |  ,  |  .  |  /  | SHIFT |
       // | fn🌐 | LCMD |      | LOPT |  ENT      |   |  SPC      | fn  | <joystick>  |RCMD |MENU |
       // ---------------      --------------------   ---------------------------------------------
@@ -22,7 +22,7 @@
          &kp TAB  &kp Q  &kp W  &kp E  &kp R    &kp T           &kp Y  &kp U  &kp I      &kp O    &kp P  &kp BSLH  &kp BSPC
          &kp LCTRL  &kp A  &kp S  &kp D  &kp F    &kp G           &kp H  &kp J  &kp K      &kp L    &kp SEMI       &kp ENTER
          &kp LSHFT     &kp Z  &kp X  &kp C  &kp V    &kp B   &kp B  &kp N  &kp M  &kp COMMA  &kp DOT  &kp FSLH     &kp RSHFT
-         _A_FN    _LCMD              _LOPT     _A_LSPC          _A_RSPC    _H_FN                      _RCMD        _APP
+         _A_FN    _LOPT              _LCMD     _A_LSPC          _A_RSPC    _H_FN                      _RCMD        _H_ROPT
         >;
     };
 
@@ -30,7 +30,7 @@
       display-name = "Win Base";
       // --------------------------------------        -------------------------------------------
       // |  TAB |  Q  |  W  |  E  |  R  |  T  |        |  Y  |  U  |  I  |  O  |  P  |  \  |BKSP |
-      // |  CTRL  |  A  |  S  |  D  |  F  |  G  |        |  H  |  J   |  K  |  L  |  ;  |  '     |
+      // |  CTRL  |  A  |  S  |  D  |  F  |  G  |        |  H  |  J   |  K  |  L  |  ;  | ENTER  |
       // | SHFT    |  Z  |  X  |  C  |  V  |  B  |   |  B  |  N  |  M  |  ,  |  .  |  /  | SHIFT |
       // | fn🌐 | LCMD |      | LOPT |  ENT      |   |  SPC      | fn  | <joystick>  |RCMD |MENU |
       // ---------------      --------------------   -------------------             -------------
@@ -39,7 +39,7 @@
          &kp CAPS  &kp Q  &kp W  &kp E  &kp R    &kp T           &kp Y  &kp U  &kp I      &kp O    &kp P  &kp BSLH  &kp BSPC
          &kp LCTL    &kp A  &kp S  &kp D  &kp F    &kp G           &kp H  &kp J  &kp K      &kp L    &kp SEMI       &kp ENTER
          &kp LSHFT     &kp Z  &kp X  &kp C  &kp V    &kp B    &kp B  &kp N  &kp M  &kp COMMA  &kp DOT  &kp FSLH     &kp RSHFT
-         _W_FN     _LCMD            _LOPT     _A_LSPC            _A_RSPC     _H_FN                      _RCMD       _APP
+         _W_FN     _LOPT            _LCMD     _A_LSPC            _A_RSPC     _H_FN                      _RCMD       _H_ROPT
         >;
     };
 

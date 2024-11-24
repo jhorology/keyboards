@@ -15,7 +15,7 @@ if(CONFIG_ZMK_FONT_PIXEL_MPLUS_10)
     pixel_mplus_10  # structure name
     1                          # bpp
     10                         # size
-    --autohint-off
+    --autohint-off             # should be off for pixel font
     --range 0x20-0x7f          # only ascii glyph
     --range 0x30A0-0x30ff      # full-width Katakana
   )
@@ -29,7 +29,7 @@ if(CONFIG_ZMK_FONT_PIXEL_MPLUS_12)
     pixel_mplus_12        # structure name
     1                          # bpp
     12                         # size
-    --autohint-off
+    --autohint-off             # should be off for pixel font
     --range 0x20-0x7f          # ascii
   )
 endif()
@@ -42,7 +42,7 @@ if(CONFIG_ZMK_FONT_PIXEL_MPLUS_BOLD_10)
     pixel_mplus_bold_10  # structure name
     1                          # bpp
     10                         # size
-    --autohint-off
+    --autohint-off             # should be off for pixel font
     --range 0x20-0x7f          # only ascii glyph
   )
 endif()
@@ -55,7 +55,7 @@ if(CONFIG_ZMK_FONT_PIXEL_MPLUS_BOLD_12)
     pixel_mplus_bold_12        # structure name
     1                          # bpp
     12                         # size
-    --autohint-off
+    --autohint-off             # should be off for pixel font
     --range 0x20-0x7f          # ascii
   )
 endif()
@@ -93,6 +93,7 @@ if(CONFIG_ZMK_FONT_COZETTA_ICONS_13)
     cozetta_icons_13           # structure name
     1                          # bpp
     13                         # size (cozzeta is 6x13 pixel font)
+    --autohint-off             # should be off for pixel font
 
     # space
     --range 0x20
