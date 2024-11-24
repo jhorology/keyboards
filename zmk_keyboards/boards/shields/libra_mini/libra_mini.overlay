@@ -9,8 +9,8 @@
 /*
  * TODO
  *   analog joystick
- *     P1.00 x-axis
- *     P0.09 x-axis
+ *     x-axis rewire  D6->D20(AIN5)
+ *     y-axis rewire  D10->D21(AIN7)
  *     P1.01 push button
  *
  *   LED Strip
@@ -56,8 +56,13 @@
       , <&pro_micro 15 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
       , <&pro_micro 18 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
       , <&pro_micro 19 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
-      , <&pro_micro 20 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
-      , <&pro_micro 21 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+
+      /* rewire D20->D6 for joystick */
+      // , <&pro_micro 20 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+      , <&pro_micro 6 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+      /* rewire D21->D10 for joystick */
+      // , <&pro_micro 21 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+      , <&pro_micro 10 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
       , <&pro_micro 5 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
       , <&pro_micro 4 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
       , <&pro_micro 3 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
@@ -130,4 +135,22 @@
       , <&key_physical_attrs 100 100 1350  300       0     0     0>
       ;
   };
+
+  /*
+   * need to rwire D6(COL4)<>D20/AIN6, D10(COL5)<>D21/AIN7
+   */
+  joystick: joystick {
+    compatible = "zmk,input-analog-joystick";
+    label = "JOYSTICK";
+    io-channels = <&adc 5>, <&adc 7>;
+    io-channel-names = "X-AXIS", "Y-AXIS";
+    min-mv = <300>;
+    max-mv = <3000>;
+    dead-zone = <10>;
+    status = "okay";
+  };
+
+  /*
+   * TODO joystick listene, processor, etcc.....
+   */
 };

@@ -71,18 +71,28 @@ config ZMK_USB_AUTO_SWITCH_LAYER_UNLESS_DARWIN
 
 endif # ZMK_AUTO_SWITCH_LAYER
 
+config ZMK_JOYSTICK
+    bool "Enable ZMK joystick emulation"
+
+if ZMK_BLE && ZMK_JOYSTICK
+
+config ZMK_BLE_JOYSTICK_REPORT_QUEUE_SIZE
+    int "Max number of joystick HID reports to queue for sending over BLE"
+    default 20
+
+endif # ZMK_BLE && ZMK_JOYSTICK
 
 config ZMK_RADIAL_CONTROLLER
     bool "Enable ZMK Radial Controller"
     default n
 
-if ZMK_RADIAL_CONTROLLER
+if ZMK_BLE && ZMK_RADIAL_CONTROLLER
 
 config ZMK_BLE_RADIAL_CONTROLLER_REPORT_QUEUE_SIZE
     int "Max number of radial controller HID reports to queue for sending over BLE"
     default 5
 
-endif # ZMK_RADIAL_CONTROLLER
+endif # ZMK_BLE && ZMK_RADIAL_CONTROLLER
 
 config ZMK_CUSTOM_SHELL_CMD
     bool "Enable custom shell command"

@@ -4,11 +4,22 @@ manifest:
       url-base: https://github.com/zmkfirmware
     - name: petejohanson
       url-base: https://github.com/petejohanson
+    - name: friggeri
+      url-base: https://github.com/friggeri
   projects:
     - name: zmk
       remote: zmkfirmware
       revision: main
       clone-depth: 1
       import: app/west.yml
+    - name: zmk-analog-joystick-driver
+      remote: friggeri
+      revision: main
+      path: modules/input/zmk-analog-joystick-driver
+  # not compatible with #2477 for now
+  # - name: zmk-joystick-listener
+  #   remote: friggeri
+  #   revision: main
+  #   path: modules/input/zmk-joystick-listener
   self:
     path: zmk_keyboards
