@@ -1,5 +1,5 @@
 diff --git a/quantum/keyboard.c b/quantum/keyboard.c
-index df1dc1c3ee..5410d124ad 100644
+index df1dc1c3..5410d124 100644
 --- a/quantum/keyboard.c
 +++ b/quantum/keyboard.c
 @@ -520,6 +520,10 @@ static inline void generate_tick_event(void) {

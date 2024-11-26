@@ -122,7 +122,7 @@ index 8aa38b6d..3b4d2e61 100644
  void send_programmable_button(report_programmable_button_t *report);
 +void send_radial_controller(report_radial_controller_t *report);
 diff --git a/tmk_core/protocol/lufa/lufa.c b/tmk_core/protocol/lufa/lufa.c
-index 2142b044..f6ae9000 100644
+index b0c9758d..d71c30ad 100644
 --- a/tmk_core/protocol/lufa/lufa.c
 +++ b/tmk_core/protocol/lufa/lufa.c
 @@ -390,6 +390,11 @@ void EVENT_USB_Device_ConfigurationChanged(void) {
@@ -167,7 +167,7 @@ index 0e4f6e9d..649a1aaf 100644
  #ifdef JOYSTICK_SHARED_EP
      uint8_t report_id;
 diff --git a/tmk_core/protocol/usb_descriptor.c b/tmk_core/protocol/usb_descriptor.c
-index 7efd085e..02e33168 100644
+index 703589b0..7e1c88af 100644
 --- a/tmk_core/protocol/usb_descriptor.c
 +++ b/tmk_core/protocol/usb_descriptor.c
 @@ -384,6 +384,38 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {

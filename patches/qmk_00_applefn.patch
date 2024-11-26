@@ -1,8 +1,8 @@
 diff --git a/builddefs/common_features.mk b/builddefs/common_features.mk
-index 68f9a1dd08..fcbf01e72c 100644
+index 498614dd..0df5b383 100644
 --- a/builddefs/common_features.mk
 +++ b/builddefs/common_features.mk
-@@ -848,6 +848,13 @@ ifeq ($(strip $(JOYSTICK_ENABLE)), yes)
+@@ -847,6 +847,13 @@ ifeq ($(strip $(JOYSTICK_ENABLE)), yes)
      endif
  endif
  
@@ -17,7 +17,7 @@ index 68f9a1dd08..fcbf01e72c 100644
  VALID_USBPD_DRIVER_TYPES = custom vendor
  USBPD_DRIVER ?= vendor
 diff --git a/drivers/bluetooth/bluetooth.c b/drivers/bluetooth/bluetooth.c
-index d5382401e7..96e854ad5e 100644
+index d5382401..96e854ad 100644
 --- a/drivers/bluetooth/bluetooth.c
 +++ b/drivers/bluetooth/bluetooth.c
 @@ -60,3 +60,7 @@ void bluetooth_send_consumer(uint16_t usage) {
@@ -29,7 +29,7 @@ index d5382401e7..96e854ad5e 100644
 +// TODO not implemented yet
 +}
 diff --git a/drivers/bluetooth/bluetooth.h b/drivers/bluetooth/bluetooth.h
-index 2e4d0df538..fa95a758f8 100644
+index 2e4d0df5..fa95a758 100644
 --- a/drivers/bluetooth/bluetooth.h
 +++ b/drivers/bluetooth/bluetooth.h
 @@ -50,3 +50,5 @@ void bluetooth_send_mouse(report_mouse_t *report);
@@ -39,7 +39,7 @@ index 2e4d0df538..fa95a758f8 100644
 +
 +void bluetooth_send_apple(bool pressed, uint8_t usageIndex);
 diff --git a/tmk_core/protocol/host.c b/tmk_core/protocol/host.c
-index 732fbdc37d..7b09b6a89c 100644
+index 732fbdc3..7b09b6a8 100644
 --- a/tmk_core/protocol/host.c
 +++ b/tmk_core/protocol/host.c
 @@ -43,6 +43,7 @@ extern keymap_config_t keymap_config;
@@ -88,7 +88,7 @@ index 732fbdc37d..7b09b6a89c 100644
 +    return (last_apple_usages & usage_mask) != 0;
 +}
 diff --git a/tmk_core/protocol/host.h b/tmk_core/protocol/host.h
-index 959753ae02..2e222f55e9 100644
+index 959753ae..2e222f55 100644
 --- a/tmk_core/protocol/host.h
 +++ b/tmk_core/protocol/host.h
 @@ -42,10 +42,12 @@ void    host_nkro_send(report_nkro_t *report);
@@ -105,7 +105,7 @@ index 959753ae02..2e222f55e9 100644
  #ifdef __cplusplus
  }
 diff --git a/tmk_core/protocol/report.h b/tmk_core/protocol/report.h
-index 0e4f6e9def..e5adaea5d9 100644
+index 0e4f6e9d..e5adaea5 100644
 --- a/tmk_core/protocol/report.h
 +++ b/tmk_core/protocol/report.h
 @@ -35,6 +35,7 @@ enum hid_report_ids {
@@ -117,7 +117,7 @@ index 0e4f6e9def..e5adaea5d9 100644
      REPORT_ID_NKRO,
      REPORT_ID_JOYSTICK,
 diff --git a/tmk_core/protocol/usb_descriptor.c b/tmk_core/protocol/usb_descriptor.c
-index 0e2e63ad8e..5dcba18806 100644
+index 703589b0..13a8fa34 100644
 --- a/tmk_core/protocol/usb_descriptor.c
 +++ b/tmk_core/protocol/usb_descriptor.c
 @@ -321,6 +321,52 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
@@ -174,7 +174,7 @@ index 0e2e63ad8e..5dcba18806 100644
  
  #ifdef PROGRAMMABLE_BUTTON_ENABLE
 diff --git a/tmk_core/protocol/vusb/vusb.c b/tmk_core/protocol/vusb/vusb.c
-index c8ab494253..7e43f5b081 100644
+index fa14820e..e22af2c4 100644
 --- a/tmk_core/protocol/vusb/vusb.c
 +++ b/tmk_core/protocol/vusb/vusb.c
 @@ -570,6 +570,52 @@ const PROGMEM uchar shared_hid_report[] = {
