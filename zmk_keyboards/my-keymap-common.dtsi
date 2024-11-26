@@ -108,18 +108,24 @@
 
 // Right SPACE for corne keyboard
 // hold: Momentaly R Thumb layer
-// tap: ENTER
+// tap: SPACE
 #define _C_RSPC &lt _R_THUMB_LAYER SPC
 
 // Left SPACE for alice keyboard
 // hold: Momentaly L Thumb layer
 // tap: SPACE
-#define _A_LSPC &lt _L_THUMB_LAYER SPC
+#define _AL_LSPC &lt _L_THUMB_LAYER SPC
 
 // Right SPACE for alice keyboard
 // hold: Momentaly R Thumb layer
 // tap: SPACE
-#define _A_RSPC &lt _R_THUMB_LAYER SPC
+#define _AL_RSPC &lt _R_THUMB_LAYER SPC
+
+// Left SPACE for alice keyboard
+// single: LANG2
+// hold: Momentary HHKB Fn layer
+// double: LANG1
+#define _AL_H_FN &alice_fn_lang21
 
 // HHKB fn
 #define _H_FN &mo _HHKB_FN_LAYER
@@ -332,6 +338,20 @@
       tapping-term-ms = <200>;
       //          hold       tap          tap-hold     multi-tap
       bindings = <&kp RCMD>, <&kp LANG2>, <&kp RCMD>, <&kp LANG1>;
+    };
+
+    // HHKB Fn key for alice keyboard
+    // hold -> HHKB Fn
+    // single tap ->  LANG2(英数)
+    // tap hold -> HHHKB Fn
+    // double tap -> LANG1(かな)
+    /omit-if-no-ref/ alice_fn_lang21: alice_fn_lang21 {
+      display-name = "Fn Lang";
+      compatible = "zmk,behavior-hold-tap-dance";
+      #binding-cells = <0>;
+      tapping-term-ms = <200>;
+      //          hold                 tap          tap-hold              multi-tap
+      bindings = <&mo _HHKB_FN_LAYER>, <&kp LANG2>, <&mo _HHKB_FN_LAYER>, <&kp LANG1>;
     };
 
     // Right Option key for HHKB layout

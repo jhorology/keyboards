@@ -25,10 +25,12 @@ const tap_dance_entry_t PROGMEM tap_dance_predefined_entries[NUM_TAP_DANCE_PREDE
   [0] = {A(KC_X), KC_LALT, KC_LALT, KC_LALT, TAPPING_TERM},
   // TD(1) - LCMD + Spacemacs leader key
   [1] = {A(KC_M), KC_LGUI, KC_LGUI, KC_LGUI, TAPPING_TERM},
-  // TD(2) - RCMD + LANG2/LANG1
-  [2] = {KC_LNG2, KC_RGUI, KC_LNG1, KC_RGUI, TAPPING_TERM},
-  // TD(3) - Right Alt, Alt + layer switch
-  [3] = {KC_RALT, KC_RALT, KC_RALT, MO(3), TAPPING_TERM}};
+  // TD(2) - HHKB Fn + LANG2/LANG1
+  [2] = {KC_LNG2, MO(2), KC_LNG1, MO(2), TAPPING_TERM},
+  // TD(3) - RCMD + LANG2/LANG1
+  [3] = {KC_LNG2, KC_RGUI, KC_LNG1, KC_RGUI, TAPPING_TERM},
+  // TD(4) - Right Alt, Alt + layer switch
+  [4] = {KC_RALT, KC_RALT, KC_RALT, MO(3), TAPPING_TERM}};
 
 // since QMK 0.26, tap_dance_actions must be defined in keyma.c
 tap_dance_action_t tap_dance_actions[TAP_DANCE_ENTRIES];
@@ -40,7 +42,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_TAB,   KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,        KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_BSLS, KC_BSPC,
     KC_LCTL,  KC_A,    KC_S,    KC_D,    KC_F,    KC_G,        KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_ENT,
     KC_LSFT,  KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,        KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH, KC_RSFT,
-    APPLE_FF, TD(0),                     TD(1),   MO4_SPC,     MO5_SPC, MO(2),                              TD(2),   TD(3)
+    APPLE_FN, TD(0),                     TD(1),   MO4_SPC,     MO5_SPC, TD(2),                              TD(3),   TD(4)
   ),
 
   // win base layer
@@ -48,7 +50,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_TAB,   KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,        KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_BSLS, KC_BSPC,
     KC_LCTL,  KC_A,    KC_S,    KC_D,    KC_F,    KC_G,        KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_ENT,
     KC_LSFT,  KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,        KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH, KC_RSFT,
-    APPLE_FF, TD(0),                     TD(1),   MO4_SPC,     MO5_SPC, MO(2),                              TD(2),   TD(3)
+    APPLE_FN, TD(0),                     TD(1),   MO4_SPC,     MO5_SPC, MO(2),                              TD(2),   TD(3)
    ),
 
   // HHKB-like fn layer
