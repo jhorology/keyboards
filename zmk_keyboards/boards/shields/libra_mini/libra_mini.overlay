@@ -6,6 +6,8 @@
 #include <physical_layouts.dtsi>
 #include <dt-bindings/zmk/matrix_transform.h>
 
+#define USE_JOYSTICK 1
+
 /*
  * TODO
  *   analog joystick
@@ -57,12 +59,14 @@
       , <&pro_micro 18 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
       , <&pro_micro 19 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
 
-      /* rewire D20->D6 for joystick */
-      // , <&pro_micro 20 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+#if USE_JOYSTICK
+      /* need to rewire D20->D6, D21->D10  for joystick */
       , <&pro_micro 6 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
-      /* rewire D21->D10 for joystick */
-      // , <&pro_micro 21 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
       , <&pro_micro 10 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+#else
+      , <&pro_micro 20 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+      , <&pro_micro 21 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+#endif
       , <&pro_micro 5 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
       , <&pro_micro 4 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
       , <&pro_micro 3 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
@@ -136,6 +140,7 @@
       ;
   };
 
+#if USE_JOYSTICK
   /*
    * need to rwire D6(COL4)<>D20/AIN6, D10(COL5)<>D21/AIN7
    */
@@ -153,4 +158,18 @@
   /*
    * TODO joystick listener, processor, etc.....
    */
+#endif
+
+};
+
+&pro_micro_i2c {
+  status = "disabled";
+};
+
+&pro_micro_spi {
+  status = "disabled";
+};
+
+&pro_micro_serial {
+  status = "disabled";
 };
