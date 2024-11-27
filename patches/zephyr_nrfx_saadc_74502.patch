@@ -1,0 +1,36 @@
+From f6442e2b18fb4fe550cf155a5a02cc4608713bfd Mon Sep 17 00:00:00 2001
+From: Maksim Salau <maksim.salau@gmail.com>
+Date: Mon, 17 Jun 2024 19:27:41 +0200
+Subject: [PATCH] drivers: adc: saadc: Disable burst mode on unused channels
+
+Burst mode enabled on an unused channel causes a freeze during a
+conversion consisting of several channels (not including the one with
+burst mode enabled).
+
+Discovered on nRF52832 (nRF52-DK) using the following approach:
+  channels 0-3 are used for application purposes as a sequence
+  channel 4 is used for battery measurements with oversampling
+
+After few successful conversions the sequence (channels 0-3) freezes the
+thread while waiting for semaphore to end the conversion.
+
+Signed-off-by: Maksim Salau <maksim.salau@gmail.com>
+---
+ drivers/adc/adc_nrfx_saadc.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/drivers/adc/adc_nrfx_saadc.c b/drivers/adc/adc_nrfx_saadc.c
+index ba22a05325d382..dabced3442d53c 100644
+--- a/drivers/adc/adc_nrfx_saadc.c
++++ b/drivers/adc/adc_nrfx_saadc.c
+@@ -479,6 +479,10 @@ static int start_read(const struct device *dev,
+ 				m_data.positive_inputs[channel_id]);
+ 			++active_channels;
+ 		} else {
++			nrf_saadc_burst_set(
++				NRF_SAADC,
++				channel_id,
++				NRF_SAADC_BURST_DISABLED);
+ 			nrf_saadc_channel_pos_input_set(
+ 				NRF_SAADC,
+ 				channel_id,
