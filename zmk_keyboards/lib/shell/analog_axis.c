@@ -197,12 +197,12 @@ static int cmd_deadzone(const struct shell *sh, size_t argc, char **argv) {
 SHELL_STATIC_SUBCMD_SET_CREATE(
   analog_axis_sub_cmds, SHELL_CMD_ARG(show, NULL, "show currnt calibration data", cmd_show, 1, 0),
   SHELL_CMD_ARG(cal, NULL,
-                "usage: analog_axis cal <ch>, calibrate in_min and in_max, [qQ] to quit without "
+                "usage: analog_axis cal <ch>  |  calibrate in_min and in_max, [qQ] to quit without "
                 "save, [sS] to quit and save data",
                 cmd_cal, 2, 0),
-  SHELL_CMD_ARG(center, NULL, "usage: analog_axis set <ch> <center value>  adjust center",
+  SHELL_CMD_ARG(center, NULL, "usage: analog_axis center <ch> <center value>  |  adjust center",
                 cmd_center, 3, 0),
-  SHELL_CMD_ARG(deadzone, NULL, "usage: analog_axis deadzonet <ch> <value>   set deadzone",
+  SHELL_CMD_ARG(deadzone, NULL, "usage: analog_axis deadzone <ch> <value>  |  set deadzone",
                 cmd_deadzone, 3, 0),
 
   SHELL_SUBCMD_SET_END /* Array terminated. */
