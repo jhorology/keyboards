@@ -71,9 +71,6 @@
     };
     setting_layer {
       display-name = "Setting";
-      // _SOFT_OFF
-      //  To  wake on any key-press, all other keys should be releeased before soft_off key being releasesd.
-      //  if not wake on key press, connect/dis-connect USB.
       bindings =
         <
          &bootloader  ______    ______    ______    ______    ______    ______   ______  ______  ______  ______  ______  ______  &ota_bootloader  &sys_reset

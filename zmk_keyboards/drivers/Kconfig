@@ -1,3 +1,4 @@
 menu "Drivers"
 rsource "display/Kconfig"
+rsource "input/Kconfig"
 endmenu

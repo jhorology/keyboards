@@ -11,6 +11,13 @@ config ZMK_SPLIT_ROLE_CENTRAL
 
 endif # SHIELD_CZ42_LEFT
 
+if SHIELD_CZ42_RIGHT
+
+config ZMK_USB
+    default n
+
+endif # SHIELD_CZ42_RIGHT
+
 if SHIELD_CZ42_LEFT || SHIELD_CZ42_RIGHT
 
 config ZMK_SPLIT

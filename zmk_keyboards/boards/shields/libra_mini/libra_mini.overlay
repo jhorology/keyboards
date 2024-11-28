@@ -3,23 +3,25 @@
  * SPDX-License-Identifier: MIT
  */
 
+#include <zephyr/dt-bindings/input/input-event-codes.h>
 #include <physical_layouts.dtsi>
 #include <dt-bindings/zmk/matrix_transform.h>
 
+/*
+ * To use joystick:
+ *  - need to rwire D6(COL4)<>D20/AIN6, D10(COL5)<>D21/AIN7
+ *  - The VCC pin-hole and VCC pin-header on MCU board is directly connected USB power-line,
+ *    so a pattern must be cut and connect them with a jumper.
+ *  - Patch required if freeze with ZMK battery.c
+ *    https://github.com/zephyrproject-rtos/zephyr/pull/74502
+ */
 #define USE_JOYSTICK 1
 
 /*
  * TODO
- *   analog joystick
- *     x-axis rewire  D6->D20(AIN5)
- *     y-axis rewire  D10->D21(AIN7)
- *     P1.01 push button
- *
- *   LED Strip
- *     P1.02 SPI
- *
- *   PWM Buzzer
- *     P1.07 PWM
+ *   - Joystick push button -> P1.01
+ *   - LED Strip -> P1.02 SPI
+ *   - PWM Buzzer -> P1.07 PWM
  */
 
 / {
@@ -60,7 +62,6 @@
       , <&pro_micro 19 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
 
 #if USE_JOYSTICK
-      /* need to rewire D20->D6, D21->D10  for joystick */
       , <&pro_micro 6 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
       , <&pro_micro 10 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
 #else
@@ -140,27 +141,78 @@
       ;
   };
 
+
 #if USE_JOYSTICK
-  /*
-   * need to rwire D6(COL4)<>D20/AIN6, D10(COL5)<>D21/AIN7
-   */
-  joystick: joystick {
-    compatible = "zmk,input-analog-joystick";
-    label = "JOYSTICK";
-    io-channels = <&adc 5>, <&adc 7>;
-    io-channel-names = "X-AXIS", "Y-AXIS";
-    min-mv = <300>;
-    max-mv = <3000>;
-    dead-zone = <10>;
-    status = "okay";
+ /*
+  * in_deadzon, in_min and in_max can be caribrated and saveed with shell/analog_axis.c
+  *
+  * uart:~$ analog_axis show
+  * Current settings:
+  * ch.0 in_min: 550, in_max: 3250, in_deadzone: 50
+  * ch.1 in_min: 523, in_max: 3077, in_deadzone: 50
+  */
+  joystick: analog_axis {
+    compatible = "analog-axis";
+    // poll-period-ms = <14>;
+    poll-period-ms = <500>;
+    poll-period-ms = <500>;
+    axis-x {
+      io-channels = <&adc 3>;
+      in-deadzone = <100>;
+      in-min = <600>;
+      in-max = <3000>;
+      out-min = <(-127)>;
+      out-max = <127>;
+      zephyr,axis = <INPUT_ABS_X>;
+    };
+    axis-y {
+      io-channels = <&adc 4>;
+      in-deadzone = <100>;
+      in-min = <600>;
+      in-max = <3000>;
+      out-min = <(-127)>;
+      out-max = <127>;
+      zephyr,axis = <INPUT_ABS_Y>;
+    };
   };
 
   /*
-   * TODO joystick listener, processor, etc.....
+   * TODO support mouse & scroll
    */
 #endif
 
 };
+
+#if USE_JOYSTICK
+/*
+ * ADC ch.3-4 for joystick
+ * nice!nano v2 use ADC ch.0 for battery
+ * nice!nano use ADC ch.2 for battery
+ */
+&adc {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	channel@3 {
+		reg = <3>;
+		zephyr,gain = "ADC_GAIN_1_6";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+    zephyr,input-positive = <NRF_SAADC_AIN5>;
+		zephyr,resolution = <12>;
+		zephyr,oversampling = <0>;
+	};
+	channel@4 {
+		reg = <4>;
+		zephyr,gain = "ADC_GAIN_1_6";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,input-positive = <NRF_SAADC_AIN7>;
+		zephyr,resolution = <12>;
+		zephyr,oversampling = <0>;
+	};
+};
+#endif
+
 
 &pro_micro_i2c {
   status = "disabled";

@@ -13,6 +13,8 @@ CONFIG_RESET=y
 # Code partition needed to target the correct flash range
 CONFIG_USE_DT_CODE_PARTITION=y
 
+CONFIG_SETTINGS=y
+
 # Output UF2 by default, native bootloader supports it.
 CONFIG_BUILD_OUTPUT_UF2=y
 

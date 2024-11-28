@@ -6,8 +6,4 @@ if SHIELD_LIBRA_MINI
 config ZMK_KEYBOARD_NAME
     default "Libra Mini"
 
-config INPUT_ANALOG_JOYSTICK
-    default y
-    depends on DT_HAS_ZMK_INPUT_ANALOG_JOYSTICK_ENABLED
-
 endif # SHIELD_LIBRA_MINI
