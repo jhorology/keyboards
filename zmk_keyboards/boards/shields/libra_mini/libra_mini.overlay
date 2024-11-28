@@ -153,9 +153,7 @@
   */
   joystick: analog_axis {
     compatible = "analog-axis";
-    // poll-period-ms = <14>;
-    poll-period-ms = <500>;
-    poll-period-ms = <500>;
+    poll-period-ms = <14>;
     axis-x {
       io-channels = <&adc 3>;
       in-deadzone = <100>;
