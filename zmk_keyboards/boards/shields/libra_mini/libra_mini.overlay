@@ -146,10 +146,14 @@
  /*
   * in_deadzon, in_min and in_max can be caribrated and saveed with shell/analog_axis.c
   *
-  * uart:~$ analog_axis show
-  * Current settings:
-  * ch.0 in_min: 550, in_max: 3250, in_deadzone: 50
-  * ch.1 in_min: 523, in_max: 3077, in_deadzone: 50
+  *  uart:~$ analog_axis show
+  *  Current settings:
+  *  ch.0 in_min: -3271, in_max: -545, in_deadzone: 61
+  *  ch.1 in_min: -3062, in_max: -548, in_deadzone: 70
+  *
+  * TODO joystick directions are inverted.
+  *  - invert-output property was not work as expected
+  *  - need to check if it's possible to swap VCC and GND wiring
   */
   joystick: analog_axis {
     compatible = "analog-axis";
@@ -157,8 +161,9 @@
     axis-x {
       io-channels = <&adc 3>;
       in-deadzone = <100>;
-      in-min = <600>;
-      in-max = <3000>;
+      invert-input;
+      in-min = <(-3000)>;
+      in-max = <(-600)>;
       out-min = <(-127)>;
       out-max = <127>;
       zephyr,axis = <INPUT_ABS_X>;
@@ -166,8 +171,9 @@
     axis-y {
       io-channels = <&adc 4>;
       in-deadzone = <100>;
-      in-min = <600>;
-      in-max = <3000>;
+      invert-input;
+      in-min = <(-3000)>;
+      in-max = <(-600)>;
       out-min = <(-127)>;
       out-max = <127>;
       zephyr,axis = <INPUT_ABS_Y>;
