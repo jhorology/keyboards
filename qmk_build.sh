@@ -49,7 +49,7 @@ local -A KEYBOARDS=(
   w60        dz60rgb_wkl_v2_1_atmel_dfu:tsangan:hex:03eb:2ff4
   z65        zoom65:default:hex:03eb:2ff4
 )
-TARGETS=(n60 c60 b60 d60 ec60 fk68 i68 libra prime_e q60 qk60 qk65 tx60 tf60 w60 z65)
+TARGETS=(n60 c60 b60 d60 ec60 fk68 i68 prime_e q60 qk60 qk65 tx60 tf60 w60 z65)
 
 WITH_UPDATE=true
 WITH_PATCH=true
