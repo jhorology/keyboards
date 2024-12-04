@@ -1,163 +1,5 @@
-From e54c7e7211814ccf7089d5d3daf438544683cd79 Mon Sep 17 00:00:00 2001
-From: Cem Aksoylar <caksoylar@users.noreply.github.com>
-Date: Wed, 15 Nov 2023 21:11:41 -0800
-Subject: [PATCH 1/8] feat(mouse): Add mouse move and scroll support
-
-* Use Zephyr input subsystem for all pointers.
-* Input processors for modifying events, e.g. scaling, swapping
-  codes, temporary (mouse) layers, etc.
-* Mouse move/scroll behaviors.
-* Infrastructure in place for physical pointer input devices.
-
-Co-authored-by: Alexander Krikun <krikun98@gmail.com>
-Co-authored-by: Robert U <urob@users.noreply.github.com>
-Co-authored-by: Shawn Meier <ftc@users.noreply.github.com>
----
- app/CMakeLists.txt                            |   5 +-
- app/Kconfig                                   |   8 +-
- app/Kconfig.behaviors                         |   8 +-
- app/dts/behaviors.dtsi                        |   8 +-
- app/dts/behaviors/mouse_key_press.dtsi        |   5 +
- app/dts/behaviors/mouse_keys.dtsi             |   9 +
- app/dts/behaviors/mouse_move.dtsi             |  25 ++
- app/dts/behaviors/mouse_scroll.dtsi           |  26 ++
- .../zmk,behavior-input-two-axis.yaml          |  25 ++
- .../bindings/input_processors/ip_common.yaml  |   6 +
- .../input_processors/ip_one_param.yaml        |  13 +
- .../input_processors/ip_two_param.yaml        |  14 +
- .../input_processors/ip_zero_param.yaml       |  10 +
- .../zmk,input-processor-code-mapper.yaml      |  16 +
- .../zmk,input-processor-scaler.yaml           |  16 +
- .../zmk,input-processor-temp-layer.yaml       |   8 +
- .../zmk,input-processor-transform.yaml        |  18 +
- app/dts/bindings/zmk,input-listener.yaml      |  23 ++
- app/dts/input/processors.dtsi                 |   5 +
- app/dts/input/processors/code_mapper.dtsi     |  24 ++
- app/dts/input/processors/scaler.dtsi          |  28 ++
- app/dts/input/processors/temp_layer.dtsi      |   9 +
- app/dts/input/processors/transform.dtsi       |  20 +
- app/include/drivers/input_processor.h         |  67 ++++
- app/include/dt-bindings/input.h               |  12 +
- app/include/dt-bindings/zmk/input_transform.h |   5 +
- app/include/dt-bindings/zmk/mouse.h           |  28 +-
- app/include/zmk/hid.h                         |  94 ++++-
- app/include/zmk/input.h                       |  14 +
- app/include/zmk/mouse.h                       |   2 +-
- .../zmk/mouse/resolution_multipliers.h        |  25 ++
- app/src/activity.c                            |  20 +-
- app/src/behaviors/behavior_input_two_axis.c   | 304 ++++++++++++++
- app/src/behaviors/behavior_mouse_key_press.c  |  25 +-
- app/src/hid.c                                 |  41 +-
- app/src/hog.c                                 |  62 ++-
- app/src/main.c                                |   4 +
- app/src/mouse.c                               |  43 --
- app/src/mouse/CMakeLists.txt                  |   7 +
- app/src/mouse/Kconfig                         |  41 ++
- app/src/mouse/input_listener.c                | 373 ++++++++++++++++++
- app/src/mouse/input_processor_code_mapper.c   |  58 +++
- app/src/mouse/input_processor_scaler.c        |  75 ++++
- app/src/mouse/input_processor_temp_layer.c    |  60 +++
- app/src/mouse/input_processor_transform.c     |  92 +++++
- app/src/mouse/resolution_multipliers.c        |  49 +++
- app/src/usb_hid.c                             | 130 ++++--
- app/tests/mouse-keys/mkp/native_posix_64.conf |   6 +
- .../mouse-move/move_diagonal/events.patterns  |   1 +
- .../move_diagonal/keycode_events.snapshot     |  18 +
- .../move_diagonal/native_posix_64.conf        |   6 +
- .../move_diagonal/native_posix_64.keymap      |  29 ++
- .../mouse-move/move_x/events.patterns         |   1 +
- .../mouse-move/move_x/keycode_events.snapshot |  24 ++
- .../mouse-move/move_x/native_posix_64.conf    |   6 +
- .../mouse-move/move_x/native_posix_64.keymap  |  29 ++
- .../mouse-move/move_y/events.patterns         |   1 +
- .../mouse-move/move_y/keycode_events.snapshot |  24 ++
- .../mouse-move/move_y/native_posix_64.conf    |   6 +
- .../mouse-move/move_y/native_posix_64.keymap  |  29 ++
- .../move_diagonal_scaling/events.patterns     |   1 +
- .../keycode_events.snapshot                   |  18 +
- .../native_posix_64.conf                      |   6 +
- .../native_posix_64.keymap                    |  37 ++
- .../move_diagonal_xy_invert/events.patterns   |   1 +
- .../keycode_events.snapshot                   |  18 +
- .../native_posix_64.conf                      |   6 +
- .../native_posix_64.keymap                    |  34 ++
- .../move_diagonal_xy_swap/events.patterns     |   1 +
- .../keycode_events.snapshot                   |  18 +
- .../native_posix_64.conf                      |   6 +
- .../native_posix_64.keymap                    |  33 ++
- .../processors/temp_layer/events.patterns     |   2 +
- .../temp_layer/keycode_events.snapshot        |  14 +
- .../temp_layer/native_posix_64.conf           |   6 +
- .../temp_layer/native_posix_64.keymap         |  39 ++
- docs/docs/intro.md                            |   2 +-
- docs/docs/keymaps/behaviors/index.mdx         |   2 +
- .../docs/keymaps/behaviors/mouse-emulation.md |  71 +++-
- 79 files changed, 2337 insertions(+), 118 deletions(-)
- create mode 100644 app/dts/behaviors/mouse_keys.dtsi
- create mode 100644 app/dts/behaviors/mouse_move.dtsi
- create mode 100644 app/dts/behaviors/mouse_scroll.dtsi
- create mode 100644 app/dts/bindings/behaviors/zmk,behavior-input-two-axis.yaml
- create mode 100644 app/dts/bindings/input_processors/ip_common.yaml
- create mode 100644 app/dts/bindings/input_processors/ip_one_param.yaml
- create mode 100644 app/dts/bindings/input_processors/ip_two_param.yaml
- create mode 100644 app/dts/bindings/input_processors/ip_zero_param.yaml
- create mode 100644 app/dts/bindings/input_processors/zmk,input-processor-code-mapper.yaml
- create mode 100644 app/dts/bindings/input_processors/zmk,input-processor-scaler.yaml
- create mode 100644 app/dts/bindings/input_processors/zmk,input-processor-temp-layer.yaml
- create mode 100644 app/dts/bindings/input_processors/zmk,input-processor-transform.yaml
- create mode 100644 app/dts/bindings/zmk,input-listener.yaml
- create mode 100644 app/dts/input/processors.dtsi
- create mode 100644 app/dts/input/processors/code_mapper.dtsi
- create mode 100644 app/dts/input/processors/scaler.dtsi
- create mode 100644 app/dts/input/processors/temp_layer.dtsi
- create mode 100644 app/dts/input/processors/transform.dtsi
- create mode 100644 app/include/drivers/input_processor.h
- create mode 100644 app/include/dt-bindings/input.h
- create mode 100644 app/include/dt-bindings/zmk/input_transform.h
- create mode 100644 app/include/zmk/input.h
- create mode 100644 app/include/zmk/mouse/resolution_multipliers.h
- create mode 100644 app/src/behaviors/behavior_input_two_axis.c
- delete mode 100644 app/src/mouse.c
- create mode 100644 app/src/mouse/CMakeLists.txt
- create mode 100644 app/src/mouse/Kconfig
- create mode 100644 app/src/mouse/input_listener.c
- create mode 100644 app/src/mouse/input_processor_code_mapper.c
- create mode 100644 app/src/mouse/input_processor_scaler.c
- create mode 100644 app/src/mouse/input_processor_temp_layer.c
- create mode 100644 app/src/mouse/input_processor_transform.c
- create mode 100644 app/src/mouse/resolution_multipliers.c
- create mode 100644 app/tests/mouse-keys/mkp/native_posix_64.conf
- create mode 100644 app/tests/mouse-keys/mouse-move/move_diagonal/events.patterns
- create mode 100644 app/tests/mouse-keys/mouse-move/move_diagonal/keycode_events.snapshot
- create mode 100644 app/tests/mouse-keys/mouse-move/move_diagonal/native_posix_64.conf
- create mode 100644 app/tests/mouse-keys/mouse-move/move_diagonal/native_posix_64.keymap
- create mode 100644 app/tests/mouse-keys/mouse-move/move_x/events.patterns
- create mode 100644 app/tests/mouse-keys/mouse-move/move_x/keycode_events.snapshot
- create mode 100644 app/tests/mouse-keys/mouse-move/move_x/native_posix_64.conf
- create mode 100644 app/tests/mouse-keys/mouse-move/move_x/native_posix_64.keymap
- create mode 100644 app/tests/mouse-keys/mouse-move/move_y/events.patterns
- create mode 100644 app/tests/mouse-keys/mouse-move/move_y/keycode_events.snapshot
- create mode 100644 app/tests/mouse-keys/mouse-move/move_y/native_posix_64.conf
- create mode 100644 app/tests/mouse-keys/mouse-move/move_y/native_posix_64.keymap
- create mode 100644 app/tests/mouse-keys/mouse-move/processors/move_diagonal_scaling/events.patterns
- create mode 100644 app/tests/mouse-keys/mouse-move/processors/move_diagonal_scaling/keycode_events.snapshot
- create mode 100644 app/tests/mouse-keys/mouse-move/processors/move_diagonal_scaling/native_posix_64.conf
- create mode 100644 app/tests/mouse-keys/mouse-move/processors/move_diagonal_scaling/native_posix_64.keymap
- create mode 100644 app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_invert/events.patterns
- create mode 100644 app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_invert/keycode_events.snapshot
- create mode 100644 app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_invert/native_posix_64.conf
- create mode 100644 app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_invert/native_posix_64.keymap
- create mode 100644 app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_swap/events.patterns
- create mode 100644 app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_swap/keycode_events.snapshot
- create mode 100644 app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_swap/native_posix_64.conf
- create mode 100644 app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_swap/native_posix_64.keymap
- create mode 100644 app/tests/mouse-keys/mouse-move/processors/temp_layer/events.patterns
- create mode 100644 app/tests/mouse-keys/mouse-move/processors/temp_layer/keycode_events.snapshot
- create mode 100644 app/tests/mouse-keys/mouse-move/processors/temp_layer/native_posix_64.conf
- create mode 100644 app/tests/mouse-keys/mouse-move/processors/temp_layer/native_posix_64.keymap
-
 diff --git a/app/CMakeLists.txt b/app/CMakeLists.txt
-index fd4b7ab5519..7ca7814d9e2 100644
+index fd4b7ab5..49b42420 100644
 --- a/app/CMakeLists.txt
 +++ b/app/CMakeLists.txt
 @@ -16,6 +16,7 @@ if(CONFIG_ZMK_BEHAVIOR_LOCAL_IDS)
@@ -168,7 +10,7 @@ index fd4b7ab5519..7ca7814d9e2 100644
  zephyr_syscall_header(${APPLICATION_SOURCE_DIR}/include/drivers/ext_power.h)
  
  # Add your source file to the "app" target. This must come after
-@@ -36,7 +37,6 @@ target_sources_ifdef(CONFIG_ZMK_GPIO_KEY_WAKEUP_TRIGGER app PRIVATE src/gpio_key
+@@ -36,15 +37,14 @@ target_sources_ifdef(CONFIG_ZMK_GPIO_KEY_WAKEUP_TRIGGER app PRIVATE src/gpio_key
  target_sources(app PRIVATE src/events/activity_state_changed.c)
  target_sources(app PRIVATE src/events/position_state_changed.c)
  target_sources(app PRIVATE src/events/sensor_event.c)
@@ -176,12 +18,12 @@ index fd4b7ab5519..7ca7814d9e2 100644
  target_sources_ifdef(CONFIG_ZMK_WPM app PRIVATE src/events/wpm_state_changed.c)
  target_sources_ifdef(CONFIG_USB_DEVICE_STACK app PRIVATE src/events/usb_conn_state_changed.c)
  target_sources(app PRIVATE src/behaviors/behavior_reset.c)
-@@ -44,7 +44,7 @@ target_sources_ifdef(CONFIG_ZMK_EXT_POWER app PRIVATE src/behaviors/behavior_ext
+ target_sources_ifdef(CONFIG_ZMK_EXT_POWER app PRIVATE src/behaviors/behavior_ext_power.c)
  target_sources_ifdef(CONFIG_ZMK_BEHAVIOR_SOFT_OFF app PRIVATE src/behaviors/behavior_soft_off.c)
++add_subdirectory_ifdef(CONFIG_ZMK_MOUSE src/mouse/)
  if ((NOT CONFIG_ZMK_SPLIT) OR CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
    target_sources(app PRIVATE src/hid.c)
 -  target_sources_ifdef(CONFIG_ZMK_MOUSE app PRIVATE src/mouse.c)
-+  add_subdirectory_ifdef(CONFIG_ZMK_MOUSE src/mouse/)
    target_sources(app PRIVATE src/behaviors/behavior_key_press.c)
    target_sources_ifdef(CONFIG_ZMK_BEHAVIOR_KEY_TOGGLE app PRIVATE src/behaviors/behavior_key_toggle.c)
    target_sources_ifdef(CONFIG_ZMK_BEHAVIOR_HOLD_TAP app PRIVATE src/behaviors/behavior_hold_tap.c)
@@ -194,7 +36,7 @@ index fd4b7ab5519..7ca7814d9e2 100644
    target_sources(app PRIVATE src/behaviors/behavior_tap_dance.c)
    target_sources(app PRIVATE src/behavior_queue.c)
 diff --git a/app/Kconfig b/app/Kconfig
-index b0ffc72ac02..4926be88379 100644
+index b0ffc72a..4926be88 100644
 --- a/app/Kconfig
 +++ b/app/Kconfig
 @@ -396,13 +396,7 @@ endif
@@ -213,7 +55,7 @@ index b0ffc72ac02..4926be88379 100644
  menu "Power Management"
  
 diff --git a/app/Kconfig.behaviors b/app/Kconfig.behaviors
-index 69419a2f17e..601eb2ee64b 100644
+index 69419a2f..601eb2ee 100644
 --- a/app/Kconfig.behaviors
 +++ b/app/Kconfig.behaviors
 @@ -71,8 +71,7 @@ config ZMK_BEHAVIOR_KEY_TOGGLE
@@ -239,7 +81,7 @@ index 69419a2f17e..601eb2ee64b 100644
      bool
  
 diff --git a/app/dts/behaviors.dtsi b/app/dts/behaviors.dtsi
-index fcb4a63d450..653b085d5c5 100644
+index fcb4a63d..653b085d 100644
 --- a/app/dts/behaviors.dtsi
 +++ b/app/dts/behaviors.dtsi
 @@ -1,3 +1,9 @@
@@ -261,7 +103,7 @@ index fcb4a63d450..653b085d5c5 100644
  #include <behaviors/studio_unlock.dtsi>
 +#include <behaviors/mouse_keys.dtsi>
 diff --git a/app/dts/behaviors/mouse_key_press.dtsi b/app/dts/behaviors/mouse_key_press.dtsi
-index 4fbc2eb4cf7..fcb7666493a 100644
+index 4fbc2eb4..fcb76664 100644
 --- a/app/dts/behaviors/mouse_key_press.dtsi
 +++ b/app/dts/behaviors/mouse_key_press.dtsi
 @@ -16,4 +16,9 @@
@@ -276,7 +118,7 @@ index 4fbc2eb4cf7..fcb7666493a 100644
  };
 diff --git a/app/dts/behaviors/mouse_keys.dtsi b/app/dts/behaviors/mouse_keys.dtsi
 new file mode 100644
-index 00000000000..f9a99fede0c
+index 00000000..f9a99fed
 --- /dev/null
 +++ b/app/dts/behaviors/mouse_keys.dtsi
 @@ -0,0 +1,9 @@
@@ -292,7 +134,7 @@ index 00000000000..f9a99fede0c
 \ No newline at end of file
 diff --git a/app/dts/behaviors/mouse_move.dtsi b/app/dts/behaviors/mouse_move.dtsi
 new file mode 100644
-index 00000000000..09b93520c1f
+index 00000000..09b93520
 --- /dev/null
 +++ b/app/dts/behaviors/mouse_move.dtsi
 @@ -0,0 +1,25 @@
@@ -323,7 +165,7 @@ index 00000000000..09b93520c1f
 +};
 diff --git a/app/dts/behaviors/mouse_scroll.dtsi b/app/dts/behaviors/mouse_scroll.dtsi
 new file mode 100644
-index 00000000000..592bd7c8ab2
+index 00000000..592bd7c8
 --- /dev/null
 +++ b/app/dts/behaviors/mouse_scroll.dtsi
 @@ -0,0 +1,26 @@
@@ -355,10 +197,13 @@ index 00000000000..592bd7c8ab2
 +};
 diff --git a/app/dts/bindings/behaviors/zmk,behavior-input-two-axis.yaml b/app/dts/bindings/behaviors/zmk,behavior-input-two-axis.yaml
 new file mode 100644
-index 00000000000..0c138e03929
+index 00000000..80972212
 --- /dev/null
 +++ b/app/dts/bindings/behaviors/zmk,behavior-input-two-axis.yaml
-@@ -0,0 +1,25 @@
+@@ -0,0 +1,28 @@
++# Copyright (c) 2024 The ZMK Contributors
++# SPDX-License-Identifier: MIT
++
 +description: Two axis input behavior
 +
 +compatible: "zmk,behavior-input-two-axis"
@@ -386,7 +231,7 @@ index 00000000000..0c138e03929
 +    default: 1
 diff --git a/app/dts/bindings/input_processors/ip_common.yaml b/app/dts/bindings/input_processors/ip_common.yaml
 new file mode 100644
-index 00000000000..9add07acab9
+index 00000000..9add07ac
 --- /dev/null
 +++ b/app/dts/bindings/input_processors/ip_common.yaml
 @@ -0,0 +1,6 @@
@@ -398,7 +243,7 @@ index 00000000000..9add07acab9
 +    type: boolean
 diff --git a/app/dts/bindings/input_processors/ip_one_param.yaml b/app/dts/bindings/input_processors/ip_one_param.yaml
 new file mode 100644
-index 00000000000..6ef83b146e9
+index 00000000..6ef83b14
 --- /dev/null
 +++ b/app/dts/bindings/input_processors/ip_one_param.yaml
 @@ -0,0 +1,13 @@
@@ -417,7 +262,7 @@ index 00000000000..6ef83b146e9
 +  - param1
 diff --git a/app/dts/bindings/input_processors/ip_two_param.yaml b/app/dts/bindings/input_processors/ip_two_param.yaml
 new file mode 100644
-index 00000000000..f9538eb1040
+index 00000000..f9538eb1
 --- /dev/null
 +++ b/app/dts/bindings/input_processors/ip_two_param.yaml
 @@ -0,0 +1,14 @@
@@ -437,7 +282,7 @@ index 00000000000..f9538eb1040
 +  - param2
 diff --git a/app/dts/bindings/input_processors/ip_zero_param.yaml b/app/dts/bindings/input_processors/ip_zero_param.yaml
 new file mode 100644
-index 00000000000..c22f6ec8100
+index 00000000..c22f6ec8
 --- /dev/null
 +++ b/app/dts/bindings/input_processors/ip_zero_param.yaml
 @@ -0,0 +1,10 @@
@@ -453,7 +298,7 @@ index 00000000000..c22f6ec8100
 +    const: 0
 diff --git a/app/dts/bindings/input_processors/zmk,input-processor-code-mapper.yaml b/app/dts/bindings/input_processors/zmk,input-processor-code-mapper.yaml
 new file mode 100644
-index 00000000000..6cad85a8460
+index 00000000..6cad85a8
 --- /dev/null
 +++ b/app/dts/bindings/input_processors/zmk,input-processor-code-mapper.yaml
 @@ -0,0 +1,16 @@
@@ -475,7 +320,7 @@ index 00000000000..6cad85a8460
 +    required: true
 diff --git a/app/dts/bindings/input_processors/zmk,input-processor-scaler.yaml b/app/dts/bindings/input_processors/zmk,input-processor-scaler.yaml
 new file mode 100644
-index 00000000000..da7ca13f6bc
+index 00000000..da7ca13f
 --- /dev/null
 +++ b/app/dts/bindings/input_processors/zmk,input-processor-scaler.yaml
 @@ -0,0 +1,16 @@
@@ -497,10 +342,10 @@ index 00000000000..da7ca13f6bc
 +    required: true
 diff --git a/app/dts/bindings/input_processors/zmk,input-processor-temp-layer.yaml b/app/dts/bindings/input_processors/zmk,input-processor-temp-layer.yaml
 new file mode 100644
-index 00000000000..dedad47616d
+index 00000000..e69cd58d
 --- /dev/null
 +++ b/app/dts/bindings/input_processors/zmk,input-processor-temp-layer.yaml
-@@ -0,0 +1,8 @@
+@@ -0,0 +1,21 @@
 +# Copyright (c) 2024, The ZMK Contributors
 +# SPDX-License-Identifier: MIT
 +
@@ -509,9 +354,22 @@ index 00000000000..dedad47616d
 +compatible: "zmk,input-processor-temp-layer"
 +
 +include: ip_two_param.yaml
++
++properties:
++  require-prior-idle-ms:
++    type: int
++    required: false
++    default: 0
++    description: Time in milliseconds that must pass after the last keystroke before the layer can be toggled
++
++  excluded-positions:
++    type: array
++    required: false
++    default: []
++    description: Array of key positions that will NOT trigger layer deactivation when pressed
 diff --git a/app/dts/bindings/input_processors/zmk,input-processor-transform.yaml b/app/dts/bindings/input_processors/zmk,input-processor-transform.yaml
 new file mode 100644
-index 00000000000..24fbd28815b
+index 00000000..24fbd288
 --- /dev/null
 +++ b/app/dts/bindings/input_processors/zmk,input-processor-transform.yaml
 @@ -0,0 +1,18 @@
@@ -535,10 +393,13 @@ index 00000000000..24fbd28815b
 +    required: true
 diff --git a/app/dts/bindings/zmk,input-listener.yaml b/app/dts/bindings/zmk,input-listener.yaml
 new file mode 100644
-index 00000000000..0267b9503a9
+index 00000000..877d7d8b
 --- /dev/null
 +++ b/app/dts/bindings/zmk,input-listener.yaml
-@@ -0,0 +1,23 @@
+@@ -0,0 +1,26 @@
++# Copyright (c) 2024 The ZMK Contributors
++# SPDX-License-Identifier: MIT
++
 +description: |
 +  Listener to subscribe to input events and send HID updates after processing
 +
@@ -562,12 +423,41 @@ index 00000000000..0267b9503a9
 +      type: boolean
 +    input-processors:
 +      type: phandle-array
+diff --git a/app/dts/bindings/zmk,input-split.yaml b/app/dts/bindings/zmk,input-split.yaml
+new file mode 100644
+index 00000000..76d15a36
+--- /dev/null
++++ b/app/dts/bindings/zmk,input-split.yaml
+@@ -0,0 +1,18 @@
++# Copyright (c) 2024 The ZMK Contributors
++# SPDX-License-Identifier: MIT
++
++include: [base.yaml]
++
++compatible: "zmk,input-split"
++
++description: Device to wire up an input device for split use.
++
++properties:
++  reg:
++    required: true
++
++  device:
++    type: phandle
++
++  input-processors:
++    type: phandle-array
 diff --git a/app/dts/input/processors.dtsi b/app/dts/input/processors.dtsi
 new file mode 100644
-index 00000000000..48590701ab1
+index 00000000..d072c0fc
 --- /dev/null
 +++ b/app/dts/input/processors.dtsi
-@@ -0,0 +1,5 @@
+@@ -0,0 +1,10 @@
++/*
++ * Copyright (c) 2024 The ZMK Contributors
++ *
++ * SPDX-License-Identifier: MIT
++ */
 +
 +#include <input/processors/scaler.dtsi>
 +#include <input/processors/code_mapper.dtsi>
@@ -576,10 +466,15 @@ index 00000000000..48590701ab1
 \ No newline at end of file
 diff --git a/app/dts/input/processors/code_mapper.dtsi b/app/dts/input/processors/code_mapper.dtsi
 new file mode 100644
-index 00000000000..ba22bb1b661
+index 00000000..6a9b5d16
 --- /dev/null
 +++ b/app/dts/input/processors/code_mapper.dtsi
-@@ -0,0 +1,24 @@
+@@ -0,0 +1,29 @@
++/*
++ * Copyright (c) 2024 The ZMK Contributors
++ *
++ * SPDX-License-Identifier: MIT
++ */
 +
 +#include <zephyr/dt-bindings/input/input-event-codes.h>
 +
@@ -607,12 +502,17 @@ index 00000000000..ba22bb1b661
 \ No newline at end of file
 diff --git a/app/dts/input/processors/scaler.dtsi b/app/dts/input/processors/scaler.dtsi
 new file mode 100644
-index 00000000000..663e6992b7a
+index 00000000..4cd329ac
 --- /dev/null
 +++ b/app/dts/input/processors/scaler.dtsi
-@@ -0,0 +1,28 @@
+@@ -0,0 +1,33 @@
++/*
++ * Copyright (c) 2024 The ZMK Contributors
++ *
++ * SPDX-License-Identifier: MIT
++ */
 +
-+#include <zephyr/dt-bindings/input/input-event-codes.h>
++ #include <zephyr/dt-bindings/input/input-event-codes.h>
 +
 +/ {
 +    /omit-if-no-ref/ zip_x_scaler: zip_x_scaler {
@@ -642,10 +542,15 @@ index 00000000000..663e6992b7a
 \ No newline at end of file
 diff --git a/app/dts/input/processors/temp_layer.dtsi b/app/dts/input/processors/temp_layer.dtsi
 new file mode 100644
-index 00000000000..0067f9e33c3
+index 00000000..228ad4be
 --- /dev/null
 +++ b/app/dts/input/processors/temp_layer.dtsi
-@@ -0,0 +1,9 @@
+@@ -0,0 +1,14 @@
++/*
++ * Copyright (c) 2024 The ZMK Contributors
++ *
++ * SPDX-License-Identifier: MIT
++ */
 +
 +#include <zephyr/dt-bindings/input/input-event-codes.h>
 +
@@ -658,10 +563,15 @@ index 00000000000..0067f9e33c3
 \ No newline at end of file
 diff --git a/app/dts/input/processors/transform.dtsi b/app/dts/input/processors/transform.dtsi
 new file mode 100644
-index 00000000000..a8598156f9a
+index 00000000..541e47d3
 --- /dev/null
 +++ b/app/dts/input/processors/transform.dtsi
-@@ -0,0 +1,20 @@
+@@ -0,0 +1,25 @@
++/*
++ * Copyright (c) 2024 The ZMK Contributors
++ *
++ * SPDX-License-Identifier: MIT
++ */
 +
 +#include <zephyr/dt-bindings/input/input-event-codes.h>
 +
@@ -685,12 +595,12 @@ index 00000000000..a8598156f9a
 \ No newline at end of file
 diff --git a/app/include/drivers/input_processor.h b/app/include/drivers/input_processor.h
 new file mode 100644
-index 00000000000..fc315e0c9b6
+index 00000000..aea57476
 --- /dev/null
 +++ b/app/include/drivers/input_processor.h
 @@ -0,0 +1,67 @@
 +/*
-+ * Copyright (c) 2020 The ZMK Contributors
++ * Copyright (c) 2024 The ZMK Contributors
 + *
 + * SPDX-License-Identifier: MIT
 + */
@@ -758,7 +668,7 @@ index 00000000000..fc315e0c9b6
 +#include <syscalls/input_processor.h>
 diff --git a/app/include/dt-bindings/input.h b/app/include/dt-bindings/input.h
 new file mode 100644
-index 00000000000..2437b50461f
+index 00000000..2437b504
 --- /dev/null
 +++ b/app/include/dt-bindings/input.h
 @@ -0,0 +1,12 @@
@@ -777,10 +687,16 @@ index 00000000000..2437b50461f
 \ No newline at end of file
 diff --git a/app/include/dt-bindings/zmk/input_transform.h b/app/include/dt-bindings/zmk/input_transform.h
 new file mode 100644
-index 00000000000..5e883c1359c
+index 00000000..f75c6dab
 --- /dev/null
 +++ b/app/include/dt-bindings/zmk/input_transform.h
-@@ -0,0 +1,5 @@
+@@ -0,0 +1,11 @@
++/*
++ * Copyright (c) 2024 The ZMK Contributors
++ *
++ * SPDX-License-Identifier: MIT
++ */
++
 +#include <zephyr/dt-bindings/dt-util.h>
 +
 +#define INPUT_TRANSFORM_XY_SWAP BIT(0)
@@ -788,7 +704,7 @@ index 00000000000..5e883c1359c
 +#define INPUT_TRANSFORM_Y_INVERT BIT(2)
 \ No newline at end of file
 diff --git a/app/include/dt-bindings/zmk/mouse.h b/app/include/dt-bindings/zmk/mouse.h
-index 582518aff7e..99a35a508c9 100644
+index 582518af..f9d0c939 100644
 --- a/app/include/dt-bindings/zmk/mouse.h
 +++ b/app/include/dt-bindings/zmk/mouse.h
 @@ -1,5 +1,5 @@
@@ -808,7 +724,7 @@ index 582518aff7e..99a35a508c9 100644
 +#endif
 +
 +#ifndef ZMK_MOUSE_DEFAULT_SCRL_VAL
-+#define ZMK_MOUSE_DEFAULT_SCRL_VAL 300
++#define ZMK_MOUSE_DEFAULT_SCRL_VAL 10
 +#endif
 +
 +/* Mouse move behavior */
@@ -829,7 +745,7 @@ index 582518aff7e..99a35a508c9 100644
 +#define SCRL_LEFT MOVE_X(-ZMK_MOUSE_DEFAULT_SCRL_VAL)
 +#define SCRL_RIGHT MOVE_X(ZMK_MOUSE_DEFAULT_SCRL_VAL)
 diff --git a/app/include/zmk/hid.h b/app/include/zmk/hid.h
-index 766fb9c4632..632412b1c3d 100644
+index 766fb9c4..632412b1 100644
 --- a/app/include/zmk/hid.h
 +++ b/app/include/zmk/hid.h
 @@ -77,6 +77,30 @@
@@ -968,7 +884,7 @@ index 766fb9c4632..632412b1c3d 100644
  struct zmk_hid_keyboard_report *zmk_hid_get_keyboard_report(void);
 diff --git a/app/include/zmk/input.h b/app/include/zmk/input.h
 new file mode 100644
-index 00000000000..b1cbae6f99d
+index 00000000..b1cbae6f
 --- /dev/null
 +++ b/app/include/zmk/input.h
 @@ -0,0 +1,14 @@
@@ -987,7 +903,7 @@ index 00000000000..b1cbae6f99d
 +    uint16_t code;
 +};
 diff --git a/app/include/zmk/mouse.h b/app/include/zmk/mouse.h
-index d873f15689a..c898f001098 100644
+index d873f156..c898f001 100644
 --- a/app/include/zmk/mouse.h
 +++ b/app/include/zmk/mouse.h
 @@ -1,5 +1,5 @@
@@ -997,9 +913,26 @@ index d873f15689a..c898f001098 100644
   *
   * SPDX-License-Identifier: MIT
   */
+diff --git a/app/include/zmk/mouse/input_split.h b/app/include/zmk/mouse/input_split.h
+new file mode 100644
+index 00000000..81203547
+--- /dev/null
++++ b/app/include/zmk/mouse/input_split.h
+@@ -0,0 +1,10 @@
++/*
++ * Copyright (c) 2024 The ZMK Contributors
++ *
++ * SPDX-License-Identifier: MIT
++ */
++
++#pragma once
++
++int zmk_input_split_report_peripheral_event(uint8_t reg, uint8_t type, uint16_t code, int32_t value,
++                                            bool sync);
+\ No newline at end of file
 diff --git a/app/include/zmk/mouse/resolution_multipliers.h b/app/include/zmk/mouse/resolution_multipliers.h
 new file mode 100644
-index 00000000000..da423e33884
+index 00000000..da423e33
 --- /dev/null
 +++ b/app/include/zmk/mouse/resolution_multipliers.h
 @@ -0,0 +1,25 @@
@@ -1028,8 +961,39 @@ index 00000000000..da423e33884
 +void zmk_mouse_resolution_multipliers_process_report(
 +    struct zmk_hid_mouse_resolution_feature_report_body *report,
 +    struct zmk_endpoint_instance endpoint);
+diff --git a/app/include/zmk/split/bluetooth/service.h b/app/include/zmk/split/bluetooth/service.h
+index 1c9e7522..90e5dd7e 100644
+--- a/app/include/zmk/split/bluetooth/service.h
++++ b/app/include/zmk/split/bluetooth/service.h
+@@ -31,8 +31,17 @@ struct zmk_split_run_behavior_payload {
+     char behavior_dev[ZMK_SPLIT_RUN_BEHAVIOR_DEV_LEN];
+ } __packed;
+ 
++struct zmk_split_input_event_payload {
++    uint8_t type;
++    uint16_t code;
++    uint32_t value;
++    uint8_t sync;
++} __packed;
++
+ int zmk_split_bt_position_pressed(uint8_t position);
+ int zmk_split_bt_position_released(uint8_t position);
+ int zmk_split_bt_sensor_triggered(uint8_t sensor_index,
+                                   const struct zmk_sensor_channel_data channel_data[],
+                                   size_t channel_data_size);
++
++int zmk_split_bt_report_input(uint8_t reg, uint8_t type, uint16_t code, int32_t value, bool sync);
+diff --git a/app/include/zmk/split/bluetooth/uuid.h b/app/include/zmk/split/bluetooth/uuid.h
+index 4a653c73..c9a63efa 100644
+--- a/app/include/zmk/split/bluetooth/uuid.h
++++ b/app/include/zmk/split/bluetooth/uuid.h
+@@ -19,3 +19,4 @@
+ #define ZMK_SPLIT_BT_CHAR_SENSOR_STATE_UUID ZMK_BT_SPLIT_UUID(0x00000003)
+ #define ZMK_SPLIT_BT_UPDATE_HID_INDICATORS_UUID ZMK_BT_SPLIT_UUID(0x00000004)
+ #define ZMK_SPLIT_BT_SELECT_PHYS_LAYOUT_UUID ZMK_BT_SPLIT_UUID(0x00000005)
++#define ZMK_SPLIT_BT_INPUT_EVENT_UUID ZMK_BT_SPLIT_UUID(0x00000006)
 diff --git a/app/src/activity.c b/app/src/activity.c
-index 454e91e5da0..925af6c7107 100644
+index 454e91e5..925af6c7 100644
 --- a/app/src/activity.c
 +++ b/app/src/activity.c
 @@ -26,6 +26,10 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
@@ -1078,12 +1042,12 @@ index 454e91e5da0..925af6c7107 100644
  SYS_INIT(activity_init, APPLICATION, CONFIG_APPLICATION_INIT_PRIORITY);
 diff --git a/app/src/behaviors/behavior_input_two_axis.c b/app/src/behaviors/behavior_input_two_axis.c
 new file mode 100644
-index 00000000000..dd2f3bf69e2
+index 00000000..267416b3
 --- /dev/null
 +++ b/app/src/behaviors/behavior_input_two_axis.c
 @@ -0,0 +1,304 @@
 +/*
-+ * Copyright (c) 2021 The ZMK Contributors
++ * Copyright (c) 2024 The ZMK Contributors
 + *
 + * SPDX-License-Identifier: MIT
 + */
@@ -1387,7 +1351,7 @@ index 00000000000..dd2f3bf69e2
 +
 +DT_INST_FOREACH_STATUS_OKAY(ITA_INST)
 diff --git a/app/src/behaviors/behavior_mouse_key_press.c b/app/src/behaviors/behavior_mouse_key_press.c
-index 9064a1aa5c8..66b54fce05b 100644
+index 9064a1aa..66b54fce 100644
 --- a/app/src/behaviors/behavior_mouse_key_press.c
 +++ b/app/src/behaviors/behavior_mouse_key_press.c
 @@ -11,8 +11,9 @@
@@ -1439,7 +1403,7 @@ index 9064a1aa5c8..66b54fce05b 100644
  
  static const struct behavior_driver_api behavior_mouse_key_press_driver_api = {
 diff --git a/app/src/hid.c b/app/src/hid.c
-index df0715ee487..480a5c01d5b 100644
+index df0715ee..2356b450 100644
 --- a/app/src/hid.c
 +++ b/app/src/hid.c
 @@ -27,8 +27,9 @@ static uint8_t keys_held = 0;
@@ -1454,7 +1418,7 @@ index df0715ee487..480a5c01d5b 100644
  
  #endif // IS_ENABLED(CONFIG_ZMK_MOUSE)
  
-@@ -431,7 +432,41 @@ int zmk_hid_mouse_buttons_release(zmk_mouse_button_flags_t buttons) {
+@@ -431,7 +432,39 @@ int zmk_hid_mouse_buttons_release(zmk_mouse_button_flags_t buttons) {
      }
      return 0;
  }
@@ -1475,8 +1439,7 @@ index df0715ee487..480a5c01d5b 100644
 +void zmk_hid_mouse_scroll_set(int8_t hwheel, int8_t wheel) {
 +    mouse_report.body.d_scroll_x = hwheel;
 +    mouse_report.body.d_scroll_y = wheel;
-+    // mouse_report.body.d_scroll_x = (hwheel / (16 - mouse_res_feature_report.body.hwheel_res));
-+    // mouse_report.body.d_scroll_y = (wheel / (16 - mouse_res_feature_report.body.wheel_res));
++
 +    LOG_DBG("Mouse scroll set to %d/%d", mouse_report.body.d_scroll_x,
 +            mouse_report.body.d_scroll_y);
 +}
@@ -1484,8 +1447,7 @@ index df0715ee487..480a5c01d5b 100644
 +void zmk_hid_mouse_scroll_update(int8_t hwheel, int8_t wheel) {
 +    mouse_report.body.d_scroll_x += hwheel;
 +    mouse_report.body.d_scroll_y += wheel;
-+    // mouse_report.body.d_scroll_x += (hwheel / (16 - mouse_res_feature_report.body.hwheel_res));
-+    // mouse_report.body.d_scroll_y += (wheel / (16 - mouse_res_feature_report.body.wheel_res));
++
 +    LOG_DBG("Mouse scroll updated to X: %d/%d", mouse_report.body.d_scroll_x,
 +            mouse_report.body.d_scroll_y);
 +}
@@ -1498,7 +1460,7 @@ index df0715ee487..480a5c01d5b 100644
  #endif // IS_ENABLED(CONFIG_ZMK_MOUSE)
  
 diff --git a/app/src/hog.c b/app/src/hog.c
-index 82fafc29cd7..060fc26717a 100644
+index 82fafc29..060fc267 100644
 --- a/app/src/hog.c
 +++ b/app/src/hog.c
 @@ -18,6 +18,9 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
@@ -1604,26 +1566,10 @@ index 82fafc29cd7..060fc26717a 100644
  #endif // IS_ENABLED(CONFIG_ZMK_MOUSE)
  
  static int zmk_hog_init(void) {
-diff --git a/app/src/main.c b/app/src/main.c
-index 60df1a45d83..fcf1d11531f 100644
---- a/app/src/main.c
-+++ b/app/src/main.c
-@@ -14,6 +14,10 @@ LOG_MODULE_REGISTER(zmk, CONFIG_ZMK_LOG_LEVEL);
- 
- #include <zmk/display.h>
- 
-+#ifdef CONFIG_ZMK_MOUSE
-+#include <zmk/mouse.h>
-+#endif /* CONFIG_ZMK_MOUSE */
-+
- int main(void) {
-     LOG_INF("Welcome to ZMK!\n");
- 
 diff --git a/app/src/mouse.c b/app/src/mouse.c
-deleted file mode 100644
-index c1b9ac0261e..00000000000
+index c1b9ac02..e69de29b 100644
 --- a/app/src/mouse.c
-+++ /dev/null
++++ b/app/src/mouse.c
 @@ -1,43 +0,0 @@
 -/*
 - * Copyright (c) 2021 The ZMK Contributors
@@ -1670,25 +1616,28 @@ index c1b9ac0261e..00000000000
 -ZMK_SUBSCRIPTION(mouse_listener, zmk_mouse_button_state_changed);
 diff --git a/app/src/mouse/CMakeLists.txt b/app/src/mouse/CMakeLists.txt
 new file mode 100644
-index 00000000000..709d4968978
+index 00000000..fdee57c8
 --- /dev/null
 +++ b/app/src/mouse/CMakeLists.txt
-@@ -0,0 +1,7 @@
+@@ -0,0 +1,10 @@
++# Copyright (c) 2024 The ZMK Contributors
++# SPDX-License-Identifier: MIT
 +
-+target_sources(app PRIVATE input_listener.c)
++target_sources_ifdef(CONFIG_ZMK_INPUT_LISTENER app PRIVATE input_listener.c)
 +target_sources_ifdef(CONFIG_ZMK_INPUT_PROCESSOR_TRANSFORM app PRIVATE input_processor_transform.c)
 +target_sources_ifdef(CONFIG_ZMK_INPUT_PROCESSOR_SCALER app PRIVATE input_processor_scaler.c)
 +target_sources_ifdef(CONFIG_ZMK_INPUT_PROCESSOR_TEMP_LAYER app PRIVATE input_processor_temp_layer.c)
 +target_sources_ifdef(CONFIG_ZMK_INPUT_PROCESSOR_CODE_MAPPER app PRIVATE input_processor_code_mapper.c)
 +target_sources_ifdef(CONFIG_ZMK_MOUSE_SMOOTH_SCROLLING app PRIVATE resolution_multipliers.c)
++target_sources_ifdef(CONFIG_ZMK_INPUT_SPLIT app PRIVATE input_split.c)
 \ No newline at end of file
 diff --git a/app/src/mouse/Kconfig b/app/src/mouse/Kconfig
 new file mode 100644
-index 00000000000..800be76b0e9
+index 00000000..29695628
 --- /dev/null
 +++ b/app/src/mouse/Kconfig
-@@ -0,0 +1,41 @@
-+# Copyright (c) 2023 The ZMK Contributors
+@@ -0,0 +1,66 @@
++# Copyright (c) 2024 The ZMK Contributors
 +# SPDX-License-Identifier: MIT
 +
 +config ZMK_MOUSE
@@ -1702,10 +1651,28 @@ index 00000000000..800be76b0e9
 +config INPUT_GPIO_KEYS
 +    default n
 +
++config INPUT_THREAD_STACK_SIZE
++    default 1024 if ZMK_SPLIT && !ZMK_SPLIT_ROLE_CENTRAL
++
++if !ZMK_SPLIT || ZMK_SPLIT_ROLE_CENTRAL
++
 +config ZMK_MOUSE_SMOOTH_SCROLLING
 +    bool "Smooth Scrolling"
 +    help
 +      Enable smooth scrolling, with hosts that support HID Resolution Multipliers
++
++config ZMK_INPUT_LISTENER
++    bool "Input listener for processing input events in the system"
++    default y
++    depends on DT_HAS_ZMK_INPUT_LISTENER_ENABLED
++
++
++config ZMK_INPUT_PROCESSOR_TEMP_LAYER
++    bool "Temporary Layer Input Processor"
++    default y
++    depends on DT_HAS_ZMK_INPUT_PROCESSOR_TEMP_LAYER_ENABLED
++
++endif
 +
 +config ZMK_INPUT_PROCESSOR_TRANSFORM
 +    bool "Transform Input Processor"
@@ -1717,26 +1684,33 @@ index 00000000000..800be76b0e9
 +    default y
 +    depends on DT_HAS_ZMK_INPUT_PROCESSOR_SCALER_ENABLED
 +
-+config ZMK_INPUT_PROCESSOR_TEMP_LAYER
-+    bool "Temporary Layer Input Processor"
-+    default y
-+    depends on DT_HAS_ZMK_INPUT_PROCESSOR_TEMP_LAYER_ENABLED
-+
 +config ZMK_INPUT_PROCESSOR_CODE_MAPPER
 +    bool "Code Mapper Input Processor"
 +    default y
 +    depends on DT_HAS_ZMK_INPUT_PROCESSOR_CODE_MAPPER_ENABLED
 +
++config ZMK_INPUT_SPLIT
++    bool "Split input support"
++    default y
++    depends on DT_HAS_ZMK_INPUT_SPLIT_ENABLED && ZMK_SPLIT
++
++if ZMK_INPUT_SPLIT
++
++config ZMK_INPUT_SPLIT_INIT_PRIORITY
++    int "Input Split initialization priority"
++    default INPUT_INIT_PRIORITY
++
++endif # ZMK_INPUT_SPLIT
 +
 +endif
 diff --git a/app/src/mouse/input_listener.c b/app/src/mouse/input_listener.c
 new file mode 100644
-index 00000000000..5e0dc9c7fb4
+index 00000000..ec2b85d8
 --- /dev/null
 +++ b/app/src/mouse/input_listener.c
 @@ -0,0 +1,373 @@
 +/*
-+ * Copyright (c) 2020 The ZMK Contributors
++ * Copyright (c) 2024 The ZMK Contributors
 + *
 + * SPDX-License-Identifier: MIT
 + */
@@ -2110,7 +2084,7 @@ index 00000000000..5e0dc9c7fb4
 +DT_INST_FOREACH_STATUS_OKAY(IL_INST)
 diff --git a/app/src/mouse/input_processor_code_mapper.c b/app/src/mouse/input_processor_code_mapper.c
 new file mode 100644
-index 00000000000..20b5744ea96
+index 00000000..20b5744e
 --- /dev/null
 +++ b/app/src/mouse/input_processor_code_mapper.c
 @@ -0,0 +1,58 @@
@@ -2175,7 +2149,7 @@ index 00000000000..20b5744ea96
 \ No newline at end of file
 diff --git a/app/src/mouse/input_processor_scaler.c b/app/src/mouse/input_processor_scaler.c
 new file mode 100644
-index 00000000000..eb006cd2540
+index 00000000..eb006cd2
 --- /dev/null
 +++ b/app/src/mouse/input_processor_scaler.c
 @@ -0,0 +1,75 @@
@@ -2257,10 +2231,10 @@ index 00000000000..eb006cd2540
 \ No newline at end of file
 diff --git a/app/src/mouse/input_processor_temp_layer.c b/app/src/mouse/input_processor_temp_layer.c
 new file mode 100644
-index 00000000000..6a8ad99bb67
+index 00000000..85a394a6
 --- /dev/null
 +++ b/app/src/mouse/input_processor_temp_layer.c
-@@ -0,0 +1,60 @@
+@@ -0,0 +1,213 @@
 +/*
 + * Copyright (c) 2024 The ZMK Contributors
 + *
@@ -2272,59 +2246,211 @@ index 00000000000..6a8ad99bb67
 +#include <zephyr/kernel.h>
 +#include <zephyr/device.h>
 +#include <drivers/input_processor.h>
-+
 +#include <zephyr/logging/log.h>
++#include <zmk/keymap.h>
++#include <zmk/behavior.h>
++#include <zmk/events/position_state_changed.h>
++#include <zmk/events/keycode_state_changed.h>
 +
 +LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 +
-+#include <zmk/keymap.h>
++/* Constants and Types */
++#define MAX_LAYERS ZMK_KEYMAP_LAYERS_LEN
 +
-+struct k_work_delayable layer_disable_works[ZMK_KEYMAP_LAYERS_LEN];
++struct temp_layer_config {
++    int16_t require_prior_idle_ms;
++    const uint16_t *excluded_positions;
++    size_t num_positions;
++};
 +
-+static void layer_disable_cb(struct k_work *work) {
-+    struct k_work_delayable *d_work = k_work_delayable_from_work(work);
-+    int layer_index = ARRAY_INDEX(layer_disable_works, d_work);
-+    if (zmk_keymap_layer_active(layer_index)) {
-+        zmk_keymap_layer_deactivate(layer_index);
++struct temp_layer_state {
++    uint8_t toggle_layer;
++    bool is_active;
++    int64_t last_tapped_timestamp;
++};
++
++struct temp_layer_data {
++    const struct device *dev;
++    struct temp_layer_state state;
++};
++
++/* Static Work Queue Items */
++static struct k_work_delayable layer_disable_works[MAX_LAYERS];
++
++/* Position Search */
++static bool position_is_excluded(const struct temp_layer_config *config, uint32_t position) {
++    if (!config->excluded_positions || !config->num_positions) {
++        return false;
++    }
++
++    const uint16_t *end = config->excluded_positions + config->num_positions;
++    for (const uint16_t *pos = config->excluded_positions; pos < end; pos++) {
++        if (*pos == position) {
++            return true;
++        }
++    }
++
++    return false;
++}
++
++/* Timing Check */
++static bool should_quick_tap(const struct temp_layer_config *config, int64_t last_tapped,
++                             int64_t current_time) {
++    return (last_tapped + config->require_prior_idle_ms) > current_time;
++}
++
++/* Layer State Management */
++static void update_layer_state(struct temp_layer_state *state, bool activate) {
++    if (state->is_active == activate) {
++        return;
++    }
++
++    state->is_active = activate;
++    if (activate) {
++        zmk_keymap_layer_activate(state->toggle_layer);
++        LOG_DBG("Layer %d activated", state->toggle_layer);
++    } else {
++        zmk_keymap_layer_deactivate(state->toggle_layer);
++        LOG_DBG("Layer %d deactivated", state->toggle_layer);
 +    }
 +}
 +
-+static int tl_handle_event(const struct device *dev, struct input_event *event, uint32_t param1,
-+                           uint32_t param2, struct zmk_input_processor_state *state) {
-+    if (param1 >= ZMK_KEYMAP_LAYERS_LEN) {
-+        LOG_ERR("Passed an invalid layer id %d", param1);
++/* Work Queue Callback */
++static void layer_disable_callback(struct k_work *work) {
++    struct k_work_delayable *d_work = k_work_delayable_from_work(work);
++    int layer_index = ARRAY_INDEX(layer_disable_works, d_work);
++
++    const struct device *dev = DEVICE_DT_INST_GET(0);
++    struct temp_layer_data *data = (struct temp_layer_data *)dev->data;
++
++    if (zmk_keymap_layer_active(layer_index)) {
++        update_layer_state(&data->state, false);
++    }
++}
++
++/* Event Handlers */
++static int handle_position_state_changed(const zmk_event_t *eh) {
++    const struct zmk_position_state_changed *ev = as_zmk_position_state_changed(eh);
++    if (!ev->state) {
++        return ZMK_EV_EVENT_BUBBLE;
++    }
++
++    const struct device *dev = DEVICE_DT_INST_GET(0);
++    struct temp_layer_data *data = (struct temp_layer_data *)dev->data;
++    const struct temp_layer_config *cfg = dev->config;
++
++    if (data->state.is_active && cfg->excluded_positions && cfg->num_positions > 0) {
++        if (!position_is_excluded(cfg, ev->position)) {
++            LOG_DBG("Position not excluded, deactivating layer");
++            update_layer_state(&data->state, false);
++        }
++    }
++    LOG_DBG("Position excluded, continuing");
++
++    return ZMK_EV_EVENT_BUBBLE;
++}
++
++static int handle_keycode_state_changed(const zmk_event_t *eh) {
++    const struct zmk_keycode_state_changed *ev = as_zmk_keycode_state_changed(eh);
++    if (!ev->state) {
++        return ZMK_EV_EVENT_BUBBLE;
++    }
++
++    const struct device *dev = DEVICE_DT_INST_GET(0);
++    struct temp_layer_data *data = (struct temp_layer_data *)dev->data;
++    LOG_DBG("Setting last_tapped_timestamp to: %d", ev->timestamp);
++    data->state.last_tapped_timestamp = ev->timestamp;
++
++    return ZMK_EV_EVENT_BUBBLE;
++}
++
++static int handle_state_changed_dispatcher(const zmk_event_t *eh) {
++    if (as_zmk_position_state_changed(eh) != NULL) {
++        LOG_DBG("Dispatching handle_position_state_changed");
++        return handle_position_state_changed(eh);
++    } else if (as_zmk_keycode_state_changed(eh) != NULL) {
++        LOG_DBG("Dispatching handle_keycode_state_changed");
++        return handle_keycode_state_changed(eh);
++    }
++
++    return ZMK_EV_EVENT_BUBBLE;
++}
++
++/* Driver Implementation */
++static int temp_layer_handle_event(const struct device *dev, struct input_event *event,
++                                   uint32_t param1, uint32_t param2,
++                                   struct zmk_input_processor_state *state) {
++    if (param1 >= MAX_LAYERS) {
++        LOG_ERR("Invalid layer index: %d", param1);
 +        return -EINVAL;
 +    }
 +
-+    if (!zmk_keymap_layer_active(param1)) {
-+        zmk_keymap_layer_activate(param1);
++    struct temp_layer_data *data = (struct temp_layer_data *)dev->data;
++    const struct temp_layer_config *cfg = dev->config;
++
++    data->state.toggle_layer = param1;
++
++    if (!data->state.is_active &&
++        !should_quick_tap(cfg, data->state.last_tapped_timestamp, k_uptime_get())) {
++        update_layer_state(&data->state, true);
 +    }
 +
-+    k_work_reschedule(&layer_disable_works[param1], K_MSEC(param2));
++    if (param2 > 0) {
++        k_work_reschedule(&layer_disable_works[param1], K_MSEC(param2));
++    }
++
 +    return 0;
 +}
 +
-+static struct zmk_input_processor_driver_api tl_driver_api = {
-+    .handle_event = tl_handle_event,
++static int temp_layer_init(const struct device *dev) {
++    for (int i = 0; i < MAX_LAYERS; i++) {
++        k_work_init_delayable(&layer_disable_works[i], layer_disable_callback);
++    }
++
++    return 0;
++}
++
++/* Driver API */
++static const struct zmk_input_processor_driver_api temp_layer_driver_api = {
++    .handle_event = temp_layer_handle_event,
 +};
 +
-+static int tl_init(const struct device *dev) {
-+    for (int i = 0; i < ZMK_KEYMAP_LAYERS_LEN; i++) {
-+        k_work_init_delayable(&layer_disable_works[i], layer_disable_cb);
-+    }
++/* Event Listeners Conditions */
++#define NEEDS_POSITION_HANDLERS(n, ...) DT_INST_PROP_HAS_IDX(n, excluded_positions, 0)
++#define NEEDS_KEYCODE_HANDLERS(n, ...) (DT_INST_PROP_OR(n, require_prior_idle_ms, 0) > 0)
 +
-+    return 0;
-+}
++/* Event Handlers Registration */
++#if DT_INST_FOREACH_STATUS_OKAY_VARGS(NEEDS_POSITION_HANDLERS, ||) ||                              \
++    DT_INST_FOREACH_STATUS_OKAY_VARGS(NEEDS_KEYCODE_HANDLERS, ||)
++ZMK_LISTENER(processor_temp_layer, handle_state_changed_dispatcher);
++#endif
 +
-+#define TL_INST(n)                                                                                 \
-+    DEVICE_DT_INST_DEFINE(n, &tl_init, NULL, NULL, NULL, POST_KERNEL,                              \
-+                          CONFIG_KERNEL_INIT_PRIORITY_DEFAULT, &tl_driver_api);
++/* Individual Subscriptions */
++#if DT_INST_FOREACH_STATUS_OKAY_VARGS(NEEDS_POSITION_HANDLERS, ||)
++ZMK_SUBSCRIPTION(processor_temp_layer, zmk_position_state_changed);
++#endif
 +
-+DT_INST_FOREACH_STATUS_OKAY(TL_INST)
-\ No newline at end of file
++#if DT_INST_FOREACH_STATUS_OKAY_VARGS(NEEDS_KEYCODE_HANDLERS, ||)
++ZMK_SUBSCRIPTION(processor_temp_layer, zmk_keycode_state_changed);
++#endif
++
++/* Device Instantiation */
++#define TEMP_LAYER_INST(n)                                                                         \
++    static struct temp_layer_data processor_temp_layer_data_##n = {};                              \
++    static const uint16_t excluded_positions_##n[] = DT_INST_PROP(n, excluded_positions);          \
++    static const struct temp_layer_config processor_temp_layer_config_##n = {                      \
++        .require_prior_idle_ms = DT_INST_PROP_OR(n, require_prior_idle_ms, 0),                     \
++        .excluded_positions = excluded_positions_##n,                                              \
++        .num_positions = DT_INST_PROP_LEN(n, excluded_positions),                                  \
++    };                                                                                             \
++    DEVICE_DT_INST_DEFINE(n, temp_layer_init, NULL, &processor_temp_layer_data_##n,                \
++                          &processor_temp_layer_config_##n, POST_KERNEL,                           \
++                          CONFIG_KERNEL_INIT_PRIORITY_DEFAULT, &temp_layer_driver_api);
++
++DT_INST_FOREACH_STATUS_OKAY(TEMP_LAYER_INST)
 diff --git a/app/src/mouse/input_processor_transform.c b/app/src/mouse/input_processor_transform.c
 new file mode 100644
-index 00000000000..b22e76e04cb
+index 00000000..b22e76e0
 --- /dev/null
 +++ b/app/src/mouse/input_processor_transform.c
 @@ -0,0 +1,92 @@
@@ -2421,9 +2547,85 @@ index 00000000000..b22e76e04cb
 +
 +DT_INST_FOREACH_STATUS_OKAY(IPT_INST)
 \ No newline at end of file
+diff --git a/app/src/mouse/input_split.c b/app/src/mouse/input_split.c
+new file mode 100644
+index 00000000..55a84ea4
+--- /dev/null
++++ b/app/src/mouse/input_split.c
+@@ -0,0 +1,69 @@
++/*
++ * Copyright (c) 2024 The ZMK Contributors
++ *
++ * SPDX-License-Identifier: MIT
++ */
++
++#define DT_DRV_COMPAT zmk_input_split
++
++#include <zephyr/kernel.h>
++#include <zephyr/device.h>
++#include <zephyr/input/input.h>
++#include <drivers/input_processor.h>
++
++#include <zephyr/logging/log.h>
++
++LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
++
++#if IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
++
++struct zis_entry {
++    uint8_t reg;
++    const struct device *dev;
++};
++
++#define ZIS_ENTRY(n) {.reg = DT_INST_REG_ADDR(n), .dev = DEVICE_DT_GET(DT_DRV_INST(n))},
++
++static const struct zis_entry proxy_inputs[] = {DT_INST_FOREACH_STATUS_OKAY(ZIS_ENTRY)};
++
++int zmk_input_split_report_peripheral_event(uint8_t reg, uint8_t type, uint16_t code, int32_t value,
++                                            bool sync) {
++    LOG_DBG("Got peripheral event for %d!", reg);
++    for (size_t i = 0; i < ARRAY_SIZE(proxy_inputs); i++) {
++        if (reg == proxy_inputs[i].reg) {
++            return input_report(proxy_inputs[i].dev, type, code, value, sync, K_NO_WAIT);
++        }
++    }
++
++    return -ENODEV;
++}
++
++#define ZIS_INST(n)                                                                                \
++    DEVICE_DT_INST_DEFINE(n, NULL, NULL, NULL, NULL, POST_KERNEL,                                  \
++                          CONFIG_ZMK_INPUT_SPLIT_INIT_PRIORITY, NULL);
++
++#else
++
++#include <zmk/split/bluetooth/service.h>
++
++#define ZIS_INST(n)                                                                                \
++    static const struct zmk_input_processor_entry processors_##n[] =                               \
++        COND_CODE_1(DT_INST_NODE_HAS_PROP(n, input_processors),                                    \
++                    ({LISTIFY(DT_INST_PROP_LEN(n, input_processors),                               \
++                              ZMK_INPUT_PROCESSOR_ENTRY_AT_IDX, (, ), DT_DRV_INST(n))}),           \
++                    ({}));                                                                         \
++    BUILD_ASSERT(DT_INST_NODE_HAS_PROP(n, device),                                                 \
++                 "Peripheral input splits need an `input` property set");                          \
++    void split_input_handler_##n(struct input_event *evt) {                                        \
++        for (size_t i = 0; i < ARRAY_SIZE(processors_##n); i++) {                                  \
++            zmk_input_processor_handle_event(processors_##n[i].dev, evt, processors_##n[i].param1, \
++                                             processors_##n[i].param2, NULL);                      \
++        }                                                                                          \
++        zmk_split_bt_report_input(DT_INST_REG_ADDR(n), evt->type, evt->code, evt->value,           \
++                                  evt->sync);                                                      \
++    }                                                                                              \
++    INPUT_CALLBACK_DEFINE(DEVICE_DT_GET(DT_INST_PHANDLE(n, device)), split_input_handler_##n);
++
++#endif
++
++DT_INST_FOREACH_STATUS_OKAY(ZIS_INST)
+\ No newline at end of file
 diff --git a/app/src/mouse/resolution_multipliers.c b/app/src/mouse/resolution_multipliers.c
 new file mode 100644
-index 00000000000..fc205dc7677
+index 00000000..fc205dc7
 --- /dev/null
 +++ b/app/src/mouse/resolution_multipliers.c
 @@ -0,0 +1,49 @@
@@ -2476,1165 +2678,8 @@ index 00000000000..fc205dc7677
 +    LOG_DBG("Update resolution multipliers: endpoint=%d, wheel=%d, hor_wheel=%d",
 +            endpoint.transport, vals.wheel, vals.hor_wheel);
 +}
-diff --git a/app/src/usb_hid.c b/app/src/usb_hid.c
-index 9db10952c95..6273962379e 100644
---- a/app/src/usb_hid.c
-+++ b/app/src/usb_hid.c
-@@ -13,9 +13,15 @@
- #include <zmk/usb.h>
- #include <zmk/hid.h>
- #include <zmk/keymap.h>
-+
-+#if IS_ENABLED(CONFIG_ZMK_MOUSE_SMOOTH_SCROLLING)
-+#include <zmk/mouse/resolution_multipliers.h>
-+#endif // IS_ENABLED(CONFIG_ZMK_MOUSE_SMOOTH_SCROLLING)
-+
- #if IS_ENABLED(CONFIG_ZMK_HID_INDICATORS)
- #include <zmk/hid_indicators.h>
- #endif // IS_ENABLED(CONFIG_ZMK_HID_INDICATORS)
-+
- #include <zmk/event_manager.h>
- 
- LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
-@@ -56,31 +62,56 @@ static uint8_t *get_keyboard_report(size_t *len) {
- 
- static int get_report_cb(const struct device *dev, struct usb_setup_packet *setup, int32_t *len,
-                          uint8_t **data) {
-+    switch (setup->wValue & HID_GET_REPORT_TYPE_MASK) {
-+    case HID_REPORT_TYPE_FEATURE:
-+        switch (setup->wValue & HID_GET_REPORT_ID_MASK) {
-+#if IS_ENABLED(CONFIG_ZMK_MOUSE_SMOOTH_SCROLLING)
-+        case ZMK_HID_REPORT_ID_MOUSE:
-+            static struct zmk_hid_mouse_resolution_feature_report res_feature_report;
- 
--    /*
--     * 7.2.1 of the HID v1.11 spec is unclear about handling requests for reports that do not exist
--     * For requested reports that aren't input reports, return -ENOTSUP like the Zephyr subsys does
--     */
--    if ((setup->wValue & HID_GET_REPORT_TYPE_MASK) != HID_REPORT_TYPE_INPUT) {
--        LOG_ERR("Unsupported report type %d requested", (setup->wValue & HID_GET_REPORT_TYPE_MASK)
--                                                            << 8);
--        return -ENOTSUP;
--    }
-+            struct zmk_endpoint_instance endpoint = {
-+                .transport = ZMK_TRANSPORT_USB,
-+            };
- 
--    switch (setup->wValue & HID_GET_REPORT_ID_MASK) {
--    case ZMK_HID_REPORT_ID_KEYBOARD: {
--        *data = get_keyboard_report(len);
-+            *len = sizeof(struct zmk_hid_mouse_resolution_feature_report);
-+            struct zmk_mouse_resolution_multipliers mult =
-+                zmk_mouse_resolution_multipliers_get_profile(endpoint);
-+
-+            res_feature_report.body.wheel_res = mult.wheel;
-+            res_feature_report.body.hwheel_res = mult.hor_wheel;
-+            *data = (uint8_t *)&res_feature_report;
-+            break;
-+#endif // IS_ENABLED(CONFIG_ZMK_MOUSE_SMOOTH_SCROLLING)
-+        default:
-+            return -ENOTSUP;
-+        }
-         break;
--    }
--    case ZMK_HID_REPORT_ID_CONSUMER: {
--        struct zmk_hid_consumer_report *report = zmk_hid_get_consumer_report();
--        *data = (uint8_t *)report;
--        *len = sizeof(*report);
-+    case HID_REPORT_TYPE_INPUT:
-+        switch (setup->wValue & HID_GET_REPORT_ID_MASK) {
-+        case ZMK_HID_REPORT_ID_KEYBOARD: {
-+            *data = get_keyboard_report(len);
-+            break;
-+        }
-+        case ZMK_HID_REPORT_ID_CONSUMER: {
-+            struct zmk_hid_consumer_report *report = zmk_hid_get_consumer_report();
-+            *data = (uint8_t *)report;
-+            *len = sizeof(*report);
-+            break;
-+        }
-+        default:
-+            LOG_ERR("Invalid report ID %d requested", setup->wValue & HID_GET_REPORT_ID_MASK);
-+            return -EINVAL;
-+        }
-         break;
--    }
-     default:
--        LOG_ERR("Invalid report ID %d requested", setup->wValue & HID_GET_REPORT_ID_MASK);
--        return -EINVAL;
-+        /*
-+         * 7.2.1 of the HID v1.11 spec is unclear about handling requests for reports that do not
-+         * exist For requested reports that aren't input reports, return -ENOTSUP like the Zephyr
-+         * subsys does
-+         */
-+        LOG_ERR("Unsupported report type %d requested", (setup->wValue & HID_GET_REPORT_TYPE_MASK)
-+                                                            << 8);
-+        return -ENOTSUP;
-     }
- 
-     return 0;
-@@ -88,30 +119,55 @@ static int get_report_cb(const struct device *dev, struct usb_setup_packet *setu
- 
- static int set_report_cb(const struct device *dev, struct usb_setup_packet *setup, int32_t *len,
-                          uint8_t **data) {
--    if ((setup->wValue & HID_GET_REPORT_TYPE_MASK) != HID_REPORT_TYPE_OUTPUT) {
--        LOG_ERR("Unsupported report type %d requested",
--                (setup->wValue & HID_GET_REPORT_TYPE_MASK) >> 8);
--        return -ENOTSUP;
--    }
--
--    switch (setup->wValue & HID_GET_REPORT_ID_MASK) {
--#if IS_ENABLED(CONFIG_ZMK_HID_INDICATORS)
--    case ZMK_HID_REPORT_ID_LEDS:
--        if (*len != sizeof(struct zmk_hid_led_report)) {
--            LOG_ERR("LED set report is malformed: length=%d", *len);
--            return -EINVAL;
--        } else {
--            struct zmk_hid_led_report *report = (struct zmk_hid_led_report *)*data;
-+    switch (setup->wValue & HID_GET_REPORT_TYPE_MASK) {
-+    case HID_REPORT_TYPE_FEATURE:
-+        switch (setup->wValue & HID_GET_REPORT_ID_MASK) {
-+#if IS_ENABLED(CONFIG_ZMK_MOUSE_SMOOTH_SCROLLING)
-+        case ZMK_HID_REPORT_ID_MOUSE:
-+            if (*len != sizeof(struct zmk_hid_mouse_resolution_feature_report)) {
-+                return -EINVAL;
-+            }
-+
-+            struct zmk_hid_mouse_resolution_feature_report *report =
-+                (struct zmk_hid_mouse_resolution_feature_report *)*data;
-             struct zmk_endpoint_instance endpoint = {
-                 .transport = ZMK_TRANSPORT_USB,
-             };
--            zmk_hid_indicators_process_report(&report->body, endpoint);
-+
-+            zmk_mouse_resolution_multipliers_process_report(&report->body, endpoint);
-+
-+            break;
-+#endif // IS_ENABLED(CONFIG_ZMK_MOUSE_SMOOTH_SCROLLING)
-+        default:
-+            return -ENOTSUP;
-         }
-         break;
-+
-+    case HID_REPORT_TYPE_OUTPUT:
-+        switch (setup->wValue & HID_GET_REPORT_ID_MASK) {
-+#if IS_ENABLED(CONFIG_ZMK_HID_INDICATORS)
-+        case ZMK_HID_REPORT_ID_LEDS:
-+            if (*len != sizeof(struct zmk_hid_led_report)) {
-+                LOG_ERR("LED set report is malformed: length=%d", *len);
-+                return -EINVAL;
-+            } else {
-+                struct zmk_hid_led_report *report = (struct zmk_hid_led_report *)*data;
-+                struct zmk_endpoint_instance endpoint = {
-+                    .transport = ZMK_TRANSPORT_USB,
-+                };
-+                zmk_hid_indicators_process_report(&report->body, endpoint);
-+            }
-+            break;
- #endif // IS_ENABLED(CONFIG_ZMK_HID_INDICATORS)
-+        default:
-+            LOG_ERR("Invalid report ID %d requested", setup->wValue & HID_GET_REPORT_ID_MASK);
-+            return -EINVAL;
-+        }
-+        break;
-     default:
--        LOG_ERR("Invalid report ID %d requested", setup->wValue & HID_GET_REPORT_ID_MASK);
--        return -EINVAL;
-+        LOG_ERR("Unsupported report type %d requested",
-+                (setup->wValue & HID_GET_REPORT_TYPE_MASK) >> 8);
-+        return -ENOTSUP;
-     }
- 
-     return 0;
-diff --git a/app/tests/mouse-keys/mkp/native_posix_64.conf b/app/tests/mouse-keys/mkp/native_posix_64.conf
-new file mode 100644
-index 00000000000..65ed54bb204
---- /dev/null
-+++ b/app/tests/mouse-keys/mkp/native_posix_64.conf
-@@ -0,0 +1,6 @@
-+CONFIG_GPIO=n
-+CONFIG_ZMK_BLE=n
-+CONFIG_LOG=y
-+CONFIG_LOG_BACKEND_SHOW_COLOR=n
-+CONFIG_ZMK_LOG_LEVEL_DBG=y
-+CONFIG_ZMK_MOUSE=y
-diff --git a/app/tests/mouse-keys/mouse-move/move_diagonal/events.patterns b/app/tests/mouse-keys/mouse-move/move_diagonal/events.patterns
-new file mode 100644
-index 00000000000..812126fb828
---- /dev/null
-+++ b/app/tests/mouse-keys/mouse-move/move_diagonal/events.patterns
-@@ -0,0 +1 @@
-+s/.*hid_mouse_//p
-\ No newline at end of file
-diff --git a/app/tests/mouse-keys/mouse-move/move_diagonal/keycode_events.snapshot b/app/tests/mouse-keys/mouse-move/move_diagonal/keycode_events.snapshot
-new file mode 100644
-index 00000000000..6b9fa770b11
---- /dev/null
-+++ b/app/tests/mouse-keys/mouse-move/move_diagonal/keycode_events.snapshot
-@@ -0,0 +1,18 @@
-+movement_set: Mouse movement set to -1/0
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to -2/-2
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to -2/-2
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to -3/-2
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to -3/-3
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to 0/-3
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-diff --git a/app/tests/mouse-keys/mouse-move/move_diagonal/native_posix_64.conf b/app/tests/mouse-keys/mouse-move/move_diagonal/native_posix_64.conf
-new file mode 100644
-index 00000000000..65ed54bb204
---- /dev/null
-+++ b/app/tests/mouse-keys/mouse-move/move_diagonal/native_posix_64.conf
-@@ -0,0 +1,6 @@
-+CONFIG_GPIO=n
-+CONFIG_ZMK_BLE=n
-+CONFIG_LOG=y
-+CONFIG_LOG_BACKEND_SHOW_COLOR=n
-+CONFIG_ZMK_LOG_LEVEL_DBG=y
-+CONFIG_ZMK_MOUSE=y
-diff --git a/app/tests/mouse-keys/mouse-move/move_diagonal/native_posix_64.keymap b/app/tests/mouse-keys/mouse-move/move_diagonal/native_posix_64.keymap
-new file mode 100644
-index 00000000000..7e4d7af2a1d
---- /dev/null
-+++ b/app/tests/mouse-keys/mouse-move/move_diagonal/native_posix_64.keymap
-@@ -0,0 +1,29 @@
-+#include <behaviors.dtsi>
-+#include <behaviors/mouse_move.dtsi>
-+#include <dt-bindings/zmk/keys.h>
-+#include <dt-bindings/zmk/kscan_mock.h>
-+#include <dt-bindings/zmk/mouse.h>
-+
-+/ {
-+    keymap {
-+        compatible = "zmk,keymap";
-+        label ="Default keymap";
-+
-+        default_layer {
-+            bindings = <
-+                &mmv MOVE_LEFT &mmv MOVE_UP
-+                &none &none
-+            >;
-+        };
-+    };
-+};
-+
-+
-+&kscan {
-+    events = <
-+        ZMK_MOCK_PRESS(0,0,10)
-+        ZMK_MOCK_PRESS(0,1,100)
-+        ZMK_MOCK_RELEASE(0,0,10)
-+        ZMK_MOCK_RELEASE(0,1,10)
-+    >;
-+};
-\ No newline at end of file
-diff --git a/app/tests/mouse-keys/mouse-move/move_x/events.patterns b/app/tests/mouse-keys/mouse-move/move_x/events.patterns
-new file mode 100644
-index 00000000000..812126fb828
---- /dev/null
-+++ b/app/tests/mouse-keys/mouse-move/move_x/events.patterns
-@@ -0,0 +1 @@
-+s/.*hid_mouse_//p
-\ No newline at end of file
-diff --git a/app/tests/mouse-keys/mouse-move/move_x/keycode_events.snapshot b/app/tests/mouse-keys/mouse-move/move_x/keycode_events.snapshot
-new file mode 100644
-index 00000000000..678f71c9ac2
---- /dev/null
-+++ b/app/tests/mouse-keys/mouse-move/move_x/keycode_events.snapshot
-@@ -0,0 +1,24 @@
-+movement_set: Mouse movement set to -1/0
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to -2/0
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to -2/0
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to -3/0
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to 1/0
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to 2/0
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to 2/0
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to 3/0
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-diff --git a/app/tests/mouse-keys/mouse-move/move_x/native_posix_64.conf b/app/tests/mouse-keys/mouse-move/move_x/native_posix_64.conf
-new file mode 100644
-index 00000000000..65ed54bb204
---- /dev/null
-+++ b/app/tests/mouse-keys/mouse-move/move_x/native_posix_64.conf
-@@ -0,0 +1,6 @@
-+CONFIG_GPIO=n
-+CONFIG_ZMK_BLE=n
-+CONFIG_LOG=y
-+CONFIG_LOG_BACKEND_SHOW_COLOR=n
-+CONFIG_ZMK_LOG_LEVEL_DBG=y
-+CONFIG_ZMK_MOUSE=y
-diff --git a/app/tests/mouse-keys/mouse-move/move_x/native_posix_64.keymap b/app/tests/mouse-keys/mouse-move/move_x/native_posix_64.keymap
-new file mode 100644
-index 00000000000..89d50e2b839
---- /dev/null
-+++ b/app/tests/mouse-keys/mouse-move/move_x/native_posix_64.keymap
-@@ -0,0 +1,29 @@
-+#include <behaviors.dtsi>
-+#include <behaviors/mouse_move.dtsi>
-+#include <dt-bindings/zmk/keys.h>
-+#include <dt-bindings/zmk/kscan_mock.h>
-+#include <dt-bindings/zmk/mouse.h>
-+
-+/ {
-+    keymap {
-+        compatible = "zmk,keymap";
-+        label ="Default keymap";
-+
-+        default_layer {
-+            bindings = <
-+                &mmv MOVE_LEFT &mmv MOVE_RIGHT
-+                &none &none
-+            >;
-+        };
-+    };
-+};
-+
-+
-+&kscan {
-+    events = <
-+        ZMK_MOCK_PRESS(0,0,100)
-+        ZMK_MOCK_RELEASE(0,0,10)
-+        ZMK_MOCK_PRESS(0,1,100)
-+        ZMK_MOCK_RELEASE(0,1,10)
-+    >;
-+};
-\ No newline at end of file
-diff --git a/app/tests/mouse-keys/mouse-move/move_y/events.patterns b/app/tests/mouse-keys/mouse-move/move_y/events.patterns
-new file mode 100644
-index 00000000000..812126fb828
---- /dev/null
-+++ b/app/tests/mouse-keys/mouse-move/move_y/events.patterns
-@@ -0,0 +1 @@
-+s/.*hid_mouse_//p
-\ No newline at end of file
-diff --git a/app/tests/mouse-keys/mouse-move/move_y/keycode_events.snapshot b/app/tests/mouse-keys/mouse-move/move_y/keycode_events.snapshot
-new file mode 100644
-index 00000000000..d20154d5507
---- /dev/null
-+++ b/app/tests/mouse-keys/mouse-move/move_y/keycode_events.snapshot
-@@ -0,0 +1,24 @@
-+movement_set: Mouse movement set to 0/-1
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to 0/-2
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to 0/-2
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to 0/-3
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to 0/1
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to 0/2
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to 0/2
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to 0/3
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-diff --git a/app/tests/mouse-keys/mouse-move/move_y/native_posix_64.conf b/app/tests/mouse-keys/mouse-move/move_y/native_posix_64.conf
-new file mode 100644
-index 00000000000..65ed54bb204
---- /dev/null
-+++ b/app/tests/mouse-keys/mouse-move/move_y/native_posix_64.conf
-@@ -0,0 +1,6 @@
-+CONFIG_GPIO=n
-+CONFIG_ZMK_BLE=n
-+CONFIG_LOG=y
-+CONFIG_LOG_BACKEND_SHOW_COLOR=n
-+CONFIG_ZMK_LOG_LEVEL_DBG=y
-+CONFIG_ZMK_MOUSE=y
-diff --git a/app/tests/mouse-keys/mouse-move/move_y/native_posix_64.keymap b/app/tests/mouse-keys/mouse-move/move_y/native_posix_64.keymap
-new file mode 100644
-index 00000000000..5b02246b05f
---- /dev/null
-+++ b/app/tests/mouse-keys/mouse-move/move_y/native_posix_64.keymap
-@@ -0,0 +1,29 @@
-+#include <behaviors.dtsi>
-+#include <behaviors/mouse_move.dtsi>
-+#include <dt-bindings/zmk/keys.h>
-+#include <dt-bindings/zmk/kscan_mock.h>
-+#include <dt-bindings/zmk/mouse.h>
-+
-+/ {
-+    keymap {
-+        compatible = "zmk,keymap";
-+        label ="Default keymap";
-+
-+        default_layer {
-+            bindings = <
-+                &mmv MOVE_UP &mmv MOVE_DOWN
-+                &none &none
-+            >;
-+        };
-+    };
-+};
-+
-+
-+&kscan {
-+    events = <
-+        ZMK_MOCK_PRESS(0,0,100)
-+        ZMK_MOCK_RELEASE(0,0,10)
-+        ZMK_MOCK_PRESS(0,1,100)
-+        ZMK_MOCK_RELEASE(0,1,10)
-+    >;
-+};
-\ No newline at end of file
-diff --git a/app/tests/mouse-keys/mouse-move/processors/move_diagonal_scaling/events.patterns b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_scaling/events.patterns
-new file mode 100644
-index 00000000000..812126fb828
---- /dev/null
-+++ b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_scaling/events.patterns
-@@ -0,0 +1 @@
-+s/.*hid_mouse_//p
-\ No newline at end of file
-diff --git a/app/tests/mouse-keys/mouse-move/processors/move_diagonal_scaling/keycode_events.snapshot b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_scaling/keycode_events.snapshot
-new file mode 100644
-index 00000000000..77ffd6f8d7c
---- /dev/null
-+++ b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_scaling/keycode_events.snapshot
-@@ -0,0 +1,18 @@
-+movement_set: Mouse movement set to -1/0
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to -4/-3
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to -3/-3
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to -5/-4
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to -5/-5
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to 0/-5
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-diff --git a/app/tests/mouse-keys/mouse-move/processors/move_diagonal_scaling/native_posix_64.conf b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_scaling/native_posix_64.conf
-new file mode 100644
-index 00000000000..65ed54bb204
---- /dev/null
-+++ b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_scaling/native_posix_64.conf
-@@ -0,0 +1,6 @@
-+CONFIG_GPIO=n
-+CONFIG_ZMK_BLE=n
-+CONFIG_LOG=y
-+CONFIG_LOG_BACKEND_SHOW_COLOR=n
-+CONFIG_ZMK_LOG_LEVEL_DBG=y
-+CONFIG_ZMK_MOUSE=y
-diff --git a/app/tests/mouse-keys/mouse-move/processors/move_diagonal_scaling/native_posix_64.keymap b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_scaling/native_posix_64.keymap
-new file mode 100644
-index 00000000000..0ec7163f746
---- /dev/null
-+++ b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_scaling/native_posix_64.keymap
-@@ -0,0 +1,37 @@
-+
-+#include <dt-bindings/zmk/input_transform.h>
-+#include <zephyr/dt-bindings/input/input-event-codes.h>
-+
-+#include <behaviors.dtsi>
-+#include <input/processors.dtsi>
-+#include <dt-bindings/zmk/keys.h>
-+#include <dt-bindings/zmk/kscan_mock.h>
-+#include <dt-bindings/zmk/mouse.h>
-+
-+&mmv_input_listener {
-+    input-processors = <&zip_xy_scaler 5 3>;
-+};
-+
-+/ {
-+    keymap {
-+        compatible = "zmk,keymap";
-+        label ="Default keymap";
-+
-+        default_layer {
-+            bindings = <
-+                &mmv MOVE_LEFT &mmv MOVE_UP
-+                &none &none
-+            >;
-+        };
-+    };
-+};
-+
-+
-+&kscan {
-+    events = <
-+        ZMK_MOCK_PRESS(0,0,10)
-+        ZMK_MOCK_PRESS(0,1,100)
-+        ZMK_MOCK_RELEASE(0,0,10)
-+        ZMK_MOCK_RELEASE(0,1,10)
-+    >;
-+};
-\ No newline at end of file
-diff --git a/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_invert/events.patterns b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_invert/events.patterns
-new file mode 100644
-index 00000000000..812126fb828
---- /dev/null
-+++ b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_invert/events.patterns
-@@ -0,0 +1 @@
-+s/.*hid_mouse_//p
-\ No newline at end of file
-diff --git a/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_invert/keycode_events.snapshot b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_invert/keycode_events.snapshot
-new file mode 100644
-index 00000000000..33bb267b073
---- /dev/null
-+++ b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_invert/keycode_events.snapshot
-@@ -0,0 +1,18 @@
-+movement_set: Mouse movement set to 1/0
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to 2/2
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to 2/2
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to 3/2
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to 3/3
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to 0/3
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-diff --git a/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_invert/native_posix_64.conf b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_invert/native_posix_64.conf
-new file mode 100644
-index 00000000000..65ed54bb204
---- /dev/null
-+++ b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_invert/native_posix_64.conf
-@@ -0,0 +1,6 @@
-+CONFIG_GPIO=n
-+CONFIG_ZMK_BLE=n
-+CONFIG_LOG=y
-+CONFIG_LOG_BACKEND_SHOW_COLOR=n
-+CONFIG_ZMK_LOG_LEVEL_DBG=y
-+CONFIG_ZMK_MOUSE=y
-diff --git a/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_invert/native_posix_64.keymap b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_invert/native_posix_64.keymap
-new file mode 100644
-index 00000000000..51c8e505e26
---- /dev/null
-+++ b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_invert/native_posix_64.keymap
-@@ -0,0 +1,34 @@
-+#include <input/processors.dtsi>
-+#include <behaviors.dtsi>
-+#include <dt-bindings/zmk/keys.h>
-+#include <dt-bindings/zmk/kscan_mock.h>
-+#include <dt-bindings/zmk/mouse.h>
-+#include <dt-bindings/zmk/input_transform.h>
-+
-+&mmv_input_listener {
-+    input-processors = <&zip_xy_transform (INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>;
-+};
-+
-+/ {
-+    keymap {
-+        compatible = "zmk,keymap";
-+        label ="Default keymap";
-+
-+        default_layer {
-+            bindings = <
-+                &mmv MOVE_LEFT &mmv MOVE_UP
-+                &none &none
-+            >;
-+        };
-+    };
-+};
-+
-+
-+&kscan {
-+    events = <
-+        ZMK_MOCK_PRESS(0,0,10)
-+        ZMK_MOCK_PRESS(0,1,100)
-+        ZMK_MOCK_RELEASE(0,0,10)
-+        ZMK_MOCK_RELEASE(0,1,10)
-+    >;
-+};
-\ No newline at end of file
-diff --git a/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_swap/events.patterns b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_swap/events.patterns
-new file mode 100644
-index 00000000000..812126fb828
---- /dev/null
-+++ b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_swap/events.patterns
-@@ -0,0 +1 @@
-+s/.*hid_mouse_//p
-\ No newline at end of file
-diff --git a/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_swap/keycode_events.snapshot b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_swap/keycode_events.snapshot
-new file mode 100644
-index 00000000000..40daa64f0f6
---- /dev/null
-+++ b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_swap/keycode_events.snapshot
-@@ -0,0 +1,18 @@
-+movement_set: Mouse movement set to 0/-1
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to -2/-2
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to -2/-2
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to -2/-3
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to -3/-3
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to -3/0
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-diff --git a/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_swap/native_posix_64.conf b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_swap/native_posix_64.conf
-new file mode 100644
-index 00000000000..65ed54bb204
---- /dev/null
-+++ b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_swap/native_posix_64.conf
-@@ -0,0 +1,6 @@
-+CONFIG_GPIO=n
-+CONFIG_ZMK_BLE=n
-+CONFIG_LOG=y
-+CONFIG_LOG_BACKEND_SHOW_COLOR=n
-+CONFIG_ZMK_LOG_LEVEL_DBG=y
-+CONFIG_ZMK_MOUSE=y
-diff --git a/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_swap/native_posix_64.keymap b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_swap/native_posix_64.keymap
-new file mode 100644
-index 00000000000..be3e9f73d6e
---- /dev/null
-+++ b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_swap/native_posix_64.keymap
-@@ -0,0 +1,33 @@
-+#include <input/processors.dtsi>
-+#include <behaviors.dtsi>
-+#include <dt-bindings/zmk/keys.h>
-+#include <dt-bindings/zmk/kscan_mock.h>
-+#include <dt-bindings/zmk/mouse.h>
-+
-+&mmv_input_listener {
-+    input-processors = <&zip_xy_swap_mapper>;
-+};
-+
-+/ {
-+    keymap {
-+        compatible = "zmk,keymap";
-+        label ="Default keymap";
-+
-+        default_layer {
-+            bindings = <
-+                &mmv MOVE_LEFT &mmv MOVE_UP
-+                &none &none
-+            >;
-+        };
-+    };
-+};
-+
-+
-+&kscan {
-+    events = <
-+        ZMK_MOCK_PRESS(0,0,10)
-+        ZMK_MOCK_PRESS(0,1,100)
-+        ZMK_MOCK_RELEASE(0,0,10)
-+        ZMK_MOCK_RELEASE(0,1,10)
-+    >;
-+};
-\ No newline at end of file
-diff --git a/app/tests/mouse-keys/mouse-move/processors/temp_layer/events.patterns b/app/tests/mouse-keys/mouse-move/processors/temp_layer/events.patterns
-new file mode 100644
-index 00000000000..d53dbef287d
---- /dev/null
-+++ b/app/tests/mouse-keys/mouse-move/processors/temp_layer/events.patterns
-@@ -0,0 +1,2 @@
-+s/.*hid_mouse_//p
-+s/.*set_layer_state: //p
-\ No newline at end of file
-diff --git a/app/tests/mouse-keys/mouse-move/processors/temp_layer/keycode_events.snapshot b/app/tests/mouse-keys/mouse-move/processors/temp_layer/keycode_events.snapshot
-new file mode 100644
-index 00000000000..e2b9544e54c
---- /dev/null
-+++ b/app/tests/mouse-keys/mouse-move/processors/temp_layer/keycode_events.snapshot
-@@ -0,0 +1,14 @@
-+layer_changed: layer 1 state 1
-+movement_set: Mouse movement set to -1/0
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to -2/0
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to -2/0
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+movement_set: Mouse movement set to -3/0
-+scroll_set: Mouse scroll set to 0/0
-+movement_set: Mouse movement set to 0/0
-+layer_changed: layer 1 state 0
-diff --git a/app/tests/mouse-keys/mouse-move/processors/temp_layer/native_posix_64.conf b/app/tests/mouse-keys/mouse-move/processors/temp_layer/native_posix_64.conf
-new file mode 100644
-index 00000000000..65ed54bb204
---- /dev/null
-+++ b/app/tests/mouse-keys/mouse-move/processors/temp_layer/native_posix_64.conf
-@@ -0,0 +1,6 @@
-+CONFIG_GPIO=n
-+CONFIG_ZMK_BLE=n
-+CONFIG_LOG=y
-+CONFIG_LOG_BACKEND_SHOW_COLOR=n
-+CONFIG_ZMK_LOG_LEVEL_DBG=y
-+CONFIG_ZMK_MOUSE=y
-diff --git a/app/tests/mouse-keys/mouse-move/processors/temp_layer/native_posix_64.keymap b/app/tests/mouse-keys/mouse-move/processors/temp_layer/native_posix_64.keymap
-new file mode 100644
-index 00000000000..d5c74dbd02a
---- /dev/null
-+++ b/app/tests/mouse-keys/mouse-move/processors/temp_layer/native_posix_64.keymap
-@@ -0,0 +1,39 @@
-+
-+#include <dt-bindings/zmk/input_transform.h>
-+#include <zephyr/dt-bindings/input/input-event-codes.h>
-+
-+#include <behaviors.dtsi>
-+#include <input/processors.dtsi>
-+#include <dt-bindings/zmk/keys.h>
-+#include <dt-bindings/zmk/kscan_mock.h>
-+#include <dt-bindings/zmk/mouse.h>
-+
-+&mmv_input_listener {
-+    input-processors = <&zip_temp_layer 1 500>;
-+};
-+
-+/ {
-+    keymap {
-+        compatible = "zmk,keymap";
-+        label ="Default keymap";
-+
-+        default_layer {
-+            bindings = <
-+                &mmv MOVE_LEFT &mmv MOVE_UP
-+                &none &none
-+            >;
-+        };
-+
-+        mkp_layer {
-+            bindings = <&mkp LCLK &mkp RCLK &trans &trans>;
-+        };
-+    };
-+};
-+
-+
-+&kscan {
-+    events = <
-+        ZMK_MOCK_PRESS(0,0,100)
-+        ZMK_MOCK_RELEASE(0,0,1000)
-+    >;
-+};
-\ No newline at end of file
-diff --git a/docs/docs/intro.md b/docs/docs/intro.md
-index d8d992e7663..d5bf527ca5d 100644
---- a/docs/docs/intro.md
-+++ b/docs/docs/intro.md
-@@ -33,7 +33,7 @@ ZMK is currently missing some features found in other popular firmware. This tab
- | One Shot Keys                                                                                                                                              | ✅  |    ✅     | ✅  |
- | [Combo Keys](keymaps/combos.md)                                                                                                                            | ✅  |           | ✅  |
- | [Macros](keymaps/behaviors/macros.md)                                                                                                                      | ✅  |    ✅     | ✅  |
--| Mouse Keys                                                                                                                                                 | 🚧  |    ✅     | ✅  |
-+| Mouse Keys                                                                                                                                                 | ✅  |    ✅     | ✅  |
- | Low Active Power Usage                                                                                                                                     | ✅  |           |     |
- | Low Power Sleep States                                                                                                                                     | ✅  |    ✅     |     |
- | [Low Power Mode (VCC Shutoff)](keymaps/behaviors/power.md)                                                                                                 | ✅  |    ✅     |     |
-diff --git a/docs/docs/keymaps/behaviors/index.mdx b/docs/docs/keymaps/behaviors/index.mdx
-index c9d0fbe49c7..c876beb111e 100644
---- a/docs/docs/keymaps/behaviors/index.mdx
-+++ b/docs/docs/keymaps/behaviors/index.mdx
-@@ -43,6 +43,8 @@ Below is a summary of pre-defined behavior bindings and user-definable behaviors
- | Binding | Behavior                                                    | Description                     |
- | ------- | ----------------------------------------------------------- | ------------------------------- |
- | `&mkp`  | [Mouse Button Press](mouse-emulation.md#mouse-button-press) | Emulates pressing mouse buttons |
-+| `&mmv`  | [Mouse Button Press](mouse-emulation.md#mouse-move)         | Emulates mouse movement         |
-+| `&msc`  | [Mouse Button Press](mouse-emulation.md#mouse-scroll)       | Emulates mouse scrolling        |
- 
- ## Reset Behaviors
- 
-diff --git a/docs/docs/keymaps/behaviors/mouse-emulation.md b/docs/docs/keymaps/behaviors/mouse-emulation.md
-index 26bef8ccce8..553676ec4d2 100644
---- a/docs/docs/keymaps/behaviors/mouse-emulation.md
-+++ b/docs/docs/keymaps/behaviors/mouse-emulation.md
-@@ -5,8 +5,7 @@ sidebar_label: Mouse Emulation
- 
- ## Summary
- 
--Mouse emulation behaviors send mouse events. Currently, only mouse button presses are supported, but movement
--and scroll action support is planned for the future.
-+Mouse emulation behaviors send mouse events, including mouse button presses, cursor movement and scrolling.
- 
- :::warning[Refreshing the HID descriptor]
- 
-@@ -17,14 +16,12 @@ The mouse functionality will not work over BLE until that is done.
- 
- ## Configuration Option
- 
--This feature can be enabled or disabled explicitly via a config option:
-+To use any of the behaviors documented here, the ZMK mouse feature must be enabled explicitly via a config option:
- 
- ```
- CONFIG_ZMK_MOUSE=y
- ```
- 
--If you use the mouse key press behavior in your keymap, the feature will automatically be enabled for you.
--
- ## Mouse Button Defines
- 
- To make it easier to encode the HID mouse button numeric values, include
-@@ -69,3 +66,67 @@ This example will send press of the fourth mouse button when the binding is trig
- ```
- &mkp MB4
- ```
-+
-+## Mouse Move
-+
-+This behavior sends mouse X/Y movement events to the connected host.
-+
-+### Behavior Binding
-+
-+- Reference: `&mmv`
-+- Parameter: A `uint32` with 16-bits each used for vertical and horizontal velocity.
-+
-+The following defines can be passed for the parameter:
-+
-+| Define       | Action     |
-+| :----------- | :--------- |
-+| `MOVE_UP`    | Move up    |
-+| `MOVE_DOWN`  | Move down  |
-+| `MOVE_LEFT`  | Move left  |
-+| `MOVE_RIGHT` | Move right |
-+
-+### Examples
-+
-+The following will send a down mouse movement event to the host when pressed/held:
-+
-+```
-+&mmv MOVE_DOWN
-+```
-+
-+The following will send a left mouse movement event to the host when pressed/held:
-+
-+```
-+&mmv MOVE_LEFT
-+```
-+
-+## Mouse Scroll
-+
-+This behavior sends vertical and horizontal scroll events to the connected host.
-+
-+### Behavior Binding
-+
-+- Reference: `&msc`
-+- Parameter: A `uint32` with 16-bits each used for vertical and horizontal velocity.
-+
-+The following defines can be passed for the parameter:
-+
-+| Define       | Action     |
-+| :----------- | :--------- |
-+| `MOVE_UP`    | Move up    |
-+| `MOVE_DOWN`  | Move down  |
-+| `MOVE_LEFT`  | Move left  |
-+| `MOVE_RIGHT` | Move right |
-+
-+### Examples
-+
-+The following will send a scroll down event to the host when pressed/held:
-+
-+```
-+&msc MOVE_DOWN
-+```
-+
-+The following will send a scroll left event to the host when pressed/held:
-+
-+```
-+&msc MOVE_LEFT
-+```
-
-From aaa23e95a11fffbe904404ed10b770d85ca881c0 Mon Sep 17 00:00:00 2001
-From: Peter Johanson <peter@peterjohanson.com>
-Date: Tue, 15 Oct 2024 13:53:00 -0600
-Subject: [PATCH 2/8] feat: Add input split support.
-
----
- app/CMakeLists.txt                        |   2 +-
- app/dts/bindings/zmk,input-split.yaml     |  15 ++
- app/include/zmk/mouse/input_split.h       |  10 +
- app/include/zmk/split/bluetooth/service.h |   9 +
- app/include/zmk/split/bluetooth/uuid.h    |   1 +
- app/src/mouse/CMakeLists.txt              |   5 +-
- app/src/mouse/Kconfig                     |  27 +-
- app/src/mouse/input_split.c               |  71 +++++
- app/src/split/bluetooth/central.c         | 311 ++++++++++++++++++----
- app/src/split/bluetooth/service.c         |  70 ++++-
- 10 files changed, 458 insertions(+), 63 deletions(-)
- create mode 100644 app/dts/bindings/zmk,input-split.yaml
- create mode 100644 app/include/zmk/mouse/input_split.h
- create mode 100644 app/src/mouse/input_split.c
-
-diff --git a/app/CMakeLists.txt b/app/CMakeLists.txt
-index 7ca7814d9e2..49b42420f00 100644
---- a/app/CMakeLists.txt
-+++ b/app/CMakeLists.txt
-@@ -42,9 +42,9 @@ target_sources_ifdef(CONFIG_USB_DEVICE_STACK app PRIVATE src/events/usb_conn_sta
- target_sources(app PRIVATE src/behaviors/behavior_reset.c)
- target_sources_ifdef(CONFIG_ZMK_EXT_POWER app PRIVATE src/behaviors/behavior_ext_power.c)
- target_sources_ifdef(CONFIG_ZMK_BEHAVIOR_SOFT_OFF app PRIVATE src/behaviors/behavior_soft_off.c)
-+add_subdirectory_ifdef(CONFIG_ZMK_MOUSE src/mouse/)
- if ((NOT CONFIG_ZMK_SPLIT) OR CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
-   target_sources(app PRIVATE src/hid.c)
--  add_subdirectory_ifdef(CONFIG_ZMK_MOUSE src/mouse/)
-   target_sources(app PRIVATE src/behaviors/behavior_key_press.c)
-   target_sources_ifdef(CONFIG_ZMK_BEHAVIOR_KEY_TOGGLE app PRIVATE src/behaviors/behavior_key_toggle.c)
-   target_sources_ifdef(CONFIG_ZMK_BEHAVIOR_HOLD_TAP app PRIVATE src/behaviors/behavior_hold_tap.c)
-diff --git a/app/dts/bindings/zmk,input-split.yaml b/app/dts/bindings/zmk,input-split.yaml
-new file mode 100644
-index 00000000000..bc2ca26f804
---- /dev/null
-+++ b/app/dts/bindings/zmk,input-split.yaml
-@@ -0,0 +1,15 @@
-+include: [base.yaml]
-+
-+compatible: "zmk,input-split"
-+
-+description: Device to wire up an input device for split use.
-+
-+properties:
-+  reg:
-+    required: true
-+
-+  device:
-+    type: phandle
-+
-+  input-processors:
-+    type: phandle-array
-diff --git a/app/include/zmk/mouse/input_split.h b/app/include/zmk/mouse/input_split.h
-new file mode 100644
-index 00000000000..812035477e2
---- /dev/null
-+++ b/app/include/zmk/mouse/input_split.h
-@@ -0,0 +1,10 @@
-+/*
-+ * Copyright (c) 2024 The ZMK Contributors
-+ *
-+ * SPDX-License-Identifier: MIT
-+ */
-+
-+#pragma once
-+
-+int zmk_input_split_report_peripheral_event(uint8_t reg, uint8_t type, uint16_t code, int32_t value,
-+                                            bool sync);
-\ No newline at end of file
-diff --git a/app/include/zmk/split/bluetooth/service.h b/app/include/zmk/split/bluetooth/service.h
-index 1c9e75226ad..90e5dd7ee8e 100644
---- a/app/include/zmk/split/bluetooth/service.h
-+++ b/app/include/zmk/split/bluetooth/service.h
-@@ -31,8 +31,17 @@ struct zmk_split_run_behavior_payload {
-     char behavior_dev[ZMK_SPLIT_RUN_BEHAVIOR_DEV_LEN];
- } __packed;
- 
-+struct zmk_split_input_event_payload {
-+    uint8_t type;
-+    uint16_t code;
-+    uint32_t value;
-+    uint8_t sync;
-+} __packed;
-+
- int zmk_split_bt_position_pressed(uint8_t position);
- int zmk_split_bt_position_released(uint8_t position);
- int zmk_split_bt_sensor_triggered(uint8_t sensor_index,
-                                   const struct zmk_sensor_channel_data channel_data[],
-                                   size_t channel_data_size);
-+
-+int zmk_split_bt_report_input(uint8_t reg, uint8_t type, uint16_t code, int32_t value, bool sync);
-diff --git a/app/include/zmk/split/bluetooth/uuid.h b/app/include/zmk/split/bluetooth/uuid.h
-index 4a653c73b83..c9a63efa702 100644
---- a/app/include/zmk/split/bluetooth/uuid.h
-+++ b/app/include/zmk/split/bluetooth/uuid.h
-@@ -19,3 +19,4 @@
- #define ZMK_SPLIT_BT_CHAR_SENSOR_STATE_UUID ZMK_BT_SPLIT_UUID(0x00000003)
- #define ZMK_SPLIT_BT_UPDATE_HID_INDICATORS_UUID ZMK_BT_SPLIT_UUID(0x00000004)
- #define ZMK_SPLIT_BT_SELECT_PHYS_LAYOUT_UUID ZMK_BT_SPLIT_UUID(0x00000005)
-+#define ZMK_SPLIT_BT_INPUT_EVENT_UUID ZMK_BT_SPLIT_UUID(0x00000006)
-diff --git a/app/src/mouse/CMakeLists.txt b/app/src/mouse/CMakeLists.txt
-index 709d4968978..f8ddc3f09a2 100644
---- a/app/src/mouse/CMakeLists.txt
-+++ b/app/src/mouse/CMakeLists.txt
-@@ -1,7 +1,8 @@
- 
--target_sources(app PRIVATE input_listener.c)
-+target_sources_ifdef(CONFIG_ZMK_INPUT_LISTENER app PRIVATE input_listener.c)
- target_sources_ifdef(CONFIG_ZMK_INPUT_PROCESSOR_TRANSFORM app PRIVATE input_processor_transform.c)
- target_sources_ifdef(CONFIG_ZMK_INPUT_PROCESSOR_SCALER app PRIVATE input_processor_scaler.c)
- target_sources_ifdef(CONFIG_ZMK_INPUT_PROCESSOR_TEMP_LAYER app PRIVATE input_processor_temp_layer.c)
- target_sources_ifdef(CONFIG_ZMK_INPUT_PROCESSOR_CODE_MAPPER app PRIVATE input_processor_code_mapper.c)
--target_sources_ifdef(CONFIG_ZMK_MOUSE_SMOOTH_SCROLLING app PRIVATE resolution_multipliers.c)
-\ No newline at end of file
-+target_sources_ifdef(CONFIG_ZMK_MOUSE_SMOOTH_SCROLLING app PRIVATE resolution_multipliers.c)
-+target_sources_ifdef(CONFIG_ZMK_INPUT_SPLIT app PRIVATE input_split.c)
-\ No newline at end of file
-diff --git a/app/src/mouse/Kconfig b/app/src/mouse/Kconfig
-index 800be76b0e9..ae6440cf4d2 100644
---- a/app/src/mouse/Kconfig
-+++ b/app/src/mouse/Kconfig
-@@ -12,11 +12,29 @@ if ZMK_MOUSE
- config INPUT_GPIO_KEYS
-     default n
- 
-+config INPUT_THREAD_STACK_SIZE
-+    default 1024 if ZMK_SPLIT && !ZMK_SPLIT_ROLE_CENTRAL
-+
-+if !ZMK_SPLIT || ZMK_SPLIT_ROLE_CENTRAL
-+
- config ZMK_MOUSE_SMOOTH_SCROLLING
-     bool "Smooth Scrolling"
-     help
-       Enable smooth scrolling, with hosts that support HID Resolution Multipliers
- 
-+config ZMK_INPUT_LISTENER
-+    bool "Input listener for processing input events in the system"
-+    default y
-+    depends on DT_HAS_ZMK_INPUT_LISTENER_ENABLED
-+
-+
-+config ZMK_INPUT_PROCESSOR_TEMP_LAYER
-+    bool "Temporary Layer Input Processor"
-+    default y
-+    depends on DT_HAS_ZMK_INPUT_PROCESSOR_TEMP_LAYER_ENABLED
-+
-+endif
-+
- config ZMK_INPUT_PROCESSOR_TRANSFORM
-     bool "Transform Input Processor"
-     default y
-@@ -27,15 +45,14 @@ config ZMK_INPUT_PROCESSOR_SCALER
-     default y
-     depends on DT_HAS_ZMK_INPUT_PROCESSOR_SCALER_ENABLED
- 
--config ZMK_INPUT_PROCESSOR_TEMP_LAYER
--    bool "Temporary Layer Input Processor"
--    default y
--    depends on DT_HAS_ZMK_INPUT_PROCESSOR_TEMP_LAYER_ENABLED
--
- config ZMK_INPUT_PROCESSOR_CODE_MAPPER
-     bool "Code Mapper Input Processor"
-     default y
-     depends on DT_HAS_ZMK_INPUT_PROCESSOR_CODE_MAPPER_ENABLED
- 
-+config ZMK_INPUT_SPLIT
-+    bool "Split input support"
-+    default y
-+    depends on DT_HAS_ZMK_INPUT_SPLIT_ENABLED && ZMK_SPLIT
- 
- endif
-diff --git a/app/src/mouse/input_split.c b/app/src/mouse/input_split.c
-new file mode 100644
-index 00000000000..d79f4e76b24
---- /dev/null
-+++ b/app/src/mouse/input_split.c
-@@ -0,0 +1,71 @@
-+/*
-+ * Copyright (c) 2024 The ZMK Contributors
-+ *
-+ * SPDX-License-Identifier: MIT
-+ */
-+
-+#define DT_DRV_COMPAT zmk_input_split
-+
-+#include <zephyr/kernel.h>
-+#include <zephyr/device.h>
-+#include <zephyr/input/input.h>
-+#include <drivers/input_processor.h>
-+
-+#include <zephyr/logging/log.h>
-+
-+LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
-+
-+#if IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
-+
-+struct zis_entry {
-+    uint8_t reg;
-+    const struct device *dev;
-+};
-+
-+#define ZIS_ENTRY(n) {.reg = DT_INST_REG_ADDR(n), .dev = DEVICE_DT_GET(DT_DRV_INST(n))},
-+
-+static const struct zis_entry proxy_inputs[] = {DT_INST_FOREACH_STATUS_OKAY(ZIS_ENTRY)};
-+
-+int zmk_input_split_report_peripheral_event(uint8_t reg, uint8_t type, uint16_t code, int32_t value,
-+                                            bool sync) {
-+    LOG_DBG("Got peripheral event for %d!", reg);
-+    for (size_t i = 0; i < ARRAY_SIZE(proxy_inputs); i++) {
-+        if (reg == proxy_inputs[i].reg) {
-+            return input_report(proxy_inputs[i].dev, type, code, value, sync, K_NO_WAIT);
-+        }
-+    }
-+
-+    return -ENODEV;
-+}
-+
-+#define ZIS_INST(n)                                                                                \
-+    DEVICE_DT_INST_DEFINE(n, NULL, NULL, NULL, NULL, POST_KERNEL,                                  \
-+                          CONFIG_KERNEL_INIT_PRIORITY_DEFAULT, NULL);
-+
-+DT_INST_FOREACH_STATUS_OKAY(ZIS_INST)
-+
-+#else
-+
-+#include <zmk/split/bluetooth/service.h>
-+
-+#define ZIS_INST(n)                                                                                \
-+    static const struct zmk_input_processor_entry processors_##n[] =                               \
-+        COND_CODE_1(DT_INST_NODE_HAS_PROP(n, input_processors),                                    \
-+                    ({LISTIFY(DT_INST_PROP_LEN(n, input_processors),                               \
-+                              ZMK_INPUT_PROCESSOR_ENTRY_AT_IDX, (, ), DT_DRV_INST(n))}),           \
-+                    ({}));                                                                         \
-+    BUILD_ASSERT(DT_INST_NODE_HAS_PROP(n, device),                                                 \
-+                 "Peripheral input splits need an `input` property set");                          \
-+    void split_input_handler_##n(struct input_event *evt) {                                        \
-+        for (size_t i = 0; i < ARRAY_SIZE(processors_##n); i++) {                                  \
-+            zmk_input_processor_handle_event(processors_##n[i].dev, evt, processors_##n[i].param1, \
-+                                             processors_##n[i].param2, NULL);                      \
-+        }                                                                                          \
-+        zmk_split_bt_report_input(DT_INST_REG_ADDR(n), evt->type, evt->code, evt->value,           \
-+                                  evt->sync);                                                      \
-+    }                                                                                              \
-+    INPUT_CALLBACK_DEFINE(DEVICE_DT_GET(DT_INST_PHANDLE(n, device)), split_input_handler_##n);
-+
-+DT_INST_FOREACH_STATUS_OKAY(ZIS_INST)
-+
-+#endif
-\ No newline at end of file
 diff --git a/app/src/split/bluetooth/central.c b/app/src/split/bluetooth/central.c
-index 21ff611f568..d2120fd4a5c 100644
+index 21ff611f..d2120fd4 100644
 --- a/app/src/split/bluetooth/central.c
 +++ b/app/src/split/bluetooth/central.c
 @@ -29,6 +29,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
@@ -4004,7 +3049,7 @@ index 21ff611f568..d2120fd4a5c 100644
  
      if (err < 0) {
 diff --git a/app/src/split/bluetooth/service.c b/app/src/split/bluetooth/service.c
-index 9529d51613c..def883b0c08 100644
+index 9529d516..def883b0 100644
 --- a/app/src/split/bluetooth/service.c
 +++ b/app/src/split/bluetooth/service.c
 @@ -7,6 +7,7 @@
@@ -4106,118 +3151,1242 @@ index 9529d51613c..def883b0c08 100644
  static int service_init(void) {
      static const struct k_work_queue_config queue_config = {
          .name = "Split Peripheral Notification Queue"};
-
-From 8b1c263646e25ff5072387544139df58dd8b4cfd Mon Sep 17 00:00:00 2001
-From: Peter Johanson <peter@peterjohanson.com>
-Date: Wed, 30 Oct 2024 10:59:43 -0600
-Subject: [PATCH 3/8] SQUASH SPLIT: tweaks for dedicated input split init
- priority
-
----
- app/src/mouse/Kconfig       | 8 ++++++++
- app/src/mouse/input_split.c | 8 +++-----
- 2 files changed, 11 insertions(+), 5 deletions(-)
-
-diff --git a/app/src/mouse/Kconfig b/app/src/mouse/Kconfig
-index ae6440cf4d2..a3ebff8087a 100644
---- a/app/src/mouse/Kconfig
-+++ b/app/src/mouse/Kconfig
-@@ -55,4 +55,12 @@ config ZMK_INPUT_SPLIT
-     default y
-     depends on DT_HAS_ZMK_INPUT_SPLIT_ENABLED && ZMK_SPLIT
+diff --git a/app/src/usb_hid.c b/app/src/usb_hid.c
+index 9db10952..62739623 100644
+--- a/app/src/usb_hid.c
++++ b/app/src/usb_hid.c
+@@ -13,9 +13,15 @@
+ #include <zmk/usb.h>
+ #include <zmk/hid.h>
+ #include <zmk/keymap.h>
++
++#if IS_ENABLED(CONFIG_ZMK_MOUSE_SMOOTH_SCROLLING)
++#include <zmk/mouse/resolution_multipliers.h>
++#endif // IS_ENABLED(CONFIG_ZMK_MOUSE_SMOOTH_SCROLLING)
++
+ #if IS_ENABLED(CONFIG_ZMK_HID_INDICATORS)
+ #include <zmk/hid_indicators.h>
+ #endif // IS_ENABLED(CONFIG_ZMK_HID_INDICATORS)
++
+ #include <zmk/event_manager.h>
  
-+if ZMK_INPUT_SPLIT
-+
-+config ZMK_INPUT_SPLIT_INIT_PRIORITY
-+    int "Input Split initialization priority"
-+    default INPUT_INIT_PRIORITY
-+
-+endif # ZMK_INPUT_SPLIT
-+
- endif
-diff --git a/app/src/mouse/input_split.c b/app/src/mouse/input_split.c
-index d79f4e76b24..55a84ea4624 100644
---- a/app/src/mouse/input_split.c
-+++ b/app/src/mouse/input_split.c
-@@ -40,9 +40,7 @@ int zmk_input_split_report_peripheral_event(uint8_t reg, uint8_t type, uint16_t
+ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
+@@ -56,31 +62,56 @@ static uint8_t *get_keyboard_report(size_t *len) {
  
- #define ZIS_INST(n)                                                                                \
-     DEVICE_DT_INST_DEFINE(n, NULL, NULL, NULL, NULL, POST_KERNEL,                                  \
--                          CONFIG_KERNEL_INIT_PRIORITY_DEFAULT, NULL);
+ static int get_report_cb(const struct device *dev, struct usb_setup_packet *setup, int32_t *len,
+                          uint8_t **data) {
++    switch (setup->wValue & HID_GET_REPORT_TYPE_MASK) {
++    case HID_REPORT_TYPE_FEATURE:
++        switch (setup->wValue & HID_GET_REPORT_ID_MASK) {
++#if IS_ENABLED(CONFIG_ZMK_MOUSE_SMOOTH_SCROLLING)
++        case ZMK_HID_REPORT_ID_MOUSE:
++            static struct zmk_hid_mouse_resolution_feature_report res_feature_report;
+ 
+-    /*
+-     * 7.2.1 of the HID v1.11 spec is unclear about handling requests for reports that do not exist
+-     * For requested reports that aren't input reports, return -ENOTSUP like the Zephyr subsys does
+-     */
+-    if ((setup->wValue & HID_GET_REPORT_TYPE_MASK) != HID_REPORT_TYPE_INPUT) {
+-        LOG_ERR("Unsupported report type %d requested", (setup->wValue & HID_GET_REPORT_TYPE_MASK)
+-                                                            << 8);
+-        return -ENOTSUP;
+-    }
++            struct zmk_endpoint_instance endpoint = {
++                .transport = ZMK_TRANSPORT_USB,
++            };
+ 
+-    switch (setup->wValue & HID_GET_REPORT_ID_MASK) {
+-    case ZMK_HID_REPORT_ID_KEYBOARD: {
+-        *data = get_keyboard_report(len);
++            *len = sizeof(struct zmk_hid_mouse_resolution_feature_report);
++            struct zmk_mouse_resolution_multipliers mult =
++                zmk_mouse_resolution_multipliers_get_profile(endpoint);
++
++            res_feature_report.body.wheel_res = mult.wheel;
++            res_feature_report.body.hwheel_res = mult.hor_wheel;
++            *data = (uint8_t *)&res_feature_report;
++            break;
++#endif // IS_ENABLED(CONFIG_ZMK_MOUSE_SMOOTH_SCROLLING)
++        default:
++            return -ENOTSUP;
++        }
+         break;
+-    }
+-    case ZMK_HID_REPORT_ID_CONSUMER: {
+-        struct zmk_hid_consumer_report *report = zmk_hid_get_consumer_report();
+-        *data = (uint8_t *)report;
+-        *len = sizeof(*report);
++    case HID_REPORT_TYPE_INPUT:
++        switch (setup->wValue & HID_GET_REPORT_ID_MASK) {
++        case ZMK_HID_REPORT_ID_KEYBOARD: {
++            *data = get_keyboard_report(len);
++            break;
++        }
++        case ZMK_HID_REPORT_ID_CONSUMER: {
++            struct zmk_hid_consumer_report *report = zmk_hid_get_consumer_report();
++            *data = (uint8_t *)report;
++            *len = sizeof(*report);
++            break;
++        }
++        default:
++            LOG_ERR("Invalid report ID %d requested", setup->wValue & HID_GET_REPORT_ID_MASK);
++            return -EINVAL;
++        }
+         break;
+-    }
+     default:
+-        LOG_ERR("Invalid report ID %d requested", setup->wValue & HID_GET_REPORT_ID_MASK);
+-        return -EINVAL;
++        /*
++         * 7.2.1 of the HID v1.11 spec is unclear about handling requests for reports that do not
++         * exist For requested reports that aren't input reports, return -ENOTSUP like the Zephyr
++         * subsys does
++         */
++        LOG_ERR("Unsupported report type %d requested", (setup->wValue & HID_GET_REPORT_TYPE_MASK)
++                                                            << 8);
++        return -ENOTSUP;
+     }
+ 
+     return 0;
+@@ -88,30 +119,55 @@ static int get_report_cb(const struct device *dev, struct usb_setup_packet *setu
+ 
+ static int set_report_cb(const struct device *dev, struct usb_setup_packet *setup, int32_t *len,
+                          uint8_t **data) {
+-    if ((setup->wValue & HID_GET_REPORT_TYPE_MASK) != HID_REPORT_TYPE_OUTPUT) {
+-        LOG_ERR("Unsupported report type %d requested",
+-                (setup->wValue & HID_GET_REPORT_TYPE_MASK) >> 8);
+-        return -ENOTSUP;
+-    }
 -
--DT_INST_FOREACH_STATUS_OKAY(ZIS_INST)
-+                          CONFIG_ZMK_INPUT_SPLIT_INIT_PRIORITY, NULL);
+-    switch (setup->wValue & HID_GET_REPORT_ID_MASK) {
+-#if IS_ENABLED(CONFIG_ZMK_HID_INDICATORS)
+-    case ZMK_HID_REPORT_ID_LEDS:
+-        if (*len != sizeof(struct zmk_hid_led_report)) {
+-            LOG_ERR("LED set report is malformed: length=%d", *len);
+-            return -EINVAL;
+-        } else {
+-            struct zmk_hid_led_report *report = (struct zmk_hid_led_report *)*data;
++    switch (setup->wValue & HID_GET_REPORT_TYPE_MASK) {
++    case HID_REPORT_TYPE_FEATURE:
++        switch (setup->wValue & HID_GET_REPORT_ID_MASK) {
++#if IS_ENABLED(CONFIG_ZMK_MOUSE_SMOOTH_SCROLLING)
++        case ZMK_HID_REPORT_ID_MOUSE:
++            if (*len != sizeof(struct zmk_hid_mouse_resolution_feature_report)) {
++                return -EINVAL;
++            }
++
++            struct zmk_hid_mouse_resolution_feature_report *report =
++                (struct zmk_hid_mouse_resolution_feature_report *)*data;
+             struct zmk_endpoint_instance endpoint = {
+                 .transport = ZMK_TRANSPORT_USB,
+             };
+-            zmk_hid_indicators_process_report(&report->body, endpoint);
++
++            zmk_mouse_resolution_multipliers_process_report(&report->body, endpoint);
++
++            break;
++#endif // IS_ENABLED(CONFIG_ZMK_MOUSE_SMOOTH_SCROLLING)
++        default:
++            return -ENOTSUP;
+         }
+         break;
++
++    case HID_REPORT_TYPE_OUTPUT:
++        switch (setup->wValue & HID_GET_REPORT_ID_MASK) {
++#if IS_ENABLED(CONFIG_ZMK_HID_INDICATORS)
++        case ZMK_HID_REPORT_ID_LEDS:
++            if (*len != sizeof(struct zmk_hid_led_report)) {
++                LOG_ERR("LED set report is malformed: length=%d", *len);
++                return -EINVAL;
++            } else {
++                struct zmk_hid_led_report *report = (struct zmk_hid_led_report *)*data;
++                struct zmk_endpoint_instance endpoint = {
++                    .transport = ZMK_TRANSPORT_USB,
++                };
++                zmk_hid_indicators_process_report(&report->body, endpoint);
++            }
++            break;
+ #endif // IS_ENABLED(CONFIG_ZMK_HID_INDICATORS)
++        default:
++            LOG_ERR("Invalid report ID %d requested", setup->wValue & HID_GET_REPORT_ID_MASK);
++            return -EINVAL;
++        }
++        break;
+     default:
+-        LOG_ERR("Invalid report ID %d requested", setup->wValue & HID_GET_REPORT_ID_MASK);
+-        return -EINVAL;
++        LOG_ERR("Unsupported report type %d requested",
++                (setup->wValue & HID_GET_REPORT_TYPE_MASK) >> 8);
++        return -ENOTSUP;
+     }
  
- #else
- 
-@@ -66,6 +64,6 @@ DT_INST_FOREACH_STATUS_OKAY(ZIS_INST)
-     }                                                                                              \
-     INPUT_CALLBACK_DEFINE(DEVICE_DT_GET(DT_INST_PHANDLE(n, device)), split_input_handler_##n);
- 
--DT_INST_FOREACH_STATUS_OKAY(ZIS_INST)
-+#endif
- 
--#endif
+     return 0;
+diff --git a/app/tests/mouse-keys/mkp/native_posix_64.conf b/app/tests/mouse-keys/mkp/native_posix_64.conf
+new file mode 100644
+index 00000000..65ed54bb
+--- /dev/null
++++ b/app/tests/mouse-keys/mkp/native_posix_64.conf
+@@ -0,0 +1,6 @@
++CONFIG_GPIO=n
++CONFIG_ZMK_BLE=n
++CONFIG_LOG=y
++CONFIG_LOG_BACKEND_SHOW_COLOR=n
++CONFIG_ZMK_LOG_LEVEL_DBG=y
++CONFIG_ZMK_MOUSE=y
+diff --git a/app/tests/mouse-keys/mouse-move/move_diagonal/events.patterns b/app/tests/mouse-keys/mouse-move/move_diagonal/events.patterns
+new file mode 100644
+index 00000000..812126fb
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/move_diagonal/events.patterns
+@@ -0,0 +1 @@
++s/.*hid_mouse_//p
 \ No newline at end of file
-+DT_INST_FOREACH_STATUS_OKAY(ZIS_INST)
+diff --git a/app/tests/mouse-keys/mouse-move/move_diagonal/keycode_events.snapshot b/app/tests/mouse-keys/mouse-move/move_diagonal/keycode_events.snapshot
+new file mode 100644
+index 00000000..6b9fa770
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/move_diagonal/keycode_events.snapshot
+@@ -0,0 +1,18 @@
++movement_set: Mouse movement set to -1/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -2/-2
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -2/-2
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -3/-2
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -3/-3
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to 0/-3
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
+diff --git a/app/tests/mouse-keys/mouse-move/move_diagonal/native_posix_64.conf b/app/tests/mouse-keys/mouse-move/move_diagonal/native_posix_64.conf
+new file mode 100644
+index 00000000..65ed54bb
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/move_diagonal/native_posix_64.conf
+@@ -0,0 +1,6 @@
++CONFIG_GPIO=n
++CONFIG_ZMK_BLE=n
++CONFIG_LOG=y
++CONFIG_LOG_BACKEND_SHOW_COLOR=n
++CONFIG_ZMK_LOG_LEVEL_DBG=y
++CONFIG_ZMK_MOUSE=y
+diff --git a/app/tests/mouse-keys/mouse-move/move_diagonal/native_posix_64.keymap b/app/tests/mouse-keys/mouse-move/move_diagonal/native_posix_64.keymap
+new file mode 100644
+index 00000000..7e4d7af2
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/move_diagonal/native_posix_64.keymap
+@@ -0,0 +1,29 @@
++#include <behaviors.dtsi>
++#include <behaviors/mouse_move.dtsi>
++#include <dt-bindings/zmk/keys.h>
++#include <dt-bindings/zmk/kscan_mock.h>
++#include <dt-bindings/zmk/mouse.h>
++
++/ {
++    keymap {
++        compatible = "zmk,keymap";
++        label ="Default keymap";
++
++        default_layer {
++            bindings = <
++                &mmv MOVE_LEFT &mmv MOVE_UP
++                &none &none
++            >;
++        };
++    };
++};
++
++
++&kscan {
++    events = <
++        ZMK_MOCK_PRESS(0,0,10)
++        ZMK_MOCK_PRESS(0,1,100)
++        ZMK_MOCK_RELEASE(0,0,10)
++        ZMK_MOCK_RELEASE(0,1,10)
++    >;
++};
 \ No newline at end of file
-
-From 672ea9be0d69f9a79b6d9e275dc58000057dbe9e Mon Sep 17 00:00:00 2001
-From: Peter Johanson <peter@peterjohanson.com>
-Date: Wed, 30 Oct 2024 11:29:42 -0600
-Subject: [PATCH 4/8] SQUASH CORE: Drop default scroll value again.
-
-* Drop the default scroll value again. In theory you only want the
-  higher value *IF* you enable the smooth scrolling Kconfig setting.
----
- app/include/dt-bindings/zmk/mouse.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/app/include/dt-bindings/zmk/mouse.h b/app/include/dt-bindings/zmk/mouse.h
-index 99a35a508c9..f9d0c939a24 100644
---- a/app/include/dt-bindings/zmk/mouse.h
-+++ b/app/include/dt-bindings/zmk/mouse.h
-@@ -28,7 +28,7 @@
- #endif
- 
- #ifndef ZMK_MOUSE_DEFAULT_SCRL_VAL
--#define ZMK_MOUSE_DEFAULT_SCRL_VAL 300
-+#define ZMK_MOUSE_DEFAULT_SCRL_VAL 10
- #endif
- 
- /* Mouse move behavior */
-
-From cdcd9c9f0cc63726dfa45f8498c512acc73bc77e Mon Sep 17 00:00:00 2001
-From: Peter Johanson <peter@peterjohanson.com>
-Date: Fri, 1 Nov 2024 15:37:48 -0600
-Subject: [PATCH 5/8] docs: Add initial pointer docs.
-
----
- docs/docs/config/pointers.md                  |  67 +++++++++
- .../hardware-integration/pointers.md          | 127 ++++++++++++++++++
- docs/docs/features/pointers.md                |  39 ++++++
- .../docs/keymaps/behaviors/mouse-emulation.md |  30 +++++
- .../keymaps/input-processors/code-mapper.md   |  59 ++++++++
- docs/docs/keymaps/input-processors/index.md   |  50 +++++++
- docs/docs/keymaps/input-processors/scaler.md  |  70 ++++++++++
- .../keymaps/input-processors/temp-layer.md    |  26 ++++
- .../keymaps/input-processors/transformer.md   |  67 +++++++++
- docs/docs/keymaps/input-processors/usage.md   |  57 ++++++++
- docs/sidebars.js                              |  19 +++
- 11 files changed, 611 insertions(+)
- create mode 100644 docs/docs/config/pointers.md
- create mode 100644 docs/docs/development/hardware-integration/pointers.md
- create mode 100644 docs/docs/features/pointers.md
- create mode 100644 docs/docs/keymaps/input-processors/code-mapper.md
- create mode 100644 docs/docs/keymaps/input-processors/index.md
- create mode 100644 docs/docs/keymaps/input-processors/scaler.md
- create mode 100644 docs/docs/keymaps/input-processors/temp-layer.md
- create mode 100644 docs/docs/keymaps/input-processors/transformer.md
- create mode 100644 docs/docs/keymaps/input-processors/usage.md
-
+diff --git a/app/tests/mouse-keys/mouse-move/move_x/events.patterns b/app/tests/mouse-keys/mouse-move/move_x/events.patterns
+new file mode 100644
+index 00000000..812126fb
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/move_x/events.patterns
+@@ -0,0 +1 @@
++s/.*hid_mouse_//p
+\ No newline at end of file
+diff --git a/app/tests/mouse-keys/mouse-move/move_x/keycode_events.snapshot b/app/tests/mouse-keys/mouse-move/move_x/keycode_events.snapshot
+new file mode 100644
+index 00000000..678f71c9
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/move_x/keycode_events.snapshot
+@@ -0,0 +1,24 @@
++movement_set: Mouse movement set to -1/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -2/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -2/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -3/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to 1/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to 2/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to 2/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to 3/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
+diff --git a/app/tests/mouse-keys/mouse-move/move_x/native_posix_64.conf b/app/tests/mouse-keys/mouse-move/move_x/native_posix_64.conf
+new file mode 100644
+index 00000000..65ed54bb
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/move_x/native_posix_64.conf
+@@ -0,0 +1,6 @@
++CONFIG_GPIO=n
++CONFIG_ZMK_BLE=n
++CONFIG_LOG=y
++CONFIG_LOG_BACKEND_SHOW_COLOR=n
++CONFIG_ZMK_LOG_LEVEL_DBG=y
++CONFIG_ZMK_MOUSE=y
+diff --git a/app/tests/mouse-keys/mouse-move/move_x/native_posix_64.keymap b/app/tests/mouse-keys/mouse-move/move_x/native_posix_64.keymap
+new file mode 100644
+index 00000000..89d50e2b
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/move_x/native_posix_64.keymap
+@@ -0,0 +1,29 @@
++#include <behaviors.dtsi>
++#include <behaviors/mouse_move.dtsi>
++#include <dt-bindings/zmk/keys.h>
++#include <dt-bindings/zmk/kscan_mock.h>
++#include <dt-bindings/zmk/mouse.h>
++
++/ {
++    keymap {
++        compatible = "zmk,keymap";
++        label ="Default keymap";
++
++        default_layer {
++            bindings = <
++                &mmv MOVE_LEFT &mmv MOVE_RIGHT
++                &none &none
++            >;
++        };
++    };
++};
++
++
++&kscan {
++    events = <
++        ZMK_MOCK_PRESS(0,0,100)
++        ZMK_MOCK_RELEASE(0,0,10)
++        ZMK_MOCK_PRESS(0,1,100)
++        ZMK_MOCK_RELEASE(0,1,10)
++    >;
++};
+\ No newline at end of file
+diff --git a/app/tests/mouse-keys/mouse-move/move_y/events.patterns b/app/tests/mouse-keys/mouse-move/move_y/events.patterns
+new file mode 100644
+index 00000000..812126fb
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/move_y/events.patterns
+@@ -0,0 +1 @@
++s/.*hid_mouse_//p
+\ No newline at end of file
+diff --git a/app/tests/mouse-keys/mouse-move/move_y/keycode_events.snapshot b/app/tests/mouse-keys/mouse-move/move_y/keycode_events.snapshot
+new file mode 100644
+index 00000000..d20154d5
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/move_y/keycode_events.snapshot
+@@ -0,0 +1,24 @@
++movement_set: Mouse movement set to 0/-1
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to 0/-2
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to 0/-2
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to 0/-3
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to 0/1
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to 0/2
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to 0/2
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to 0/3
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
+diff --git a/app/tests/mouse-keys/mouse-move/move_y/native_posix_64.conf b/app/tests/mouse-keys/mouse-move/move_y/native_posix_64.conf
+new file mode 100644
+index 00000000..65ed54bb
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/move_y/native_posix_64.conf
+@@ -0,0 +1,6 @@
++CONFIG_GPIO=n
++CONFIG_ZMK_BLE=n
++CONFIG_LOG=y
++CONFIG_LOG_BACKEND_SHOW_COLOR=n
++CONFIG_ZMK_LOG_LEVEL_DBG=y
++CONFIG_ZMK_MOUSE=y
+diff --git a/app/tests/mouse-keys/mouse-move/move_y/native_posix_64.keymap b/app/tests/mouse-keys/mouse-move/move_y/native_posix_64.keymap
+new file mode 100644
+index 00000000..5b02246b
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/move_y/native_posix_64.keymap
+@@ -0,0 +1,29 @@
++#include <behaviors.dtsi>
++#include <behaviors/mouse_move.dtsi>
++#include <dt-bindings/zmk/keys.h>
++#include <dt-bindings/zmk/kscan_mock.h>
++#include <dt-bindings/zmk/mouse.h>
++
++/ {
++    keymap {
++        compatible = "zmk,keymap";
++        label ="Default keymap";
++
++        default_layer {
++            bindings = <
++                &mmv MOVE_UP &mmv MOVE_DOWN
++                &none &none
++            >;
++        };
++    };
++};
++
++
++&kscan {
++    events = <
++        ZMK_MOCK_PRESS(0,0,100)
++        ZMK_MOCK_RELEASE(0,0,10)
++        ZMK_MOCK_PRESS(0,1,100)
++        ZMK_MOCK_RELEASE(0,1,10)
++    >;
++};
+\ No newline at end of file
+diff --git a/app/tests/mouse-keys/mouse-move/processors/move_diagonal_scaling/events.patterns b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_scaling/events.patterns
+new file mode 100644
+index 00000000..812126fb
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_scaling/events.patterns
+@@ -0,0 +1 @@
++s/.*hid_mouse_//p
+\ No newline at end of file
+diff --git a/app/tests/mouse-keys/mouse-move/processors/move_diagonal_scaling/keycode_events.snapshot b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_scaling/keycode_events.snapshot
+new file mode 100644
+index 00000000..77ffd6f8
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_scaling/keycode_events.snapshot
+@@ -0,0 +1,18 @@
++movement_set: Mouse movement set to -1/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -4/-3
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -3/-3
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -5/-4
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -5/-5
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to 0/-5
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
+diff --git a/app/tests/mouse-keys/mouse-move/processors/move_diagonal_scaling/native_posix_64.conf b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_scaling/native_posix_64.conf
+new file mode 100644
+index 00000000..65ed54bb
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_scaling/native_posix_64.conf
+@@ -0,0 +1,6 @@
++CONFIG_GPIO=n
++CONFIG_ZMK_BLE=n
++CONFIG_LOG=y
++CONFIG_LOG_BACKEND_SHOW_COLOR=n
++CONFIG_ZMK_LOG_LEVEL_DBG=y
++CONFIG_ZMK_MOUSE=y
+diff --git a/app/tests/mouse-keys/mouse-move/processors/move_diagonal_scaling/native_posix_64.keymap b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_scaling/native_posix_64.keymap
+new file mode 100644
+index 00000000..0ec7163f
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_scaling/native_posix_64.keymap
+@@ -0,0 +1,37 @@
++
++#include <dt-bindings/zmk/input_transform.h>
++#include <zephyr/dt-bindings/input/input-event-codes.h>
++
++#include <behaviors.dtsi>
++#include <input/processors.dtsi>
++#include <dt-bindings/zmk/keys.h>
++#include <dt-bindings/zmk/kscan_mock.h>
++#include <dt-bindings/zmk/mouse.h>
++
++&mmv_input_listener {
++    input-processors = <&zip_xy_scaler 5 3>;
++};
++
++/ {
++    keymap {
++        compatible = "zmk,keymap";
++        label ="Default keymap";
++
++        default_layer {
++            bindings = <
++                &mmv MOVE_LEFT &mmv MOVE_UP
++                &none &none
++            >;
++        };
++    };
++};
++
++
++&kscan {
++    events = <
++        ZMK_MOCK_PRESS(0,0,10)
++        ZMK_MOCK_PRESS(0,1,100)
++        ZMK_MOCK_RELEASE(0,0,10)
++        ZMK_MOCK_RELEASE(0,1,10)
++    >;
++};
+\ No newline at end of file
+diff --git a/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_invert/events.patterns b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_invert/events.patterns
+new file mode 100644
+index 00000000..812126fb
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_invert/events.patterns
+@@ -0,0 +1 @@
++s/.*hid_mouse_//p
+\ No newline at end of file
+diff --git a/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_invert/keycode_events.snapshot b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_invert/keycode_events.snapshot
+new file mode 100644
+index 00000000..33bb267b
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_invert/keycode_events.snapshot
+@@ -0,0 +1,18 @@
++movement_set: Mouse movement set to 1/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to 2/2
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to 2/2
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to 3/2
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to 3/3
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to 0/3
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
+diff --git a/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_invert/native_posix_64.conf b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_invert/native_posix_64.conf
+new file mode 100644
+index 00000000..65ed54bb
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_invert/native_posix_64.conf
+@@ -0,0 +1,6 @@
++CONFIG_GPIO=n
++CONFIG_ZMK_BLE=n
++CONFIG_LOG=y
++CONFIG_LOG_BACKEND_SHOW_COLOR=n
++CONFIG_ZMK_LOG_LEVEL_DBG=y
++CONFIG_ZMK_MOUSE=y
+diff --git a/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_invert/native_posix_64.keymap b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_invert/native_posix_64.keymap
+new file mode 100644
+index 00000000..51c8e505
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_invert/native_posix_64.keymap
+@@ -0,0 +1,34 @@
++#include <input/processors.dtsi>
++#include <behaviors.dtsi>
++#include <dt-bindings/zmk/keys.h>
++#include <dt-bindings/zmk/kscan_mock.h>
++#include <dt-bindings/zmk/mouse.h>
++#include <dt-bindings/zmk/input_transform.h>
++
++&mmv_input_listener {
++    input-processors = <&zip_xy_transform (INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>;
++};
++
++/ {
++    keymap {
++        compatible = "zmk,keymap";
++        label ="Default keymap";
++
++        default_layer {
++            bindings = <
++                &mmv MOVE_LEFT &mmv MOVE_UP
++                &none &none
++            >;
++        };
++    };
++};
++
++
++&kscan {
++    events = <
++        ZMK_MOCK_PRESS(0,0,10)
++        ZMK_MOCK_PRESS(0,1,100)
++        ZMK_MOCK_RELEASE(0,0,10)
++        ZMK_MOCK_RELEASE(0,1,10)
++    >;
++};
+\ No newline at end of file
+diff --git a/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_swap/events.patterns b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_swap/events.patterns
+new file mode 100644
+index 00000000..812126fb
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_swap/events.patterns
+@@ -0,0 +1 @@
++s/.*hid_mouse_//p
+\ No newline at end of file
+diff --git a/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_swap/keycode_events.snapshot b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_swap/keycode_events.snapshot
+new file mode 100644
+index 00000000..40daa64f
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_swap/keycode_events.snapshot
+@@ -0,0 +1,18 @@
++movement_set: Mouse movement set to 0/-1
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -2/-2
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -2/-2
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -2/-3
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -3/-3
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -3/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
+diff --git a/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_swap/native_posix_64.conf b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_swap/native_posix_64.conf
+new file mode 100644
+index 00000000..65ed54bb
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_swap/native_posix_64.conf
+@@ -0,0 +1,6 @@
++CONFIG_GPIO=n
++CONFIG_ZMK_BLE=n
++CONFIG_LOG=y
++CONFIG_LOG_BACKEND_SHOW_COLOR=n
++CONFIG_ZMK_LOG_LEVEL_DBG=y
++CONFIG_ZMK_MOUSE=y
+diff --git a/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_swap/native_posix_64.keymap b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_swap/native_posix_64.keymap
+new file mode 100644
+index 00000000..be3e9f73
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/processors/move_diagonal_xy_swap/native_posix_64.keymap
+@@ -0,0 +1,33 @@
++#include <input/processors.dtsi>
++#include <behaviors.dtsi>
++#include <dt-bindings/zmk/keys.h>
++#include <dt-bindings/zmk/kscan_mock.h>
++#include <dt-bindings/zmk/mouse.h>
++
++&mmv_input_listener {
++    input-processors = <&zip_xy_swap_mapper>;
++};
++
++/ {
++    keymap {
++        compatible = "zmk,keymap";
++        label ="Default keymap";
++
++        default_layer {
++            bindings = <
++                &mmv MOVE_LEFT &mmv MOVE_UP
++                &none &none
++            >;
++        };
++    };
++};
++
++
++&kscan {
++    events = <
++        ZMK_MOCK_PRESS(0,0,10)
++        ZMK_MOCK_PRESS(0,1,100)
++        ZMK_MOCK_RELEASE(0,0,10)
++        ZMK_MOCK_RELEASE(0,1,10)
++    >;
++};
+\ No newline at end of file
+diff --git a/app/tests/mouse-keys/mouse-move/processors/temp_layer/1-deactivate-layer-timeout/events.patterns b/app/tests/mouse-keys/mouse-move/processors/temp_layer/1-deactivate-layer-timeout/events.patterns
+new file mode 100644
+index 00000000..e9f2583e
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/processors/temp_layer/1-deactivate-layer-timeout/events.patterns
+@@ -0,0 +1,5 @@
++s/.*hid_mouse_//p
++s/.*set_layer_state: //p
++s/.*handle_state_changed_dispatcher: //p
++s/.*handle_position_state_changed: //p
++s/.*handle_keycode_state_changed: //p
+diff --git a/app/tests/mouse-keys/mouse-move/processors/temp_layer/2a-deactivate-layer-position-trigger/events.patterns b/app/tests/mouse-keys/mouse-move/processors/temp_layer/2a-deactivate-layer-position-trigger/events.patterns
+new file mode 100644
+index 00000000..27695039
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/processors/temp_layer/2a-deactivate-layer-position-trigger/events.patterns
+@@ -0,0 +1,7 @@
++s/.*hid_mouse_//p
++s/.*set_layer_state: //p
++s/.*hid_listener_keycode/kp/p
++s/.*mo_keymap_binding/mo/p
++s/.*handle_state_changed_dispatcher: //p
++s/.*handle_position_state_changed: //p
++s/.*handle_keycode_state_changed: //p
+diff --git a/app/tests/mouse-keys/mouse-move/processors/temp_layer/2a-deactivate-layer-position-trigger/keycode_events.snapshot b/app/tests/mouse-keys/mouse-move/processors/temp_layer/2a-deactivate-layer-position-trigger/keycode_events.snapshot
+new file mode 100644
+index 00000000..b421bad2
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/processors/temp_layer/2a-deactivate-layer-position-trigger/keycode_events.snapshot
+@@ -0,0 +1,21 @@
++Dispatching handle_position_state_changed
++Position excluded, continuing
++layer_changed: layer 1 state 1
++movement_set: Mouse movement set to -1/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -2/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -2/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -3/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++Dispatching handle_position_state_changed
++Dispatching handle_position_state_changed
++Position not excluded, deactivating layer
++layer_changed: layer 1 state 0
++Position excluded, continuing
++Dispatching handle_position_state_changed
+diff --git a/app/tests/mouse-keys/mouse-move/processors/temp_layer/2a-deactivate-layer-position-trigger/native_posix_64.conf b/app/tests/mouse-keys/mouse-move/processors/temp_layer/2a-deactivate-layer-position-trigger/native_posix_64.conf
+new file mode 100644
+index 00000000..65ed54bb
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/processors/temp_layer/2a-deactivate-layer-position-trigger/native_posix_64.conf
+@@ -0,0 +1,6 @@
++CONFIG_GPIO=n
++CONFIG_ZMK_BLE=n
++CONFIG_LOG=y
++CONFIG_LOG_BACKEND_SHOW_COLOR=n
++CONFIG_ZMK_LOG_LEVEL_DBG=y
++CONFIG_ZMK_MOUSE=y
+diff --git a/app/tests/mouse-keys/mouse-move/processors/temp_layer/2a-deactivate-layer-position-trigger/native_posix_64.keymap b/app/tests/mouse-keys/mouse-move/processors/temp_layer/2a-deactivate-layer-position-trigger/native_posix_64.keymap
+new file mode 100644
+index 00000000..5f3c0dbf
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/processors/temp_layer/2a-deactivate-layer-position-trigger/native_posix_64.keymap
+@@ -0,0 +1,46 @@
++
++#include <dt-bindings/zmk/input_transform.h>
++#include <zephyr/dt-bindings/input/input-event-codes.h>
++
++#include <behaviors.dtsi>
++#include <input/processors.dtsi>
++#include <dt-bindings/zmk/keys.h>
++#include <dt-bindings/zmk/kscan_mock.h>
++#include <dt-bindings/zmk/mouse.h>
++
++&mmv_input_listener {
++    input-processors = <&auto_mouse_layer 1 0>;
++};
++
++/ {
++    auto_mouse_layer: auto_mouse_layer {
++        compatible = "zmk,input-processor-temp-layer";
++        #input-processor-cells = <2>;
++        excluded-positions = <0>;
++    };
++    keymap {
++        compatible = "zmk,keymap";
++        label ="Default keymap";
++
++        default_layer {
++            bindings = <
++                &mmv MOVE_LEFT &mmv MOVE_UP
++                &none &none
++            >;
++        };
++
++        mkp_layer {
++            bindings = <&mkp LCLK &mkp RCLK &trans &trans>;
++        };
++    };
++};
++
++
++&kscan {
++    events = <
++        ZMK_MOCK_PRESS(0,0,100)
++        ZMK_MOCK_RELEASE(0,0,150)
++        ZMK_MOCK_PRESS(1,0,200)
++        ZMK_MOCK_RELEASE(1,0,250)
++    >;
++};
+diff --git a/app/tests/mouse-keys/mouse-move/processors/temp_layer/2b-deactivate-layer-position-not-trigger/events.patterns b/app/tests/mouse-keys/mouse-move/processors/temp_layer/2b-deactivate-layer-position-not-trigger/events.patterns
+new file mode 100644
+index 00000000..27695039
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/processors/temp_layer/2b-deactivate-layer-position-not-trigger/events.patterns
+@@ -0,0 +1,7 @@
++s/.*hid_mouse_//p
++s/.*set_layer_state: //p
++s/.*hid_listener_keycode/kp/p
++s/.*mo_keymap_binding/mo/p
++s/.*handle_state_changed_dispatcher: //p
++s/.*handle_position_state_changed: //p
++s/.*handle_keycode_state_changed: //p
+diff --git a/app/tests/mouse-keys/mouse-move/processors/temp_layer/2b-deactivate-layer-position-not-trigger/keycode_events.snapshot b/app/tests/mouse-keys/mouse-move/processors/temp_layer/2b-deactivate-layer-position-not-trigger/keycode_events.snapshot
+new file mode 100644
+index 00000000..3cf641da
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/processors/temp_layer/2b-deactivate-layer-position-not-trigger/keycode_events.snapshot
+@@ -0,0 +1,28 @@
++Dispatching handle_position_state_changed
++Position excluded, continuing
++layer_changed: layer 1 state 1
++movement_set: Mouse movement set to -1/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -2/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -2/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -3/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++Dispatching handle_position_state_changed
++Dispatching handle_position_state_changed
++Position excluded, continuing
++button_press: Button 0 count 1
++button_press: Mouse buttons set to 0x01
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++Dispatching handle_position_state_changed
++button_release: Button 0 count: 0
++button_release: Button 0 released
++button_release: Mouse buttons set to 0x00
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
+diff --git a/app/tests/mouse-keys/mouse-move/processors/temp_layer/2b-deactivate-layer-position-not-trigger/native_posix_64.conf b/app/tests/mouse-keys/mouse-move/processors/temp_layer/2b-deactivate-layer-position-not-trigger/native_posix_64.conf
+new file mode 100644
+index 00000000..65ed54bb
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/processors/temp_layer/2b-deactivate-layer-position-not-trigger/native_posix_64.conf
+@@ -0,0 +1,6 @@
++CONFIG_GPIO=n
++CONFIG_ZMK_BLE=n
++CONFIG_LOG=y
++CONFIG_LOG_BACKEND_SHOW_COLOR=n
++CONFIG_ZMK_LOG_LEVEL_DBG=y
++CONFIG_ZMK_MOUSE=y
+diff --git a/app/tests/mouse-keys/mouse-move/processors/temp_layer/2b-deactivate-layer-position-not-trigger/native_posix_64.keymap b/app/tests/mouse-keys/mouse-move/processors/temp_layer/2b-deactivate-layer-position-not-trigger/native_posix_64.keymap
+new file mode 100644
+index 00000000..675a8bce
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/processors/temp_layer/2b-deactivate-layer-position-not-trigger/native_posix_64.keymap
+@@ -0,0 +1,46 @@
++
++#include <dt-bindings/zmk/input_transform.h>
++#include <zephyr/dt-bindings/input/input-event-codes.h>
++
++#include <behaviors.dtsi>
++#include <input/processors.dtsi>
++#include <dt-bindings/zmk/keys.h>
++#include <dt-bindings/zmk/kscan_mock.h>
++#include <dt-bindings/zmk/mouse.h>
++
++&mmv_input_listener {
++    input-processors = <&auto_mouse_layer 1 0>;
++};
++
++/ {
++    auto_mouse_layer: auto_mouse_layer {
++        compatible = "zmk,input-processor-temp-layer";
++        #input-processor-cells = <2>;
++        excluded-positions = <0>;
++    };
++    keymap {
++        compatible = "zmk,keymap";
++        label ="Default keymap";
++
++        default_layer {
++            bindings = <
++                &mmv MOVE_LEFT &mmv MOVE_UP
++                &none &none
++            >;
++        };
++
++        mkp_layer {
++            bindings = <&mkp LCLK &mkp RCLK &trans &trans>;
++        };
++    };
++};
++
++
++&kscan {
++    events = <
++        ZMK_MOCK_PRESS(0,0,100)
++        ZMK_MOCK_RELEASE(0,0,150)
++        ZMK_MOCK_PRESS(0,0,200)
++        ZMK_MOCK_RELEASE(0,0,250)
++    >;
++};
+diff --git a/app/tests/mouse-keys/mouse-move/processors/temp_layer/3-require-prior-idle-ms/events.patterns b/app/tests/mouse-keys/mouse-move/processors/temp_layer/3-require-prior-idle-ms/events.patterns
+new file mode 100644
+index 00000000..ae24cce0
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/processors/temp_layer/3-require-prior-idle-ms/events.patterns
+@@ -0,0 +1,6 @@
++s/.*hid_mouse_//p
++s/.*set_layer_state: //p
++s/.*hid_listener_keycode/kp/p
++s/.*handle_state_changed_dispatcher: //p
++s/.*handle_position_state_changed: //p
++s/.*handle_keycode_state_changed: //p
+diff --git a/app/tests/mouse-keys/mouse-move/processors/temp_layer/3-require-prior-idle-ms/keycode_events.snapshot b/app/tests/mouse-keys/mouse-move/processors/temp_layer/3-require-prior-idle-ms/keycode_events.snapshot
+new file mode 100644
+index 00000000..57d5dfc8
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/processors/temp_layer/3-require-prior-idle-ms/keycode_events.snapshot
+@@ -0,0 +1,148 @@
++Dispatching handle_keycode_state_changed
++Setting last_tapped_timestamp to: 11
++kp_pressed: usage_page 0x07 keycode 0x04 implicit_mods 0x00 explicit_mods 0x00
++Dispatching handle_keycode_state_changed
++kp_released: usage_page 0x07 keycode 0x04 implicit_mods 0x00 explicit_mods 0x00
++movement_set: Mouse movement set to -1/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -2/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -2/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -3/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -3/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -4/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -4/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -1/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++layer_changed: layer 1 state 1
++movement_set: Mouse movement set to -2/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -2/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -3/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -3/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -4/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -4/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -5/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -5/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -6/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -7/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -7/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -8/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -8/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -8/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -10/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -9/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -10/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -10/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -9/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -10/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -9/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -10/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -10/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -9/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -10/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -9/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -10/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -10/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -9/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -10/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -9/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -10/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -10/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -9/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -10/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -9/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -10/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -10/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -9/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++layer_changed: layer 1 state 0
+diff --git a/app/tests/mouse-keys/mouse-move/processors/temp_layer/3-require-prior-idle-ms/native_posix_64.conf b/app/tests/mouse-keys/mouse-move/processors/temp_layer/3-require-prior-idle-ms/native_posix_64.conf
+new file mode 100644
+index 00000000..65ed54bb
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/processors/temp_layer/3-require-prior-idle-ms/native_posix_64.conf
+@@ -0,0 +1,6 @@
++CONFIG_GPIO=n
++CONFIG_ZMK_BLE=n
++CONFIG_LOG=y
++CONFIG_LOG_BACKEND_SHOW_COLOR=n
++CONFIG_ZMK_LOG_LEVEL_DBG=y
++CONFIG_ZMK_MOUSE=y
+diff --git a/app/tests/mouse-keys/mouse-move/processors/temp_layer/3-require-prior-idle-ms/native_posix_64.keymap b/app/tests/mouse-keys/mouse-move/processors/temp_layer/3-require-prior-idle-ms/native_posix_64.keymap
+new file mode 100644
+index 00000000..e641588a
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/processors/temp_layer/3-require-prior-idle-ms/native_posix_64.keymap
+@@ -0,0 +1,50 @@
++
++#include <dt-bindings/zmk/input_transform.h>
++#include <zephyr/dt-bindings/input/input-event-codes.h>
++
++#include <behaviors.dtsi>
++#include <input/processors.dtsi>
++#include <dt-bindings/zmk/keys.h>
++#include <dt-bindings/zmk/kscan_mock.h>
++#include <dt-bindings/zmk/mouse.h>
++
++&mmv_input_listener {
++    input-processors = <&auto_mouse_layer 1 500>;
++};
++
++/ {
++    auto_mouse_layer: auto_mouse_layer {
++        compatible = "zmk,input-processor-temp-layer";
++        #input-processor-cells = <2>;
++        require-prior-idle-ms = <500>;
++    };
++    keymap {
++        compatible = "zmk,keymap";
++        label ="Default keymap";
++
++        default_layer {
++            bindings = <
++                &mmv MOVE_LEFT &mmv MOVE_UP
++                &kp A &none
++            >;
++        };
++
++        mkp_layer {
++            bindings = <&mkp LCLK &mkp RCLK &trans &trans>;
++        };
++    };
++};
++
++
++&kscan {
++    events = <
++        ZMK_MOCK_PRESS(1,0,10)
++        ZMK_MOCK_RELEASE(1,0,100)
++        /* before idle */
++        ZMK_MOCK_PRESS(0,0,150)
++        ZMK_MOCK_RELEASE(0,0,200)
++        /* after idle */
++        ZMK_MOCK_PRESS(0,0,700)
++        ZMK_MOCK_RELEASE(0,0,800)
++    >;
++};
+diff --git a/app/tests/mouse-keys/mouse-move/processors/temp_layer/events.patterns b/app/tests/mouse-keys/mouse-move/processors/temp_layer/events.patterns
+new file mode 100644
+index 00000000..e69de29b
+diff --git a/app/tests/mouse-keys/mouse-move/processors/temp_layer/keycode_events.snapshot b/app/tests/mouse-keys/mouse-move/processors/temp_layer/keycode_events.snapshot
+new file mode 100644
+index 00000000..e2b9544e
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/processors/temp_layer/keycode_events.snapshot
+@@ -0,0 +1,14 @@
++layer_changed: layer 1 state 1
++movement_set: Mouse movement set to -1/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -2/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -2/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++movement_set: Mouse movement set to -3/0
++scroll_set: Mouse scroll set to 0/0
++movement_set: Mouse movement set to 0/0
++layer_changed: layer 1 state 0
+diff --git a/app/tests/mouse-keys/mouse-move/processors/temp_layer/native_posix_64.conf b/app/tests/mouse-keys/mouse-move/processors/temp_layer/native_posix_64.conf
+new file mode 100644
+index 00000000..65ed54bb
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/processors/temp_layer/native_posix_64.conf
+@@ -0,0 +1,6 @@
++CONFIG_GPIO=n
++CONFIG_ZMK_BLE=n
++CONFIG_LOG=y
++CONFIG_LOG_BACKEND_SHOW_COLOR=n
++CONFIG_ZMK_LOG_LEVEL_DBG=y
++CONFIG_ZMK_MOUSE=y
+diff --git a/app/tests/mouse-keys/mouse-move/processors/temp_layer/native_posix_64.keymap b/app/tests/mouse-keys/mouse-move/processors/temp_layer/native_posix_64.keymap
+new file mode 100644
+index 00000000..16642767
+--- /dev/null
++++ b/app/tests/mouse-keys/mouse-move/processors/temp_layer/native_posix_64.keymap
+@@ -0,0 +1,41 @@
++
++#include <dt-bindings/zmk/input_transform.h>
++#include <zephyr/dt-bindings/input/input-event-codes.h>
++
++#include <behaviors.dtsi>
++#include <input/processors.dtsi>
++#include <dt-bindings/zmk/keys.h>
++#include <dt-bindings/zmk/kscan_mock.h>
++#include <dt-bindings/zmk/mouse.h>
++
++&mmv_input_listener {
++    input-processors = <&zip_temp_layer 1 500>;
++};
++
++/ {
++    keymap {
++        compatible = "zmk,keymap";
++        label ="Default keymap";
++
++        default_layer {
++            bindings = <
++                &mmv MOVE_LEFT &mmv MOVE_UP
++                &none &none
++            >;
++        };
++
++        mkp_layer {
++            bindings = <&mkp LCLK &mkp RCLK &trans &trans>;
++        };
++    };
++};
++
++
++&kscan {
++    events = <
++        ZMK_MOCK_PRESS(0,0,100)
++        ZMK_MOCK_RELEASE(0,0,150)
++        ZMK_MOCK_PRESS(1,0,200)
++        ZMK_MOCK_RELEASE(1,0,250)
++    >;
++};
 diff --git a/docs/docs/config/pointers.md b/docs/docs/config/pointers.md
 new file mode 100644
-index 00000000000..64c03b85159
+index 00000000..64c03b85
 --- /dev/null
 +++ b/docs/docs/config/pointers.md
 @@ -0,0 +1,67 @@
@@ -4290,10 +4459,10 @@ index 00000000000..64c03b85159
 +| `input-processors` | array  | List of input processors (with parameters) to apply to input events |         |
 diff --git a/docs/docs/development/hardware-integration/pointers.md b/docs/docs/development/hardware-integration/pointers.md
 new file mode 100644
-index 00000000000..d6c0a099541
+index 00000000..9aa3369a
 --- /dev/null
 +++ b/docs/docs/development/hardware-integration/pointers.md
-@@ -0,0 +1,127 @@
+@@ -0,0 +1,130 @@
 +---
 +title: Pointing Devices
 +sidebar_label: Pointers
@@ -4359,11 +4528,11 @@ index 00000000000..d6c0a099541
 +
 +## Split
 +
-+Pointing devices are supported on split peripherals, with some additional configuration using the [input split];(../../config/pointers.md#input-split). All split pointers are identified using a unique integer value, which is specified using the `reg` property and in the `@#` suffix for the node. If adding multiple peripheral pointers, be sure that each is given a unique identifier.
++Pointing devices are supported on split peripherals, with some additional configuration using the [input split](../../config/pointers.md#input-split). All split pointers are identified using a unique integer value, which is specified using the `reg` property and in the `@#` suffix for the node. If adding multiple peripheral pointers, be sure that each is given a unique identifier.
 +
 +### Shared
 +
-+Both peripheral and central make use of a `zmk,input-split` device, which functions differently depending on where is is used. To avoid duplicating work, this node can be defined in a common `.dtsi` file that is included into both central and peripheral `.overlay`/`.dts` files.
++Both peripheral and central make use of a `zmk,input-split` device, which functions differently depending on where is is used. To avoid duplicating work, this node can be defined in a common `.dtsi` file that is included into both central and peripheral `.overlay`/`.dts` files. Second, the input listener for the central side is added here, but disabled, so that keymaps (which are included for central and peripheral builds) can reference the listener to add input processors without issue.
 +
 +:::note
 +
@@ -4381,6 +4550,12 @@ index 00000000000..d6c0a099541
 +            compatible = "zmk,input-split";
 +            reg = <0>;
 +        };
++    };
++
++    glidepoint_listener: glidepoint_listener {
++        compatible = "zmk,input-listener";
++        status = "disabled";
++        device = <&glidepoint_split>;
 +    };
 +};
 +```
@@ -4409,21 +4584,18 @@ index 00000000000..d6c0a099541
 +
 +### Central
 +
-+On the central, the input split acts as an input device, receiving events from the peripheral and raising them locally. First, include the shared file, and then add an [input listener](#listener) to the input split:
++On the central, the input split acts as an input device, receiving events from the peripheral and raising them locally. First, include the shared file, and then enabled the [input listener](#listener) that is created, but disabled, in our shared file:
 +
 +```dts
 +#include "common.dtsi"
 +
-+/ {
-+    glidepoint_listener: glidepoint_listener {
-+        compatible = "zmk,input-listener";
-+        device = <&glidepoint_split>;
-+    };
++&glidepoint_listener {
++    status = "okay";
 +};
 +```
 diff --git a/docs/docs/features/pointers.md b/docs/docs/features/pointers.md
 new file mode 100644
-index 00000000000..7a7d99fd542
+index 00000000..7a7d99fd
 --- /dev/null
 +++ b/docs/docs/features/pointers.md
 @@ -0,0 +1,39 @@
@@ -4466,14 +4638,67 @@ index 00000000000..7a7d99fd542
 +Listeners are the key piece that integrate the low level input devices to the rest of the ZMK system. In particular, listeners subscribe to input events from the linked device, and when a given event occurs (e.g. X/Y movement), apply any input processors before sending those events to the HID system for notification to the host. The main way to modify the way a pointer behaves is by configuring the input processors for a given listener.
 +
 +For more details on assigning processors to your listeners, see the [input processor usage](../keymaps/input-processors/usage.md) documentation.
+diff --git a/docs/docs/intro.md b/docs/docs/intro.md
+index d8d992e7..d5bf527c 100644
+--- a/docs/docs/intro.md
++++ b/docs/docs/intro.md
+@@ -33,7 +33,7 @@ ZMK is currently missing some features found in other popular firmware. This tab
+ | One Shot Keys                                                                                                                                              | ✅  |    ✅     | ✅  |
+ | [Combo Keys](keymaps/combos.md)                                                                                                                            | ✅  |           | ✅  |
+ | [Macros](keymaps/behaviors/macros.md)                                                                                                                      | ✅  |    ✅     | ✅  |
+-| Mouse Keys                                                                                                                                                 | 🚧  |    ✅     | ✅  |
++| Mouse Keys                                                                                                                                                 | ✅  |    ✅     | ✅  |
+ | Low Active Power Usage                                                                                                                                     | ✅  |           |     |
+ | Low Power Sleep States                                                                                                                                     | ✅  |    ✅     |     |
+ | [Low Power Mode (VCC Shutoff)](keymaps/behaviors/power.md)                                                                                                 | ✅  |    ✅     |     |
+diff --git a/docs/docs/keymaps/behaviors/index.mdx b/docs/docs/keymaps/behaviors/index.mdx
+index c9d0fbe4..c876beb1 100644
+--- a/docs/docs/keymaps/behaviors/index.mdx
++++ b/docs/docs/keymaps/behaviors/index.mdx
+@@ -43,6 +43,8 @@ Below is a summary of pre-defined behavior bindings and user-definable behaviors
+ | Binding | Behavior                                                    | Description                     |
+ | ------- | ----------------------------------------------------------- | ------------------------------- |
+ | `&mkp`  | [Mouse Button Press](mouse-emulation.md#mouse-button-press) | Emulates pressing mouse buttons |
++| `&mmv`  | [Mouse Button Press](mouse-emulation.md#mouse-move)         | Emulates mouse movement         |
++| `&msc`  | [Mouse Button Press](mouse-emulation.md#mouse-scroll)       | Emulates mouse scrolling        |
+ 
+ ## Reset Behaviors
+ 
 diff --git a/docs/docs/keymaps/behaviors/mouse-emulation.md b/docs/docs/keymaps/behaviors/mouse-emulation.md
-index 553676ec4d2..161dd51296e 100644
+index 26bef8cc..161dd512 100644
 --- a/docs/docs/keymaps/behaviors/mouse-emulation.md
 +++ b/docs/docs/keymaps/behaviors/mouse-emulation.md
-@@ -67,6 +67,16 @@ This example will send press of the fourth mouse button when the binding is trig
- &mkp MB4
+@@ -5,8 +5,7 @@ sidebar_label: Mouse Emulation
+ 
+ ## Summary
+ 
+-Mouse emulation behaviors send mouse events. Currently, only mouse button presses are supported, but movement
+-and scroll action support is planned for the future.
++Mouse emulation behaviors send mouse events, including mouse button presses, cursor movement and scrolling.
+ 
+ :::warning[Refreshing the HID descriptor]
+ 
+@@ -17,14 +16,12 @@ The mouse functionality will not work over BLE until that is done.
+ 
+ ## Configuration Option
+ 
+-This feature can be enabled or disabled explicitly via a config option:
++To use any of the behaviors documented here, the ZMK mouse feature must be enabled explicitly via a config option:
+ 
+ ```
+ CONFIG_ZMK_MOUSE=y
  ```
  
+-If you use the mouse key press behavior in your keymap, the feature will automatically be enabled for you.
+-
+ ## Mouse Button Defines
+ 
+ To make it easier to encode the HID mouse button numeric values, include
+@@ -69,3 +66,97 @@ This example will send press of the fourth mouse button when the binding is trig
+ ```
+ &mkp MB4
+ ```
++
 +### Input Processors
 +
 +If you want to apply any [input processors](../input-processors/index.md#input-processors-overview) to `&mkp` you can do so by referencing `&mkp_input_listener`, e.g.:
@@ -4484,13 +4709,38 @@ index 553676ec4d2..161dd51296e 100644
 +}
 +```
 +
- ## Mouse Move
- 
- This behavior sends mouse X/Y movement events to the connected host.
-@@ -99,6 +109,16 @@ The following will send a left mouse movement event to the host when pressed/hel
- &mmv MOVE_LEFT
- ```
- 
++## Mouse Move
++
++This behavior sends mouse X/Y movement events to the connected host.
++
++### Behavior Binding
++
++- Reference: `&mmv`
++- Parameter: A `uint32` with 16-bits each used for vertical and horizontal velocity.
++
++The following defines can be passed for the parameter:
++
++| Define       | Action     |
++| :----------- | :--------- |
++| `MOVE_UP`    | Move up    |
++| `MOVE_DOWN`  | Move down  |
++| `MOVE_LEFT`  | Move left  |
++| `MOVE_RIGHT` | Move right |
++
++### Examples
++
++The following will send a down mouse movement event to the host when pressed/held:
++
++```
++&mmv MOVE_DOWN
++```
++
++The following will send a left mouse movement event to the host when pressed/held:
++
++```
++&mmv MOVE_LEFT
++```
++
 +### Input Processors
 +
 +If you want to apply any [input processors](../input-processors/index.md#input-processors-overview) to `&mmv` you can do so by referencing `&mmv_input_listener`, e.g.:
@@ -4501,13 +4751,37 @@ index 553676ec4d2..161dd51296e 100644
 +}
 +```
 +
- ## Mouse Scroll
- 
- This behavior sends vertical and horizontal scroll events to the connected host.
-@@ -130,3 +150,13 @@ The following will send a scroll left event to the host when pressed/held:
- ```
- &msc MOVE_LEFT
- ```
++## Mouse Scroll
++
++This behavior sends vertical and horizontal scroll events to the connected host.
++
++### Behavior Binding
++
++- Reference: `&msc`
++- Parameter: A `uint32` with 16-bits each used for vertical and horizontal velocity.
++
++The following defines can be passed for the parameter:
++
++| Define       | Action     |
++| :----------- | :--------- |
++| `MOVE_UP`    | Move up    |
++| `MOVE_DOWN`  | Move down  |
++| `MOVE_LEFT`  | Move left  |
++| `MOVE_RIGHT` | Move right |
++
++### Examples
++
++The following will send a scroll down event to the host when pressed/held:
++
++```
++&msc MOVE_DOWN
++```
++
++The following will send a scroll left event to the host when pressed/held:
++
++```
++&msc MOVE_LEFT
++```
 +
 +### Input Processors
 +
@@ -4520,7 +4794,7 @@ index 553676ec4d2..161dd51296e 100644
 +```
 diff --git a/docs/docs/keymaps/input-processors/code-mapper.md b/docs/docs/keymaps/input-processors/code-mapper.md
 new file mode 100644
-index 00000000000..48c4c2e6751
+index 00000000..48c4c2e6
 --- /dev/null
 +++ b/docs/docs/keymaps/input-processors/code-mapper.md
 @@ -0,0 +1,59 @@
@@ -4585,7 +4859,7 @@ index 00000000000..48c4c2e6751
 +- `map` - The specific codes of the given type to map, e.g. [relative event codes](https://github.com/zmkfirmware/zephyr/blob/v3.5.0%2Bzmk-fixes/include/zephyr/dt-bindings/input/input-event-codes.h#L245). This list must be an even number of entries, which is process as a list of pairs of codes, with the first is the source code, and the second is the code to map it to.
 diff --git a/docs/docs/keymaps/input-processors/index.md b/docs/docs/keymaps/input-processors/index.md
 new file mode 100644
-index 00000000000..096ad55c68a
+index 00000000..096ad55c
 --- /dev/null
 +++ b/docs/docs/keymaps/input-processors/index.md
 @@ -0,0 +1,50 @@
@@ -4641,7 +4915,7 @@ index 00000000000..096ad55c68a
 +Much like behaviors, custom input processors can also be added to [external modules](../../features/modules.mdx) to allow complete control of the processing operation. See [`input_processor.h`](https://github.com/zmkfirmware/zmk/blob/main/app/include/drivers/input_processor.h) for the definition of the driver API.
 diff --git a/docs/docs/keymaps/input-processors/scaler.md b/docs/docs/keymaps/input-processors/scaler.md
 new file mode 100644
-index 00000000000..0fd9dbb1766
+index 00000000..0fd9dbb1
 --- /dev/null
 +++ b/docs/docs/keymaps/input-processors/scaler.md
 @@ -0,0 +1,70 @@
@@ -4717,10 +4991,10 @@ index 00000000000..0fd9dbb1766
 +- `codes` - The specific codes within the given type to scale, e.g. [relative event codes](https://github.com/zmkfirmware/zephyr/blob/v3.5.0%2Bzmk-fixes/include/zephyr/dt-bindings/input/input-event-codes.h#L245)
 diff --git a/docs/docs/keymaps/input-processors/temp-layer.md b/docs/docs/keymaps/input-processors/temp-layer.md
 new file mode 100644
-index 00000000000..2b73ee8088a
+index 00000000..56495693
 --- /dev/null
 +++ b/docs/docs/keymaps/input-processors/temp-layer.md
-@@ -0,0 +1,26 @@
+@@ -0,0 +1,58 @@
 +---
 +title: Temporary Layer Input Processor
 +sidebar_label: Temporary Layer
@@ -4747,9 +5021,41 @@ index 00000000000..2b73ee8088a
 +| Reference         | Description                                                     |
 +| ----------------- | --------------------------------------------------------------- |
 +| `&zip_temp_layer` | Enable a certain layer temporarily until no events are received |
++
++## User Defined Instances
++
++Users can define new instances of the temporary layer input processor to use different settings.
++
++### Example
++
++```dts
++#include <zephyr/dt-bindings/input/input-event-codes.h>
++
++/ {
++    /omit-if-no-ref/ zip_temp_layer: zip_temp_layer {
++        compatible = "zmk,input-processor-temp-layer";
++        #input-processor-cells = <2>;
++        require-prior-idle-ms = <2000>;
++        excluded-positions = <1 2 3>;
++    };
++};
++```
++
++### Compatible
++
++The temp layer input processor uses a `compatible` property of `"zmk,input-processor-temp-layer"`.
++
++### Standard Properties
++
++- `#input-processor-cells` - required to be constant value of `<2>`.
++
++### User Properties
++
++- `require-prior-idle-ms` - Only activate the layer if there have not been any key presses for at least the set number of milliseconds
++- `excluded-positions` - Exclude certain positions from deactivating the layer once it is active.
 diff --git a/docs/docs/keymaps/input-processors/transformer.md b/docs/docs/keymaps/input-processors/transformer.md
 new file mode 100644
-index 00000000000..33f6d1eedf5
+index 00000000..33f6d1ee
 --- /dev/null
 +++ b/docs/docs/keymaps/input-processors/transformer.md
 @@ -0,0 +1,67 @@
@@ -4822,7 +5128,7 @@ index 00000000000..33f6d1eedf5
 +- `y-codes` - The specific Y codes within the given type to transform, e.g. [relative event codes](https://github.com/zmkfirmware/zephyr/blob/v3.5.0%2Bzmk-fixes/include/zephyr/dt-bindings/input/input-event-codes.h#L245)
 diff --git a/docs/docs/keymaps/input-processors/usage.md b/docs/docs/keymaps/input-processors/usage.md
 new file mode 100644
-index 00000000000..fdbad4c29b8
+index 00000000..fdbad4c2
 --- /dev/null
 +++ b/docs/docs/keymaps/input-processors/usage.md
 @@ -0,0 +1,57 @@
@@ -4884,7 +5190,7 @@ index 00000000000..fdbad4c29b8
 +}
 +```
 diff --git a/docs/sidebars.js b/docs/sidebars.js
-index e7975fb2d57..459af0d42b1 100644
+index c480a907..2f28f3fd 100644
 --- a/docs/sidebars.js
 +++ b/docs/sidebars.js
 @@ -39,6 +39,7 @@ module.exports = {
@@ -4926,7 +5232,7 @@ index e7975fb2d57..459af0d42b1 100644
          "config/keymap",
          "config/layout",
          "config/kscan",
-@@ -134,6 +152,7 @@ module.exports = {
+@@ -137,6 +155,7 @@ module.exports = {
              "development/hardware-integration/shift-registers",
              "development/hardware-integration/encoders",
              "development/hardware-integration/soft-off-setup",
@@ -4934,117 +5240,192 @@ index e7975fb2d57..459af0d42b1 100644
            ],
          },
          {
-
-From e7518c6952e952df69a66f1962f03026f1271267 Mon Sep 17 00:00:00 2001
-From: Peter Johanson <peter@peterjohanson.com>
-Date: Fri, 15 Nov 2024 15:19:05 -0700
-Subject: [PATCH 6/8] fixup! feat(mouse): Add mouse move and scroll support
-
----
- app/src/hid.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
-
-diff --git a/app/src/hid.c b/app/src/hid.c
-index 480a5c01d5b..2356b450a31 100644
---- a/app/src/hid.c
-+++ b/app/src/hid.c
-@@ -448,8 +448,7 @@ void zmk_hid_mouse_movement_update(int16_t hwheel, int16_t wheel) {
- void zmk_hid_mouse_scroll_set(int8_t hwheel, int8_t wheel) {
-     mouse_report.body.d_scroll_x = hwheel;
-     mouse_report.body.d_scroll_y = wheel;
--    // mouse_report.body.d_scroll_x = (hwheel / (16 - mouse_res_feature_report.body.hwheel_res));
--    // mouse_report.body.d_scroll_y = (wheel / (16 - mouse_res_feature_report.body.wheel_res));
-+
-     LOG_DBG("Mouse scroll set to %d/%d", mouse_report.body.d_scroll_x,
-             mouse_report.body.d_scroll_y);
- }
-@@ -457,8 +456,7 @@ void zmk_hid_mouse_scroll_set(int8_t hwheel, int8_t wheel) {
- void zmk_hid_mouse_scroll_update(int8_t hwheel, int8_t wheel) {
-     mouse_report.body.d_scroll_x += hwheel;
-     mouse_report.body.d_scroll_y += wheel;
--    // mouse_report.body.d_scroll_x += (hwheel / (16 - mouse_res_feature_report.body.hwheel_res));
--    // mouse_report.body.d_scroll_y += (wheel / (16 - mouse_res_feature_report.body.wheel_res));
-+
-     LOG_DBG("Mouse scroll updated to X: %d/%d", mouse_report.body.d_scroll_x,
-             mouse_report.body.d_scroll_y);
- }
-
-From ab5aadb9efade4e74c075eba7001217e56e22427 Mon Sep 17 00:00:00 2001
-From: Peter Johanson <peter@peterjohanson.com>
-Date: Fri, 15 Nov 2024 15:48:13 -0700
-Subject: [PATCH 7/8] fixup! feat(mouse): Add mouse move and scroll support
-
----
- app/src/main.c | 4 ----
- 1 file changed, 4 deletions(-)
-
-diff --git a/app/src/main.c b/app/src/main.c
-index fcf1d11531f..60df1a45d83 100644
---- a/app/src/main.c
-+++ b/app/src/main.c
-@@ -14,10 +14,6 @@ LOG_MODULE_REGISTER(zmk, CONFIG_ZMK_LOG_LEVEL);
- 
- #include <zmk/display.h>
- 
--#ifdef CONFIG_ZMK_MOUSE
--#include <zmk/mouse.h>
--#endif /* CONFIG_ZMK_MOUSE */
--
- int main(void) {
-     LOG_INF("Welcome to ZMK!\n");
- 
-
-From 053913daf618abc7baf47a052f36313d3cbfe86d Mon Sep 17 00:00:00 2001
-From: Peter Johanson <peter@peterjohanson.com>
-Date: Wed, 20 Nov 2024 17:07:25 -0700
-Subject: [PATCH 8/8] fixup! docs: Add initial pointer docs.
-
----
- .../hardware-integration/pointers.md            | 17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
-
-diff --git a/docs/docs/development/hardware-integration/pointers.md b/docs/docs/development/hardware-integration/pointers.md
-index d6c0a099541..12ba3e3ce2c 100644
---- a/docs/docs/development/hardware-integration/pointers.md
-+++ b/docs/docs/development/hardware-integration/pointers.md
-@@ -67,7 +67,7 @@ Pointing devices are supported on split peripherals, with some additional config
- 
- ### Shared
- 
--Both peripheral and central make use of a `zmk,input-split` device, which functions differently depending on where is is used. To avoid duplicating work, this node can be defined in a common `.dtsi` file that is included into both central and peripheral `.overlay`/`.dts` files.
-+Both peripheral and central make use of a `zmk,input-split` device, which functions differently depending on where is is used. To avoid duplicating work, this node can be defined in a common `.dtsi` file that is included into both central and peripheral `.overlay`/`.dts` files. Second, the input listener for the central side is added here, but disabled, so that keymaps (which are included for central and peripheral builds) can reference the listener to add input processors without issue.
- 
- :::note
- 
-@@ -86,6 +86,12 @@ Input splits need to be nested under a parent node that properly sets the `#addr
-             reg = <0>;
-         };
-     };
-+
-+    glidepoint_listener: glidepoint_listener {
-+        compatible = "zmk,input-listener";
-+        status = "disabled";
-+        device = <&glidepoint_split>;
-+    };
- };
- ```
- 
-@@ -113,15 +119,12 @@ If needed, the split can also have basic input processors applied to fix up the
- 
- ### Central
- 
--On the central, the input split acts as an input device, receiving events from the peripheral and raising them locally. First, include the shared file, and then add an [input listener](#listener) to the input split:
-+On the central, the input split acts as an input device, receiving events from the peripheral and raising them locally. First, include the shared file, and then enabled the [input listener](#listener) that is created, but disabled, in our shared file:
- 
- ```dts
- #include "common.dtsi"
- 
--/ {
--    glidepoint_listener: glidepoint_listener {
--        compatible = "zmk,input-listener";
--        device = <&glidepoint_split>;
--    };
-+&glidepoint_listener {
-+    status = "okay";
- };
- ```
+diff --git a/docs/sidebars.js.orig b/docs/sidebars.js.orig
+new file mode 100644
+index 00000000..c480a907
+--- /dev/null
++++ b/docs/sidebars.js.orig
+@@ -0,0 +1,183 @@
++module.exports = {
++  docs: [
++    {
++      type: "category",
++      label: "Getting Started",
++      link: {
++        type: "doc",
++        id: "intro",
++      },
++      collapsed: false,
++      items: [
++        "hardware",
++        "faq",
++        "user-setup",
++        "customization",
++        {
++          type: "category",
++          label: "Troubleshooting",
++          link: {
++            type: "doc",
++            id: "troubleshooting/index",
++          },
++          collapsed: true,
++          items: [
++            "troubleshooting/building-issues",
++            "troubleshooting/flashing-issues",
++            "troubleshooting/connection-issues",
++            "troubleshooting/hardware-issues",
++          ],
++        },
++      ],
++    },
++    {
++      Features: [
++        "features/bluetooth",
++        "features/modules",
++        "features/split-keyboards",
++        "features/debouncing",
++        "features/battery",
++        "features/low-power-states",
++        "features/encoders",
++        "features/displays",
++        "features/backlight",
++        "features/underglow",
++        "features/studio",
++      ],
++    },
++    {
++      type: "category",
++      label: "Keymaps",
++      link: {
++        type: "doc",
++        id: "keymaps/index",
++      },
++      collapsed: true,
++      items: [
++        {
++          type: "category",
++          label: "Behaviors",
++          link: {
++            type: "doc",
++            id: "keymaps/behaviors/index",
++          },
++          collapsed: true,
++          items: [
++            "keymaps/behaviors/key-press",
++            "keymaps/behaviors/layers",
++            "keymaps/behaviors/misc",
++            "keymaps/behaviors/hold-tap",
++            "keymaps/behaviors/mod-tap",
++            "keymaps/behaviors/mod-morph",
++            "keymaps/behaviors/macros",
++            "keymaps/behaviors/key-toggle",
++            "keymaps/behaviors/sticky-key",
++            "keymaps/behaviors/sticky-layer",
++            "keymaps/behaviors/tap-dance",
++            "keymaps/behaviors/caps-word",
++            "keymaps/behaviors/key-repeat",
++            "keymaps/behaviors/sensor-rotate",
++            "keymaps/behaviors/mouse-emulation",
++            "keymaps/behaviors/reset",
++            "keymaps/behaviors/bluetooth",
++            "keymaps/behaviors/outputs",
++            "keymaps/behaviors/underglow",
++            "keymaps/behaviors/backlight",
++            "keymaps/behaviors/power",
++            "keymaps/behaviors/soft-off",
++            "keymaps/behaviors/studio-unlock",
++          ],
++        },
++        "keymaps/modifiers",
++        "keymaps/combos",
++        "keymaps/conditional-layers",
++        "keymaps/list-of-keycodes",
++      ],
++    },
++    {
++      type: "category",
++      label: "Configuration",
++      link: {
++        type: "doc",
++        id: "config/index",
++      },
++      collapsed: true,
++      items: [
++        "config/backlight",
++        "config/battery",
++        "config/behaviors",
++        "config/bluetooth",
++        "config/combos",
++        "config/displays",
++        "config/encoders",
++        "config/keymap",
++        "config/layout",
++        "config/kscan",
++        "config/power",
++        "config/underglow",
++        "config/system",
++        "config/studio",
++      ],
++    },
++    {
++      Development: [
++        {
++          type: "category",
++          label: "Hardware Integration",
++          link: {
++            type: "doc",
++            id: "development/hardware-integration/index",
++          },
++          collapsed: true,
++          items: [
++            "development/hardware-integration/new-shield",
++            "development/hardware-integration/physical-layouts",
++            "development/hardware-integration/hardware-metadata-files",
++            "development/hardware-integration/pinctrl",
++            "development/hardware-integration/shift-registers",
++            "development/hardware-integration/encoders",
++            "development/hardware-integration/soft-off-setup",
++          ],
++        },
++        {
++          type: "category",
++          label: "Contributing",
++          collapsed: true,
++          items: [
++            "development/contributing/clean-room",
++            "development/contributing/pull-requests",
++            "development/contributing/documentation",
++          ],
++        },
++        {
++          type: "category",
++          label: "Local Toolchain",
++          collapsed: true,
++          items: [
++            {
++              type: "category",
++              label: "Setup",
++              link: {
++                type: "doc",
++                id: "development/local-toolchain/setup/index",
++              },
++              collapsed: true,
++              items: [
++                "development/local-toolchain/setup/container",
++                "development/local-toolchain/setup/native",
++              ],
++            },
++            "development/local-toolchain/build-flash",
++            "development/local-toolchain/pre-commit",
++            "development/local-toolchain/ide-integration",
++            "development/local-toolchain/tests",
++            "development/local-toolchain/posix-board",
++          ],
++        },
++        "development/usb-logging",
++        "development/studio-rpc-protocol",
++        "development/new-behavior",
++      ],
++    },
++  ],
++};

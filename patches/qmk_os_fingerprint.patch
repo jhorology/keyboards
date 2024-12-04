@@ -1,5 +1,5 @@
 diff --git a/quantum/process_keycode/process_magic.c b/quantum/process_keycode/process_magic.c
-index 3b35884d..c4ce1022 100644
+index 3b35884d68..c4ce1022b6 100644
 --- a/quantum/process_keycode/process_magic.c
 +++ b/quantum/process_keycode/process_magic.c
 @@ -17,6 +17,7 @@
@@ -137,7 +137,7 @@ index 3b35884d..c4ce1022 100644
                      PLAY_SONG(cg_norm_song);
  #endif
 diff --git a/tmk_core/protocol/chibios/usb_main.c b/tmk_core/protocol/chibios/usb_main.c
-index 2024a3bc..0fbab9cc 100644
+index 2a287e0d98..6d5a7d1557 100644
 --- a/tmk_core/protocol/chibios/usb_main.c
 +++ b/tmk_core/protocol/chibios/usb_main.c
 @@ -38,6 +38,8 @@
@@ -149,7 +149,7 @@ index 2024a3bc..0fbab9cc 100644
  /* ---------------------------------------------------------
   *       Global interface variables and declarations
   * ---------------------------------------------------------
-@@ -82,6 +84,8 @@ static bool __attribute__((__unused__)) receive_report(usb_endpoint_out_lut_t en
+@@ -78,6 +80,8 @@ static bool __attribute__((__unused__)) receive_report(usb_endpoint_out_lut_t en
  static const USBDescriptor *usb_get_descriptor_cb(USBDriver *usbp, uint8_t dtype, uint8_t dindex, uint16_t wIndex) {
      usb_control_request_t *setup = (usb_control_request_t *)usbp->setup;
  
@@ -159,32 +159,25 @@ index 2024a3bc..0fbab9cc 100644
      descriptor.ud_string = NULL;
      descriptor.ud_size   = get_usb_descriptor(setup->wValue.word, setup->wIndex, setup->wLength, (const void **const) & descriptor.ud_string);
 diff --git a/tmk_core/protocol/lufa/lufa.c b/tmk_core/protocol/lufa/lufa.c
-index b0c9758d..a5c27563 100644
+index 81da035f0c..9501f0cfdf 100644
 --- a/tmk_core/protocol/lufa/lufa.c
 +++ b/tmk_core/protocol/lufa/lufa.c
-@@ -72,6 +72,8 @@
- #    define USB_WAIT_FOR_ENUMERATION
+@@ -863,6 +863,10 @@ void protocol_post_task(void) {
  #endif
+ }
  
 +__attribute__((weak)) void trace_usb_get_descriptor(const uint8_t dtype, const uint16_t w_length) {}
 +
- uint8_t keyboard_idle = 0;
- /* 0: Boot Protocol, 1: Report Protocol(default) */
- uint8_t        keyboard_protocol  = 1;
-@@ -876,5 +878,8 @@ void protocol_post_task(void) {
- }
- 
  uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue, const uint16_t wIndex, const void **const DescriptorAddress) {
-+
 +    trace_usb_get_descriptor((wValue >> 8), USB_ControlRequest.wLength);
 +
      return get_usb_descriptor(wValue, wIndex, USB_ControlRequest.wLength, DescriptorAddress);
  }
 diff --git a/tmk_core/protocol/vusb/vusb.c b/tmk_core/protocol/vusb/vusb.c
-index fa14820e..cb6a24c9 100644
+index fdbfcc17dc..e51ee2e759 100644
 --- a/tmk_core/protocol/vusb/vusb.c
 +++ b/tmk_core/protocol/vusb/vusb.c
-@@ -48,6 +48,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+@@ -49,6 +49,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  #    include "os_detection.h"
  #endif
  
@@ -194,7 +187,7 @@ index fa14820e..cb6a24c9 100644
  /*
   * Interface indexes
   */
-@@ -1000,6 +1003,8 @@ const PROGMEM usbConfigurationDescriptor_t usbConfigurationDescriptor = {
+@@ -1027,6 +1030,8 @@ const PROGMEM usbConfigurationDescriptor_t usbConfigurationDescriptor = {
  USB_PUBLIC usbMsgLen_t usbFunctionDescriptor(struct usbRequest *rq) {
      usbMsgLen_t len = 0;
  

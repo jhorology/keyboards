@@ -1,11 +1,11 @@
 diff --git a/builddefs/common_rules.mk b/builddefs/common_rules.mk
-index cfd26173..9775922d 100644
+index e45063cfaf..1229d58b35 100644
 --- a/builddefs/common_rules.mk
 +++ b/builddefs/common_rules.mk
-@@ -50,7 +50,7 @@ ifeq ($(strip $(LTO_ENABLE)), yes)
-         $(info Enabling LTO on arm_atsam-targeting boards is known to have a high likelihood of failure.)
-         $(info If unsure, set LTO_ENABLE = no.)
-     endif
+@@ -58,7 +58,7 @@ endif
+ #---------------- C Compiler Options ----------------
+ 
+ ifeq ($(strip $(LTO_ENABLE)), yes)
 -    CDEFS += -flto
 +    CDEFS += -flto=auto
      CDEFS += -DLTO_ENABLE
