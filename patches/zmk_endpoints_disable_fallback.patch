@@ -1,5 +1,5 @@
 diff --git a/app/src/endpoints.c b/app/src/endpoints.c
-index b17a664..f4b9af4 100644
+index ae0e5e7f..bae70c79 100644
 --- a/app/src/endpoints.c
 +++ b/app/src/endpoints.c
 @@ -265,6 +265,7 @@ SETTINGS_STATIC_HANDLER_DEFINE(endpoints, "endpoints", NULL, endpoints_handle_se

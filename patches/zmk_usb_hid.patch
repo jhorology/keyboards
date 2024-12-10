@@ -1,5 +1,5 @@
 diff --git a/app/src/usb_hid.c b/app/src/usb_hid.c
-index 6273962..1b24396 100644
+index 945ae989..4c3e1446 100644
 --- a/app/src/usb_hid.c
 +++ b/app/src/usb_hid.c
 @@ -23,6 +23,9 @@

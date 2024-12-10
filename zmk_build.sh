@@ -686,7 +686,10 @@ _update_zmk() {
       cd ..
       cd zmk
       # zmk draft
-      git apply -3 --verbose ../patches/draft_zmk_*.patch
+      local draft_patches=(../patches/draft_zmk_*.patch(N))
+     if [[ ! -z $draft_patches ]]; then
+        git apply -3 --verbose $draft_patches
+      fi
       git apply -3 --verbose ../patches/zmk_*.patch
       cd ..
     fi
