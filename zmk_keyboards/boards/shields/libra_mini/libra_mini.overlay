@@ -143,6 +143,15 @@
 
 
 #if USE_JOYSTICK
+
+ /*
+  * TODO joystick depends on ext-power, so needs power management.
+  */
+	ext_power_domain: ext_power_domain {
+		compatible = "power-domain";
+		status = "okay";
+	};
+
  /*
   * in_deadzon, in_min and in_max can be caribrated and saveed with shell/analog_axis.c
   *
@@ -153,11 +162,14 @@
   *
   * TODO joystick directions are inverted.
   *  - need to check if it's possible to swap VCC and GND wiring
+  *
   */
   joystick: analog_axis {
     compatible = "analog-axis";
     poll-period-ms = <15>;
     velocity-integral;
+    /* TODO */
+    // power-domain = <&ext_power_domain>;
     axis-x {
       io-channels = <&adc 3>;
       in-deadzone = <100>;
