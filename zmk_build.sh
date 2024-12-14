@@ -111,7 +111,7 @@ local -A KEYBOARDS=(
   tf60       kbdfans_tofu60_v2:tofu60_hhkb:uf2:RPI-RP2:none:none:none
   ju60       cyber60_rev_d:hibi_june60:uf2:CYBER60_D:none:none:none
 )
-TARGETS=(cz42l cz42r d60 fk68 q60 qk60 tf60 ju60)
+TARGETS=(cz42l cz42r d60 fk68 libra rz42l rz42r q60 qk60 tf60 ju60)
 
 
 cd $PROJECT
