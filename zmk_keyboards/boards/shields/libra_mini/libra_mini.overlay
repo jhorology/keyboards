@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include <zephyr/dt-bindings/input/input-event-codes.h>
 #include <physical_layouts.dtsi>
+#include <zephyr/dt-bindings/input/input-event-codes.h>
 #include <dt-bindings/zmk/matrix_transform.h>
 
 /*
@@ -157,6 +157,7 @@
   joystick: analog_axis {
     compatible = "analog-axis";
     poll-period-ms = <14>;
+    velocity-integral;
     axis-x {
       io-channels = <&adc 3>;
       in-deadzone = <100>;
@@ -165,7 +166,7 @@
       invert-output;
       out-min = <(-127)>;
       out-max = <127>;
-      zephyr,axis = <INPUT_ABS_X>;
+      zephyr,axis = <INPUT_REL_X>;
     };
     axis-y {
       io-channels = <&adc 4>;
@@ -175,13 +176,21 @@
       invert-output;
       out-min = <(-127)>;
       out-max = <127>;
-      zephyr,axis = <INPUT_ABS_Y>;
+      zephyr,axis = <INPUT_REL_Y>;
     };
   };
 
   /*
-   * TODO support mouse & scroll
+   * mouse
    */
+  joystick_pointing_listener: joystick_pointing_listener {
+    compatible = "zmk,input-listener";
+    device = <&joystick>;
+    input-processors
+      =  <&zip_xy_scaler 1 8>
+      ;
+  };
+
 #endif
 
 };

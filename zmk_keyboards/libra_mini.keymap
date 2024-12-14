@@ -1,9 +1,12 @@
+
 /*
  * Copyright (c) 2020 The ZMK Contributors
  * SPDX-License-Identifier: MIT
  */
 
 #include "my-keymap-common.dtsi"
+#include <input/processors.dtsi>
+#include <dt-bindings/zmk/pointing.h>
 
 / {
   keymap {
@@ -45,12 +48,12 @@
 
     hhkb_fn_layer {
       display-name = "HHKB Fn";
-      // --------------------------------------        -------------------------------------------
-      // | TAB | F1  | F2  | F3  | F4  | F16 |        | F17 |PSCRN|SLCK |PAUSE|  ↑   | INS | DEL |
-      // |        | F5  | F6  | F7  | F8  | F18  |        |     |HOME |PG UP|  ←  |  →  |        |
-      // |         | F9  | F10 | F11 | F12 |     |   |     |     | END |PG DN|  ↓  |     |       |
+      // -------------------------------------        --------------------------------------------
+      // | TAB | F1  | F2  | F3  | F4  |     |        | F18 |PSCRN|SLCK |PAUSE|  ↑   | INS | DEL |
+      // |        | F5  | F6  | F7  | F8  |     |       | F17 |HOME |PG UP|  ←  |  →   |         |
+      // |         | F9  | F10 | F11 | F12 |     |   |     | F16 | END |PG DN|  ↓  |      |      |
       // |      |      |      |      |           |   |           |     | <Joystick>  |     |     |
-      // ---------------      --------------------   -------------------             -------------
+      // ---------------      --------------------   -------------------             --------------
       bindings =
         <
          &kp CAPS  &kp F1  &kp F2   &kp F3   &kp F4   ______            &kp F18  &kp PSCRN  &kp SLCK   &kp PAUSE_BREAK  &kp UP  &kp INS  &kp DEL
@@ -163,5 +166,37 @@
          ______  ______                        ______         ______              ______         ______                         ______         ______
         >;
     };
+
+    pointing_layer {
+      display-name = "Mouse";
+      // --------------------------------------        -------------------------------------------
+      // |      |     |     |     |     |     |        |     |     |     |     |     |     |     |
+      // |        |     |     |     |     |     |        |     |      |     |     |     |        |
+      // |         |     |     |     |     |     |   |     |     |     |     |     |     |       |
+      // |      |      |      |      |           |   |           |     | <Joystick>  |     |     |
+      // ---------------      --------------------   -------------------             -------------
+      bindings =
+        <
+         ______  ______  ______  ______  ______  ______           ______  ______  ______     ______      ______  ______  ______
+         ______    ______  ______  ______  ______  ______           ______  ______  ______      ______     ______        ______
+         ______      ______  ______  ______  ______  ______    ______  ______  ______  &mkp LCLK  &mkp MCLK  &mkp RCLK   ______
+         ______  ______              ______       ______            ______     ______                        ______      ______
+        >;
+    };
+  };
+};
+
+
+&joystick_pointing_listener {
+  mouse {
+    layers
+      = <_MAC_BASE_LAYER _WIN_BASE_LAYER>;
+    input-processors = <&zip_temp_layer _POINTING_LAYER 2000>;
+    process-next;
+  };
+  scroller {
+    layers = <_HHKB_FN_LAYER>;
+    input-processors = <&zip_xy_to_scroll_mapper>;
+    process-next;
   };
 };

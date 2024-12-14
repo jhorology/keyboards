@@ -52,6 +52,7 @@
 #define _INVERSE_SETTING_LAYER 6
 #define _L_THUMB_LAYER 7
 #define _R_THUMB_LAYER 8
+#define _POINTING_LAYER 9
 
 // key definitions other than kp/trans behavior
 //--------------------------------------------
