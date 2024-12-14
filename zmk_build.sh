@@ -103,7 +103,7 @@ local -A KEYBOARDS=(
   cz42r      nice_nano_v2:cz42_right:uf2:CZ42_R:none:"cz42_right;gooddisplay_adapter;gooddisplay_gdew0102t4":"CONFIG_LV_LOG_LEVEL_TRACE,CONFIG_DISPLAY_LOG_LEVEL_DBG"
   d60        bt60:d60_lite_hhkb_ec11:uf2:CKP:none:none:none
   fk68       fk680pro_v2:fk680pro_v2:uf2:"ZhaQian DFU":none:none:none
-  libra      nice_nano_v2:libra_mini:uf2:LIBRA_MINI:none:libra_mini:"CONFIG_INPUT_LOG_LEVEL_DBG,CONFIG_ADC_LOG_LEVEL_DBG"
+  libra      nice_nano_v2:libra_mini:uf2:LIBRA_MINI:none:libra_mini:none
   rz42l      rz42_left:rz42_left:uf2:RZ42_L:none:nice_view:none
   rz42r      rz42_right:rz42_right:uf2:RZ42_R:none:nice_view:none
   q60        keychron_q60:keychron_q60:bin:0483:df11:none:none

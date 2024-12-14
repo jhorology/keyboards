@@ -156,7 +156,7 @@
   */
   joystick: analog_axis {
     compatible = "analog-axis";
-    poll-period-ms = <14>;
+    poll-period-ms = <15>;
     velocity-integral;
     axis-x {
       io-channels = <&adc 3>;
@@ -186,9 +186,6 @@
   joystick_pointing_listener: joystick_pointing_listener {
     compatible = "zmk,input-listener";
     device = <&joystick>;
-    input-processors
-      =  <&zip_xy_scaler 1 8>
-      ;
   };
 
 #endif
