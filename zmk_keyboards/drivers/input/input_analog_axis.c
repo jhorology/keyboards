@@ -35,6 +35,7 @@ struct analog_axis_channel_data {
 
 struct analog_axis_config {
   uint32_t poll_period_ms;
+  bool velocity_integral;
   const struct analog_axis_channel_config *channel_cfg;
   struct analog_axis_channel_data *channel_data;
   struct analog_axis_calibration *calibration;
@@ -198,8 +199,14 @@ static void analog_axis_loop(const struct device *dev) {
       out = axis_cfg->out_max - out + axis_cfg->out_min;
     }
 
-    if (axis_data->last_out != out) {
-      input_report_abs(dev, axis_cfg->axis, out, true, K_FOREVER);
+    if (cfg->velocity_integral) {
+      if (axis_data->last_out != 0 || out != 0) {
+        input_report_rel(dev, axis_cfg->axis, out, true, K_FOREVER);
+      }
+    } else {
+      if (axis_data->last_out != out) {
+        input_report_abs(dev, axis_cfg->axis, out, true, K_FOREVER);
+      }
     }
     axis_data->last_out = out;
   }
@@ -335,6 +342,7 @@ static int analog_axis_pm_action(const struct device *dev, enum pm_device_action
                                                                                         \
   static const struct analog_axis_config analog_axis_cfg_##inst = {                     \
     .poll_period_ms = DT_INST_PROP(inst, poll_period_ms),                               \
+    .velocity_integral = DT_INST_PROP(inst, velocity_integral),                         \
     .channel_cfg = analog_axis_channel_cfg_##inst,                                      \
     .channel_data = analog_axis_channel_data_##inst,                                    \
     .calibration = analog_axis_calibration_##inst,                                      \

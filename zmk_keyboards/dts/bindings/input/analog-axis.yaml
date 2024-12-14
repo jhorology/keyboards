@@ -35,6 +35,12 @@ properties:
       How often to get new ADC samples for the various configured axes in
       milliseconds. Defaults to 15ms if unspecified.
 
+  velocity-integral:
+    type: boolean
+    description: |
+        If set, Outputs non-zero values ​​consecutively as relative vaalue even if they are the same value.
+        it can be used as the amount of movement per poll-period-ms.
+
 child-binding:
   properties:
     io-channels:
