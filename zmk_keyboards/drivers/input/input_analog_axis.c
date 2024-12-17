@@ -30,6 +30,9 @@ struct analog_axis_channel_config {
 };
 
 struct analog_axis_channel_data {
+#if IS_ENABLED(CONFIG_INPUT_ANALOG_AXIS_REPORT_USING_SYSTEM_WORKQUEUE)
+  int out;
+#endif
   int last_out;
 };
 
@@ -53,6 +56,9 @@ struct analog_axis_data {
 #ifdef CONFIG_PM_DEVICE
   atomic_t suspended;
   struct k_sem wakeup;
+#endif
+#if IS_ENABLED(CONFIG_INPUT_ANALOG_AXIS_REPORT_USING_SYSTEM_WORKQUEUE)
+  struct k_work work;
 #endif
 };
 
@@ -183,7 +189,7 @@ static void analog_axis_loop(const struct device *dev) {
       data->raw_data_cb(dev, i, raw_val);
     }
 
-    LOG_DBG("%s: ch %d: raw_val: %d", dev->name, i, raw_val);
+    // LOG_DBG("%s: ch %d: raw_val: %d", dev->name, i, raw_val);
 
     if (cal->in_deadzone > 0) {
       out = analog_axis_out_deadzone(dev, i, raw_val);
@@ -199,9 +205,13 @@ static void analog_axis_loop(const struct device *dev) {
       out = axis_cfg->out_max - out + axis_cfg->out_min;
     }
 
+#if IS_ENABLED(CONFIG_INPUT_ANALOG_AXIS_REPORT_USING_SYSTEM_WORKQUEUE)
+    axis_data->out = out;
+#else
     if (cfg->velocity_integral) {
       if (axis_data->last_out != 0 || out != 0) {
         input_report_rel(dev, axis_cfg->axis, out, true, K_FOREVER);
+        LOG_DBG("axis: %d,  out:%d", axis_cfg->axis, out);
       }
     } else {
       if (axis_data->last_out != out) {
@@ -209,10 +219,36 @@ static void analog_axis_loop(const struct device *dev) {
       }
     }
     axis_data->last_out = out;
+#endif
   }
-
+#if IS_ENABLED(CONFIG_INPUT_ANALOG_AXIS_REPORT_USING_SYSTEM_WORKQUEUE)
+  k_work_submit(&data->work);
+#endif
   k_sem_give(&data->cal_lock);
 }
+
+#if IS_ENABLED(CONFIG_INPUT_ANALOG_AXIS_REPORT_USING_SYSTEM_WORKQUEUE)
+static void input_report_work_handler(const struct device *dev, struct k_work *work) {
+  const struct analog_axis_config *cfg = dev->config;
+  struct analog_axis_data *data = dev->data;
+
+  for (size_t i = 0; i < cfg->num_channels; i++) {
+    const struct analog_axis_channel_config *axis_cfg = &cfg->channel_cfg[i];
+    struct analog_axis_channel_data *axis_data = &cfg->channel_data[i];
+    if (cfg->velocity_integral) {
+      if (axis_data->last_out != 0 || axis_data->out != 0) {
+        input_report_rel(dev, axis_cfg->axis, axis_data->out, true, K_FOREVER);
+        LOG_DBG("axis: %d,  out:%d", axis_cfg->axis, axis_data->out);
+      }
+    } else {
+      if (axis_data->last_out != axis_data->out) {
+        input_report_abs(dev, axis_cfg->axis, axis_data->out, true, K_FOREVER);
+      }
+    }
+    axis_data->last_out = axis_data->out;
+  }
+}
+#endif
 
 static void analog_axis_thread(void *arg1, void *arg2, void *arg3) {
   const struct device *dev = arg1;
@@ -349,7 +385,13 @@ static int analog_axis_pm_action(const struct device *dev, enum pm_device_action
     .num_channels = ARRAY_SIZE(analog_axis_channel_cfg_##inst),                         \
   };                                                                                    \
                                                                                         \
-  static struct analog_axis_data analog_axis_data_##inst;                               \
+  COND_CODE_1(CONFIG_INPUT_ANALOG_AXIS_REPORT_USING_SYSTEM_WORKQUEUE,                   \
+              (static void analog_axis_work_handler_##inst(struct k_work *work) {       \
+                input_report_work_handler(DEVICE_DT_INST_GET(inst), work);              \
+              };                                                                        \
+               static struct analog_axis_data analog_axis_data_##inst =                 \
+                 {.work = Z_WORK_INITIALIZER(analog_axis_work_handler_##inst)};),       \
+              (static struct analog_axis_data analog_axis_data_##inst;));               \
                                                                                         \
   PM_DEVICE_DT_INST_DEFINE(inst, analog_axis_pm_action);                                \
                                                                                         \

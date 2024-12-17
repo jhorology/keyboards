@@ -40,4 +40,9 @@ config INPUT_ANALOG_AXIS_SETTINGS_MAX_AXES
 	  Maximum number of axes that can have calibration value saved in
 	  settings.
 
+config INPUT_ANALOG_AXIS_REPORT_USING_SYSTEM_WORKQUEUE
+  bool "Use system workqueue for sending input report."
+  help
+    ”Useful if the listener subsystem is not thread-safe.”
+
 endif
