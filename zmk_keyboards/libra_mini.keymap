@@ -187,7 +187,6 @@
   };
 };
 
-
 &joystick_pointing_listener {
   input-processors
     = <&zip_xy_scaler 1 8>;
@@ -223,4 +222,10 @@
       = <&zip_xy_scaler 1 8>
       , <&zip_temp_layer _POINTING_LAYER 2000>;
   };
+};
+
+/* for debug */
+&zip_temp_layer {
+  // excluded-positions = <1 2 3>;
+  // require-prior-idle-ms = <2000>;
 };

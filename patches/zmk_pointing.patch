@@ -1,0 +1,26 @@
+diff --git a/app/src/pointing/CMakeLists.txt b/app/src/pointing/CMakeLists.txt
+index ad74c1e..462bc5c 100644
+--- a/app/src/pointing/CMakeLists.txt
++++ b/app/src/pointing/CMakeLists.txt
+@@ -4,7 +4,7 @@
+ target_sources_ifdef(CONFIG_ZMK_INPUT_LISTENER app PRIVATE input_listener.c)
+ target_sources_ifdef(CONFIG_ZMK_INPUT_PROCESSOR_TRANSFORM app PRIVATE input_processor_transform.c)
+ target_sources_ifdef(CONFIG_ZMK_INPUT_PROCESSOR_SCALER app PRIVATE input_processor_scaler.c)
+-target_sources_ifdef(CONFIG_ZMK_INPUT_PROCESSOR_TEMP_LAYER app PRIVATE input_processor_temp_layer.c)
++# target_sources_ifdef(CONFIG_ZMK_INPUT_PROCESSOR_TEMP_LAYER app PRIVATE input_processor_temp_layer.c)
+ target_sources_ifdef(CONFIG_ZMK_INPUT_PROCESSOR_CODE_MAPPER app PRIVATE input_processor_code_mapper.c)
+ target_sources_ifdef(CONFIG_ZMK_POINTING_SMOOTH_SCROLLING app PRIVATE resolution_multipliers.c)
+ target_sources_ifdef(CONFIG_ZMK_INPUT_SPLIT app PRIVATE input_split.c)
+diff --git a/app/src/pointing/Kconfig b/app/src/pointing/Kconfig
+index 42cf8e8..a78d736 100644
+--- a/app/src/pointing/Kconfig
++++ b/app/src/pointing/Kconfig
+@@ -11,7 +11,7 @@ config ZMK_POINTING
+     bool "Pointing Device Support"
+     default y if ZMK_MOUSE
+     select INPUT
+-    select INPUT_THREAD_PRIORITY_OVERRIDE
++    imply INPUT_THREAD_PRIORITY_OVERRIDE
+ 
+ if ZMK_POINTING
+ 

@@ -35,3 +35,7 @@ if (CONFIG_BOARD_CYBER60_REV_D)
 endif()
 
 add_subdirectory(display)
+
+if (CONFIG_ZMK_POINTING)
+  target_sources_ifdef(CONFIG_ZMK_INPUT_PROCESSOR_TEMP_LAYER app PRIVATE pointing/input_processor_temp_layer.c)
+endif()
