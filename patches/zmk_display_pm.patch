@@ -1,5 +1,5 @@
 diff --git a/app/src/display/main.c b/app/src/display/main.c
-index e15e2de0..1933faea 100644
+index e15e2de..1933fae 100644
 --- a/app/src/display/main.c
 +++ b/app/src/display/main.c
 @@ -8,6 +8,7 @@

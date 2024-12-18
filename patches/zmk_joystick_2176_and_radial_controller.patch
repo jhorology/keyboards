@@ -1,5 +1,5 @@
 diff --git a/app/include/zmk/endpoints.h b/app/include/zmk/endpoints.h
-index a2ef3181..4708720d 100644
+index a2ef318..4708720 100644
 --- a/app/include/zmk/endpoints.h
 +++ b/app/include/zmk/endpoints.h
 @@ -74,4 +74,12 @@ int zmk_endpoints_send_report(uint16_t usage_page);
@@ -16,7 +16,7 @@ index a2ef3181..4708720d 100644
 +
  void zmk_endpoints_clear_current(void);
 diff --git a/app/include/zmk/hid.h b/app/include/zmk/hid.h
-index 4c963be6..5372836d 100644
+index 4c963be..5372836 100644
 --- a/app/include/zmk/hid.h
 +++ b/app/include/zmk/hid.h
 @@ -76,6 +76,8 @@
@@ -156,7 +156,7 @@ index 4c963be6..5372836d 100644
 +struct zmk_hid_radial_controller_report *zmk_hid_get_radial_controller_report();
 +#endif // IS_ENABLED(CONFIG_ZMK_RADIAL_CONTROLLER)
 diff --git a/app/include/zmk/hog.h b/app/include/zmk/hog.h
-index 0b79decb..38560964 100644
+index 0b79dec..3856096 100644
 --- a/app/include/zmk/hog.h
 +++ b/app/include/zmk/hog.h
 @@ -15,3 +15,11 @@ int zmk_hog_send_consumer_report(struct zmk_hid_consumer_report_body *body);
@@ -172,7 +172,7 @@ index 0b79decb..38560964 100644
 +int zmk_hog_send_radial_controller_report(struct zmk_hid_radial_controller_report_body *body);
 +#endif // IS_ENABLED(CONFIG_ZMK_RADIAL_CONTROLLER)
 diff --git a/app/include/zmk/usb_hid.h b/app/include/zmk/usb_hid.h
-index 785f6af8..88865b90 100644
+index 785f6af..88865b9 100644
 --- a/app/include/zmk/usb_hid.h
 +++ b/app/include/zmk/usb_hid.h
 @@ -13,4 +13,10 @@ int zmk_usb_hid_send_consumer_report(void);
@@ -187,7 +187,7 @@ index 785f6af8..88865b90 100644
 +#endif // IS_ENABLED(CONFIG_ZMK_RADIAL_CONTROLLER)
  void zmk_usb_hid_set_protocol(uint8_t protocol);
 diff --git a/app/src/endpoints.c b/app/src/endpoints.c
-index ae0e5e7f..6c2af7ca 100644
+index ae0e5e7..6c2af7c 100644
 --- a/app/src/endpoints.c
 +++ b/app/src/endpoints.c
 @@ -237,6 +237,73 @@ int zmk_endpoints_send_mouse_report() {
@@ -287,7 +287,7 @@ index ae0e5e7f..6c2af7ca 100644
  
  static void update_current_endpoint(void) {
 diff --git a/app/src/hid.c b/app/src/hid.c
-index c050f062..5a9b0cb7 100644
+index c050f06..5a9b0cb 100644
 --- a/app/src/hid.c
 +++ b/app/src/hid.c
 @@ -33,6 +33,18 @@ static struct zmk_hid_mouse_report mouse_report = {
@@ -382,7 +382,7 @@ index c050f062..5a9b0cb7 100644
 +
 +#endif // IS_ENABLED(CONFIG_ZMK_RADIAL_CONTROLLER)
 diff --git a/app/src/hog.c b/app/src/hog.c
-index d56eacf7..fd0bedb5 100644
+index d56eacf..fd0bedb 100644
 --- a/app/src/hog.c
 +++ b/app/src/hog.c
 @@ -90,6 +90,24 @@ static struct hids_report mouse_feature = {
@@ -585,7 +585,7 @@ index d56eacf7..fd0bedb5 100644
      static const struct k_work_queue_config queue_config = {.name = "HID Over GATT Send Work"};
      k_work_queue_start(&hog_work_q, hog_q_stack, K_THREAD_STACK_SIZEOF(hog_q_stack),
 diff --git a/app/src/usb_hid.c b/app/src/usb_hid.c
-index 945ae989..a4996f49 100644
+index 945ae98..a4996f4 100644
 --- a/app/src/usb_hid.c
 +++ b/app/src/usb_hid.c
 @@ -233,6 +233,32 @@ int zmk_usb_hid_send_mouse_report() {
