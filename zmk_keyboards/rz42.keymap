@@ -5,7 +5,9 @@
 
 #include "my-keymap-common.dtsi"
 #include <behaviors/mouse_keys.dtsi>
+#include <input/processors.dtsi>
 #include <dt-bindings/zmk/pointing.h>
+#include <dt-bindings/zmk/input_transform.h>
 
 #define LEFT_KEYS  0 1 2 3  4  5 12 13 14 15 16 17 24 25 26 27 28 29
 #define RIGHT_KEYS 6 7 8 9 10 11 18 19 20 21 22 23 30 31 32 33 34 35
@@ -33,7 +35,7 @@
          /**/                     _H_M_LOPT  _C_LENT  _LCMD     _RCMD  _C_RSPC  _H_FN
 
          /* EC11 */
-          &kp C_MUTE
+         &kp C_MUTE
 
          /* Joystick */
          /**/           &mmv MOVE_UP
@@ -89,9 +91,9 @@
          ______
 
          /* Joystick */
-         /**/            &msc MOVE_UP
-         &msc MOVE_LEFT  &mkp LCLK  &msc MOVE_RIGHT
-         /**/            &msc MOVE_DOWN
+         /**/    ______
+         ______  ______  ______
+         /**/    ______
         >;
       sensor-bindings = <&trans_encoder>;
     };
@@ -260,5 +262,72 @@
         >;
       sensor-bindings = <&trans_encoder>;
     };
+
+    pointing_layer {
+      display-name = "Mouse";
+      // --------------------------------------   --------------------------------------
+      // |      |     |     |     |     |     |   |     |     |     |     |     |      |
+      // |      |     |     |     |     |     |   |  ️  | ️   | ️   |     |     |      |
+      // |      |     |     |     |     |     |   |     |     |     |     |     |      |
+      // -------------------|     |     |     |   |     |     |     |-------------------
+      //                    -------------------   -------------------
+      bindings =
+        <
+         ______  ______  ______  ______  ______  ______      &mkp LCLK  &mkp MCLK  &mkp RCLK  ______  ______  ______
+         ______  ______  ______  ______  ______  ______      ______     ______     ______  ______  ______  ______
+         ______  ______  ______  ______  ______  ______      ______     ______     ______  ______  ______  ______
+         /**/                    ______  ______  ______      ______     ______     ______
+
+         /* EC11 */
+         ______
+
+         /* Joystick */
+         /**/    ______
+         ______  ______  ______
+         /**/    ______
+        >;
+      sensor-bindings = <&trans_encoder>;
+    };
+  };
+};
+
+&mmv {
+  // acceleration-exponent = <2>;
+};
+
+&mmv_input_listener {
+  win_scroller {
+    layers = <_WIN_FN_LAYER>;
+    input-processors
+      = <&zip_xy_scaler 1 24>
+      , <&zip_xy_transform INPUT_TRANSFORM_X_INVERT> /* natural scroll */
+      , <&zip_xy_to_scroll_mapper>
+      ;
+  };
+
+  mac_scroller {
+    layers = <_APPLE_FN_LAYER>;
+    input-processors
+      = <&zip_xy_scaler 1 32>
+      , <&zip_xy_transform INPUT_TRANSFORM_Y_INVERT> /* natural scroll */
+      , <&zip_xy_to_scroll_mapper>
+      ;
+  };
+
+  win_mouse {
+    layers = <_WIN_BASE_LAYER>;
+    input-processors
+      = <&zip_xy_scaler 1 1>
+      , <&zip_temp_layer _POINTING_LAYER 2000>
+      ;
+  };
+
+  /* TODO mouse speed difference btween BLE and USB */
+  mac_mouse {
+    layers = <_MAC_BASE_LAYER>;
+    input-processors
+      = <&zip_xy_scaler 3 2>
+      , <&zip_temp_layer _POINTING_LAYER 2000>
+      ;
   };
 };

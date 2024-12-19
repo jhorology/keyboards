@@ -216,6 +216,7 @@
       , <&zip_temp_layer _POINTING_LAYER 2000>;
   };
 
+  /* TODO mouse speed difference btween BLE and USB */
   mac_mouse {
     layers = <_MAC_BASE_LAYER>;
     input-processors
