@@ -29,11 +29,10 @@ struct temp_layer_config {
 
 struct temp_layer_data {
   int64_t last_tapped_timestamp;
+  struct k_work layer_activate_works[NUM_LAYERS];
   struct k_work_delayable layer_deactivate_works[NUM_LAYERS];
   bool is_activated[NUM_LAYERS];
 };
-
-static K_MUTEX_DEFINE(lock);
 
 /* Position Search */
 static inline bool position_is_excluded(const struct temp_layer_config *config, uint32_t position) {
@@ -60,15 +59,9 @@ static inline bool should_quick_tap(const struct temp_layer_config *config, int6
 static void layer_activate(const struct device *dev, uint8_t layer_index) {
   struct temp_layer_data *data = dev->data;
 
-  int err = k_mutex_lock(&lock, K_FOREVER);
-  if (err < 0) {
-    LOG_ERR("Failed to lock mutex. err: %d", err);
-    return;
-  }
-
   bool is_active = zmk_keymap_layer_active(layer_index);
   if (!is_active) {
-    err = zmk_keymap_layer_activate(layer_index);
+    int err = zmk_keymap_layer_activate(layer_index);
     if (err < 0) {
       LOG_ERR("Failed to activate layer %d. err: %d", layer_index, err);
     } else {
@@ -76,57 +69,14 @@ static void layer_activate(const struct device *dev, uint8_t layer_index) {
     }
   }
   data->is_activated[layer_index] = true;
-
-  err = k_mutex_unlock(&lock);
-  if (err < 0) {
-    LOG_ERR("Failed to unlock mutex. err: %d", err);
-  }
 }
 
-static inline void layer_deactivate_all(const struct device *dev) {
+static void layer_deactivate(const struct device *dev, uint8_t layer_index) {
   struct temp_layer_data *data = dev->data;
-
-  int err = k_mutex_lock(&lock, K_FOREVER);
-  if (err < 0) {
-    LOG_ERR("Failed to lock mutex. err: %d", err);
-    return;
-  }
-
-  for (size_t i = 0; i < NUM_LAYERS; i++) {
-    if (data->is_activated[i]) {
-      bool is_active = zmk_keymap_layer_active(i);
-      if (is_active) {
-        err = zmk_keymap_layer_deactivate(i);
-        if (err < 0) {
-          LOG_ERR("Failed to deactivate layer %d. err: %d", i, err);
-        } else {
-          LOG_DBG("Layer %d deactivated", i);
-        }
-      }
-      data->is_activated[i] = false;
-    }
-  }
-
-  err = k_mutex_unlock(&lock);
-  if (err < 0) {
-    LOG_ERR("Failed to unlock mutex. err: %d", err);
-  }
-}
-
-/* Work Queue Callback */
-static void layer_deactivate_work_handler(const struct device *dev, uint8_t layer_index,
-                                          struct k_work *work) {
-  struct temp_layer_data *data = dev->data;
-
-  int err = k_mutex_lock(&lock, K_FOREVER);
-  if (err < 0) {
-    LOG_ERR("Failed to lock mutex. err: %d", err);
-    return;
-  }
 
   bool is_active = zmk_keymap_layer_active(layer_index);
   if (is_active) {
-    err = zmk_keymap_layer_deactivate(layer_index);
+    int err = zmk_keymap_layer_deactivate(layer_index);
     if (err < 0) {
       LOG_ERR("Failed to deactivate layer %d. err: %d", layer_index, err);
     } else {
@@ -134,11 +84,40 @@ static void layer_deactivate_work_handler(const struct device *dev, uint8_t laye
     }
   }
   data->is_activated[layer_index] = false;
+}
 
-  err = k_mutex_unlock(&lock);
-  if (err < 0) {
-    LOG_ERR("Failed to unlock mutex. err: %d", err);
+static inline void layer_deactivate_all(const struct device *dev) {
+  for (size_t i = 0; i < NUM_LAYERS; i++) {
+    layer_deactivate(dev, i);
   }
+}
+
+/* Work Queue Callback */
+static void layer_activate_work_handler(const struct device *dev, uint8_t layer_index,
+                                        struct k_work *work) {
+  layer_activate(dev, layer_index);
+}
+
+static void layer_deactivate_work_handler(const struct device *dev, uint8_t layer_index,
+                                          struct k_work *work) {
+  layer_deactivate(dev, layer_index);
+}
+
+static inline int position_state_changed_listener(const struct device *dev,
+                                                  const struct zmk_position_state_changed *ev) {
+  const struct temp_layer_config *cfg = dev->config;
+  if (position_is_excluded(cfg, ev->position)) {
+    return ZMK_EV_EVENT_BUBBLE;
+  }
+  layer_deactivate_all(dev);
+  return ZMK_EV_EVENT_BUBBLE;
+}
+
+static inline int keycode_state_changed_listener(const struct device *dev,
+                                                 const struct zmk_keycode_state_changed *ev) {
+  struct temp_layer_data *data = dev->data;
+  data->last_tapped_timestamp = ev->timestamp;
+  return ZMK_EV_EVENT_BUBBLE;
 }
 
 /* Driver Implementation */
@@ -154,7 +133,12 @@ static int temp_layer_handle_event(const struct device *dev, struct input_event 
   const struct temp_layer_config *cfg = dev->config;
 
   if (!should_quick_tap(cfg, data->last_tapped_timestamp, k_uptime_get())) {
-    layer_activate(dev, param1);
+    struct k_thread *current_thread = k_current_get();
+    if (current_thread == &k_sys_work_q.thread) {
+      layer_activate(dev, param1);
+    } else {
+      k_work_submit(&data->layer_activate_works[param1]);
+    }
   }
 
   if (param2 > 0) {
@@ -180,20 +164,13 @@ static const struct zmk_input_processor_driver_api temp_layer_driver_api = {
   COND_CODE_1(UTIL_OR(DT_HAS_EXCLUDED_POSITIONS(n), DT_HAS_REQUIRE_PRIOR_IDLE_MS(n)),              \
               (static int event_listener_##n(const zmk_event_t *eh) {                              \
                 const struct device *dev = DEVICE_DT_INST_GET(n);                                  \
-                const struct temp_layer_config *cfg = dev->config;                                 \
                 const struct zmk_position_state_changed *psev = as_zmk_position_state_changed(eh); \
                 if (psev != NULL) {                                                                \
-                  if (position_is_excluded(cfg, psev->position)) {                                 \
-                    return ZMK_EV_EVENT_BUBBLE;                                                    \
-                  }                                                                                \
-                  layer_deactivate_all(dev);                                                       \
-                  return ZMK_EV_EVENT_BUBBLE;                                                      \
+                  return position_state_changed_listener(dev, psev);                               \
                 }                                                                                  \
-                struct temp_layer_data *data = dev->data;                                          \
                 const struct zmk_keycode_state_changed *kcev = as_zmk_keycode_state_changed(eh);   \
                 if (kcev != NULL) {                                                                \
-                  data->last_tapped_timestamp = kcev->timestamp;                                   \
-                  return ZMK_EV_EVENT_BUBBLE;                                                      \
+                  return keycode_state_changed_listener(dev, kcev);                                \
                 }                                                                                  \
                 return ZMK_EV_EVENT_BUBBLE;                                                        \
               }                                                                                    \
@@ -207,34 +184,46 @@ static const struct zmk_input_processor_driver_api temp_layer_driver_api = {
   COND_CODE_1(DT_HAS_REQUIRE_PRIOR_IDLE_MS(n),                                                     \
               (ZMK_SUBSCRIPTION(processor_temp_layer_##n, zmk_keycode_state_changed);), ())
 
-#define TEMP_LAYER_WORK_HANDLER(i, n)                       \
-  static void work_handler_##n##_##i(struct k_work *work) { \
-    const struct device *dev = DEVICE_DT_INST_GET(n);       \
-    layer_deactivate_work_handler(dev, i, work);            \
+#define TEMP_LAYER_WORK_HANDLER(i, n)                                        \
+  static void layer_activate_work_handler_##n##_##i(struct k_work *work) {   \
+    const struct device *dev = DEVICE_DT_INST_GET(n);                        \
+    layer_activate_work_handler(dev, i, work);                               \
+  }                                                                          \
+  static void layer_deactivate_work_handler_##n##_##i(struct k_work *work) { \
+    const struct device *dev = DEVICE_DT_INST_GET(n);                        \
+    layer_deactivate_work_handler(dev, i, work);                             \
   }
 
 #define TEMP_LAYER_WORK_HANDLERS(n) LISTIFY(NUM_LAYERS, TEMP_LAYER_WORK_HANDLER, (), n)
 
-#define TEMP_LAYER_WORK(i, n) [i] = Z_WORK_DELAYABLE_INITIALIZER(work_handler_##n##_##i)
+#define TEMP_LAYER_ACTIVATE_WORK(i, n) \
+  [i] = Z_WORK_INITIALIZER(layer_activate_work_handler_##n##_##i)
 
-#define TEMP_LAYER_WORKS(n) LISTIFY(NUM_LAYERS, TEMP_LAYER_WORK, (, ), n)
+#define TEMP_LAYER_DEACTIVATE_WORK(i, n) \
+  [i] = Z_WORK_DELAYABLE_INITIALIZER(layer_deactivate_work_handler_##n##_##i)
+
+#define TEMP_LAYER_ACTIVATE_WORKS(n) LISTIFY(NUM_LAYERS, TEMP_LAYER_ACTIVATE_WORK, (, ), n)
+
+#define TEMP_LAYER_DEACTIVATE_WORKS(n) LISTIFY(NUM_LAYERS, TEMP_LAYER_DEACTIVATE_WORK, (, ), n)
 
 /* Device Instantiation */
-#define TEMP_LAYER_INST(n)                                                                    \
-                                                                                              \
-  TEMP_LAYER_EVENT_INIT(n)                                                                    \
-                                                                                              \
-  TEMP_LAYER_WORK_HANDLERS(n)                                                                 \
-                                                                                              \
-  static struct temp_layer_data data_##n = {.layer_deactivate_works = {TEMP_LAYER_WORKS(n)}}; \
-                                                                                              \
-  static const struct temp_layer_config config_##n = {                                        \
-    .require_prior_idle_ms = DT_INST_PROP(n, require_prior_idle_ms),                          \
-    .num_positions = DT_INST_PROP_LEN(n, excluded_positions),                                 \
-    .excluded_positions = DT_INST_PROP(n, excluded_positions),                                \
-  };                                                                                          \
-                                                                                              \
-  DEVICE_DT_INST_DEFINE(n, temp_layer_init, NULL, &data_##n, &config_##n, POST_KERNEL,        \
+#define TEMP_LAYER_INST(n)                                                             \
+                                                                                       \
+  TEMP_LAYER_EVENT_INIT(n)                                                             \
+                                                                                       \
+  TEMP_LAYER_WORK_HANDLERS(n)                                                          \
+                                                                                       \
+  static struct temp_layer_data data_##n = {                                           \
+    .layer_activate_works = {TEMP_LAYER_ACTIVATE_WORKS(n)},                            \
+    .layer_deactivate_works = {TEMP_LAYER_DEACTIVATE_WORKS(n)}};                       \
+                                                                                       \
+  static const struct temp_layer_config config_##n = {                                 \
+    .require_prior_idle_ms = DT_INST_PROP(n, require_prior_idle_ms),                   \
+    .num_positions = DT_INST_PROP_LEN(n, excluded_positions),                          \
+    .excluded_positions = DT_INST_PROP(n, excluded_positions),                         \
+  };                                                                                   \
+                                                                                       \
+  DEVICE_DT_INST_DEFINE(n, temp_layer_init, NULL, &data_##n, &config_##n, POST_KERNEL, \
                         CONFIG_KERNEL_INIT_PRIORITY_DEFAULT, &temp_layer_driver_api);
 
 DT_INST_FOREACH_STATUS_OKAY(TEMP_LAYER_INST)
