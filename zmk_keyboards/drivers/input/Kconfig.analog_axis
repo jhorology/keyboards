@@ -42,6 +42,7 @@ config INPUT_ANALOG_AXIS_SETTINGS_MAX_AXES
 
 config INPUT_ANALOG_AXIS_REPORT_USING_SYSTEM_WORKQUEUE
   bool "Use system workqueue for sending input report."
+  depends on INPUT_MODE_SYNCHRONOUS
   help
     ”Useful if the listener subsystem is not thread-safe.”
 
