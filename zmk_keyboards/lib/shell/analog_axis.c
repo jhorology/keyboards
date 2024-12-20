@@ -7,8 +7,6 @@
 #include <zephyr/input/input_analog_axis_settings.h>
 #include <zephyr/input/input_analog_axis.h>
 
-#include <util/qsort.h>
-
 #define SAMPLE_BUF_SIZE 63
 
 struct sample_result {
@@ -77,21 +75,27 @@ static void analog_axis_raw_data_cb(const struct device *dev, int ch, int16_t ra
   }
 }
 
+static int compare_sample(const void *a, const void *b) {
+  int16_t aa = *(const int16_t *)a;
+  int16_t bb = *(const int16_t *)b;
+
+  return (aa > bb) - (aa < bb);
+};
+
 static struct sample_result get_sample_result(int ch) {
   struct sample_result res;
-  int16_t _tmp;
-#define LESS(i, j) sample_buf[i] < sample_buf[j]
-#define SWAP(i, j) _tmp = sample_buf[i], sample_buf[i] = sample_buf[j], sample_buf[j] = _tmp
+
   analog_axis_set_raw_data_cb(dev, &analog_axis_raw_data_cb);
   cal_ch = ch;
   sample_cnt = 0;
 
   while (sample_cnt < SAMPLE_BUF_SIZE) k_msleep(100);
 
-  QSORT(SAMPLE_BUF_SIZE, LESS, SWAP);
-
   cal_ch = -1;
   analog_axis_set_raw_data_cb(dev, NULL);
+
+  qsort(&sample_buf[0], SAMPLE_BUF_SIZE, 2, &compare_sample);
+
   res.min = sample_buf[0];
   res.median = sample_buf[SAMPLE_BUF_SIZE / 2];
   res.max = sample_buf[SAMPLE_BUF_SIZE - 1];
