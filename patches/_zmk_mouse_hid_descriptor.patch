@@ -1,0 +1,21 @@
+diff --git a/app/include/zmk/hid.h b/app/include/zmk/hid.h
+index 4c963be..38bd7cb 100644
+--- a/app/include/zmk/hid.h
++++ b/app/include/zmk/hid.h
+@@ -210,6 +210,16 @@ static const uint8_t zmk_hid_report_desc[] = {
+     HID_USAGE(HID_USAGE_GD_Y),
+     HID_LOGICAL_MIN16(0xFF, -0x7F),
+     HID_LOGICAL_MAX16(0xFF, 0x7F),
++    0x36,
++    0xC0,
++    0xFE, // Physical Minimum (-320)
++    0x46,
++    0x40,
++    0x01, // Physical Maximum(320)
++    0x65,
++    0x13, // Unit (System: English Linear, Length: Centimeter)
++    0x55,
++    0x0D, // Unit Exponent (-3)
+     HID_REPORT_SIZE(0x10),
+     HID_REPORT_COUNT(0x02),
+     HID_INPUT(ZMK_HID_MAIN_VAL_DATA | ZMK_HID_MAIN_VAL_VAR | ZMK_HID_MAIN_VAL_REL),
