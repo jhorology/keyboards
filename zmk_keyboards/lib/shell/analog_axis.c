@@ -17,28 +17,22 @@ struct sample_result {
   int16_t max;
 };
 
-struct channel_cfg {
+struct channel_data {
+  // config
   bool invert_output;
   int16_t out_min;
   int16_t out_max;
   uint16_t axis;
-};
 
-struct channel_data {
+  // data
   int16_t raw_val;
   int32_t out_val;
-};
-
-struct channel {
-  const struct channel_cfg cfg;
-  struct channel_data data;
 };
 
 struct device_data {
   const struct device *dev;
   size_t num_channels;
-  struct channel_data ch_data[CONFIG_INPUT_ANALOG_AXIS_SETTINGS_MAX_AXES];
-  struct channel_cfg ch_cfg[CONFIG_INPUT_ANALOG_AXIS_SETTINGS_MAX_AXES];
+  struct channel_data (*ch_data)[];
 };
 
 #define _NODE_SEP(node) node,
@@ -48,21 +42,26 @@ struct device_data {
 #define ANALOG_AXIS_NODE_LIST LIST_DROP_EMPTY(DT_FOREACH_STATUS_OKAY(analog_axis, _NODE_SEP))
 #define ANALOG_AXIS_CH_LIST(node) DT_FOREACH_CHILD_STATUS_OKAY_SEP(node, _NODE, (, ))
 
-#define NUM_DEVICES _NUM_LIST(_ANALOG_AXIS_NODE_LIST)
+#define NUM_DEVICES _NUM_LIST(ANALOG_AXIS_NODE_LIST)
 
-#define ANALOG_AXIS_CH_CFG(node)                  \
+#define ANALOG_AXIS_DATA(node)                    \
   {.invert_output = DT_PROP(node, invert_output), \
    .out_min = (int16_t)DT_PROP(node, out_min),    \
    .out_max = (int16_t)DT_PROP(node, out_max),    \
    .axis = DT_PROP(node, zephyr_axis)}
 
-#define ANALOG_AXIS_DEVICE(node)                         \
+#define ANALOG_AXIS_CH_ARRAY(n, node) \
+  static struct channel_data ch_data_##n[] = {DT_FOREACH_CHILD_SEP(node, ANALOG_AXIS_DATA, (, ))};
+
+FOR_EACH_IDX(ANALOG_AXIS_CH_ARRAY, (), ANALOG_AXIS_NODE_LIST)
+
+#define ANALOG_AXIS_DEVICE(n, node)                      \
   {.dev = DEVICE_DT_GET(node),                           \
    .num_channels = _NUM_LIST(ANALOG_AXIS_CH_LIST(node)), \
-   .ch_cfg = {DT_FOREACH_CHILD_SEP(node, ANALOG_AXIS_CH_CFG, (, ))}},
+   .ch_data = &ch_data_##n}
 
 static struct device_data devs[NUM_DEVICES] = {
-  DT_FOREACH_STATUS_OKAY(analog_axis, ANALOG_AXIS_DEVICE)};
+  FOR_EACH_IDX(ANALOG_AXIS_DEVICE, (, ), ANALOG_AXIS_NODE_LIST)};
 
 static int16_t sample_buf[SAMPLE_BUF_SIZE];
 static volatile size_t sample_cnt;
@@ -98,8 +97,9 @@ static int stop(const struct shell *sh) {
 static void analog_axis_listener(const struct device *dev, int dev_index, struct input_event *evt) {
   struct device_data *data = &devs[dev_index];
   for (size_t i = 0; i < data->num_channels; i++) {
-    if (evt->code == data->ch_cfg[i].axis) {
-      data->ch_data[i].out_val = evt->value;
+    struct channel_data *ch_data = &(*data->ch_data)[i];
+    if (evt->code == ch_data->axis) {
+      ch_data->out_val = evt->value;
       return;
     }
   }
@@ -107,6 +107,7 @@ static void analog_axis_listener(const struct device *dev, int dev_index, struct
 
 static void analog_axis_raw_data_cb(const struct device *dev, int ch, int16_t raw) {
   struct device_data *data;
+  struct channel_data *ch_data;
   int dev_index = -1;
   for (size_t i = 0; i < NUM_DEVICES; i++) {
     if (dev == devs[i].dev) {
@@ -120,7 +121,8 @@ static void analog_axis_raw_data_cb(const struct device *dev, int ch, int16_t ra
   }
 
   if (ch >= 0 && ch < data->num_channels) {
-    data->ch_data[ch].raw_val = raw;
+    ch_data = &(*data->ch_data)[ch];
+    ch_data->raw_val = raw;
   }
 
   if (cal_dev < 0 || cal_ch < 0) {
@@ -177,19 +179,20 @@ static int check_device(const struct shell *sh, size_t dev_index) {
 
 static int cmd_show(const struct shell *sh, size_t argc, char **argv) {
   static struct analog_axis_calibration cal_data;
+  struct channel_data *ch_data;
 
   for (size_t i = 0; i < NUM_DEVICES; i++) {
     if (check_device(sh, i)) return -1;
 
     shell_print(sh, "dev.%d (%s) settings:", i, devs[i].dev->name);
     for (size_t ch = 0; ch < devs[i].num_channels; ch++) {
-      const struct channel_cfg *cfg = &devs[i].ch_cfg[ch];
+      ch_data = &(*devs[i].ch_data)[ch];
       analog_axis_calibration_get(devs[i].dev, ch, &cal_data);
       shell_info(sh,
                  "\tch.%d in_min: %d, in_max: %d, in_deadzone: %d, out_min: %d, out_max: %d, "
                  "invert_output: %s",
-                 ch, cal_data.in_min, cal_data.in_max, cal_data.in_deadzone, cfg->out_min,
-                 cfg->out_max, cfg->invert_output ? "true" : "false");
+                 ch, cal_data.in_min, cal_data.in_max, cal_data.in_deadzone, ch_data->out_min,
+                 ch_data->out_max, ch_data->invert_output ? "true" : "false");
     }
   }
   return 0;
@@ -198,6 +201,7 @@ static int cmd_show(const struct shell *sh, size_t argc, char **argv) {
 static int cmd_cal(const struct shell *sh, size_t argc, char **argv) {
 #define CAL_ZERO_NUM_TIMES 10
   struct device_data *data;
+  struct channel_data *ch_data;
   struct analog_axis_calibration cal_data;
   struct sample_result res;
   int dev_index;
@@ -224,10 +228,10 @@ static int cmd_cal(const struct shell *sh, size_t argc, char **argv) {
     shell_error(sh, "Error: Invalid <ch> argument\n");
     return -1;
   }
-
-  out_min = data->ch_cfg[ch].out_min;
-  out_max = data->ch_cfg[ch].out_max;
-  invert_output = data->ch_cfg[ch].invert_output;
+  ch_data = &(*data->ch_data)[ch];
+  out_min = ch_data->out_min;
+  out_max = ch_data->out_max;
+  invert_output = ch_data->invert_output;
 
   if (out_min >= out_max) {
     shell_error(sh, "Error: Invalid <out_min>, <out_max> properties\n");
@@ -309,6 +313,7 @@ static int cmd_cal(const struct shell *sh, size_t argc, char **argv) {
 
 static int cmd_test(const struct shell *sh, size_t argc, char **argv) {
   struct device_data *data;
+  struct channel_data *ch_data;
   int dev_index;
 
   dev_index = atoi(argv[1]);
@@ -318,19 +323,21 @@ static int cmd_test(const struct shell *sh, size_t argc, char **argv) {
   analog_axis_set_raw_data_cb(data->dev, &analog_axis_raw_data_cb);
   while (true) {
     for (size_t ch = 0; ch < data->num_channels; ch++) {
+      ch_data = &(*data->ch_data)[ch];
       shell_fprintf(sh, SHELL_NORMAL,
                     ch == 0                         ? "in: [ %d, "
                     : ch < (data->num_channels - 1) ? "%d, "
                                                     : "%d ]\t->\t",
-                    data->ch_data[ch].raw_val);
+                    ch_data->raw_val);
     }
 
     for (size_t ch = 0; ch < data->num_channels; ch++) {
+      ch_data = &(*data->ch_data)[ch];
       shell_fprintf(sh, SHELL_NORMAL,
                     ch == 0                         ? "out: [ %d, "
                     : ch < (data->num_channels - 1) ? "%d, "
                                                     : "%d ]\t\tPress [S] to stop.\n",
-                    data->ch_data[ch].out_val);
+                    ch_data->out_val);
     }
     if (stop(sh)) break;
     k_msleep(200);
@@ -348,7 +355,7 @@ static int cmd_deadzone(const struct shell *sh, size_t argc, char **argv) {
   if (check_device(sh, dev_index)) return -1;
   data = &devs[dev_index];
 
-  int ch = atoi(argv[1]);
+  int ch = atoi(argv[2]);
   if (ch >= data->num_channels || ch < 0) {
     shell_print(sh, "Error: Invalid <ch> argument\n");
     return -1;
@@ -358,7 +365,7 @@ static int cmd_deadzone(const struct shell *sh, size_t argc, char **argv) {
   shell_print(sh, "Old setting: ch.%d in_min: %d, in_max: %d, in_deadzone: %d", ch, cal_data.in_min,
               cal_data.in_max, cal_data.in_deadzone);
 
-  cal_data.in_deadzone = atoi(argv[2]);
+  cal_data.in_deadzone = atoi(argv[3]);
 
   analog_axis_calibration_set(data->dev, ch, &cal_data);
   analog_axis_calibration_save(data->dev);
