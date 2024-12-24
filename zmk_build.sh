@@ -778,8 +778,8 @@ EOS
 _dot_projectile() {
   cat <<EOS > $PROJECT/.projectile
 -/dist
--/build
 -/node_modules
+-/xpacks
 -/via_app
 -/qmk_firmware
 -/qmk_keyboards
