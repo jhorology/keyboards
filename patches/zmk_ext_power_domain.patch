@@ -33,14 +33,14 @@ index cb2a16b..5158e76 100644
  
  properties:
 diff --git a/app/src/ext_power_generic.c b/app/src/ext_power_generic.c
-index 3975e03..e1ef2bf 100644
+index 3975e03..1f7d9ae 100644
 --- a/app/src/ext_power_generic.c
 +++ b/app/src/ext_power_generic.c
 @@ -34,6 +34,26 @@ struct ext_power_generic_data {
  #endif
  };
  
-+#ifdef CONFIG_PM_DEVICE_POWER_DOMAIN
++#ifdef CONFIG_ZMK_EXT_POWER_DOMAIN
 +struct pd_visitor_context {
 +    const struct device *domain;
 +    enum pm_device_action action;
@@ -58,7 +58,7 @@ index 3975e03..e1ef2bf 100644
 +    return 0;
 +}
 +
-+#endif
++#endif // CONFIG_ZMK_EXT_POWER_DOMAIN
 +
  #if IS_ENABLED(CONFIG_SETTINGS)
  static void ext_power_save_state_work(struct k_work *work) {
