@@ -145,14 +145,6 @@
 #if USE_JOYSTICK
 
  /*
-  * TODO joystick depends on ext-power, so needs power management.
-  */
-	ext_power_domain: ext_power_domain {
-		compatible = "power-domain";
-		status = "okay";
-	};
-
- /*
   * in_deadzon, in_min and in_max can be caribrated and saveed with shell/analog_axis.c
   *
   * uart:~$ analog_axis show
@@ -168,8 +160,7 @@
     compatible = "analog-axis";
     poll-period-ms = <15>;
     velocity-integral;
-    /* TODO */
-    // power-domain = <&ext_power_domain>;
+    power-domain = <&{/EXT_POWER}>;
     axis-x {
       io-channels = <&adc 3>;
       in-deadzone = <100>;

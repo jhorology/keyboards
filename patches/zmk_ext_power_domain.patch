@@ -1,0 +1,95 @@
+diff --git a/app/Kconfig b/app/Kconfig
+index 971c499..2ab7c9e 100644
+--- a/app/Kconfig
++++ b/app/Kconfig
+@@ -413,6 +413,16 @@ endif # ZMK_SLEEP
+ config ZMK_EXT_POWER
+     bool "Enable support to control external power output"
+ 
++if ZMK_EXT_POWER
++
++config ZMK_EXT_POWER_DOMAIN
++    bool "Enable support to control external power domain"
++    depends on PM_DEVICE_POWER_DOMAIN
++    select DEVICE_DEPS
++
++endif # ZMK_EXT_POWER
++
++
+ config ZMK_PM
+     bool
+ 
+diff --git a/app/dts/bindings/zmk,ext-power-generic.yaml b/app/dts/bindings/zmk,ext-power-generic.yaml
+index cb2a16b..5158e76 100644
+--- a/app/dts/bindings/zmk,ext-power-generic.yaml
++++ b/app/dts/bindings/zmk,ext-power-generic.yaml
+@@ -6,6 +6,8 @@ description: |
+   by toggling the control-gpio pin status
+   (Only in supported hardware)
+ 
++include: power-domain.yaml
++
+ compatible: "zmk,ext-power-generic"
+ 
+ properties:
+diff --git a/app/src/ext_power_generic.c b/app/src/ext_power_generic.c
+index 3975e03..e1ef2bf 100644
+--- a/app/src/ext_power_generic.c
++++ b/app/src/ext_power_generic.c
+@@ -34,6 +34,26 @@ struct ext_power_generic_data {
+ #endif
+ };
+ 
++#ifdef CONFIG_PM_DEVICE_POWER_DOMAIN
++struct pd_visitor_context {
++    const struct device *domain;
++    enum pm_device_action action;
++};
++
++static int pd_on_domain_visitor(const struct device *dev, void *context) {
++    struct pd_visitor_context *visitor_context = context;
++
++    /* Only run action if the device is on the specified domain */
++    if (!dev->pm || (dev->pm->domain != visitor_context->domain)) {
++        return 0;
++    }
++
++    (void)pm_device_action_run(dev, visitor_context->action);
++    return 0;
++}
++
++#endif
++
+ #if IS_ENABLED(CONFIG_SETTINGS)
+ static void ext_power_save_state_work(struct k_work *work) {
+     char setting_path[40];
+@@ -59,6 +79,14 @@ int ext_power_save_state(void) {
+ static int ext_power_generic_enable(const struct device *dev) {
+     struct ext_power_generic_data *data = dev->data;
+     const struct ext_power_generic_config *config = dev->config;
++#ifdef CONFIG_ZMK_EXT_POWER_DOMAIN
++    struct pd_visitor_context context = {.domain = dev};
++
++    context.action = PM_DEVICE_ACTION_TURN_ON;
++    (void)device_supported_foreach(dev, pd_on_domain_visitor, &context);
++    context.action = PM_DEVICE_ACTION_RESUME;
++    (void)device_supported_foreach(dev, pd_on_domain_visitor, &context);
++#endif // CONFIG_ZMK_EXT_POWER_DOMAIN
+ 
+     for (int i = 0; i < config->control_gpios_count; i++) {
+         const struct gpio_dt_spec *gpio = &config->control[i];
+@@ -74,6 +102,14 @@ static int ext_power_generic_enable(const struct device *dev) {
+ static int ext_power_generic_disable(const struct device *dev) {
+     struct ext_power_generic_data *data = dev->data;
+     const struct ext_power_generic_config *config = dev->config;
++#ifdef CONFIG_ZMK_EXT_POWER_DOMAIN
++    struct pd_visitor_context context = {.domain = dev};
++
++    context.action = PM_DEVICE_ACTION_SUSPEND;
++    (void)device_supported_foreach(dev, pd_on_domain_visitor, &context);
++    context.action = PM_DEVICE_ACTION_TURN_OFF;
++    (void)device_supported_foreach(dev, pd_on_domain_visitor, &context);
++#endif // CONFIG_ZMK_EXT_POWER_DOMAIN
+ 
+     for (int i = 0; i < config->control_gpios_count; i++) {
+         const struct gpio_dt_spec *gpio = &config->control[i];
