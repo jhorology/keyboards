@@ -33,7 +33,7 @@ index cb2a16b..5158e76 100644
  
  properties:
 diff --git a/app/src/ext_power_generic.c b/app/src/ext_power_generic.c
-index 3975e03..1f7d9ae 100644
+index 3975e03..d4ee031 100644
 --- a/app/src/ext_power_generic.c
 +++ b/app/src/ext_power_generic.c
 @@ -34,6 +34,26 @@ struct ext_power_generic_data {
@@ -63,22 +63,30 @@ index 3975e03..1f7d9ae 100644
  #if IS_ENABLED(CONFIG_SETTINGS)
  static void ext_power_save_state_work(struct k_work *work) {
      char setting_path[40];
-@@ -59,6 +79,14 @@ int ext_power_save_state(void) {
+@@ -59,6 +79,9 @@ int ext_power_save_state(void) {
  static int ext_power_generic_enable(const struct device *dev) {
      struct ext_power_generic_data *data = dev->data;
      const struct ext_power_generic_config *config = dev->config;
 +#ifdef CONFIG_ZMK_EXT_POWER_DOMAIN
 +    struct pd_visitor_context context = {.domain = dev};
-+
++#endif // CONFIG_ZMK_EXT_POWER_DOMAIN
+ 
+     for (int i = 0; i < config->control_gpios_count; i++) {
+         const struct gpio_dt_spec *gpio = &config->control[i];
+@@ -67,6 +90,12 @@ static int ext_power_generic_enable(const struct device *dev) {
+             return -EIO;
+         }
+     }
++#ifdef CONFIG_ZMK_EXT_POWER_DOMAIN
 +    context.action = PM_DEVICE_ACTION_TURN_ON;
 +    (void)device_supported_foreach(dev, pd_on_domain_visitor, &context);
 +    context.action = PM_DEVICE_ACTION_RESUME;
 +    (void)device_supported_foreach(dev, pd_on_domain_visitor, &context);
 +#endif // CONFIG_ZMK_EXT_POWER_DOMAIN
- 
-     for (int i = 0; i < config->control_gpios_count; i++) {
-         const struct gpio_dt_spec *gpio = &config->control[i];
-@@ -74,6 +102,14 @@ static int ext_power_generic_enable(const struct device *dev) {
+     data->status = true;
+     return ext_power_save_state();
+ }
+@@ -74,6 +103,14 @@ static int ext_power_generic_enable(const struct device *dev) {
  static int ext_power_generic_disable(const struct device *dev) {
      struct ext_power_generic_data *data = dev->data;
      const struct ext_power_generic_config *config = dev->config;
