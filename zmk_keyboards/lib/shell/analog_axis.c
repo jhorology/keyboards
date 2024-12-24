@@ -37,12 +37,12 @@ struct device_data {
 
 #define _NODE_SEP(node) node,
 #define _NODE(node) node
-#define _NUM_LIST(...) UTIL_INC(NUM_VA_ARGS_LESS_1(__VA_ARGS__))
+#define _LIST_LEN(...) UTIL_INC(NUM_VA_ARGS_LESS_1(__VA_ARGS__))
 
 #define ANALOG_AXIS_NODE_LIST LIST_DROP_EMPTY(DT_FOREACH_STATUS_OKAY(analog_axis, _NODE_SEP))
 #define ANALOG_AXIS_CH_LIST(node) DT_FOREACH_CHILD_STATUS_OKAY_SEP(node, _NODE, (, ))
 
-#define NUM_DEVICES _NUM_LIST(ANALOG_AXIS_NODE_LIST)
+#define NUM_DEVICES _LIST_LEN(ANALOG_AXIS_NODE_LIST)
 
 #define ANALOG_AXIS_DATA(node)                    \
   {.invert_output = DT_PROP(node, invert_output), \
@@ -57,7 +57,7 @@ FOR_EACH_IDX(ANALOG_AXIS_CH_ARRAY, (), ANALOG_AXIS_NODE_LIST)
 
 #define ANALOG_AXIS_DEVICE(n, node)                      \
   {.dev = DEVICE_DT_GET(node),                           \
-   .num_channels = _NUM_LIST(ANALOG_AXIS_CH_LIST(node)), \
+   .num_channels = _LIST_LEN(ANALOG_AXIS_CH_LIST(node)), \
    .ch_data = &ch_data_##n}
 
 static struct device_data devs[NUM_DEVICES] = {

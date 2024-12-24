@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
+#include "zephyr/sys/util_macro.h"
 #define DT_DRV_COMPAT zmk_input_processor_temp_layer
 
 #include <zephyr/kernel.h>
@@ -17,9 +18,9 @@
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
-#define _LAYER_ITEM(node) EMPTY
-#define _NUM_LAYERS(...) UTIL_INC(NUM_VA_ARGS_LESS_1(__VA_ARGS__))
-#define NUM_LAYERS _NUM_LAYERS(DT_FOREACH_CHILD_SEP(DT_INST(0, zmk_keymap), _LAYER_ITEM, (, )))
+#define _EMPTY(node) EMPTY
+#define NUM_LAYERS \
+  UTIL_INC(NUM_VA_ARGS_LESS_1(DT_FOREACH_CHILD_SEP(DT_INST(0, zmk_keymap), _EMPTY, (, ))))
 
 struct temp_layer_config {
   int16_t require_prior_idle_ms;
