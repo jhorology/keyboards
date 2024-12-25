@@ -9,11 +9,16 @@
 #include <dt-bindings/zmk/pointing.h>
 #include <dt-bindings/zmk/input_transform.h>
 
-#define LEFT_KEYS  0 1 2 3  4  5 12 13 14 15 16 17 24 25 26 27 28 29
-#define RIGHT_KEYS 6 7 8 9 10 11 18 19 20 21 22 23 30 31 32 33 34 35
+//                | Row 0          | Row 1           | Row 2
+#define LEFT_KEYS  0  1  2  3  4  5 12 13 14 15 16 17 24 25 26 27 28 29
+#define RIGHT_KEYS 6  7  8  9 10 11 18 19 20 21 22 23 30 31 32 33 34 35
+
 #define LEFT_THUMB_KEYS  36 37 38
 #define RIGHT_THUMB_KEYS 39 40 41
 #define THUMB_KEYS LEFT_THUMB_KEYS RIGHT_THUMB_KEYS
+
+#define MOUSE_KEYS 6 7 8
+#define MODIFIER_KEYS 12 24 35 36 38 39 41
 
 / {
   keymap {
@@ -295,6 +300,11 @@
   // acceleration-exponent = <2>;
 };
 
+&zip_temp_layer {
+  // TODO something is wrong if split
+  // excluded-positions = <MOUSE_KEYS MODIFIER_KEYS>;
+};
+
 &mmv_input_listener {
   win_scroller {
     layers = <_WIN_FN_LAYER>;
@@ -322,7 +332,7 @@
       ;
   };
 
-  /* TODO mouse speed difference btween BLE and USB */
+  /* TODO mouse speed difference between BLE and USB */
   mac_mouse {
     layers = <_MAC_BASE_LAYER>;
     input-processors

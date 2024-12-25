@@ -9,6 +9,17 @@
 #include <dt-bindings/zmk/pointing.h>
 #include <dt-bindings/zmk/input_transform.h>
 
+/*
+ * Key positions
+ *   Row 0 Left 0..5     Right 6..12
+ *   Row 1 Left 13..18   Right 19..24
+ *   Row 2 Left 25..30   Right 31..37
+ *   Row 3 Left 38..41   Right 42..45
+ */
+
+#define MOUSE_KEYS 34 35 36
+#define MODFIER_KEYS 15 25 37 38 39 40 43 44 45
+
 / {
   keymap {
     compatible = "zmk,keymap";
@@ -187,6 +198,11 @@
   };
 };
 
+
+&zip_temp_layer {
+  excluded-positions = <MOUSE_KEYS MODFIER_KEYS>;
+};
+
 &joystick_pointing_listener {
   input-processors
     = <&zip_xy_scaler 1 8>;
@@ -216,17 +232,11 @@
       , <&zip_temp_layer _POINTING_LAYER 2000>;
   };
 
-  /* TODO mouse speed difference btween BLE and USB */
+  /* TODO mouse speed difference between BLE and USB */
   mac_mouse {
     layers = <_MAC_BASE_LAYER>;
     input-processors
       = <&zip_xy_scaler 1 8>
       , <&zip_temp_layer _POINTING_LAYER 2000>;
   };
-};
-
-/* for debug */
-&zip_temp_layer {
-  // excluded-positions = <1 2 3>;
-  // require-prior-idle-ms = <2000>;
 };
