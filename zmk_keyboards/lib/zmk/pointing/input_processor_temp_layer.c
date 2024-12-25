@@ -87,8 +87,11 @@ static void layer_deactivate(const struct device *dev, uint8_t layer_index) {
 }
 
 static inline void layer_deactivate_all(const struct device *dev) {
+  struct temp_layer_data *data = dev->data;
   for (size_t i = 0; i < NUM_LAYERS; i++) {
-    layer_deactivate(dev, i);
+    if (data->is_activated[i]) {
+      layer_deactivate(dev, i);
+    }
   }
 }
 
