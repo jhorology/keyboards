@@ -33,14 +33,14 @@ index cb2a16b..5158e76 100644
  
  properties:
 diff --git a/app/src/ext_power_generic.c b/app/src/ext_power_generic.c
-index 3975e03..d4ee031 100644
+index 3975e03..9017f1b 100644
 --- a/app/src/ext_power_generic.c
 +++ b/app/src/ext_power_generic.c
 @@ -34,6 +34,26 @@ struct ext_power_generic_data {
  #endif
  };
  
-+#ifdef CONFIG_ZMK_EXT_POWER_DOMAIN
++#if IS_ENABLED(CONFIG_ZMK_EXT_POWER_DOMAIN)
 +struct pd_visitor_context {
 +    const struct device *domain;
 +    enum pm_device_action action;
@@ -67,7 +67,7 @@ index 3975e03..d4ee031 100644
  static int ext_power_generic_enable(const struct device *dev) {
      struct ext_power_generic_data *data = dev->data;
      const struct ext_power_generic_config *config = dev->config;
-+#ifdef CONFIG_ZMK_EXT_POWER_DOMAIN
++#if IS_ENABLED(CONFIG_ZMK_EXT_POWER_DOMAIN)
 +    struct pd_visitor_context context = {.domain = dev};
 +#endif // CONFIG_ZMK_EXT_POWER_DOMAIN
  
@@ -77,7 +77,7 @@ index 3975e03..d4ee031 100644
              return -EIO;
          }
      }
-+#ifdef CONFIG_ZMK_EXT_POWER_DOMAIN
++#if IS_ENABLED(CONFIG_ZMK_EXT_POWER_DOMAIN)
 +    context.action = PM_DEVICE_ACTION_TURN_ON;
 +    (void)device_supported_foreach(dev, pd_on_domain_visitor, &context);
 +    context.action = PM_DEVICE_ACTION_RESUME;
@@ -90,7 +90,7 @@ index 3975e03..d4ee031 100644
  static int ext_power_generic_disable(const struct device *dev) {
      struct ext_power_generic_data *data = dev->data;
      const struct ext_power_generic_config *config = dev->config;
-+#ifdef CONFIG_ZMK_EXT_POWER_DOMAIN
++#if IS_ENABLED(CONFIG_ZMK_EXT_POWER_DOMAIN)
 +    struct pd_visitor_context context = {.domain = dev};
 +
 +    context.action = PM_DEVICE_ACTION_SUSPEND;
