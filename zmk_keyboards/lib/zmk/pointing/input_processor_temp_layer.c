@@ -4,7 +4,6 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include "zephyr/sys/util_macro.h"
 #define DT_DRV_COMPAT zmk_input_processor_temp_layer
 
 #include <zephyr/kernel.h>
