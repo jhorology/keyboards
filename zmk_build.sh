@@ -104,8 +104,8 @@ local -A KEYBOARDS=(
   d60        bt60:d60_lite_hhkb_ec11:uf2:CKP:none:none:none
   fk68       fk680pro_v2:fk680pro_v2:uf2:"ZhaQian DFU":none:none:none
   libra      nice_nano_v2:libra_mini:uf2:LIBRA_MINI:none:libra_mini:CONFIG_INPUT_LOG_LEVEL_DBG
-  rz42l      rz42_left:rz42_left:uf2:RZ42_L:none:nice_view:none
-  rz42r      rz42_right:rz42_right:uf2:RZ42_R:none:nice_view:none
+  rz42l      rz42_left:rz42_left:uf2:RZ42_L:none:none:none
+  rz42r      rz42_right:rz42_right:uf2:RZ42_R:none:none:none
   q60        keychron_q60:keychron_q60:bin:0483:df11:none:none
   qk60       qk60_wired:qk60_wired_hhkb:bin:1688:2220:none:none
   tf60       kbdfans_tofu60_v2:tofu60_hhkb:uf2:RPI-RP2:none:none:none

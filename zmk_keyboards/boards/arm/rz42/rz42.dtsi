@@ -17,6 +17,7 @@
     zmk,battery = &vbatt;
     zmk,kscan = &kscan0;
     zmk,underglow = &led_strip;
+    zephyr,display = &nice_view;
   };
 
   default_transform: keymap_transform_0 {
@@ -165,7 +166,6 @@ zephyr_udc0: &usbd {
 
 /*
   spi for nice!view compatible display
-  need nice_vieiw.overlay for now
  */
 nice_view_spi: &spi0 {
   status = "okay";
@@ -174,6 +174,13 @@ nice_view_spi: &spi0 {
   pinctrl-1 = <&spi0_sleep>;
   pinctrl-names = "default", "sleep";
   cs-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
+  nice_view: ls0xx@0 {
+    compatible = "sharp,ls0xx";
+    spi-max-frequency = <1000000>;
+    reg = <0>;
+    width = <160>;
+    height = <68>;
+  };
 };
 
 /* spi for led strip */
