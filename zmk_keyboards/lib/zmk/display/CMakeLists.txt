@@ -4,7 +4,7 @@ add_subdirectory(widgets)
 
 target_sources_ifdef(CONFIG_ZMK_DISPLAY_STATUS_SCREEN_CUSTOM_80X128_MONO app PRIVATE status_screen_80x128_mono.c)
 
-if (CONFIG_ZMK_CUSTOM_KEYNOARD_LOGO)
+if (CONFIG_ZMK_CUSTOM_KEYBOARD_LOGO)
   if (CONFIG_ZMK_DISPLAY_STATUS_SCREEN_CUSTOM_80X128_MONO)
     # custom logo image should be named "<keymap name>_80x80.png" and
     # placed in same directory with .keymap file

@@ -121,7 +121,7 @@ static inline lv_obj_t *split_left_body(lv_obj_t *parent) {
 
 #if IS_ENABLED(CONFIG_ZMK_SPLIT) && !IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
 
-#  if IS_ENABLED(CONFIG_ZMK_CUSTOM_KEYNOARD_LOGO)
+#  if IS_ENABLED(CONFIG_ZMK_CUSTOM_KEYBOARD_LOGO)
 LV_IMG_DECLARE(keyboard_logo_80x80);
 #  else
 LV_IMG_DECLARE(starman_80x80);
@@ -178,7 +178,7 @@ static inline lv_obj_t *split_right_body(lv_obj_t *parent) {
 
   lv_obj_t *kbd_logo = lv_img_create(container);
   lv_obj_set_style_pad_top(kbd_logo, MARGIN, LV_PART_MAIN);
-#  if IS_ENABLED(CONFIG_ZMK_CUSTOM_KEYNOARD_LOGO)
+#  if IS_ENABLED(CONFIG_ZMK_CUSTOM_KEYBOARD_LOGO)
   lv_img_set_src(kbd_logo, &keyboard_logo_80x80);
 #  else
   lv_img_set_src(kbd_logo, &starman_80x80);
