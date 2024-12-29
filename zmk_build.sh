@@ -743,13 +743,14 @@ _build() {
       _dot_projectile
     fi
   fi
-  if (( $with_ram_report )); then
-    opts+=(--target ram_report)
-  fi
 
   # path=($PROTOC_INSTALL_DIR/protoc-$PROTOC_VERSION/bin $path) \
   #     west build $opts[*] zmk/app -- $defs[*]
   west build $opts[*] zmk/app -- $defs[*]
+
+  if (( $#with_ram_report )); then
+    west build --target ram_report --build-dir build/$target
+  fi
 
   if (( $#with_compile_db )); then
     mv $PROJECT/build/$target/compile_commands.json $PROJECT
