@@ -18,6 +18,28 @@
 #define USE_JOYSTICK 1
 
 /*
+ * Voltage drop-down register for power-saving
+ *
+ *  nrfx_saadc support gains:
+ *   - ADC_GAIN_1_6:
+ *   - ADC_GAIN_1_5:
+ *   - ADC_GAIN_1_4:
+ *   - ADC_GAIN_1_3:
+ *   - ADC_GAIN_1_2:
+ *   - ADC_GAIN_1:
+ *   - ADC_GAIN_2:
+ *   - ADC_GAIN_4:
+ *
+ * 3.3v x R2 / (R1 + R2) x gain = 0.6v
+ *
+ * R1 = 20K
+ * R2 = 5K (10K/axis  parallel)
+ *
+ * R1=30K and GAIN=1 maybe better
+ */
+#define JOYSTICK_DROP_DOWN_REGISTER_20K 1
+
+/*
  * TODO
  *   - Joystick push button -> P1.01
  *   - LED Strip -> P1.02 SPI
@@ -148,9 +170,9 @@
   * in_deadzon, in_min and in_max can be caribrated and saveed with shell/analog_axis.c
   *
   * uart:~$ analog_axis show
-  * Current settings:
-  * ch.0 in_min: 532, in_max: 3250, in_deadzone: 39
-  * ch.1 in_min: 553, in_max: 3069, in_deadzone: 42
+  * dev.0 (analog_axis) settings:
+  * ch.0 in_min: 347, in_max: 2133, in_deadzone: 100, out_min: -127, out_max: 127, invert_output: true
+  * ch.1 in_min: 347, in_max: 1951, in_deadzone: 100, out_min: -127, out_max: 127, invert_output: true
   *
   * TODO joystick directions are inverted.
   *  - need to check if it's possible to swap VCC and GND wiring
@@ -163,9 +185,15 @@
     power-domain = <&{/EXT_POWER}>;
     axis-x {
       io-channels = <&adc 3>;
+#if JOYSTICK_DROP_DOWN_REGISTER_20K
+      in-deadzone = <150>;
+      in-min = <400>;
+      in-max = <1900>;
+#else
       in-deadzone = <100>;
       in-min = <600>;
       in-max = <3000>;
+#endif
       invert-output;
       out-min = <(-127)>;
       out-max = <127>;
@@ -173,9 +201,15 @@
     };
     axis-y {
       io-channels = <&adc 4>;
+#if JOYSTICK_DROP_DOWN_REGISTER_20K
+      in-deadzone = <150>;
+      in-min = <400>;
+      in-max = <1900>;
+#else
       in-deadzone = <100>;
       in-min = <600>;
       in-max = <3000>;
+#endif
       invert-output;
       out-min = <(-127)>;
       out-max = <127>;
@@ -206,7 +240,11 @@
 	#size-cells = <0>;
 	channel@3 {
 		reg = <3>;
+#if JOYSTICK_DROP_DOWN_REGISTER_20K
+		zephyr,gain = "ADC_GAIN_1_2";
+#else
 		zephyr,gain = "ADC_GAIN_1_6";
+#endif
 		zephyr,reference = "ADC_REF_INTERNAL";
 		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
     zephyr,input-positive = <NRF_SAADC_AIN5>;
@@ -215,7 +253,11 @@
 	};
 	channel@4 {
 		reg = <4>;
+#if JOYSTICK_DROP_DOWN_REGISTER_20K
+		zephyr,gain = "ADC_GAIN_1_2";
+#else
 		zephyr,gain = "ADC_GAIN_1_6";
+#endif
 		zephyr,reference = "ADC_REF_INTERNAL";
 		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
 		zephyr,input-positive = <NRF_SAADC_AIN7>;
