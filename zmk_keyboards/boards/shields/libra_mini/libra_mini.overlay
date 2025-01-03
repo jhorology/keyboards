@@ -18,7 +18,7 @@
 #define USE_JOYSTICK 1
 
 /*
- * Voltage drop-down register for power-saving
+ * Voltage divider register for power-saving
  *
  *  nrfx_saadc support gains:
  *   - ADC_GAIN_1_6:
@@ -37,7 +37,7 @@
  *
  * R1=30K and GAIN=1 maybe better
  */
-#define JOYSTICK_DROP_DOWN_REGISTER_20K 1
+#define JOYSTICK_DIVIDER_REGISTER_20K 1
 
 /*
  * TODO
@@ -185,7 +185,7 @@
     power-domain = <&{/EXT_POWER}>;
     axis-x {
       io-channels = <&adc 3>;
-#if JOYSTICK_DROP_DOWN_REGISTER_20K
+#if JOYSTICK_DIVIDER_REGISTER_20K
       in-deadzone = <150>;
       in-min = <400>;
       in-max = <1900>;
@@ -201,7 +201,7 @@
     };
     axis-y {
       io-channels = <&adc 4>;
-#if JOYSTICK_DROP_DOWN_REGISTER_20K
+#if JOYSTICK_DIVIDER_REGISTER_20K
       in-deadzone = <150>;
       in-min = <400>;
       in-max = <1900>;
@@ -240,7 +240,7 @@
 	#size-cells = <0>;
 	channel@3 {
 		reg = <3>;
-#if JOYSTICK_DROP_DOWN_REGISTER_20K
+#if JOYSTICK_DIVIDER_REGISTER_20K
 		zephyr,gain = "ADC_GAIN_1_2";
 #else
 		zephyr,gain = "ADC_GAIN_1_6";
@@ -253,7 +253,7 @@
 	};
 	channel@4 {
 		reg = <4>;
-#if JOYSTICK_DROP_DOWN_REGISTER_20K
+#if JOYSTICK_DIVIDER_REGISTER_20K
 		zephyr,gain = "ADC_GAIN_1_2";
 #else
 		zephyr,gain = "ADC_GAIN_1_6";
