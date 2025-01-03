@@ -90,28 +90,131 @@ case $HOST_OS in
 esac
 
 
-# key: target
-#   [1]=board
-#   [2]=firmwre_name
-#   [3]=firmware file type
-#   [4]=DFU volume name or device vid
-#   [5]=DFU device pid
-#   [6]=shields
-#   [7]=-additional options when --with-logging
-local -A KEYBOARDS=(
-  cz42l      nice_nano_v2:cz42_left:uf2:CZ42_L:none:"cz42_left;gooddisplay_adapter;gooddisplay_gdew0102t4":"CONFIG_LV_LOG_LEVEL_TRACE,CONFIG_DISPLAY_LOG_LEVEL_DBG"
-  cz42r      nice_nano_v2:cz42_right:uf2:CZ42_R:none:"cz42_right;gooddisplay_adapter;gooddisplay_gdew0102t4":"CONFIG_LV_LOG_LEVEL_TRACE,CONFIG_DISPLAY_LOG_LEVEL_DBG"
-  d60        bt60:d60_lite_hhkb_ec11:uf2:CKP:none:none:none
-  fk68       fk680pro_v2:fk680pro_v2:uf2:"ZhaQian DFU":none:none:none
-  libra      nice_nano_v2:libra_mini:uf2:LIBRA_MINI:none:libra_mini:CONFIG_INPUT_LOG_LEVEL_DBG
-  rz42l      rz42_left:rz42_left:uf2:RZ42_L:none:none:none
-  rz42r      rz42_right:rz42_right:uf2:RZ42_R:none:none:none
-  q60        keychron_q60:keychron_q60:bin:0483:df11:none:none
-  qk60       qk60_wired:qk60_wired_hhkb:bin:1688:2220:none:none
-  tf60       kbdfans_tofu60_v2:tofu60_hhkb:uf2:RPI-RP2:none:none:none
-  ju60       cyber60_rev_d:hibi_june60:uf2:CYBER60_D:none:none:none
+# keyboard deinitions
+#  properties:
+#    name           required  firmware file name
+#    ble            required  is ble wireless keyboard?
+#    studio         required  can enable --with-studio opton?
+#    board          required
+#    shields        optional  if defined multiple shields, double quate semicolon separated list
+#    firmware_type  required  uf2 or bin
+#    dfu_volume     required  if firmware_type is uf2
+#    dfu_vid        required  if firmware_type is bin
+#    dfu_pid        required  if firmware_type is bin
+#    log_opts       optional  config options when --with-logging, if defined multiple options, double quate comma separated list
+declare -A cz42l=(
+  [name]=cz42_left
+  [ble]=true
+  [studio]=true
+  [board]=nice_nano_v2
+  [shields]="cz42_left;gooddisplay_adapter;gooddisplay_gdew0102t4"
+  [firmware_type]=uf2
+  [dfu_volume]=CZ42_L
 )
-TARGETS=(cz42l cz42r d60 fk68 libra rz42l rz42r q60 qk60 tf60 ju60)
+
+declare -A cz42r=(
+  [name]=cz42_left
+  [ble]=true
+  [studio]=false
+  [board]=nice_nano_v2
+  [shields]="cz42_right;gooddisplay_adapter;gooddisplay_gdew0102t4"
+  [firmware_type]=uf2
+  [dfu_volume]=CZ42_R
+)
+
+declare -A d60=(
+  [name]=d60_lite_hhkb_ec11
+  [ble]=true
+  [studio]=true
+  [board]=bt60
+  [firmware_type]=uf2
+  [dfu_volume]=CKP
+)
+
+# *not enough RAM to enable studio
+declare -A fk68=(
+  [name]=fk680pro_v2
+  [ble]=false
+  [studio]=false
+  [board]=fk680pro_v2
+  [firmware_type]=uf2
+  [dfu_volume]="ZhaQian DFU"
+)
+
+declare -A libra=(
+  [name]=libra_mini
+  [ble]=true
+  [studio]=true
+  [board]=nice_nano_v2
+  [shields]=libra_mini
+  [firmware_type]=uf2
+  [dfu_volume]=LIBRA_MINI
+  [log_opts]=CONFIG_INPUT_LOG_LEVEL_DBG
+)
+
+declare -A rz42l=(
+  [name]=rz42_left
+  [ble]=true
+  [studio]=true
+  [board]=rz42_left
+  [firmware_type]=uf2
+  [dfu_volume]=RZ42_L
+  [log_opts]=CONFIG_INPUT_LOG_LEVEL_DBG
+)
+
+declare -A rz42r=(
+  [name]=rz42_right
+  [ble]=true
+  [studio]=false
+  [board]=rz42_right
+  [firmware_type]=uf2
+  [dfu_volume]=RZ42_R
+  [log_opts]=CONFIG_INPUT_LOG_LEVEL_DBG
+)
+
+declare -A q60=(
+  [name]=keychron_q60
+  [ble]=false
+  [studio]=true
+  [board]=keychron_q60
+  [firmware_type]=bin
+  [dfu_vid]=0483
+  [dfu_pid]=df11
+)
+
+# *Depricated
+# Currently it does not work for unknown reasons
+# it may work with ZMK before the Studio related code was merged. (around 2024/10 ?)
+declare -A qk60=(
+  [name]=qk60_wired_hhkb
+  [ble]=false
+  [studio]=false
+  [board]=qk60_wired
+  [firmware_type]=bin
+  [dfu_vid]=1688
+  [dfu_pid]=2220
+)
+
+declare -A tf60=(
+  [name]=tofu60_v2_hhkb
+  [ble]=false
+  [studio]=true
+  [board]=kbdfans_tofu60_v2
+  [firmware_type]=uf2
+  [dfu_volume]=RPI-RP2
+)
+
+declare -A ju60=(
+  [name]=hibi_june60_tsangan
+  [ble]=true
+  [studio]=true
+  [board]=cyber60_rev_d
+  [firmware_type]=uf2
+  [dfu_volume]=CYBER60_D
+)
+
+ALL_TARGETS=(cz42l cz42r d60 fk68 libra rz42l rz42r q60 qk60 tf60 ju60)
+TARGETS=(cz42l cz42r d60 fk68 libra rz42l rz42r q60 tf60 ju60)
 
 
 cd $PROJECT
@@ -144,6 +247,7 @@ zparseopts -D -E -F -- \
            {l,-with-logging}=with_logging \
            {s,-with-shell}=with_shell \
            {z,-with-studio}=with_studio \
+           {x,-without-studio}=without_studio \
            {r,-with-ram-report}=with_ram_report \
            -without-emacs=without_emacs \
   || return
@@ -178,12 +282,35 @@ help_usage() {
         "    -l,--with-logging     Enable USB logging" \
         "    -s,--with-shell       Enable Shell" \
         "    -z,--with-studio      Enable ZMK Studio" \
+        "    -x,--without-studio   Disable ZMK Studio" \
         "    -r,--with-ram-report  Enable ram_report" \
         "    --without-emacs       don't generate emacs settings when --with-comile-db" \
        "" \
         "available targets:"
-  for target in ${(k)KEYBOARDS}; do
-    print -rC2 -- "   ${target}:"  "${KEYBOARDS[$target]}"
+  for target in $ALL_TARGETS; do
+    local -A props=("${(Pkv@)target}")
+    print -rC2 -- "   ${target}=("
+    print -rC2 -- "     [name]=$props[name]"
+    print -rC2 -- "     [ble]=$props[ble]"
+    print -rC2 -- "     [studio]=$props[studio]"
+    print -rC2 -- "     [board]=$props[board]"
+    if (( ${+props[shields]} )); then
+      print -rC2 -- "     [shields]=$props[shields]"
+    fi
+    print -rC2 -- "     [firmware_type=$props[firmware_type]"
+    case $props[firmware_type] in
+      uf2)
+        print -rC2 -- "     [dfu_volume]=$props[dfu_volume]"
+        ;;
+      bin)
+        print -rC2 -- "     [dfu_vid]=$props[dfu_vid]"
+        print -rC2 -- "     [dfu_pid]=$props[dfu_pid]"
+        ;;
+    esac
+    if (( ${+props[log_opts]} )); then
+      print -rC2 -- "     [log_opts]=$props[log_opts]"
+    fi
+    print -rC2 -- "   )"
   done
 }
 
@@ -230,7 +357,8 @@ main() {
 
   local unknown_targets=()
   for target in $TARGETS; do
-    if ! (( $+KEYBOARDS[$target] )); then
+    local -A props=("${(Pkv@)target}")
+    if ! (( ${+props[name]} ));  then
       unknown_targets+=($target)
     fi
   done
@@ -262,15 +390,8 @@ main() {
   _update_zmk
 
   for target in $TARGETS; do
-    kbd=(${(@s/:/)KEYBOARDS[$target]})
-    board=$kbd[1]
-    firmware_name=$kbd[2]
-    firmware_ext=$kbd[3]
-    shields=$kbd[6]
-
     _build $target
-
-    firmware_file=$(_dist_firmware $target)
+    local firmware_file=$(_dist_firmware $target)
     if (( $#with_flash )); then
       (( $#with_logging )) && sudo echo -n
       (( $#with_shell )) && sudo echo -n
@@ -700,11 +821,8 @@ _update_zmk() {
 
 _build() {
   local target=$1
-  local kbd=(${(@s/:/)KEYBOARDS[$target]})
-  local board=$kbd[1]
-  local shields=$kbd[6]
-  local log_options=$kbd[7]
-  local opts=(--board $board --build-dir build/$target)
+  local -A props=("${(Pkv@)target}")
+  local opts=(--board $props[board] --build-dir build/$target)
   local defs=("-DZMK_CONFIG='$PROJECT/zmk_keyboards'")
 
   if $WITH_UPDATE; then
@@ -712,8 +830,7 @@ _build() {
   else
     opts+=(--pristine=auto)
   fi
-
-  if (( $#with_studio )); then
+  if (( $#with_studio )) || $props[studio] && ! (( $#without_studio )); then
     opts+=(--snippet studio-rpc-usb-uart)
     defs+=(-DCONFIG_ZMK_STUDIO=y)
     if (( $#with_logging )); then
@@ -723,9 +840,8 @@ _build() {
   if (( $#with_logging )); then
     opts+=(--snippet zmk-usb-logging)
     defs+=(-DCONFIG_LOG_THREAD_ID_PREFIX=y)
-    if [[ $log_options != none ]]; then
-      echo $log_options
-      for log_opt in ${(@s/,/)log_options}; do
+    if (( ${+props[log_opts]} )); then
+      for log_opt in ${(@s/,/)props[log_opts]}; do
         defs+=("-D$log_opt=y")
       done
     fi
@@ -734,7 +850,9 @@ _build() {
     opts+=(--snippet usb-shell)
   fi
   (( $#with_pp )) && defs+=(-DEXTRA_CFLAGS=-save-temps=obj)
-  [[ $shields != none ]] && defs+=("-DSHIELD='$shields'")
+  if (( ${+props[shields]} )); then
+    defs+=("-DSHIELD='$props[shields]'")
+  fi
   if (( $#with_compile_db )); then
     defs+=(-DCMAKE_EXPORT_COMPILE_COMMANDS=ON)
     _dot_clangd
@@ -744,8 +862,10 @@ _build() {
     fi
   fi
 
-  # path=($PROTOC_INSTALL_DIR/protoc-$PROTOC_VERSION/bin $path) \
-  #     west build $opts[*] zmk/app -- $defs[*]
+  if $props[ble]; then
+    defs+=(-DEXTRA_CONF_FILE="$PROJECT/zmk_keyboards/ble_default.conf")
+  fi
+
   west build $opts[*] zmk/app -- $defs[*]
 
   if (( $#with_ram_report )); then
@@ -796,22 +916,19 @@ EOS
 # -----------------------------------
 _dist_firmware() {
   local target=$1
-  local kbd=(${(@s/:/)KEYBOARDS[$target]})
-  local board=$kbd[1]
-  local firmware_name=$kbd[2]
-  local firmware_ext=$kbd[3]
+  local -A props=("${(Pkv@)target}")
 
   cd $PROJECT
   cd zmk
   local version=$(date +"%Y%m%d")_zmk_$(git rev-parse --short HEAD)
   cd ..
   mkdir -p dist
-  local src=build/$target/zephyr/zmk.$firmware_ext
+  local src=build/$target/zephyr/zmk.$props[firmware_type]
   local variant=""
   (( $#with_logging )) && variant="_logging"
   (( $#with_shell )) && variant="_shell"
-  (( $#with_studio )) && variant="_studio"
-  local dst=dist/${firmware_name}_${version}$variant.$firmware_ext
+  (( $#with_studio )) || $props[studio] && ! (( $#without_studio )) && variant="_studio"
+  local dst=dist/${props[name]}_${version}$variant.$props[firmware_type]
   cp $src $dst
   echo $dst
 }
@@ -819,18 +936,14 @@ _dist_firmware() {
 _flash() {
   local target=$1
   local firmware=$2
-  local kbd=(${(@s/:/)KEYBOARDS[$target]})
-  local firmware_ext=$kbd[3]
-  _${os}_flash_${firmware_ext} $target $firmware
+  local -A props=("${(Pkv@)target}")
+  _${os}_flash_${props[firmware_type]} $target $firmware
 }
-
 _macos_flash_uf2() {
   local target=$1
   local firmware=$2
-  local kbd=(${(@s/:/)KEYBOARDS[$target]})
-  local board=$kbd[1]
-  local volume_name=$kbd[4]
-  local dfu_volume=/Volumes/$volume_name
+  local -A props=("${(Pkv@)target}")
+  local dfu_volume=/Volumes/$props[dfu_volume]
 
   echo -n "waiting for DFU volume [$dfu_volume] to be mounted..."
   while true; do
@@ -852,13 +965,11 @@ _macos_flash_uf2() {
 _fedora_flash_uf2() {
   local target=$1
   local firmware=$2
-  local kbd=(${(@s/:/)KEYBOARDS[$target]})
-  local board=$kbd[1]
-  local volume_name=$kbd[4]
+  local -A props=("${(Pkv@)target}")
 
   echo -n "waiting for DFU volume to be mounted..."
   while true; do
-    dfu_drive=$(/mnt/c/Windows/System32/wbem/WMIC.exe logicaldisk get deviceid, volumename | grep $volume_name | awk '{print $1}')
+    dfu_drive=$(/mnt/c/Windows/System32/wbem/WMIC.exe logicaldisk get deviceid, volumename | grep $props[dfu_volume] | awk '{print $1}')
     if [[ ! -z $dfu_drive ]]; then
       echo ""
       echo "copying firmware [$firmware] to drive [$dfu_drive]..."
@@ -880,8 +991,8 @@ _macos_flash_bin() {
 
 _fedora_flash_bin() {
   local target=$1
-  local kbd=(${(@s/:/)KEYBOARDS[$target]})
-  local hardware_id="$kbd[4]:$kbd[5]"
+  local -A props=("${(Pkv@)target}")
+  local hardware_id="$props[dfu_vid]:$props[dfu_pid]"
 
   sudo echo -n
   echo -n "waiting for target DFU device to be connected.."
