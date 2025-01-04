@@ -67,7 +67,7 @@ PROTOC_INSTALL_DIR=$PROJECT/.local
 PROTOC_VERSION=28.2
 
 _error_exit() {
-  print -r "Error: $2" >&2
+  print -Pr "%F{red}Error: $2" >&2
   exit $1
 }
 
@@ -357,8 +357,7 @@ main() {
 
   local unknown_targets=()
   for target in $TARGETS; do
-    local -A props=("${(Pkv@)target}")
-    if ! (( ${+props[name]} ));  then
+    if ! (($ALL_TARGETS[(Ie)$target])); then
       unknown_targets+=($target)
     fi
   done
@@ -612,9 +611,6 @@ _activate_direnv() {
   cd $PROJECT
   direnv allow
   eval "$(direnv export zsh)"
-  # echo $path
-  # env
-  # exit 0
 }
 
 
@@ -866,6 +862,10 @@ _build() {
     defs+=(-DEXTRA_CONF_FILE="$PROJECT/zmk_keyboards/ble_default.conf")
   fi
 
+  print -Pr  "%F{green}---------------- start west build -- command-line----------------------"
+  print -r "west build $opts[*] zmk/app -- $defs[*]"
+  print -Pr  "%F{green}-----------------------------------------------------------------------"
+
   west build $opts[*] zmk/app -- $defs[*]
 
   if (( $#with_ram_report )); then
@@ -925,10 +925,10 @@ _dist_firmware() {
   mkdir -p dist
   local src=build/$target/zephyr/zmk.$props[firmware_type]
   local variant=""
-  (( $#with_logging )) && variant="_logging"
-  (( $#with_shell )) && variant="_shell"
-  (( $#with_studio )) || $props[studio] && ! (( $#without_studio )) && variant="_studio"
-  local dst=dist/${props[name]}_${version}$variant.$props[firmware_type]
+  (( $#with_logging )) && variant="${variant}_logging"
+  (( $#with_shell )) && variant="${variant}_shell"
+  (( $#with_studio )) || $props[studio] && ! (( $#without_studio )) && variant="${variant}_studio"
+  local dst=dist/${props[name]}_${version}${variant}.$props[firmware_type]
   cp $src $dst
   echo $dst
 }
