@@ -61,6 +61,11 @@ WITH_EMACS=true
 DOCSETS_DIR=$HOME/.docsets
 WIN_USBIPD="/mnt/c/Program Files/usbipd-win/usbipd.exe"
 WIN_SUDO="/mnt/c/Windows/System32/sudo.exe"
+WIN_WMIC="/mnt/c/Windows/System32/wbem/WMIC.exe"
+WIN_TERMINAL="Microsoft/WindowsApps/wt.exe"
+WIN_SIMPLE_COM="/mnt/c/Program Files/YaSuenag/SimpleCom/SimpleCom.exe"
+WIN_COM_GREP_KEY="VID_05AC&PID_024F"
+
 # DOCSETS_DIR="$HOME/Library/Application Support/Dash/DockSets"
 ZMK_STUDIO_BRANCH=main
 PROTOC_INSTALL_DIR=$PROJECT/.local
@@ -576,7 +581,7 @@ _fedora_install_packages() {
   if [[ ! -z $winget ]]; then
     winget=${winget%$'\r'}
     winget=$(wslpath -u $winget)
-    $winget install dorssel.usbipd-win || true
+    $winget install dorssel.usbipd-win YaSuenag.SimpleCom || true
   fi
 }
 
@@ -975,7 +980,7 @@ _fedora_flash_uf2() {
 
   echo -n "waiting for DFU volume to be mounted..."
   while true; do
-    dfu_drive=$(/mnt/c/Windows/System32/wbem/WMIC.exe logicaldisk get deviceid, volumename | grep $props[dfu_volume] | awk '{print $1}')
+    dfu_drive=$($WIN_WMIC logicaldisk get deviceid, volumename | grep $props[dfu_volume] | awk '{print $1}')
     if [[ ! -z $dfu_drive ]]; then
       echo ""
       echo "copying firmware [$firmware] to drive [$dfu_drive]..."
@@ -1045,6 +1050,7 @@ _macos_log_console() {
   local not_found=true
 
   cd $PROJECT
+
   echo -n "waiting for debug output device to be connected.."
   while $not_found; do
     for tty_dev in /dev/tty.usbmodem*(N); do
@@ -1093,10 +1099,44 @@ _macos_log_console() {
   fi
 }
 
+# TODO
+# - Doesn't work if multiple ZMK keyboards are connected
 _fedora_log_console() {
-  local firmware=$1
+  local target=$1
+  local firmware=$2
+  local -A props=("${(Pkv@)target}")
+  local com_ports=()
+  local com_port
 
-  #TODO uidbipd-win
+  cd $PROJECT
+
+  echo -n "waiting for debug output device to be connected.."
+  while [[ $#com_ports = 0 ]]; do
+    com_ports=($($WIN_WMIC path Win32_SerialPort get deviceid, PNPDeviceID 2> /dev/null | grep $WIN_COM_GREP_KEY | awk '{print $1}'))
+    sleep 1
+    echo -n "."
+  done
+  com_ports=($($WIN_WMIC path Win32_SerialPort get deviceid, PNPDeviceID | grep $WIN_COM_GREP_KEY | awk '{print $1}'))
+
+  if [[ $#com_ports = 1 ]]; then
+    com_port=$com_ports[1]
+  elif [[ $#com_ports -gt 1 ]]; then
+    if (( $#with_studio )) || $props[studio] && ! (( $#without_studio )); then
+      # studio enabled
+      # 1 - studio uart
+      # 2 - loggging uart
+      com_port=$com_ports[2]
+    else
+      com_port=$com_ports[1]
+    fi
+  else
+    _error_exit 1 'logging COM port not found'
+  fi
+
+  echo "\nFound logging COM port [$com_port]. To exit tio, [F1]"
+
+  # TODO log file
+  $(wslpath $(_win_env LOCALAPPDATA))/$WIN_TERMINAL -p "Command Prompt" --title "ZMK logging" $(wslpath -w $WIN_SIMPLE_COM) $com_port
 }
 
 # TODO
@@ -1108,10 +1148,11 @@ _macos_shell_console() {
   local cu_devs=()
   local cu_dev=
 
+  cd $PROJECT
+
   if [[ $#with_logging = 0 ]]; then
     local not_found=true
 
-    cd $PROJECT
     echo -n "waiting for debug shell uart device to be connected.."
     while $not_found; do
       for cu_dev in /dev/cu.usbmodem*(N); do
@@ -1146,10 +1187,43 @@ _macos_shell_console() {
   sudo cu -l $cu_dev
 }
 
+# TODO
+# - Dosen't work if 3 (studio/logging/shell) cdc-acm-uart are enabled at the same time
+# - Doesn't work if multiple ZMK keyboards are connected
 _fedora_shell_console() {
-  local firmware=$1
+  local target=$1
+  local firmware=$2
+  local -A props=("${(Pkv@)target}")
+  local com_ports=()
+  local com_port
 
-  #TODO uidbipd-win
+  cd $PROJECT
+
+  if [[ $#with_logging = 0 ]]; then
+    echo -n "waiting for debug output device to be connected.."
+    while [[ $#com_ports = 0 ]]; do
+      com_ports=($($WIN_WMIC path Win32_SerialPort get deviceid, PNPDeviceID 2> /dev/null | grep $WIN_COM_GREP_KEY | awk '{print $1}'))
+      sleep 1
+      echo -n "."
+    done
+  fi
+
+  com_ports=($($WIN_WMIC path Win32_SerialPort get deviceid, PNPDeviceID | grep $WIN_COM_GREP_KEY | awk '{print $1}'))
+
+  if (( $#com_ports )); then
+    # last element
+    com_port=$com_ports[-1]
+  else
+    _error_exit 1 'shell COM port not found'
+  fi
+
+  echo "\nFound shell COM port [$com_port]. To exit tio, [F1]"
+
+  $(wslpath $(_win_env LOCALAPPDATA))/$WIN_TERMINAL -p "Command Prompt" --title "ZMK shell" $(wslpath -w $WIN_SIMPLE_COM) $com_port
+}
+
+_win_env() {
+  /mnt/c/Windows/System32/cmd.exe /c echo "%${1}%" 2>/dev/null | tr -d '\r'
 }
 
 main
