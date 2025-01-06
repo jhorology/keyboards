@@ -396,9 +396,10 @@ main() {
       (( $#with_shell )) && sudo echo -n
       _flash $target $firmware_file
       if (( $#with_logging )); then
-        _${os}_log_console $firmware_file
-      elif (( $#with_shell )); then
-        _${os}_shell_console $firmware_file
+        _${os}_log_console $target $firmware_file
+      fi
+      if (( $#with_shell )); then
+        _${os}_shell_console $target $firmware_file
       fi
     fi
   done
@@ -826,6 +827,7 @@ _build() {
   else
     opts+=(--pristine=auto)
   fi
+
   if (( $#with_studio )) || $props[studio] && ! (( $#without_studio )); then
     opts+=(--snippet studio-rpc-usb-uart)
     defs+=(-DCONFIG_ZMK_STUDIO=y)
@@ -833,22 +835,26 @@ _build() {
       defs+=(-DCONFIG_ZMK_STUDIO_LOG_LEVEL_DBG=y)
     fi
   fi
+
   if (( $#with_logging )); then
-    opts+=(--snippet zmk-usb-logging)
-    defs+=(-DCONFIG_LOG_THREAD_ID_PREFIX=y)
+    opts+=(--snippet usb-logging)
     if (( ${+props[log_opts]} )); then
       for log_opt in ${(@s/,/)props[log_opts]}; do
         defs+=("-D$log_opt=y")
       done
     fi
   fi
+
   if (( $#with_shell )); then
     opts+=(--snippet usb-shell)
   fi
+
   (( $#with_pp )) && defs+=(-DEXTRA_CFLAGS=-save-temps=obj)
+
   if (( ${+props[shields]} )); then
     defs+=("-DSHIELD='$props[shields]'")
   fi
+
   if (( $#with_compile_db )); then
     defs+=(-DCMAKE_EXPORT_COMPILE_COMMANDS=ON)
     _dot_clangd
@@ -1014,10 +1020,28 @@ _fedora_flash_bin() {
   done
 }
 
+_macos_open_log_window() {
+  local log_file=$1
+  local tty_dev=$2
+
+  osascript <<-EOF
+tell application "iTerm2"
+  tell current session of (create window with default profile)
+    write text "cd $PROJECT"
+    write text "tio --log --log-file=$log_file $tty_dev"
+  end tell
+end tell
+EOF
+}
+
 _macos_log_console() {
-  local firmware=$1
+  local target=$1
+  local firmware=$2
+  local -A props=("${(Pkv@)target}")
+
   local log_file=logs/${firmware:t:r}.txt
   local tty_devs=()
+  local tty_dev=
   local not_found=true
 
   cd $PROJECT
@@ -1031,25 +1055,41 @@ _macos_log_console() {
     sleep 1
     echo -n "."
   done
-  sleep 1
 
-  # may exist 2 tty devices log and studio
+  # there may be multiple tty devices studio/log/shell
   for tty_dev in /dev/tty.usbmodem*(N); do
     if [[ $tty_dev -nt $firmware ]]; then
       tty_devs+=($tty_dev)
     fi
   done
 
-  if (( $#tty_devs )); then
-    tty_devs=(${(O)tty_devs})
-    echo "found tty device [${tty_devs[1]}]"
-    # to exit tio, [Ctrl + t][q]
-    sudo chmod +urw $tty_devs[1]
-    mkdir -p logs
-    rm -f $log_file
-    tio --log --log-file=$log_file $tty_devs[1]
+  if [[ $#tty_devs = 1 ]]; then
+    tty_dev=$tty_devs[1]
+  elif [[ $#tty_devs -gt 1 ]]; then
+    # sort asc
+    tty_devs=(${(o)tty_devs})
+    if (( $#with_studio )) || $props[studio] && ! (( $#without_studio )); then
+      # studio enabled
+      # 1 - studio uart
+      # 2 - loggging uart
+      tty_dev=$tty_devs[2]
+    else
+      tty_dev=$tty_devs[1]
+    fi
   else
-    _error_exit 1 'unfound tty device'
+    _error_exit 1 'tty device not found'
+  fi
+
+  echo "\nFound tty device [$tty_dev]. To exit tio, [Ctrl + t][q]"
+  sudo chmod +ur $tty_dev
+  mkdir -p logs
+  rm -f $log_file
+
+  if (( $#with_shell )); then
+    # open with another terminal window
+    _macos_open_log_window $log_file $tty_dev
+  else
+    tio --log --log-file=$log_file $tty_dev
   fi
 }
 
@@ -1059,22 +1099,51 @@ _fedora_log_console() {
   #TODO uidbipd-win
 }
 
+# TODO
+# Dosen't work if 3 (studio/logging/usb) cdc-acm-uart are enabled at the same time
 _macos_shell_console() {
-  local firmware=$1
+  local target=$1
+  local firmware=$2
+  local -A props=("${(Pkv@)target}")
+  local cu_devs=()
+  local cu_dev=
 
-  echo -n "waiting for shell device to be connected.."
-  while true; do
-    echo -n "."
-    sleep 1
-    for cu_dev in /dev/cu.usbmodem*(N); do
-      if [[ $cu_dev -nt $firmware ]]; then
-        echo "Found cu device [$cu_dev], To exit shell, [~]<wait a second>[.][enter]"
-        sleep 3
-        sudo cu -l $cu_dev
-        return
-      fi
+  if [[ $#with_logging = 0 ]]; then
+    local not_found=true
+
+    cd $PROJECT
+    echo -n "waiting for debug shell uart device to be connected.."
+    while $not_found; do
+      for cu_dev in /dev/cu.usbmodem*(N); do
+        if [[ $cu_dev -nt $firmware ]]; then
+          not_found=false
+        fi
+      done
+      sleep 1
+      echo -n "."
     done
+  fi
+
+  # there may be multiple cu devices studio/log/shell
+  for cu_dev in /dev/cu.usbmodem*(N); do
+    if [[ $cu_dev -nt $firmware ]]; then
+      cu_devs+=($cu_dev)
+    fi
   done
+
+  if (( $#cu_devs)); then
+    # sort desc
+    echo "cu_devs=(${cu_devs})"
+    cu_devs=(${(O)cu_devs})
+    echo "sorted cu_devs=(${cu_devs})"
+    # last element
+    cu_dev=${cu_devs[1]}
+  else
+     _error_exit 1 'cu device not found'
+  fi
+
+  echo "\nFound cu device [$cu_dev]. To exit shell, [~] <wait a second> [.][enter]"
+  sudo cu -l $cu_dev
 }
 
 _fedora_shell_console() {
