@@ -64,7 +64,8 @@ WIN_SUDO="/mnt/c/Windows/System32/sudo.exe"
 WIN_WMIC="/mnt/c/Windows/System32/wbem/WMIC.exe"
 WIN_TERMINAL="Microsoft/WindowsApps/wt.exe"
 WIN_SIMPLE_COM="/mnt/c/Program Files/YaSuenag/SimpleCom/SimpleCom.exe"
-WIN_COM_GREP_KEY="VID_05AC&PID_024F"
+WIN_HARDWARE_ID0="VID_05AC&PID_024F"
+WIN_HARDWARE_ID1="VID_1D50&PID_615E"
 
 # DOCSETS_DIR="$HOME/Library/Application Support/Dash/DockSets"
 ZMK_STUDIO_BRANCH=main
@@ -1086,7 +1087,7 @@ _macos_log_console() {
     _error_exit 1 'tty device not found'
   fi
 
-  echo "\nFound tty device [$tty_dev]. To exit tio, [Ctrl + t][q]"
+  echo "\nFound tty device [$tty_dev]. To exit logging, [Ctrl + t][q]"
   sudo chmod +ur $tty_dev
   mkdir -p logs
   rm -f $log_file
@@ -1105,18 +1106,14 @@ _fedora_log_console() {
   local target=$1
   local firmware=$2
   local -A props=("${(Pkv@)target}")
-  local com_ports=()
   local com_port
 
   cd $PROJECT
 
-  echo -n "waiting for debug output device to be connected.."
-  while [[ $#com_ports = 0 ]]; do
-    com_ports=($($WIN_WMIC path Win32_SerialPort get deviceid, PNPDeviceID 2> /dev/null | grep $WIN_COM_GREP_KEY | awk '{print $1}'))
-    sleep 1
-    echo -n "."
-  done
-  com_ports=($($WIN_WMIC path Win32_SerialPort get deviceid, PNPDeviceID | grep $WIN_COM_GREP_KEY | awk '{print $1}'))
+  echo -n "waiting for logging serial device to be connected.."
+  _wait_com_port
+
+  local com_ports=($(_list_com_ports))
 
   if [[ $#com_ports = 1 ]]; then
     com_port=$com_ports[1]
@@ -1133,14 +1130,14 @@ _fedora_log_console() {
     _error_exit 1 'logging COM port not found'
   fi
 
-  echo "\nFound logging COM port [$com_port]. To exit tio, [F1]"
+  echo "\nFound logging COM port [$com_port]. To exit logging, [F1]"
 
   # TODO log file
-  $(wslpath $(_win_env LOCALAPPDATA))/$WIN_TERMINAL -p "Command Prompt" --title "ZMK logging" $(wslpath -w $WIN_SIMPLE_COM) $com_port
+  _open_windows_terminal $com_port
 }
 
 # TODO
-# Dosen't work if 3 (studio/logging/usb) cdc-acm-uart are enabled at the same time
+# Dosen't work if 3 (studio/logging/shell) cdc-acm-uart are enabled at the same time
 _macos_shell_console() {
   local target=$1
   local firmware=$2
@@ -1194,21 +1191,16 @@ _fedora_shell_console() {
   local target=$1
   local firmware=$2
   local -A props=("${(Pkv@)target}")
-  local com_ports=()
   local com_port
 
   cd $PROJECT
 
   if [[ $#with_logging = 0 ]]; then
-    echo -n "waiting for debug output device to be connected.."
-    while [[ $#com_ports = 0 ]]; do
-      com_ports=($($WIN_WMIC path Win32_SerialPort get deviceid, PNPDeviceID 2> /dev/null | grep $WIN_COM_GREP_KEY | awk '{print $1}'))
-      sleep 1
-      echo -n "."
-    done
+    echo -n "waiting for shell serial device to be connected.."
+    _wait_com_port
   fi
 
-  com_ports=($($WIN_WMIC path Win32_SerialPort get deviceid, PNPDeviceID | grep $WIN_COM_GREP_KEY | awk '{print $1}'))
+  local com_ports=($(_list_com_ports))
 
   if (( $#com_ports )); then
     # last element
@@ -1217,13 +1209,32 @@ _fedora_shell_console() {
     _error_exit 1 'shell COM port not found'
   fi
 
-  echo "\nFound shell COM port [$com_port]. To exit tio, [F1]"
+  echo "\nFound shell COM port [$com_port]. To exit shell, [F1]"
 
-  $(wslpath $(_win_env LOCALAPPDATA))/$WIN_TERMINAL -p "Command Prompt" --title "ZMK shell" $(wslpath -w $WIN_SIMPLE_COM) $com_port
+  _open_windows_terminal $com_port
 }
 
 _win_env() {
   /mnt/c/Windows/System32/cmd.exe /c echo "%${1}%" 2>/dev/null | tr -d '\r'
+}
+
+_list_com_ports() {
+  # TODOk if multiple ZMK keyboards are connected
+  $WIN_WMIC path Win32_SerialPort get deviceid, PNPDeviceID 2> /dev/null | grep -e $WIN_HARDWARE_ID0 -e $WIN_HARDWARE_ID1 | awk '{print $1}'
+}
+
+_wait_com_port() {
+  local com_ports=()
+  while [[ $#com_ports = 0 ]]; do
+    com_ports=($(_list_com_ports))
+    sleep 1
+    echo -n "."
+  done
+}
+
+_open_windows_terminal() {
+  local com_port=$1
+  $(wslpath $(_win_env LOCALAPPDATA))/$WIN_TERMINAL --window new $(wslpath -w $WIN_SIMPLE_COM) $com_port
 }
 
 main
