@@ -1136,8 +1136,6 @@ _fedora_log_console() {
   _open_windows_terminal $com_port
 }
 
-# TODO
-# Dosen't work if 3 (studio/logging/shell) cdc-acm-uart are enabled at the same time
 _macos_shell_console() {
   local target=$1
   local firmware=$2
@@ -1185,7 +1183,6 @@ _macos_shell_console() {
 }
 
 # TODO
-# - Dosen't work if 3 (studio/logging/shell) cdc-acm-uart are enabled at the same time
 # - Doesn't work if multiple ZMK keyboards are connected
 _fedora_shell_console() {
   local target=$1
