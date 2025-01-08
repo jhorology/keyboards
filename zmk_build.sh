@@ -835,7 +835,9 @@ _build() {
   fi
 
   if (( $#with_studio )) || $props[studio] && ! (( $#without_studio )); then
-    opts+=(--snippet studio-rpc-usb-uart)
+    if ! $props[ble]; then
+      opts+=(--snippet studio-rpc-usb-uart)
+    fi
     defs+=(-DCONFIG_ZMK_STUDIO=y)
     if (( $#with_logging )); then
       defs+=(-DCONFIG_ZMK_STUDIO_LOG_LEVEL_DBG=y)
@@ -1075,7 +1077,7 @@ _macos_log_console() {
   elif [[ $#tty_devs -gt 1 ]]; then
     # sort asc
     tty_devs=(${(o)tty_devs})
-    if (( $#with_studio )) || $props[studio] && ! (( $#without_studio )); then
+    if (( $#with_studio )) || $props[studio] && ! (( $#without_studio )) && ! $props[ble]; then
       # studio enabled
       # 1 - studio uart
       # 2 - loggging uart
@@ -1118,7 +1120,7 @@ _fedora_log_console() {
   if [[ $#com_ports = 1 ]]; then
     com_port=$com_ports[1]
   elif [[ $#com_ports -gt 1 ]]; then
-    if (( $#with_studio )) || $props[studio] && ! (( $#without_studio )); then
+    if (( $#with_studio )) || $props[studio] && ! (( $#without_studio )) && ! props[ble]; then
       # studio enabled
       # 1 - studio uart
       # 2 - loggging uart
