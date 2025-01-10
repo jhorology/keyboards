@@ -256,7 +256,16 @@ static int cmd_cal(const struct shell *sh, size_t argc, char **argv) {
   }
   pos_noise = max - origin;
   neg_noise = origin - min;
-  deadzone = MAX(pos_noise, neg_noise) * 3;  // noise width x 1.5
+
+  // Accroding to input_analog_axis.c
+  //
+  //       not this   <--------deadzone------->
+  //       *correct   <-deadzone->|<-deadzone->
+  //   in_min  -------------------|----------------- in_max
+  //                             mid
+  //    deadzone applied to mid position, not zero position
+
+  deadzone = MAX(pos_noise, neg_noise) * 3 / 2;  // noise x 1.5
 
   shell_print(sh,
               "Done.\n\nNext, move the ch.%d axis from end to end several times.\n"
@@ -275,23 +284,21 @@ static int cmd_cal(const struct shell *sh, size_t argc, char **argv) {
   min += pos_noise;
   max -= neg_noise;
 
-  // adjust zero position
-  if (out_min < 0 && out_max > 0) {
-    if (invert_output) {
-      pos_range = origin - min;
-      neg_range = max - origin;
-    } else {
-      pos_range = max - origin;
-      neg_range = origin - min;
-    }
+  // adjust mid position
+  if (invert_output) {
+    pos_range = origin - min;
+    neg_range = max - origin;
+  } else {
+    pos_range = max - origin;
+    neg_range = origin - min;
+  }
 
-    if (pos_range * abs(out_min) > neg_range * out_max) {
-      // offseted positive
-      max = origin + neg_range * out_max / abs(out_min);
-    } else {
-      // offseted negative
-      min = origin - pos_range * abs(out_min) / out_max;
-    }
+  if (pos_range > neg_range) {
+    // positive offset
+    max = origin + neg_range;
+  } else {
+    // negative offset
+    min = origin - pos_range;
   }
 
   analog_axis_calibration_get(data->dev, ch, &cal_data);
