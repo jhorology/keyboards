@@ -384,7 +384,7 @@ main() {
 
   #  clean build
   # -----------------------------------
-  if $WITH_UPDATE || (( $#with_clean )); then
+  if $WITH_UPDATE; then
     clean
   fi
 
@@ -828,7 +828,13 @@ _build() {
   local opts=(--board $props[board] --build-dir build/$target)
   local defs=("-DZMK_CONFIG='$PROJECT/zmk_keyboards'")
 
-  if $WITH_UPDATE; then
+  cd $PROJECT
+
+  if (( $#with_clean )); then
+    rm -rf build/$target
+  fi
+
+  if $WITH_UPDATE || ((  $#with_clean )); then
     opts+=(--pristine=always)
   else
     opts+=(--pristine=auto)
