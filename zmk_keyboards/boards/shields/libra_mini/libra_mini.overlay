@@ -185,6 +185,7 @@
     power-domain = <&{/EXT_POWER}>;
     axis-x {
       io-channels = <&adc 3>;
+      easing;
 #if JOYSTICK_DIVIDER_REGISTER_20K
       in-deadzone = <150>;
       in-min = <400>;
@@ -201,6 +202,7 @@
     };
     axis-y {
       io-channels = <&adc 4>;
+      easing;
 #if JOYSTICK_DIVIDER_REGISTER_20K
       in-deadzone = <150>;
       in-min = <400>;

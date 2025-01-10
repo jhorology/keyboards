@@ -27,6 +27,7 @@ struct analog_axis_channel_config {
   uint16_t axis;
   bool invert_input;
   bool invert_output;
+  bool easing;
 };
 
 struct analog_axis_channel_data {
@@ -132,6 +133,16 @@ static int32_t analog_axis_out_deadzone(const struct device *dev, int channel, i
     raw_val -= cal->in_deadzone;
   }
 
+  if (axis_cfg->easing) {
+    int16_t out_mid = DIV_ROUND_CLOSEST(axis_cfg->out_min + axis_cfg->out_max, 2);
+    int16_t in_mid_origin_val = raw_val - in_mid;
+    if (in_mid_origin_val >= 0) {
+      return out_mid + DIV_ROUND_CLOSEST(in_mid_origin_val * in_mid_origin_val * 2 * out_range,
+                                         in_range * in_range);
+    }
+    return out_mid - DIV_ROUND_CLOSEST(in_mid_origin_val * in_mid_origin_val * 2 * out_range,
+                                       in_range * in_range);
+  }
   return DIV_ROUND_CLOSEST((raw_val - in_min) * out_range, in_range) + axis_cfg->out_min;
 }
 
@@ -143,6 +154,10 @@ static int32_t analog_axis_out_linear(const struct device *dev, int channel, int
   int16_t in_range = cal->in_max - cal->in_min;
   int16_t out_range = axis_cfg->out_max - axis_cfg->out_min;
 
+  if (axis_cfg->easing) {
+    int16_t in_val = raw_val - cal->in_min;
+    return DIV_ROUND_CLOSEST(in_val * in_val * out_range, in_range * in_range) + axis_cfg->out_min;
+  }
   return DIV_ROUND_CLOSEST((raw_val - cal->in_min) * out_range, in_range) + axis_cfg->out_min;
 }
 
@@ -356,6 +371,7 @@ static int analog_axis_pm_action(const struct device *dev, enum pm_device_action
     .axis = DT_PROP(node_id, zephyr_axis),            \
     .invert_input = DT_PROP(node_id, invert_input),   \
     .invert_output = DT_PROP(node_id, invert_output), \
+    .easing = DT_PROP(node_id, easing),               \
   }
 
 #define ANALOG_AXIS_CHANNEL_CAL_DEF(node_id)      \

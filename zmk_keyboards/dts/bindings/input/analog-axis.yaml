@@ -99,3 +99,8 @@ child-binding:
       type: boolean
       description: |
         If set, invert the output value.
+
+    easing:
+      type: boolean
+      description: |
+        If set, a quadratic easing function is applied between the input and output.
