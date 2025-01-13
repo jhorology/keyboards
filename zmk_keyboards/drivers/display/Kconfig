@@ -4,5 +4,6 @@
 if DISPLAY
 
 rsource "Kconfig.uc8175"
+rsource "Kconfig.ls0xx"
 
 endif # DISPLAY

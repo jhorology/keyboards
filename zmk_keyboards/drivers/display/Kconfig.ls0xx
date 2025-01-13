@@ -1,0 +1,26 @@
+# Copyright (c) 2020 Rohit Gujarathi
+# SPDX-License-Identifier: Apache-2.0
+
+config LS0XX_YA
+    bool "LS0XX memory display controller (yet another) driver"
+    default y
+    depends on DT_HAS_SHARP_LS0XX_YA_ENABLED
+    select SPI
+    help
+      Enable driver for sharp memory display series LS0XXX7DXXX
+
+if LS0XX_YA
+
+config LS0XX_VCOM_THREAD_STACK_SIZE
+    int "Stack size for the ls0xx VCOM thread"
+    default 256
+    help
+      Size of the stack used for the VCOM thread.
+
+config LS0XX_VCOM_THREAD_PRIORITY
+    int "Priority for the ls0xx VCOM thread"
+    default 0
+    help
+      Priority level of the ls0xx VCOM thread.
+
+endif

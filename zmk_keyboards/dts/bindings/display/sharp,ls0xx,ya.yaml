@@ -1,0 +1,33 @@
+# Copyright (c) 2020, Rohit Gujarathi
+# SPDX-License-Identifier: Apache-2.0
+
+description: Sharp memory display controller
+
+compatible: "sharp,ls0xx,ya"
+
+include: [spi-device.yaml, display-controller.yaml]
+
+properties:
+  extcomin-gpios:
+    type: phandle-array
+    description: EXTCOMIN pin
+
+      The EXTCOMIN pin is where a square pulse for toggling VCOM will
+      be given
+
+  com-frequency:
+    type: int
+    default: 30
+    description: fCOM prolarity inversion frequency
+
+      The frequency with which the EXTCOMIN pin or M1 bit should be toggled. See
+      datasheet of particular display. Higher frequency gives better
+      contrast while low frequency saves power.
+
+  disp-en-gpios:
+    type: phandle-array
+    description: DISPLAY pin
+
+      The DISPLAY pin controls if the LCD displays memory contents or
+      white screen. If defined, the pin will be set high during driver
+      initialization. display blanking apis can be used to control it.
