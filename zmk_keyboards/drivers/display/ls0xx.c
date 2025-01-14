@@ -48,7 +48,12 @@ struct ls0xx_data {
   bool com_state;
   struct k_mutex lock;
   struct k_thread thread;
+  struct k_timer timer;
   K_KERNEL_STACK_MEMBER(thread_stack, CONFIG_LS0XX_VCOM_THREAD_STACK_SIZE);
+#if IS_ENABLED(CONFIG_PM_DEVICE)
+  atomic_t suspended;
+  struct k_sem wakeup;
+#endif
 };
 
 static inline int _spi_line_data(const struct device *dev, uint16_t start_line, uint16_t num_lines,
@@ -132,6 +137,21 @@ static inline int _spi_cmd(const struct device *dev, uint8_t cmd) {
   return _spi_cmd_data(dev, cmd, 0, 0, NULL);
 }
 
+static void _start_timer(const struct device *dev) {
+  const struct ls0xx_config *config = dev->config;
+  struct ls0xx_data *data = dev->data;
+
+  if (config->extcomin_gpio != NULL) {
+    // EXTMODE
+    k_timer_start(&data->timer, K_USEC(USEC_PER_SEC / config->com_frequency),
+                  K_USEC(USEC_PER_SEC / config->com_frequency));
+  } else {
+    // none EXTMODE
+    k_timer_start(&data->timer, K_USEC(1000 * 1000 / config->com_frequency / 2),
+                  K_USEC(USEC_PER_SEC / config->com_frequency / 2));
+  }
+}
+
 /* Driver will handle VCOM toggling */
 static void vcom_toggle_thread(void *arg1, void *arg2, void *arg3) {
   const struct device *dev = arg1;
@@ -141,17 +161,27 @@ static void vcom_toggle_thread(void *arg1, void *arg2, void *arg3) {
   if (config->extcomin_gpio != NULL) {
     // EXTMODE
     while (1) {
+#if IS_ENABLED(CONFIG_PM_DEVICE)
+      if (atomic_get(&data->suspended) == 1) {
+        k_sem_take(&data->wakeup, K_FOREVER);
+      }
+#endif
       gpio_pin_toggle_dt(config->extcomin_gpio);
       k_usleep(3);
       gpio_pin_toggle_dt(config->extcomin_gpio);
-      k_msleep(1000 / config->com_frequency);
+      k_timer_status_sync(&data->timer);
     }
   } else {
     // none EXTMODE
     while (1) {
+#if IS_ENABLED(CONFIG_PM_DEVICE)
+      if (atomic_get(&data->suspended) == 1) {
+        k_sem_take(&data->wakeup, K_FOREVER);
+      }
+#endif
       data->com_state = !data->com_state;
       _spi_cmd(dev, LS0XX_CMD_HOLD);
-      k_msleep(1000 / config->com_frequency / 2);
+      k_timer_status_sync(&data->timer);
     }
   }
 }
@@ -287,6 +317,16 @@ static int ls0xx_init(const struct device *dev) {
   }
 
   k_mutex_init(&data->lock);
+  k_timer_init(&data->timer, NULL, NULL);
+#if IS_ENABLED(CONFIG_PM_DEVICE)
+  k_sem_init(&data->wakeup, 0, 1);
+#endif
+
+  int err = _spi_cmd(dev, LS0XX_CMD_CLEAR);
+  if (err < 0) {
+    LOG_ERR("Failed to clear display");
+    return err;
+  }
 
   /* Start thread for toggling VCOM */
   k_tid_t tid = k_thread_create(
@@ -294,8 +334,19 @@ static int ls0xx_init(const struct device *dev) {
     vcom_toggle_thread, (void *)dev, NULL, NULL, CONFIG_LS0XX_VCOM_THREAD_PRIORITY, 0, K_NO_WAIT);
   k_thread_name_set(tid, "ls0xx_vcom");
 
-  /* Clear display else it shows random data */
-  return _spi_cmd(dev, LS0XX_CMD_CLEAR);
+#if IS_ENABLED(CONFIG_PM_DEVICE_RUNTIM)
+
+  atomic_set(&data->suspended, 1);
+
+  pm_device_init_suspended(dev);
+  err = pm_device_runtime_enable(dev);
+  if (err < 0) {
+    LOG_ERR("Failed to enable runtime power management");
+  }
+#else
+  _start_timer(dev);
+#endif
+  return err;
 }
 
 static struct display_driver_api ls0xx_driver_api = {
@@ -311,17 +362,24 @@ static struct display_driver_api ls0xx_driver_api = {
   .set_orientation = ls0xx_set_orientation,
 };
 
-#ifdef CONFIG_PM_DEVICE
+#if IS_ENABLED(CONFIG_PM_DEVICE)
+
+// TODO for the device that always powered,
+// investigate whether porlarity inversion can be stopped if the display is cleared
+
 static int ls0xx_pm_action(const struct device *dev, enum pm_device_action action) {
-  const struct ls0xx_config *config = dev->config;
-  struct lx0xx_data *data = dev->data;
+  struct ls0xx_data *data = dev->data;
 
   switch (action) {
     case PM_DEVICE_ACTION_SUSPEND:
-      // TODO
+      atomic_set(&data->suspended, 1);
+      k_timer_stop(&data->timer);
+      _spi_cmd(dev, LS0XX_CMD_CLEAR);
       break;
     case PM_DEVICE_ACTION_RESUME:
-      // TODO
+      _start_timer(dev);
+      atomic_set(&data->suspended, 0);
+      k_sem_give(&data->wakeup);
       break;
     default:
       return -ENOTSUP;
