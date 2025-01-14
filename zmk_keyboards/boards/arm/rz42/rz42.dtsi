@@ -9,6 +9,12 @@
 #include <dt-bindings/led/led.h>
 #include "rz42-pinctrl.dtsi"
 
+/*
+ *
+ */
+#define USE_CUSTOM_STATUS_SCREEN 0
+
+
 / {
   chosen {
     zephyr,code-partition = &code_partition;
@@ -174,6 +180,8 @@ nice_view_spi: &spi0 {
   pinctrl-1 = <&spi0_sleep>;
   pinctrl-names = "default", "sleep";
   cs-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
+
+#if USE_CUSTOM_STATUS_SCREEN
   nice_view: ls0xx@0 {
     compatible = "sharp,ls0xx,ya";
     spi-max-frequency = <1000000>;
@@ -181,6 +189,7 @@ nice_view_spi: &spi0 {
     width = <160>;
     height = <68>;
   };
+#endif
 };
 
 /* spi for led strip */

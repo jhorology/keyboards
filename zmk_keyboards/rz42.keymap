@@ -341,3 +341,12 @@
       ;
   };
 };
+
+/* custom ls0xx driver */
+&nice_view {
+  compatible = "sharp,ls0xx,ya";
+
+  /* for debug */
+  // default 30
+  // com-frequency = <60>;
+};

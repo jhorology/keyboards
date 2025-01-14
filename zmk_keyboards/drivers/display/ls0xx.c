@@ -140,16 +140,8 @@ static inline int _spi_cmd(const struct device *dev, uint8_t cmd) {
 static void _start_timer(const struct device *dev) {
   const struct ls0xx_config *config = dev->config;
   struct ls0xx_data *data = dev->data;
-
-  if (config->extcomin_gpio != NULL) {
-    // EXTMODE
-    k_timer_start(&data->timer, K_USEC(USEC_PER_SEC / config->com_frequency),
-                  K_USEC(USEC_PER_SEC / config->com_frequency));
-  } else {
-    // none EXTMODE
-    k_timer_start(&data->timer, K_USEC(USEC_PER_SEC / config->com_frequency / 2),
-                  K_USEC(USEC_PER_SEC / config->com_frequency / 2));
-  }
+  k_timer_start(&data->timer, K_USEC(USEC_PER_SEC / config->com_frequency / 2),
+                K_USEC(USEC_PER_SEC / config->com_frequency / 2));
 }
 
 /* Driver will handle VCOM toggling */
@@ -158,31 +150,22 @@ static void vcom_toggle_thread(void *arg1, void *arg2, void *arg3) {
   const struct ls0xx_config *config = dev->config;
   struct ls0xx_data *data = dev->data;
 
-  if (config->extcomin_gpio != NULL) {
-    // EXTMODE
-    while (1) {
+  // EXTMODE
+  while (1) {
 #if IS_ENABLED(CONFIG_PM_DEVICE)
-      if (atomic_get(&data->suspended) == 1) {
-        k_sem_take(&data->wakeup, K_FOREVER);
-      }
-#endif
-      gpio_pin_toggle_dt(config->extcomin_gpio);
-      k_usleep(3);
-      gpio_pin_toggle_dt(config->extcomin_gpio);
-      k_timer_status_sync(&data->timer);
+    if (atomic_get(&data->suspended) == 1) {
+      k_sem_take(&data->wakeup, K_FOREVER);
     }
-  } else {
-    // none EXTMODE
-    while (1) {
-#if IS_ENABLED(CONFIG_PM_DEVICE)
-      if (atomic_get(&data->suspended) == 1) {
-        k_sem_take(&data->wakeup, K_FOREVER);
-      }
 #endif
+    if (config->extcomin_gpio != NULL) {
+      // EXTMODE
+      gpio_pin_toggle_dt(config->extcomin_gpio);
+    } else {
+      // none EXTMODE
       data->vcom_flag ^= LS0XX_BIT_VCOM;
       _spi_cmd(dev, LS0XX_CMD_HOLD);
-      k_timer_status_sync(&data->timer);
     }
+    k_timer_status_sync(&data->timer);
   }
 }
 

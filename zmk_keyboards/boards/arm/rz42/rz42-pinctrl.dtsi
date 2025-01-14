@@ -4,6 +4,7 @@
  */
 
 &pinctrl {
+
   /* spi0 for nice!view comaptible display */
   spi0_default: spi0_default {
     group1 {
