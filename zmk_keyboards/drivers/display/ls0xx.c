@@ -45,7 +45,7 @@ struct ls0xx_config {
 };
 
 struct ls0xx_data {
-  bool com_state;
+  uint8_t vcom_flag;
   struct k_mutex lock;
   struct k_thread thread;
   struct k_timer timer;
@@ -95,16 +95,13 @@ static int _spi_cmd_data(const struct device *dev, uint8_t cmd, uint16_t start_l
   const struct ls0xx_config *config = dev->config;
   struct ls0xx_data *data = dev->data;
 
-  uint8_t cmd_buf[2] = {cmd, 0};
+  uint8_t cmd_buf[2] = {cmd + data->vcom_flag, 0};
   struct spi_buf spi_cmd_buf = {.buf = cmd_buf};
   struct spi_buf_set spi_cmd_buf_set = {.buffers = &spi_cmd_buf, .count = 1};
   int err = 0;
 
-  if (data->com_state) {
-    cmd_buf[0] += LS0XX_BIT_VCOM;
-  }
-
   k_mutex_lock(&data->lock, K_FOREVER);
+  LOG_DBG("start > command %d", cmd);
   switch (cmd) {
     case LS0XX_CMD_HOLD:
       spi_cmd_buf.len = 2;
@@ -128,8 +125,8 @@ static int _spi_cmd_data(const struct device *dev, uint8_t cmd, uint16_t start_l
       break;
   }
   spi_release_dt(&config->bus);
+  LOG_DBG("end   < command %d", cmd);
   k_mutex_unlock(&data->lock);
-
   return err;
 }
 
@@ -179,7 +176,7 @@ static void vcom_toggle_thread(void *arg1, void *arg2, void *arg3) {
         k_sem_take(&data->wakeup, K_FOREVER);
       }
 #endif
-      data->com_state = !data->com_state;
+      data->vcom_flag ^= LS0XX_BIT_VCOM;
       _spi_cmd(dev, LS0XX_CMD_HOLD);
       k_timer_status_sync(&data->timer);
     }
@@ -317,6 +314,7 @@ static int ls0xx_init(const struct device *dev) {
   }
 
   k_mutex_init(&data->lock);
+
   k_timer_init(&data->timer, NULL, NULL);
 #if IS_ENABLED(CONFIG_PM_DEVICE)
   k_sem_init(&data->wakeup, 0, 1);
@@ -401,7 +399,7 @@ static int ls0xx_pm_action(const struct device *dev, enum pm_device_action actio
   static const struct ls0xx_config ls0xx_config_##n = {                                   \
     .width = DT_INST_PROP(n, width),                                                      \
     .height = DT_INST_PROP(n, height),                                                    \
-    .bus = SPI_DT_SPEC_INST_GET(0,                                                        \
+    .bus = SPI_DT_SPEC_INST_GET(n,                                                        \
                                 SPI_OP_MODE_MASTER | SPI_WORD_SET(8) | SPI_TRANSFER_LSB | \
                                   SPI_CS_ACTIVE_HIGH | SPI_HOLD_ON_CS | SPI_LOCK_ON,      \
                                 0),                                                       \
