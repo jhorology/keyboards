@@ -95,13 +95,16 @@ static int _spi_cmd_data(const struct device *dev, uint8_t cmd, uint16_t start_l
   const struct ls0xx_config *config = dev->config;
   struct ls0xx_data *data = dev->data;
 
-  uint8_t cmd_buf[2] = {cmd + data->vcom_flag, 0};
+  uint8_t cmd_buf[2];
   struct spi_buf spi_cmd_buf = {.buf = cmd_buf};
   struct spi_buf_set spi_cmd_buf_set = {.buffers = &spi_cmd_buf, .count = 1};
   int err = 0;
 
   k_mutex_lock(&data->lock, K_FOREVER);
   LOG_DBG("start > command %d", cmd);
+
+  cmd_buf[0] = cmd + data->vcom_flag;
+
   switch (cmd) {
     case LS0XX_CMD_HOLD:
       spi_cmd_buf.len = 2;

@@ -165,7 +165,7 @@ declare -A rz42l=(
   [board]=rz42_left
   [firmware_type]=uf2
   [dfu_volume]=RZ42_L
-  [log_opts]=CONFIG_INPUT_LOG_LEVEL_DBG
+  [log_opts]="CONFIG_INPUT_LOG_LEVEL_DBG,CONFIG_DISPLAY_LOG_LEVEL_DBG"
 )
 
 declare -A rz42r=(
@@ -175,7 +175,7 @@ declare -A rz42r=(
   [board]=rz42_right
   [firmware_type]=uf2
   [dfu_volume]=RZ42_R
-  [log_opts]=CONFIG_INPUT_LOG_LEVEL_DBG
+  [log_opts]="CONFIG_INPUT_LOG_LEVEL_DBG,CONFIG_DISPLAY_LOG_LEVEL_DBG"
 )
 
 declare -A q60=(
