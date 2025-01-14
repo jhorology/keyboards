@@ -147,7 +147,7 @@ static void _start_timer(const struct device *dev) {
                   K_USEC(USEC_PER_SEC / config->com_frequency));
   } else {
     // none EXTMODE
-    k_timer_start(&data->timer, K_USEC(1000 * 1000 / config->com_frequency / 2),
+    k_timer_start(&data->timer, K_USEC(USEC_PER_SEC / config->com_frequency / 2),
                   K_USEC(USEC_PER_SEC / config->com_frequency / 2));
   }
 }
