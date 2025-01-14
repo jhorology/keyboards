@@ -54,7 +54,7 @@ struct analog_axis_data {
 
   K_KERNEL_STACK_MEMBER(thread_stack, CONFIG_INPUT_ANALOG_AXIS_THREAD_STACK_SIZE);
 
-#ifdef CONFIG_PM_DEVICE
+#if IS_ENABLED(CONFIG_PM_DEVICE)
   atomic_t suspended;
   struct k_sem wakeup;
 #endif
@@ -288,7 +288,7 @@ static void analog_axis_thread(void *arg1, void *arg2, void *arg3) {
   }
 
   while (true) {
-#ifdef CONFIG_PM_DEVICE
+#if IS_ENABLED(CONFIG_PM_DEVICE)
     if (atomic_get(&data->suspended) == 1) {
       k_sem_take(&data->wakeup, K_FOREVER);
     }
@@ -306,7 +306,7 @@ static int analog_axis_init(const struct device *dev) {
   k_sem_init(&data->cal_lock, 1, 1);
   k_timer_init(&data->timer, NULL, NULL);
 
-#ifdef CONFIG_PM_DEVICE
+#if IS_ENABLED(CONFIG_PM_DEVICE)
   k_sem_init(&data->wakeup, 0, 1);
 #endif
 
@@ -320,11 +320,7 @@ static int analog_axis_init(const struct device *dev) {
 
   k_thread_name_set(&data->thread, dev->name);
 
-#ifndef CONFIG_PM_DEVICE_RUNTIME
-  const struct analog_axis_config *cfg = dev->config;
-
-  k_timer_start(&data->timer, K_MSEC(cfg->poll_period_ms), K_MSEC(cfg->poll_period_ms));
-#else
+#if IS_ENABLED(CONFIG_PM_DEVICE_RUNTIM)
   int ret;
 
   atomic_set(&data->suspended, 1);
@@ -335,12 +331,16 @@ static int analog_axis_init(const struct device *dev) {
     LOG_ERR("Failed to enable runtime power management");
     return ret;
   }
+#else
+  const struct analog_axis_config *cfg = dev->config;
+
+  k_timer_start(&data->timer, K_MSEC(cfg->poll_period_ms), K_MSEC(cfg->poll_period_ms));
 #endif
 
   return 0;
 }
 
-#ifdef CONFIG_PM_DEVICE
+#if IS_ENABLED(CONFIG_PM_DEVICE)
 static int analog_axis_pm_action(const struct device *dev, enum pm_device_action action) {
   const struct analog_axis_config *cfg = dev->config;
   struct analog_axis_data *data = dev->data;
