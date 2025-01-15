@@ -13,7 +13,7 @@
     status = "okay";
 
     reg = <0>;
-    spi-max-frequency = <4000000>;
+    spi-max-frequency = <8000000>;
 
     width = <80>;
     height = <128>;
