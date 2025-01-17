@@ -139,10 +139,12 @@ lv_obj_t *zmk_lv_usb_status_create(lv_obj_t *parent, lv_obj_t *(*container_defau
 
   lv_obj_t *title_label = lv_label_create(container);
   lv_obj_set_style_text_font(title_label, &cozetta_icons_13, 0);
-  lv_label_set_text_static(title_label, NF_DEV_GIT_BRANCH);
+  // lv_label_set_text_static(title_label, NF_DEV_GIT_BRANCH);
+  lv_label_set_text(title_label, NF_DEV_GIT_BRANCH);
 
   lv_obj_t *icon_label = lv_label_create(container);
   lv_obj_set_style_text_font(icon_label, &cozetta_icons_13, 0);
+  lv_label_set_text(icon_label, " ");
 
   user_data.title_label = title_label;
   user_data.icon_label = icon_label;

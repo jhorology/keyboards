@@ -4,30 +4,30 @@
 if BOARD_RZ42_LEFT
 
 config ZMK_KEYBOARD_NAME
-    default "RZ42"
+  default "RZ42"
 
 endif # BOARD_RZ42_LEFT
 
 if BOARD_RZ42_LEFT || BOARD_RZ42_RIGHT
 
 config BOARD_ENABLE_DCDC
-    bool "Enable DCDC mode"
-    select SOC_DCDC_NRF52X
-    default y
+  bool "Enable DCDC mode"
+  select SOC_DCDC_NRF52X
+  default y
 
 config BOARD_ENABLE_DCDC_HV
-    bool "Enable High Voltage DCDC converter"
-    default y
-    select SOC_DCDC_NRF52X_HV
+  bool "Enable High Voltage DCDC converter"
+  default y
+  select SOC_DCDC_NRF52X_HV
 
 if USB_DEVICE_STACK
 
 config USB_NRFX
-    default y
+  default y
 
 endif # USB_DEVICE_STACK
 
 config BT_CTLR
-    default BT
+  default BT
 
 endif # BOARD_RZ42_LEFT || BOARD_RZ42_RIGHT

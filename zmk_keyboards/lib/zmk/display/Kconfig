@@ -2,12 +2,13 @@
 # SPDX-License-Identifier: MIT
 
 config ZMK_CUSTOM_KEYBOARD_LOGO
-    bool "Enable custom keyboard logo"
+  bool "Enable custom keyboard logo"
 
 config ZMK_WIDGET_ENDPOINT_INDICATOR
-    bool "Enable indicating selected endpoint"
+  bool "Enable indicating selected endpoint"
 
 rsource "Kconfig.80x128_mono"
+rsource "Kconfig.68x160_mono"
 rsource "widgets/Kconfig"
 rsource "fonts/Kconfig"
 rsource "img/Kconfig"

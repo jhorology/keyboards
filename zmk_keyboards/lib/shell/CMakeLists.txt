@@ -1,4 +1,2 @@
-if (CONFIG_CUSTOM_SHELL_CMD)
-  zephyr_library_sources_ifdef(CONFIG_PICOSDK_USE_FLASH rp2flash.c)
-  zephyr_library_sources_ifdef(CONFIG_INPUT_ANALOG_AXIS analog_axis.c)
-endif()
+zephyr_library_sources_ifdef(CONFIG_RPS_FLASH_INFO_SHELL rp2flash.c)
+zephyr_library_sources_ifdef(CONFIG_INPUT_ANALOG_AXIS_SHELL analog_axis.c)

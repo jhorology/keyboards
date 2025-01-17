@@ -1,3 +1,16 @@
 config CUSTOM_SHELL_CMD
-    bool "Enable custom shell command"
-    default y if SHELL
+  bool "Enable custom shell command"
+  default y
+  depends on SHELL
+
+config RP2_FLASH_INFO_SHELL
+  bool "rp2 flash info shell"
+  default y
+  depends on CUSTOM_SHELL_CMD
+  depends on PICOSDK_USE_FLASH
+
+config INPUT_ANALOG_AXIS_SHELL
+  bool "input analog-axis shell"
+  default y
+  depends on CUSTOM_SHELL_CMD
+  depends on INPUT_ANALOG_AXIS

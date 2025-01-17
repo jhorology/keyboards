@@ -344,9 +344,22 @@
 
 /* custom ls0xx driver */
 &nice_view {
-  compatible = "sharp,ls0xx,ya";
-
+  // compatible = "sharp,ls0xx,ya";
   /* for debug */
   // default 30
-  // com-frequency = <60>;
+  com-frequency = <35>;
+
+  /* rotated 90 degrees */
+  // rotated=<90>;
+  // width=<68>;
+  // height=<160>;
+
+  /* rotated 180 degrees */
+  // rotated=<180>;
+
+  /* rotated 270 degrees */
+  // rotated=<270>;
+  // width=<68>;
+  // height=<160>;
+
 };
