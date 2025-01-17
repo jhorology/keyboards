@@ -24,6 +24,9 @@ properties:
       datasheet of particular display. Higher frequency gives better
       contrast while low frequency saves power.
 
+      According to the LS011B specifications, the recommended value is 28.5Hz to 35Hz
+      Display refresh rate is twice of fCOM.
+
   disp-en-gpios:
     type: phandle-array
     description: DISPLAY pin
@@ -31,3 +34,13 @@ properties:
       The DISPLAY pin controls if the LCD displays memory contents or
       white screen. If defined, the pin will be set high during driver
       initialization. display blanking apis can be used to control it.
+
+  rotated:
+    type: int
+    default: 0
+    enum: [0, 90, 180, 270]
+    description:  Rotated degrees
+
+      How many degrees the display is roated from spec standard.
+      If selected 90 or 270, the width and height propertis are
+      actual rotated values, not the display spec values.

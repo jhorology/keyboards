@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include "zephyr/devicetree.h"
+#include "zephyr/kernel.h"
 #define DT_DRV_COMPAT sharp_ls0xx_ya
 
 #include <zephyr/logging/log.h>
@@ -35,6 +37,8 @@ LOG_MODULE_REGISTER(ls0xx, CONFIG_DISPLAY_LOG_LEVEL);
 
 #define LS0XX_BIT_VCOM 0x02
 
+enum screen_rotated { LS0XX_ROT_0, LS0XX_ROT_90, LS0XX_ROT_180, LS0XX_ROT_270 };
+
 struct ls0xx_config {
   struct spi_dt_spec bus;
   const struct gpio_dt_spec *disp_en_gpio;
@@ -42,56 +46,54 @@ struct ls0xx_config {
   uint16_t width;
   uint16_t height;
   uint8_t com_frequency;
+  enum screen_rotated rotated;
+  uint16_t line_size;
+  uint16_t num_lines;
 };
 
 struct ls0xx_data {
   uint8_t vcom_flag;
-  struct k_mutex lock;
   struct k_thread thread;
   struct k_timer timer;
-  K_KERNEL_STACK_MEMBER(thread_stack, CONFIG_LS0XX_VCOM_THREAD_STACK_SIZE);
+  atomic_t blanking;
 #if IS_ENABLED(CONFIG_PM_DEVICE)
   atomic_t suspended;
   struct k_sem wakeup;
 #endif
+  struct k_mutex lock;
+  uint8_t *buffer;
+  bool *dirty;
+  K_KERNEL_STACK_MEMBER(thread_stack, CONFIG_LS0XX_THREAD_STACK_SIZE);
 };
 
-static inline int _spi_line_data(const struct device *dev, uint16_t start_line, uint16_t num_lines,
-                                 const uint8_t *line_data) {
+static inline uint8_t _reverse_bits(uint8_t d) {
+  d = ((d & 0x0f) << 4) | ((d >> 4) & 0x0f);
+  d = ((d & 0x33) << 2) | ((d >> 2) & 0x33);
+  d = ((d & 0x55) << 1) | ((d >> 1) & 0x55);
+  return d;
+}
+
+static inline int _spi_line_data_write(const struct device *dev, uint8_t line) {
   const struct ls0xx_config *config = dev->config;
-  uint8_t ln = start_line;
+  const struct ls0xx_data *data = dev->data;
+  uint8_t ln = line + 1;
   uint8_t dummy = 27;
+
   struct spi_buf line_buf[3] = {
-    {
-      .len = sizeof(ln),
-      .buf = &ln,
-    },
-    {.len = config->width / LS0XX_PIXELS_PER_BYTE},
-    {
-      .len = sizeof(dummy),
-      .buf = &dummy,
-    },
+    {.len = 1, .buf = &ln},
+    {.len = config->line_size, .buf = &data->buffer[config->line_size * line]},
+    {.len = 1, .buf = &dummy},
   };
+
   struct spi_buf_set line_set = {
     .buffers = line_buf,
     .count = ARRAY_SIZE(line_buf),
   };
-  int err = 0;
 
-  /* Send each line to the screen including
-   * the line number and dummy bits
-   */
-  for (; ln <= start_line + num_lines - 1; ln++) {
-    line_buf[1].buf = (uint8_t *)line_data;
-    err |= spi_write_dt(&config->bus, &line_set);
-    line_data += config->width / LS0XX_PIXELS_PER_BYTE;
-  }
-
-  return err;
+  return spi_write_dt(&config->bus, &line_set);
 }
 
-static int _spi_cmd_data(const struct device *dev, uint8_t cmd, uint16_t start_line,
-                         uint16_t num_lines, const uint8_t *line_data) {
+static int _spi_cmd_write(const struct device *dev, uint8_t cmd) {
   const struct ls0xx_config *config = dev->config;
   struct ls0xx_data *data = dev->data;
 
@@ -100,25 +102,50 @@ static int _spi_cmd_data(const struct device *dev, uint8_t cmd, uint16_t start_l
   struct spi_buf_set spi_cmd_buf_set = {.buffers = &spi_cmd_buf, .count = 1};
   int err = 0;
 
-  k_mutex_lock(&data->lock, K_FOREVER);
-  LOG_DBG("start > command %d", cmd);
-
-  cmd_buf[0] = cmd + data->vcom_flag;
-
   switch (cmd) {
     case LS0XX_CMD_HOLD:
+      cmd_buf[0] = cmd + data->vcom_flag;
       spi_cmd_buf.len = 2;
       err = spi_write_dt(&config->bus, &spi_cmd_buf_set);
       break;
-    case LS0XX_CMD_CLEAR:
-      spi_cmd_buf.len = 2;
-      err = spi_write_dt(&config->bus, &spi_cmd_buf_set);
-      break;
-    case LS0XX_CMD_UPDATE:
-      spi_cmd_buf.len = 1;
-      err = spi_write_dt(&config->bus, &spi_cmd_buf_set);
 
-      err |= _spi_line_data(dev, start_line, num_lines, line_data);
+    case LS0XX_CMD_CLEAR:
+      cmd_buf[0] = cmd + data->vcom_flag;
+      spi_cmd_buf.len = 2;
+      err = spi_write_dt(&config->bus, &spi_cmd_buf_set);
+      break;
+
+    case LS0XX_CMD_UPDATE: {
+      bool is_dirty = false;
+
+      /* lock buffer  */
+      k_mutex_lock(&data->lock, K_FOREVER);
+
+      for (uint8_t line = 0; line < config->num_lines; line++) {
+        if (data->dirty[line]) {
+          LOG_DBG("cmd update line: %d", line);
+          /* start update command */
+          if (!is_dirty) {
+            cmd_buf[0] = cmd + data->vcom_flag;
+            spi_cmd_buf.len = 1;
+            err = spi_write_dt(&config->bus, &spi_cmd_buf_set);
+            is_dirty = true;
+          }
+
+          /* send one line data */
+          err |= _spi_line_data_write(dev, line);
+          data->dirty[line] = false;
+        }
+      }
+
+      /* unlock buffer  */
+      k_mutex_unlock(&data->lock);
+
+      /* send hold command instead of update command */
+      if (!is_dirty) {
+        cmd_buf[0] = LS0XX_CMD_HOLD + data->vcom_flag;
+        spi_cmd_buf.len = 2;
+      }
 
       /* Send another trailing 8 bits for the last line
        * These can be any bits, it does not matter
@@ -126,102 +153,232 @@ static int _spi_cmd_data(const struct device *dev, uint8_t cmd, uint16_t start_l
        */
       err |= spi_write_dt(&config->bus, &spi_cmd_buf_set);
       break;
+    }
   }
   spi_release_dt(&config->bus);
-  LOG_DBG("end   < command %d", cmd);
-  k_mutex_unlock(&data->lock);
+
   return err;
 }
 
-static inline int _spi_cmd(const struct device *dev, uint8_t cmd) {
-  return _spi_cmd_data(dev, cmd, 0, 0, NULL);
-}
-
-static void _start_timer(const struct device *dev) {
+static void _timer_start(const struct device *dev) {
   const struct ls0xx_config *config = dev->config;
   struct ls0xx_data *data = dev->data;
   k_timer_start(&data->timer, K_USEC(USEC_PER_SEC / config->com_frequency / 2),
                 K_USEC(USEC_PER_SEC / config->com_frequency / 2));
 }
 
-/* Driver will handle VCOM toggling */
-static void vcom_toggle_thread(void *arg1, void *arg2, void *arg3) {
-  const struct device *dev = arg1;
+static int _buffer_rot_0_write(const struct device *dev, const uint16_t x, const uint16_t y,
+                               const struct display_buffer_descriptor *desc, const void *buf) {
   const struct ls0xx_config *config = dev->config;
   struct ls0xx_data *data = dev->data;
 
-  // EXTMODE
-  while (1) {
-#if IS_ENABLED(CONFIG_PM_DEVICE)
-    if (atomic_get(&data->suspended) == 1) {
-      k_sem_take(&data->wakeup, K_FOREVER);
-    }
-#endif
-    if (config->extcomin_gpio != NULL) {
-      // EXTMODE
-      gpio_pin_toggle_dt(config->extcomin_gpio);
-    } else {
-      // none EXTMODE
-      data->vcom_flag ^= LS0XX_BIT_VCOM;
-      _spi_cmd(dev, LS0XX_CMD_HOLD);
-    }
-    k_timer_status_sync(&data->timer);
+  uint8_t *src = (uint8_t *)buf;
+  uint16_t src_line_size = DIV_ROUND_UP(desc->pitch, LS0XX_PIXELS_PER_BYTE);
+  uint8_t *dst = &data->buffer[config->line_size * y + x / LS0XX_PIXELS_PER_BYTE];
+  int16_t line_max_exclusive = y + desc->height;
+  for (int16_t line = y; line < line_max_exclusive; line++) {
+    memcpy(dst, src, src_line_size);
+    data->dirty[line] = true;
+    src += src_line_size;
+    dst += config->line_size;
   }
+  return 0;
+}
+
+static inline int _buffer_rot_90_write(const struct device *dev, const uint16_t x, const uint16_t y,
+                                       const struct display_buffer_descriptor *desc,
+                                       const void *buf) {
+  const struct ls0xx_config *config = dev->config;
+  struct ls0xx_data *data = dev->data;
+
+  uint8_t *src = (uint8_t *)buf;
+  uint16_t src_line_size = DIV_ROUND_UP(desc->pitch, LS0XX_PIXELS_PER_BYTE);
+  uint16_t x_max_exclusive = MIN(x + desc->width, config->width);
+  uint16_t y_max_exclusive = MIN(y + desc->height, config->height);
+
+  for (uint16_t src_y = y; src_y < y_max_exclusive; src_y++) {
+    uint16_t dst_x = src_y;
+    uint8_t *dst =
+      &data->buffer[(config->width - x - 1) * config->line_size + dst_x / LS0XX_PIXELS_PER_BYTE];
+    uint8_t dst_bit = dst_x % LS0XX_PIXELS_PER_BYTE;
+    for (uint16_t src_x = x; src_x < x_max_exclusive; src_x++) {
+      if (src[(src_x - x) / LS0XX_PIXELS_PER_BYTE] & (1 << (src_x % LS0XX_PIXELS_PER_BYTE))) {
+        *dst |= 1 << dst_bit;
+      } else {
+        *dst &= ~(1 << dst_bit);
+      }
+      dst -= config->line_size;
+      data->dirty[config->width - src_x - 1] = true;
+    }
+    src += src_line_size;
+  }
+  return 0;
+}
+
+static inline int _buffer_rot_180_write(const struct device *dev, const uint16_t x,
+                                        const uint16_t y,
+                                        const struct display_buffer_descriptor *desc,
+                                        const void *buf) {
+  const struct ls0xx_config *config = dev->config;
+  struct ls0xx_data *data = dev->data;
+  uint16_t src_line_size = DIV_ROUND_UP(desc->pitch, LS0XX_PIXELS_PER_BYTE);
+  uint8_t *src = (uint8_t *)buf;
+  int16_t line = config->height - y - 1;
+  int16_t line_min_inclusive = config->height - desc->height - y;
+  uint8_t *dst =
+    &data->buffer[config->line_size * line + src_line_size + x / LS0XX_PIXELS_PER_BYTE - 1];
+  for (; line >= line_min_inclusive; line--) {
+    for (uint8_t i = 0; i < src_line_size; i++) {
+      dst[-i] = _reverse_bits(src[i]);
+    }
+    data->dirty[line] = true;
+    dst -= config->line_size;
+    src += src_line_size;
+  }
+  return 0;
+}
+
+static inline int _buffer_rot_270_write(const struct device *dev, const uint16_t x,
+                                        const uint16_t y,
+                                        const struct display_buffer_descriptor *desc,
+                                        const void *buf) {
+  const struct ls0xx_config *config = dev->config;
+  struct ls0xx_data *data = dev->data;
+
+  uint8_t *src = (uint8_t *)buf;
+  uint16_t src_line_size = DIV_ROUND_UP(desc->pitch, LS0XX_PIXELS_PER_BYTE);
+  uint16_t x_max_exclusive = MIN(x + desc->width, config->width);
+  uint16_t y_max_exclusive = MIN(y + desc->height, config->height);
+
+  for (uint16_t src_y = y; src_y < y_max_exclusive; src_y++) {
+    uint16_t dst_x = config->height - src_y - 1;
+    uint8_t *dst = &data->buffer[x * config->line_size + dst_x / LS0XX_PIXELS_PER_BYTE];
+
+    uint8_t dst_bit = dst_x % LS0XX_PIXELS_PER_BYTE;
+    for (uint16_t src_x = x; src_x < x_max_exclusive; src_x++) {
+      if (src[(src_x - x) / LS0XX_PIXELS_PER_BYTE] & (1 << (src_x % LS0XX_PIXELS_PER_BYTE))) {
+        *dst |= 1 << dst_bit;
+      } else {
+        *dst &= ~(1 << dst_bit);
+      }
+      dst += config->line_size;
+      data->dirty[src_x] = true;
+    }
+    src += src_line_size;
+  }
+  return 0;
+}
+
+inline static void _buffer_write(const struct device *dev, const uint16_t x, const uint16_t y,
+                                 const struct display_buffer_descriptor *desc, const void *buf) {
+  const struct ls0xx_config *config = dev->config;
+  struct ls0xx_data *data = dev->data;
+
+  /* lock buffer */
+  k_mutex_lock(&data->lock, K_FOREVER);
+
+  switch (config->rotated) {
+    case LS0XX_ROT_0:
+      _buffer_rot_0_write(dev, x, y, desc, buf);
+      break;
+    case LS0XX_ROT_90:
+      _buffer_rot_90_write(dev, x, y, desc, buf);
+      break;
+    case LS0XX_ROT_180:
+      _buffer_rot_180_write(dev, x, y, desc, buf);
+      break;
+    case LS0XX_ROT_270:
+      _buffer_rot_270_write(dev, x, y, desc, buf);
+      break;
+  }
+
+  /* unlock buffer */
+  k_mutex_unlock(&data->lock);
+}
+
+static void _buffer_clear(const struct device *dev) {
+  const struct ls0xx_config *config = dev->config;
+  struct ls0xx_data *data = dev->data;
+
+  /* lock buffer  */
+  k_mutex_lock(&data->lock, K_FOREVER);
+
+  memset(data->buffer, 0, config->line_size * config->num_lines);
+  memset(data->dirty, 0, sizeof(bool) * config->num_lines);
+
+  /* unlock buffer  */
+  k_mutex_unlock(&data->lock);
+}
+
+static void _buffer_full_flush(const struct device *dev) {
+  const struct ls0xx_config *config = dev->config;
+  struct ls0xx_data *data = dev->data;
+
+  /* lock buffer  */
+  k_mutex_lock(&data->lock, K_FOREVER);
+
+  for (int line = 0; line < config->num_lines; line++) {
+    data->dirty[line] = true;
+  }
+
+  /* unlock buffer  */
+  k_mutex_unlock(&data->lock);
 }
 
 // driver API -->
 
 static int ls0xx_blanking_on(const struct device *dev) {
   const struct ls0xx_config *config = dev->config;
+  struct ls0xx_data *data = dev->data;
+
+  LOG_DBG("start");
+
+  atomic_set(&data->blanking, 1);
   if (config->disp_en_gpio != NULL) {
     return gpio_pin_set_dt(config->disp_en_gpio, 0);
   }
-  LOG_WRN("Unsupported");
-  return -ENOTSUP;
+
+  LOG_DBG("end");
+
+  return 0;
 }
 
 static int ls0xx_blanking_off(const struct device *dev) {
   const struct ls0xx_config *config = dev->config;
+  struct ls0xx_data *data = dev->data;
+
+  LOG_DBG("start");
+
+  atomic_set(&data->blanking, 0);
   if (config->disp_en_gpio != NULL) {
     return gpio_pin_set_dt(config->disp_en_gpio, 1);
   }
-  LOG_WRN("Unsupported");
-  return -ENOTSUP;
+
+  LOG_DBG("end");
+
+  return 0;
 }
 
 /* Buffer width should be equal to display width */
 static int ls0xx_write(const struct device *dev, const uint16_t x, const uint16_t y,
                        const struct display_buffer_descriptor *desc, const void *buf) {
   const struct ls0xx_config *config = dev->config;
-  LOG_DBG("X: %d, Y: %d, W: %d, H: %d", x, y, desc->width, desc->height);
+  struct ls0xx_data *data = dev->data;
 
-  if (buf == NULL) {
-    LOG_WRN("Display buffer is not available");
+  LOG_DBG("start X:%d, Y:%d, W:%d, H:%d, L:%d, P:%d, R:%d", x, y, desc->width, desc->height,
+          desc->buf_size, desc->pitch, config->rotated);
+
+#if IS_ENABLED(CONFIG_PM_DEVICE)
+  if (atomic_get(&data->suspended) == 1) {
+    LOG_WRN("Display has been suspended");
     return -EINVAL;
   }
+#endif
 
-  if (desc->width != config->width) {
-    LOG_ERR("Width not a multiple of %d", config->width);
-    return -EINVAL;
-  }
+  _buffer_write(dev, x, y, desc, buf);
 
-  if (desc->pitch != desc->width) {
-    LOG_ERR("Unsupported mode");
-    return -ENOTSUP;
-  }
-
-  if ((y + desc->height) > config->height) {
-    LOG_ERR("Buffer out of bounds (height)");
-    return -EINVAL;
-  }
-
-  if (x != 0) {
-    LOG_ERR("X-coordinate has to be 0");
-    return -EINVAL;
-  }
-
-  /* Adding 1 since line numbering on the display starts with 1 */
-  return _spi_cmd_data(dev, LS0XX_CMD_UPDATE, y + 1, desc->height, buf);
+  LOG_DBG("end");
+  return 0;
 }
 
 static int ls0xx_read(const struct device *dev, const uint16_t x, const uint16_t y,
@@ -252,7 +409,7 @@ static void ls0xx_get_capabilities(const struct device *dev, struct display_capa
   caps->y_resolution = config->height;
   caps->supported_pixel_formats = PIXEL_FORMAT_MONO01;
   caps->current_pixel_format = PIXEL_FORMAT_MONO01;
-  caps->screen_info = SCREEN_INFO_X_ALIGNMENT_WIDTH;
+  // caps->screen_info = SCREEN_INFO_X_ALIGNMENT_WIDTH;
 }
 
 static int ls0xx_set_orientation(const struct device *dev,
@@ -272,51 +429,132 @@ static int ls0xx_set_pixel_format(const struct device *dev, const enum display_p
 
 // <-- driver API
 
-static int ls0xx_init(const struct device *dev) {
+static void ls0xx_thread(void *arg1, void *arg2, void *arg3) {
+  const struct device *dev = arg1;
   const struct ls0xx_config *config = dev->config;
   struct ls0xx_data *data = dev->data;
 
-  if (!spi_is_ready_dt(&config->bus)) {
-    LOG_ERR("SPI bus %s not ready", config->bus.bus->name);
-    return -ENODEV;
-  }
+  bool prev_blanking = false;
 
-  if (config->disp_en_gpio != NULL) {
-    if (!gpio_is_ready_dt(config->disp_en_gpio)) {
-      LOG_ERR("DISP port device not ready");
-      return -ENODEV;
-    }
-    LOG_INF("Configuring DISP pin to OUTPUT_HIGH");
-    gpio_pin_configure_dt(config->disp_en_gpio, GPIO_OUTPUT_HIGH);
-  }
+  _buffer_clear(dev);
+  _buffer_full_flush(dev);
 
-  if (config->extcomin_gpio != NULL) {
-    if (!gpio_is_ready_dt(config->extcomin_gpio)) {
-      LOG_ERR("EXTCOMIN port device not ready");
-      return -ENODEV;
-    }
-    LOG_INF("Configuring EXTCOMIN pin");
-    gpio_pin_configure_dt(config->extcomin_gpio, GPIO_OUTPUT_LOW);
-  }
-
-  k_mutex_init(&data->lock);
-
-  k_timer_init(&data->timer, NULL, NULL);
+  while (1) {
 #if IS_ENABLED(CONFIG_PM_DEVICE)
-  k_sem_init(&data->wakeup, 0, 1);
-#endif
+    if (atomic_get(&data->suspended) == 1) {
+      _buffer_clear(dev);
 
-  int err = _spi_cmd(dev, LS0XX_CMD_CLEAR);
+      /* for the devcie that are always powered */
+      int err = _spi_cmd_write(dev, LS0XX_CMD_CLEAR);
+      if (err) {
+        LOG_ERR("SPI communication Failed. err: %d", err);
+      }
+
+      LOG_DBG("Suspended");
+
+      k_sem_take(&data->wakeup, K_FOREVER);
+
+      LOG_DBG("Wakeup");
+      _buffer_full_flush(dev);
+    }
+#endif
+    if (config->extcomin_gpio != NULL) {
+      // EXTMODE
+
+      gpio_pin_toggle_dt(config->extcomin_gpio);
+      k_usleep(3);
+      gpio_pin_toggle_dt(config->extcomin_gpio);
+
+    } else {
+      // none EXTMODE
+
+      data->vcom_flag ^= LS0XX_BIT_VCOM;
+    }
+
+    uint8_t cmd = LS0XX_CMD_UPDATE;
+
+    if (config->disp_en_gpio == NULL) {
+      if (atomic_get(&data->blanking) == 1) {
+        if (!prev_blanking) {
+          LOG_DBG("clear command for blanking");
+          cmd = LS0XX_CMD_CLEAR;
+        } else {
+          cmd = LS0XX_CMD_HOLD;
+        }
+        prev_blanking = true;
+      } else {
+        if (prev_blanking) {
+          LOG_DBG("buffer full flush for un-blanking");
+          _buffer_full_flush(dev);
+        }
+        prev_blanking = false;
+      }
+    }
+    int err = _spi_cmd_write(dev, cmd);
+    if (err) {
+      LOG_ERR("SPI communication Failed. err: %d", err);
+    }
+
+    k_timer_status_sync(&data->timer);
+  }
+}
+
+static int ls0xx_init(const struct device *dev) {
+  const struct ls0xx_config *config = dev->config;
+  struct ls0xx_data *data = dev->data;
+  int err;
+
+  err = spi_is_ready_dt(&config->bus);
   if (err < 0) {
-    LOG_ERR("Failed to clear display");
+    LOG_ERR("SPI bus %s not ready. err: %d", config->bus.bus->name, err);
     return err;
   }
 
-  /* Start thread for toggling VCOM */
-  k_tid_t tid = k_thread_create(
-    &data->thread, data->thread_stack, K_KERNEL_STACK_SIZEOF(data->thread_stack),
-    vcom_toggle_thread, (void *)dev, NULL, NULL, CONFIG_LS0XX_VCOM_THREAD_PRIORITY, 0, K_NO_WAIT);
-  k_thread_name_set(tid, "ls0xx_vcom");
+  if (config->disp_en_gpio != NULL) {
+    err = gpio_is_ready_dt(config->disp_en_gpio);
+    if (err < 0) {
+      LOG_ERR("DISP port device not ready. err: %d", err);
+      return err;
+    }
+    LOG_INF("Configuring DISP pin to OUTPUT_HIGH");
+    err = gpio_pin_configure_dt(config->disp_en_gpio, GPIO_OUTPUT_HIGH);
+    if (err < 0) {
+      LOG_ERR("Failed to configure DISP port device. err: %d", err);
+      return err;
+    }
+  }
+
+  if (config->extcomin_gpio != NULL) {
+    err = gpio_is_ready_dt(config->extcomin_gpio);
+    if (err < 0) {
+      LOG_ERR("EXTCOMIN port device not ready. err: %d", err);
+      return err;
+    }
+    LOG_INF("Configuring EXTCOMIN pin");
+    err = gpio_pin_configure_dt(config->extcomin_gpio, GPIO_OUTPUT_LOW);
+    if (err < 0) {
+      LOG_ERR("Failed to configure EXTCOMIN port device. err: %d", err);
+      return err;
+    }
+  }
+
+  atomic_set(&data->blanking, 0);
+
+  err = k_mutex_init(&data->lock);
+  if (err < 0) {
+    LOG_ERR("Failed to initialize mutex. err: %d", err);
+    return err;
+  }
+
+  k_timer_init(&data->timer, NULL, NULL);
+
+#if IS_ENABLED(CONFIG_PM_DEVICE)
+  err = k_sem_init(&data->wakeup, 0, 1);
+  if (err < 0) {
+    LOG_ERR("Failed to initialize semaphore. err: %d", err);
+    return err;
+  }
+#endif
 
 #if IS_ENABLED(CONFIG_PM_DEVICE_RUNTIM)
 
@@ -328,9 +566,16 @@ static int ls0xx_init(const struct device *dev) {
     LOG_ERR("Failed to enable runtime power management");
   }
 #else
-  _start_timer(dev);
+  _timer_start(dev);
 #endif
-  return err;
+
+  /* Start thread for toggling VCOM */
+  k_tid_t tid = k_thread_create(
+    &data->thread, data->thread_stack, K_KERNEL_STACK_SIZEOF(data->thread_stack), ls0xx_thread,
+    (void *)dev, NULL, NULL, CONFIG_LS0XX_THREAD_PRIORITY, 0, K_NO_WAIT);
+  k_thread_name_set(tid, "ls0xx_vcom");
+
+  return 0;
 }
 
 static struct display_driver_api ls0xx_driver_api = {
@@ -349,19 +594,21 @@ static struct display_driver_api ls0xx_driver_api = {
 #if IS_ENABLED(CONFIG_PM_DEVICE)
 
 // TODO for the device that always powered,
-// investigate whether porlarity inversion can be stopped if the display is cleared
+// investigate whether porlarity inversion can be stopped if the
+// display is cleared
 
 static int ls0xx_pm_action(const struct device *dev, enum pm_device_action action) {
   struct ls0xx_data *data = dev->data;
 
   switch (action) {
     case PM_DEVICE_ACTION_SUSPEND:
+      LOG_DBG("action suspend");
       atomic_set(&data->suspended, 1);
       k_timer_stop(&data->timer);
-      _spi_cmd(dev, LS0XX_CMD_CLEAR);
       break;
     case PM_DEVICE_ACTION_RESUME:
-      _start_timer(dev);
+      LOG_DBG("action resume");
+      _timer_start(dev);
       atomic_set(&data->suspended, 0);
       k_sem_give(&data->wakeup);
       break;
@@ -372,6 +619,17 @@ static int ls0xx_pm_action(const struct device *dev, enum pm_device_action actio
   return 0;
 }
 #endif
+
+/* if roatated 90 or 270 degrees */
+#define IS_WH_SWAPPED(n) \
+  UTIL_OR(IS_EQ(DT_INST_ENUM_IDX(n, rotated), 1), IS_EQ(DT_INST_ENUM_IDX(n, rotated), 3))
+
+#define BUFFER_LINE_SIZE(n)                                                                     \
+  COND_CODE_1(IS_WH_SWAPPED(n), (DIV_ROUND_UP(DT_INST_PROP(n, height), LS0XX_PIXELS_PER_BYTE)), \
+              (DIV_ROUND_UP(DT_INST_PROP(n, width), LS0XX_PIXELS_PER_BYTE)))
+
+#define BUFFER_NUM_LINES(n) \
+  COND_CODE_1(IS_WH_SWAPPED(n), (DT_INST_PROP(n, width)), (DT_INST_PROP(n, height)))
 
 #define LS0XX_GPIO_DEF(n)                                                                       \
   COND_CODE_1(                                                                                  \
@@ -393,14 +651,25 @@ static int ls0xx_pm_action(const struct device *dev, enum pm_device_action actio
       COND_CODE_1(DT_INST_NODE_HAS_PROP(n, disp_en_gpios), (&disp_en_gpio_##n), (NULL)),  \
     .extcomin_gpio =                                                                      \
       COND_CODE_1(DT_INST_NODE_HAS_PROP(n, extcomin_gpio), (&extcomin_gpio_##n), (NULL)), \
-    .com_frequency = DT_INST_PROP(n, com_frequency)}
+    .com_frequency = DT_INST_PROP(n, com_frequency),                                      \
+    .rotated = DT_INST_ENUM_IDX(n, rotated),                                              \
+    .line_size = BUFFER_LINE_SIZE(n),                                                     \
+    .num_lines = BUFFER_NUM_LINES(n),                                                     \
+  }
+
+#define BUFFER_DEF(n)                                                         \
+  static uint8_t ls0xx_buffer_##n[BUFFER_NUM_LINES(n) * BUFFER_LINE_SIZE(n)]; \
+  static bool ls0xx_dirty_##n[BUFFER_NUM_LINES(n)]
 
 #define LS0XX_INIT(n)                                                                 \
   LS0XX_GPIO_DEF(n);                                                                  \
                                                                                       \
   LS0XX_CONFIG_DEF(n);                                                                \
                                                                                       \
-  static struct ls0xx_data ls0xx_data_##n = {};                                       \
+  BUFFER_DEF(n);                                                                      \
+                                                                                      \
+  static struct ls0xx_data ls0xx_data_##n = {.buffer = ls0xx_buffer_##n,              \
+                                             .dirty = ls0xx_dirty_##n};               \
                                                                                       \
   PM_DEVICE_DT_INST_DEFINE(n, ls0xx_pm_action);                                       \
                                                                                       \
