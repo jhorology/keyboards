@@ -353,6 +353,11 @@
   // default 1000000
   spi-max-frequency = <4000000>;
 
+  /* rotated 0 degrees */
+  // rotated=<0>;
+  // width=<160>;
+  // height=<68>;
+
   /* rotated 90 degrees */
   // rotated=<90>;
   // width=<68>;
@@ -360,6 +365,8 @@
 
   /* rotated 180 degrees */
   // rotated=<180>;
+  // width=<160>;
+  // height=<68>;
 
   /* rotated 270 degrees */
   // rotated=<270>;

@@ -81,8 +81,7 @@ static int _spi_cmd_write(const struct device *dev, uint8_t cmd) {
   /* TODO maybe better to move data structure or use heap memory,
      pay attenstion to stack size
   */
-  uint8_t line_adrs[config->num_lines];
-  struct spi_buf spi_cmd_buf[config->num_lines * 2 + 1];
+  struct spi_buf spi_cmd_buf[config->num_lines + 1];
   struct spi_buf_set spi_cmd_buf_set = {.buffers = spi_cmd_buf};
   int err = 0;
 
@@ -99,7 +98,6 @@ static int _spi_cmd_write(const struct device *dev, uint8_t cmd) {
 
     case LS0XX_CMD_UPDATE: {
       int num_update_lines = 0;
-      uint16_t buf_idx = 1;
 
       /* lock buffer  */
       k_mutex_lock(&data->lock, K_FOREVER);
@@ -107,27 +105,21 @@ static int _spi_cmd_write(const struct device *dev, uint8_t cmd) {
       for (uint8_t line = 0; line < config->num_lines; line++) {
         if (data->dirty[line]) {
           LOG_DBG("cmd update line: %d", line);
+          num_update_lines++;
 
-          /* gate line address */
-          line_adrs[num_update_lines] = line + 1;
-          spi_cmd_buf[buf_idx].buf = &line_adrs[num_update_lines];
-          spi_cmd_buf[buf_idx].len = 1;
-          buf_idx++;
-
+          /* gate-line address + pixel data */
+          spi_cmd_buf[num_update_lines].buf = &data->buffer[config->line_size * line];
           /* line data, +1byte for dummy data */
-          spi_cmd_buf[buf_idx].buf = &data->buffer[config->line_size * line];
-          spi_cmd_buf[buf_idx].len = config->line_size + 1;
-          buf_idx++;
+          spi_cmd_buf[num_update_lines].len = config->line_size + 1;
 
           data->dirty[line] = false;
-          num_update_lines++;
         }
       }
 
       if (num_update_lines > 0) {
         cmd_buf[0] = cmd + data->vcom_flag;
         spi_cmd_buf[0].len = 1;
-        spi_cmd_buf_set.count = buf_idx;
+        spi_cmd_buf_set.count = num_update_lines + 1;
         err = spi_write_dt(&config->bus, &spi_cmd_buf_set);
       }
 
@@ -164,7 +156,8 @@ static inline int _buffer_rot_0_write(const struct device *dev, const uint16_t x
 
   uint8_t *src = (uint8_t *)buf;
   uint16_t src_line_size = DIV_ROUND_UP(desc->pitch, LS0XX_PIXELS_PER_BYTE);
-  uint8_t *dst = &data->buffer[config->line_size * y + x / LS0XX_PIXELS_PER_BYTE];
+  /* +1 for gate-line address  */
+  uint8_t *dst = &data->buffer[config->line_size * y + x / LS0XX_PIXELS_PER_BYTE + 1];
   int16_t line_max_exclusive = y + desc->height;
   for (int16_t line = y; line < line_max_exclusive; line++) {
     memcpy(dst, src, src_line_size);
@@ -188,8 +181,10 @@ static inline int _buffer_rot_90_write(const struct device *dev, const uint16_t 
 
   for (uint16_t src_y = y; src_y < y_max_exclusive; src_y++) {
     uint16_t dst_x = src_y;
+    /* +1 for gate-line address  */
     uint8_t *dst =
-      &data->buffer[(config->width - x - 1) * config->line_size + dst_x / LS0XX_PIXELS_PER_BYTE];
+      &data
+         ->buffer[(config->width - x - 1) * config->line_size + dst_x / LS0XX_PIXELS_PER_BYTE + 1];
     uint8_t dst_bit = dst_x % LS0XX_PIXELS_PER_BYTE;
     for (uint16_t src_x = x; src_x < x_max_exclusive; src_x++) {
       if (src[(src_x - x) / LS0XX_PIXELS_PER_BYTE] & (1 << (src_x % LS0XX_PIXELS_PER_BYTE))) {
@@ -215,8 +210,9 @@ static inline int _buffer_rot_180_write(const struct device *dev, const uint16_t
   uint8_t *src = (uint8_t *)buf;
   int16_t line = config->height - y - 1;
   int16_t line_min_inclusive = config->height - desc->height - y;
+  /* +1 for gate-line address  */
   uint8_t *dst =
-    &data->buffer[config->line_size * line + src_line_size + x / LS0XX_PIXELS_PER_BYTE - 1];
+    &data->buffer[config->line_size * line + src_line_size + x / LS0XX_PIXELS_PER_BYTE];
   for (; line >= line_min_inclusive; line--) {
     for (uint8_t i = 0; i < src_line_size; i++) {
       dst[-i] = _reverse_bits(src[i]);
@@ -242,7 +238,8 @@ static inline int _buffer_rot_270_write(const struct device *dev, const uint16_t
 
   for (uint16_t src_y = y; src_y < y_max_exclusive; src_y++) {
     uint16_t dst_x = config->height - src_y - 1;
-    uint8_t *dst = &data->buffer[x * config->line_size + dst_x / LS0XX_PIXELS_PER_BYTE];
+    /* +1 for gate-line address  */
+    uint8_t *dst = &data->buffer[x * config->line_size + dst_x / LS0XX_PIXELS_PER_BYTE + 1];
 
     uint8_t dst_bit = dst_x % LS0XX_PIXELS_PER_BYTE;
     for (uint16_t src_x = x; src_x < x_max_exclusive; src_x++) {
@@ -293,8 +290,15 @@ static void _buffer_clear(const struct device *dev) {
   /* lock buffer  */
   k_mutex_lock(&data->lock, K_FOREVER);
 
-  memset(data->buffer, 0, config->line_size * config->num_lines);
-  memset(data->dirty, 0, sizeof(bool) * config->num_lines);
+  uint8_t *dst = data->buffer;
+  for (size_t line = 0; line < config->num_lines; line++) {
+    /* gate-line address  */
+    dst[0] = line + 1;
+    memset(&dst[1], 0, config->line_size - 1);
+    data->dirty[line] = false;
+
+    dst += config->line_size;
+  }
 
   /* unlock buffer  */
   k_mutex_unlock(&data->lock);
@@ -614,9 +618,11 @@ static int ls0xx_pm_action(const struct device *dev, enum pm_device_action actio
 #define IS_WH_SWAPPED(n) \
   UTIL_OR(IS_EQ(DT_INST_ENUM_IDX(n, rotated), 1), IS_EQ(DT_INST_ENUM_IDX(n, rotated), 3))
 
-#define BUFFER_LINE_SIZE(n)                                                                     \
-  COND_CODE_1(IS_WH_SWAPPED(n), (DIV_ROUND_UP(DT_INST_PROP(n, height), LS0XX_PIXELS_PER_BYTE)), \
-              (DIV_ROUND_UP(DT_INST_PROP(n, width), LS0XX_PIXELS_PER_BYTE)))
+/* +1 for gate-line address */
+#define BUFFER_LINE_SIZE(n)                                                                      \
+  (COND_CODE_1(IS_WH_SWAPPED(n), (DIV_ROUND_UP(DT_INST_PROP(n, height), LS0XX_PIXELS_PER_BYTE)), \
+               (DIV_ROUND_UP(DT_INST_PROP(n, width), LS0XX_PIXELS_PER_BYTE))) +                  \
+   1)
 
 #define BUFFER_NUM_LINES(n) \
   COND_CODE_1(IS_WH_SWAPPED(n), (DT_INST_PROP(n, width)), (DT_INST_PROP(n, height)))
