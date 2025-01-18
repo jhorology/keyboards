@@ -13,7 +13,7 @@ if LS0XX_YA
 
 config LS0XX_THREAD_STACK_SIZE
     int "Stack size for the ls0xx thread"
-    default 1024
+    default 1536
     help
       Size of the stack used for the VCOM thread.
 

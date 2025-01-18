@@ -349,6 +349,10 @@
   // default 30
   com-frequency = <35>;
 
+  // experimental setting
+  // default 1000000
+  spi-max-frequency = <4000000>;
+
   /* rotated 90 degrees */
   // rotated=<90>;
   // width=<68>;

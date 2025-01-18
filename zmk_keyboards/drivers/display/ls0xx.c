@@ -73,50 +73,41 @@ static inline uint8_t _reverse_bits(uint8_t d) {
   return d;
 }
 
-static inline int _spi_line_data_write(const struct device *dev, uint8_t line) {
-  const struct ls0xx_config *config = dev->config;
-  const struct ls0xx_data *data = dev->data;
-  uint8_t ln = line + 1;
-  uint8_t dummy = 27;
-
-  struct spi_buf line_buf[3] = {
-    {.len = 1, .buf = &ln},
-    {.len = config->line_size, .buf = &data->buffer[config->line_size * line]},
-    {.len = 1, .buf = &dummy},
-  };
-
-  struct spi_buf_set line_set = {
-    .buffers = line_buf,
-    .count = ARRAY_SIZE(line_buf),
-  };
-
-  return spi_write_dt(&config->bus, &line_set);
-}
-
 static int _spi_cmd_write(const struct device *dev, uint8_t cmd) {
   const struct ls0xx_config *config = dev->config;
   struct ls0xx_data *data = dev->data;
 
   uint8_t cmd_buf[2];
-  struct spi_buf spi_cmd_buf = {.buf = cmd_buf};
-  struct spi_buf_set spi_cmd_buf_set = {.buffers = &spi_cmd_buf, .count = 1};
+  /* TODO maybe better to move data structure or use heap memory,
+     pay attenstion to stack size
+  */
+  uint8_t line_adrs[config->num_lines];
+  struct spi_buf spi_cmd_buf[config->num_lines * 2 + 1];
+  struct spi_buf_set spi_cmd_buf_set = {.buffers = spi_cmd_buf};
   int err = 0;
+
+  spi_cmd_buf[0].buf = cmd_buf;
 
   switch (cmd) {
     case LS0XX_CMD_HOLD:
       cmd_buf[0] = cmd + data->vcom_flag;
-      spi_cmd_buf.len = 2;
+      spi_cmd_buf[0].len = 2;
+      spi_cmd_buf_set.count = 1;
       err = spi_write_dt(&config->bus, &spi_cmd_buf_set);
       break;
 
     case LS0XX_CMD_CLEAR:
       cmd_buf[0] = cmd + data->vcom_flag;
-      spi_cmd_buf.len = 2;
+      spi_cmd_buf[0].len = 2;
+      spi_cmd_buf_set.count = 1;
       err = spi_write_dt(&config->bus, &spi_cmd_buf_set);
       break;
 
     case LS0XX_CMD_UPDATE: {
-      bool is_dirty = false;
+      int num_update_lines = 0;
+
+      cmd_buf[0] = cmd + data->vcom_flag;
+      spi_cmd_buf[0].len = 1;
 
       /* lock buffer  */
       k_mutex_lock(&data->lock, K_FOREVER);
@@ -125,33 +116,37 @@ static int _spi_cmd_write(const struct device *dev, uint8_t cmd) {
         if (data->dirty[line]) {
           LOG_DBG("cmd update line: %d", line);
           /* start update command */
-          if (!is_dirty) {
-            cmd_buf[0] = cmd + data->vcom_flag;
-            spi_cmd_buf.len = 1;
-            err = spi_write_dt(&config->bus, &spi_cmd_buf_set);
-            is_dirty = true;
-          }
+          uint16_t buf_idx = num_update_lines * 2 + 1;
 
-          /* send one line data */
-          err |= _spi_line_data_write(dev, line);
+          /* gate line address */
+          line_adrs[num_update_lines] = line + 1;
+          spi_cmd_buf[buf_idx].buf = &line_adrs[num_update_lines];
+          spi_cmd_buf[buf_idx].len = 1;
+
+          /* line data, +1byte for dummy data */
+          spi_cmd_buf[buf_idx + 1].buf = &data->buffer[config->line_size * line];
+          spi_cmd_buf[buf_idx + 1].len = config->line_size + 1;
+
           data->dirty[line] = false;
+          num_update_lines++;
         }
+      }
+
+      if (num_update_lines > 0) {
+        spi_cmd_buf_set.count = num_update_lines * 2 + 1;
+        err = spi_write_dt(&config->bus, &spi_cmd_buf_set);
       }
 
       /* unlock buffer  */
       k_mutex_unlock(&data->lock);
 
       /* send hold command instead of update command */
-      if (!is_dirty) {
+      if (num_update_lines == 0) {
         cmd_buf[0] = LS0XX_CMD_HOLD + data->vcom_flag;
-        spi_cmd_buf.len = 2;
+        spi_cmd_buf[0].len = 2;
+        spi_cmd_buf_set.count = 1;
+        err = spi_write_dt(&config->bus, &spi_cmd_buf_set);
       }
-
-      /* Send another trailing 8 bits for the last line
-       * These can be any bits, it does not matter
-       * just reusing the write_cmd buffer
-       */
-      err |= spi_write_dt(&config->bus, &spi_cmd_buf_set);
       break;
     }
   }
@@ -167,8 +162,9 @@ static void _timer_start(const struct device *dev) {
                 K_USEC(USEC_PER_SEC / config->com_frequency / 2));
 }
 
-static int _buffer_rot_0_write(const struct device *dev, const uint16_t x, const uint16_t y,
-                               const struct display_buffer_descriptor *desc, const void *buf) {
+static inline int _buffer_rot_0_write(const struct device *dev, const uint16_t x, const uint16_t y,
+                                      const struct display_buffer_descriptor *desc,
+                                      const void *buf) {
   const struct ls0xx_config *config = dev->config;
   struct ls0xx_data *data = dev->data;
 
@@ -269,7 +265,7 @@ static inline int _buffer_rot_270_write(const struct device *dev, const uint16_t
   return 0;
 }
 
-inline static void _buffer_write(const struct device *dev, const uint16_t x, const uint16_t y,
+static inline void _buffer_write(const struct device *dev, const uint16_t x, const uint16_t y,
                                  const struct display_buffer_descriptor *desc, const void *buf) {
   const struct ls0xx_config *config = dev->config;
   struct ls0xx_data *data = dev->data;
@@ -631,13 +627,13 @@ static int ls0xx_pm_action(const struct device *dev, enum pm_device_action actio
 #define BUFFER_NUM_LINES(n) \
   COND_CODE_1(IS_WH_SWAPPED(n), (DT_INST_PROP(n, width)), (DT_INST_PROP(n, height)))
 
-#define LS0XX_GPIO_DEF(n)                                                                       \
-  COND_CODE_1(                                                                                  \
-    DT_INST_NODE_HAS_PROP(n, disp_en_gpios),                                                    \
-    (const struct gpio_dt_spec disp_en_gpio_##n = GPIO_DT_SPEC_INST_GET(n, disp_en_gpios)), ()) \
-  COND_CODE_1(                                                                                  \
-    DT_INST_NODE_HAS_PROP(n, extcomin_gpio),                                                    \
-    (const struct gpio_dt_spec extcomin_gpio_##n = GPIO_DT_SPEC_INST_GET(n, extcomin_gpio)), ())
+#define LS0XX_GPIO_DEF(n)                                                                        \
+  COND_CODE_1(                                                                                   \
+    DT_INST_NODE_HAS_PROP(n, disp_en_gpios),                                                     \
+    (const struct gpio_dt_spec disp_en_gpio_##n = GPIO_DT_SPEC_INST_GET(n, disp_en_gpios);), ()) \
+  COND_CODE_1(                                                                                   \
+    DT_INST_NODE_HAS_PROP(n, extcomin_gpio),                                                     \
+    (const struct gpio_dt_spec extcomin_gpio_##n = GPIO_DT_SPEC_INST_GET(n, extcomin_gpio);), ())
 
 #define LS0XX_CONFIG_DEF(n)                                                               \
   static const struct ls0xx_config ls0xx_config_##n = {                                   \
@@ -657,8 +653,9 @@ static int ls0xx_pm_action(const struct device *dev, enum pm_device_action actio
     .num_lines = BUFFER_NUM_LINES(n),                                                     \
   }
 
-#define BUFFER_DEF(n)                                                         \
-  static uint8_t ls0xx_buffer_##n[BUFFER_NUM_LINES(n) * BUFFER_LINE_SIZE(n)]; \
+/* +1 byte for dummy data */
+#define BUFFER_DEF(n)                                                             \
+  static uint8_t ls0xx_buffer_##n[BUFFER_NUM_LINES(n) * BUFFER_LINE_SIZE(n) + 1]; \
   static bool ls0xx_dirty_##n[BUFFER_NUM_LINES(n)]
 
 #define LS0XX_INIT(n)                                                                 \
