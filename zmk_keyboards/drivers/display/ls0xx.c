@@ -90,12 +90,6 @@ static int _spi_cmd_write(const struct device *dev, uint8_t cmd) {
 
   switch (cmd) {
     case LS0XX_CMD_HOLD:
-      cmd_buf[0] = cmd + data->vcom_flag;
-      spi_cmd_buf[0].len = 2;
-      spi_cmd_buf_set.count = 1;
-      err = spi_write_dt(&config->bus, &spi_cmd_buf_set);
-      break;
-
     case LS0XX_CMD_CLEAR:
       cmd_buf[0] = cmd + data->vcom_flag;
       spi_cmd_buf[0].len = 2;
@@ -105,9 +99,7 @@ static int _spi_cmd_write(const struct device *dev, uint8_t cmd) {
 
     case LS0XX_CMD_UPDATE: {
       int num_update_lines = 0;
-
-      cmd_buf[0] = cmd + data->vcom_flag;
-      spi_cmd_buf[0].len = 1;
+      uint16_t buf_idx = 1;
 
       /* lock buffer  */
       k_mutex_lock(&data->lock, K_FOREVER);
@@ -115,17 +107,17 @@ static int _spi_cmd_write(const struct device *dev, uint8_t cmd) {
       for (uint8_t line = 0; line < config->num_lines; line++) {
         if (data->dirty[line]) {
           LOG_DBG("cmd update line: %d", line);
-          /* start update command */
-          uint16_t buf_idx = num_update_lines * 2 + 1;
 
           /* gate line address */
           line_adrs[num_update_lines] = line + 1;
           spi_cmd_buf[buf_idx].buf = &line_adrs[num_update_lines];
           spi_cmd_buf[buf_idx].len = 1;
+          buf_idx++;
 
           /* line data, +1byte for dummy data */
-          spi_cmd_buf[buf_idx + 1].buf = &data->buffer[config->line_size * line];
-          spi_cmd_buf[buf_idx + 1].len = config->line_size + 1;
+          spi_cmd_buf[buf_idx].buf = &data->buffer[config->line_size * line];
+          spi_cmd_buf[buf_idx].len = config->line_size + 1;
+          buf_idx++;
 
           data->dirty[line] = false;
           num_update_lines++;
@@ -133,7 +125,9 @@ static int _spi_cmd_write(const struct device *dev, uint8_t cmd) {
       }
 
       if (num_update_lines > 0) {
-        spi_cmd_buf_set.count = num_update_lines * 2 + 1;
+        cmd_buf[0] = cmd + data->vcom_flag;
+        spi_cmd_buf[0].len = 1;
+        spi_cmd_buf_set.count = buf_idx;
         err = spi_write_dt(&config->bus, &spi_cmd_buf_set);
       }
 
