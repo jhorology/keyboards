@@ -19,7 +19,7 @@ config LS0XX_THREAD_STACK_SIZE
 
 config LS0XX_THREAD_PRIORITY
     int "Priority for the ls0xx thread"
-    default 5
+    default 0
     help
       Priority level of the ls0xx thread.
 

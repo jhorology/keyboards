@@ -81,7 +81,7 @@ static int _spi_cmd_write(const struct device *dev, uint8_t cmd) {
   /* TODO maybe better to move data structure or use heap memory,
      pay attenstion to stack size
   */
-  struct spi_buf spi_cmd_buf[config->num_lines + 1];
+  struct spi_buf spi_cmd_buf[DIV_ROUND_UP(config->num_lines, 2) + 1];
   struct spi_buf_set spi_cmd_buf_set = {.buffers = spi_cmd_buf};
   int err = 0;
 
@@ -97,7 +97,9 @@ static int _spi_cmd_write(const struct device *dev, uint8_t cmd) {
       break;
 
     case LS0XX_CMD_UPDATE: {
-      int num_update_lines = 0;
+      uint8_t num_blocks = 0;
+      uint8_t num_lines = 0;
+      uint8_t block_start_line;
 
       /* lock buffer  */
       k_mutex_lock(&data->lock, K_FOREVER);
@@ -105,21 +107,30 @@ static int _spi_cmd_write(const struct device *dev, uint8_t cmd) {
       for (uint8_t line = 0; line < config->num_lines; line++) {
         if (data->dirty[line]) {
           LOG_DBG("cmd update line: %d", line);
-          num_update_lines++;
-
-          /* gate-line address + pixel data */
-          spi_cmd_buf[num_update_lines].buf = &data->buffer[config->line_size * line];
-          /* line data, +1byte for dummy data */
-          spi_cmd_buf[num_update_lines].len = config->line_size + 1;
-
+          if (num_lines == 0) {
+            block_start_line = line;
+          }
+          num_lines++;
           data->dirty[line] = false;
+        } else if (num_lines > 0) {
+          num_blocks++;
+          /* gate-line address + pixel data + dymmy data */
+          spi_cmd_buf[num_blocks].buf = &data->buffer[config->line_size * block_start_line];
+          spi_cmd_buf[num_blocks].len = config->line_size * num_lines;
+          num_lines = 0;
         }
       }
+      if (num_lines > 0) {
+        num_blocks++;
+        /* gate-line address + pixel data + dymmy data */
+        spi_cmd_buf[num_blocks].buf = &data->buffer[config->line_size * block_start_line];
+        spi_cmd_buf[num_blocks].len = config->line_size * num_lines;
+      }
 
-      if (num_update_lines > 0) {
+      if (num_blocks > 0) {
         cmd_buf[0] = cmd + data->vcom_flag;
         spi_cmd_buf[0].len = 1;
-        spi_cmd_buf_set.count = num_update_lines + 1;
+        spi_cmd_buf_set.count = num_blocks + 1;
         err = spi_write_dt(&config->bus, &spi_cmd_buf_set);
       }
 
@@ -127,7 +138,7 @@ static int _spi_cmd_write(const struct device *dev, uint8_t cmd) {
       k_mutex_unlock(&data->lock);
 
       /* send hold command instead of update command */
-      if (num_update_lines == 0) {
+      if (num_blocks == 0) {
         cmd_buf[0] = LS0XX_CMD_HOLD + data->vcom_flag;
         spi_cmd_buf[0].len = 2;
         spi_cmd_buf_set.count = 1;
@@ -618,11 +629,15 @@ static int ls0xx_pm_action(const struct device *dev, enum pm_device_action actio
 #define IS_WH_SWAPPED(n) \
   UTIL_OR(IS_EQ(DT_INST_ENUM_IDX(n, rotated), 1), IS_EQ(DT_INST_ENUM_IDX(n, rotated), 3))
 
-/* +1 for gate-line address */
+/*
+ *  +2 for gate-line address and dummy data
+ *  +0                +1                       +DIV_ROUND_UP(pixel_size, 8)
+ *   |gate-line address|<-----pixel data------>|dummy|
+ */
 #define BUFFER_LINE_SIZE(n)                                                                      \
   (COND_CODE_1(IS_WH_SWAPPED(n), (DIV_ROUND_UP(DT_INST_PROP(n, height), LS0XX_PIXELS_PER_BYTE)), \
                (DIV_ROUND_UP(DT_INST_PROP(n, width), LS0XX_PIXELS_PER_BYTE))) +                  \
-   1)
+   2)
 
 #define BUFFER_NUM_LINES(n) \
   COND_CODE_1(IS_WH_SWAPPED(n), (DT_INST_PROP(n, width)), (DT_INST_PROP(n, height)))
@@ -653,9 +668,8 @@ static int ls0xx_pm_action(const struct device *dev, enum pm_device_action actio
     .num_lines = BUFFER_NUM_LINES(n),                                                     \
   }
 
-/* +1 byte for dummy data */
-#define BUFFER_DEF(n)                                                             \
-  static uint8_t ls0xx_buffer_##n[BUFFER_NUM_LINES(n) * BUFFER_LINE_SIZE(n) + 1]; \
+#define BUFFER_DEF(n)                                                         \
+  static uint8_t ls0xx_buffer_##n[BUFFER_NUM_LINES(n) * BUFFER_LINE_SIZE(n)]; \
   static bool ls0xx_dirty_##n[BUFFER_NUM_LINES(n)]
 
 #define LS0XX_INIT(n)                                                                 \
