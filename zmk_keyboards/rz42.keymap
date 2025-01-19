@@ -342,8 +342,8 @@
   };
 };
 
-/* custom ls0xx driver */
-&nice_view {
+/* for debugging ls0xx driver */
+&ls011b7dh3 {
   // compatible = "sharp,ls0xx,ya";
   /* for debug */
   // default 30
@@ -372,5 +372,4 @@
   // rotated=<270>;
   // width=<68>;
   // height=<160>;
-
 };

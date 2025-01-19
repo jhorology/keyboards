@@ -27,7 +27,7 @@ static lv_obj_t *container_default(lv_obj_t *parent) {
   return container;
 }
 
-LV_FONT_DECLARE(pixel_mplus_bold_10);
+LV_FONT_DECLARE(pixel_mplus_10);
 
 #if IS_ENABLED(CONFIG_ZMK_CUSTOM_KEYBOARD_LOGO)
 LV_IMG_DECLARE(keyboard_logo_68x80);
@@ -41,7 +41,7 @@ static inline lv_obj_t *content_create(lv_obj_t *parent) {
   lv_obj_set_style_pad_bottom(container, MARGIN, LV_PART_MAIN);
 
   lv_obj_t *label = lv_label_create(container);
-  lv_obj_set_style_text_font(label, &pixel_mplus_bold_10, LV_PART_MAIN);
+  lv_obj_set_style_text_font(label, &pixel_mplus_10, LV_PART_MAIN);
   lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
   lv_obj_set_align(label, LV_ALIGN_CENTER);
   lv_label_set_text(label, "UNDER\nCONSTRUCTION");

@@ -28,7 +28,7 @@ static lv_obj_t *container_default(lv_obj_t *parent) {
   return container;
 }
 
-LV_FONT_DECLARE(pixel_mplus_bold_10);
+LV_FONT_DECLARE(pixel_mplus_10);
 LV_IMG_DECLARE(zmk_logo_40x40);
 #if IS_ENABLED(CONFIG_ZMK_WIDGET_BLE_STATUS_16X12) && IS_ENABLED(CONFIG_ZMK_WIDGET_USB_STATUS_16X12)
 LV_FONT_DECLARE(cozetta_icons_13);
@@ -65,7 +65,7 @@ static inline lv_obj_t *content_create(lv_obj_t *parent) {
   lv_obj_set_style_border_width(container, 1, LV_PART_MAIN);
 
   lv_obj_t *label = lv_label_create(container);
-  lv_obj_set_style_text_font(label, &pixel_mplus_bold_10, LV_PART_MAIN);
+  lv_obj_set_style_text_font(label, &pixel_mplus_10, LV_PART_MAIN);
   lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
   lv_obj_set_align(label, LV_ALIGN_CENTER);
   lv_label_set_text(label, "UNDER\nCONSTRUCTION");
@@ -95,7 +95,7 @@ lv_obj_t *zmk_display_status_screen() {
   lv_obj_set_flex_grow(content, 1);
 
   lv_obj_t *zmk_desc = lv_label_create(container);
-  lv_obj_set_style_text_font(zmk_desc, &pixel_mplus_bold_10, 0);
+  lv_obj_set_style_text_font(zmk_desc, &pixel_mplus_10, 0);
   lv_label_set_text_static(zmk_desc, "Powered By");
 
   lv_obj_t *zmk_logo = lv_img_create(container);

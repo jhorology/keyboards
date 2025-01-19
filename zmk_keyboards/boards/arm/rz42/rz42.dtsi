@@ -9,8 +9,6 @@
 #include <dt-bindings/led/led.h>
 #include "rz42-pinctrl.dtsi"
 
-#define USE_CUSTOM_STATUS_SCREEN 1
-
 / {
   chosen {
     zephyr,code-partition = &code_partition;
@@ -19,9 +17,7 @@
     zmk,battery = &vbatt;
     zmk,kscan = &kscan0;
     zmk,underglow = &led_strip;
-#if USE_CUSTOM_STATUS_SCREEN
-    zephyr,display = &nice_view;
-#endif
+    zephyr,display = &ls011b7dh3;
   };
 
   default_transform: keymap_transform_0 {
@@ -168,10 +164,8 @@ zephyr_udc0: &usbd {
   status = "okay";
 };
 
-/*
-  spi for nice!view compatible display
- */
-nice_view_spi: &spi0 {
+/*  Sharp LS011B7DH03 LCD display  */
+ls011b7dh3_spi: &spi0 {
   status = "okay";
   compatible = "nordic,nrf-spim";
   pinctrl-0 = <&spi0_default>;
@@ -179,16 +173,16 @@ nice_view_spi: &spi0 {
   pinctrl-names = "default", "sleep";
   cs-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
 
-#if USE_CUSTOM_STATUS_SCREEN
-  nice_view: ls0xx@0 {
+  ls011b7dh3: ls011b7dh3@0 {
+    /* custom (yet another) driver */
     compatible = "sharp,ls0xx,ya";
     spi-max-frequency = <1000000>;
     reg = <0>;
+    /* display rotated 270 degrees from spec standard */
     rotated=<270>;
     width=<68>;
     height=<160>;
   };
-#endif
 };
 
 /* spi for led strip */
