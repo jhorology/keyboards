@@ -187,18 +187,18 @@ static inline int _buffer_rot_90_write(const struct device *dev, const uint16_t 
 
   uint8_t *src = (uint8_t *)buf;
   uint16_t src_line_size = DIV_ROUND_UP(desc->pitch, LS0XX_PIXELS_PER_BYTE);
-  uint16_t x_max_exclusive = MIN(x + desc->width, config->width);
-  uint16_t y_max_exclusive = MIN(y + desc->height, config->height);
+  uint16_t x_max_exclusive = MIN(x + desc->width, config->width) - x;
+  uint16_t y_max_exclusive = MIN(y + desc->height, config->height) - y;
 
-  for (uint16_t src_y = y; src_y < y_max_exclusive; src_y++) {
-    uint16_t dst_x = src_y;
+  for (uint16_t src_y = 0; src_y < y_max_exclusive; src_y++) {
+    uint16_t dst_x = y + src_y;
     /* +1 for gate-line address  */
     uint8_t *dst =
       &data
          ->buffer[(config->width - x - 1) * config->line_size + dst_x / LS0XX_PIXELS_PER_BYTE + 1];
     uint8_t dst_bit = dst_x % LS0XX_PIXELS_PER_BYTE;
-    for (uint16_t src_x = x; src_x < x_max_exclusive; src_x++) {
-      if (src[(src_x - x) / LS0XX_PIXELS_PER_BYTE] & (1 << (src_x % LS0XX_PIXELS_PER_BYTE))) {
+    for (uint16_t src_x = 0; src_x < x_max_exclusive; src_x++) {
+      if (src[src_x / LS0XX_PIXELS_PER_BYTE] & (1 << (src_x % LS0XX_PIXELS_PER_BYTE))) {
         *dst |= 1 << dst_bit;
       } else {
         *dst &= ~(1 << dst_bit);
@@ -244,17 +244,17 @@ static inline int _buffer_rot_270_write(const struct device *dev, const uint16_t
 
   uint8_t *src = (uint8_t *)buf;
   uint16_t src_line_size = DIV_ROUND_UP(desc->pitch, LS0XX_PIXELS_PER_BYTE);
-  uint16_t x_max_exclusive = MIN(x + desc->width, config->width);
-  uint16_t y_max_exclusive = MIN(y + desc->height, config->height);
+  uint16_t x_max_exclusive = MIN(x + desc->width, config->width) - x;
+  uint16_t y_max_exclusive = MIN(y + desc->height, config->height) - y;
 
-  for (uint16_t src_y = y; src_y < y_max_exclusive; src_y++) {
-    uint16_t dst_x = config->height - src_y - 1;
+  for (uint16_t src_y = 0; src_y < y_max_exclusive; src_y++) {
+    uint16_t dst_x = config->height - y - src_y - 1;
     /* +1 for gate-line address  */
     uint8_t *dst = &data->buffer[x * config->line_size + dst_x / LS0XX_PIXELS_PER_BYTE + 1];
 
     uint8_t dst_bit = dst_x % LS0XX_PIXELS_PER_BYTE;
-    for (uint16_t src_x = x; src_x < x_max_exclusive; src_x++) {
-      if (src[(src_x - x) / LS0XX_PIXELS_PER_BYTE] & (1 << (src_x % LS0XX_PIXELS_PER_BYTE))) {
+    for (uint16_t src_x = 0; src_x < x_max_exclusive; src_x++) {
+      if (src[src_x / LS0XX_PIXELS_PER_BYTE] & (1 << (src_x % LS0XX_PIXELS_PER_BYTE))) {
         *dst |= 1 << dst_bit;
       } else {
         *dst &= ~(1 << dst_bit);
