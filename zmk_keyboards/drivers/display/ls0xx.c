@@ -200,7 +200,7 @@ static inline int _buffer_rot_90_write(const struct device *dev, const uint16_t 
         *dst &= ~(1 << dst_bit);
       }
       dst -= config->line_size;
-      data->dirty[config->width - src_x - 1] = true;
+      data->dirty[config->width - x - src_x - 1] = true;
     }
     src += src_line_size;
   }
@@ -256,7 +256,7 @@ static inline int _buffer_rot_270_write(const struct device *dev, const uint16_t
         *dst &= ~(1 << dst_bit);
       }
       dst += config->line_size;
-      data->dirty[src_x] = true;
+      data->dirty[src_x + x] = true;
     }
     src += src_line_size;
   }
