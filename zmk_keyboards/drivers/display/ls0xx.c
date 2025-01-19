@@ -3,23 +3,19 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-
-#include "zephyr/devicetree.h"
-#include "zephyr/kernel.h"
 #define DT_DRV_COMPAT sharp_ls0xx_ya
 
-#include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(ls0xx, CONFIG_DISPLAY_LOG_LEVEL);
-
-#include <string.h>
+#include <zephyr/kernel.h>
 #include <zephyr/device.h>
 #include <zephyr/drivers/display.h>
-#include <zephyr/init.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/spi.h>
 #include <zephyr/sys/byteorder.h>
 #include <zephyr/pm/device.h>
 #include <zephyr/pm/device_runtime.h>
+
+#include <zephyr/logging/log.h>
+LOG_MODULE_REGISTER(ls0xx, CONFIG_DISPLAY_LOG_LEVEL);
 
 /* Supports LS012B7DD01, LS012B7DD06, LS013B7DH03, LS013B7DH05
  * LS013B7DH06, LS027B7DH01A, LS032B7DD02, LS044Q7DH01
