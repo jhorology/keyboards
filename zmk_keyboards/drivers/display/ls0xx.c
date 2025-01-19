@@ -59,6 +59,8 @@ struct ls0xx_data {
   struct k_mutex lock;
   uint8_t *buffer;
   bool *dirty;
+  struct spi_buf *spi_cmd_buf;
+
   K_KERNEL_STACK_MEMBER(thread_stack, CONFIG_LS0XX_THREAD_STACK_SIZE);
 };
 
@@ -74,20 +76,16 @@ static int _spi_cmd_write(const struct device *dev, uint8_t cmd) {
   struct ls0xx_data *data = dev->data;
 
   uint8_t cmd_buf[2];
-  /* TODO maybe better to move data structure or use heap memory,
-     pay attenstion to stack size
-  */
-  struct spi_buf spi_cmd_buf[DIV_ROUND_UP(config->num_lines, 2) + 1];
-  struct spi_buf_set spi_cmd_buf_set = {.buffers = spi_cmd_buf};
+  struct spi_buf_set spi_cmd_buf_set = {.buffers = data->spi_cmd_buf};
   int err = 0;
 
-  spi_cmd_buf[0].buf = cmd_buf;
+  data->spi_cmd_buf[0].buf = cmd_buf;
 
   switch (cmd) {
     case LS0XX_CMD_HOLD:
     case LS0XX_CMD_CLEAR:
       cmd_buf[0] = cmd + data->vcom_flag;
-      spi_cmd_buf[0].len = 2;
+      data->spi_cmd_buf[0].len = 2;
       spi_cmd_buf_set.count = 1;
       err = spi_write_dt(&config->bus, &spi_cmd_buf_set);
       break;
@@ -111,21 +109,21 @@ static int _spi_cmd_write(const struct device *dev, uint8_t cmd) {
         } else if (num_lines > 0) {
           num_blocks++;
           /* gate-line address + pixel data + dymmy data */
-          spi_cmd_buf[num_blocks].buf = &data->buffer[config->line_size * block_start_line];
-          spi_cmd_buf[num_blocks].len = config->line_size * num_lines;
+          data->spi_cmd_buf[num_blocks].buf = &data->buffer[config->line_size * block_start_line];
+          data->spi_cmd_buf[num_blocks].len = config->line_size * num_lines;
           num_lines = 0;
         }
       }
       if (num_lines > 0) {
         num_blocks++;
         /* gate-line address + pixel data + dymmy data */
-        spi_cmd_buf[num_blocks].buf = &data->buffer[config->line_size * block_start_line];
-        spi_cmd_buf[num_blocks].len = config->line_size * num_lines;
+        data->spi_cmd_buf[num_blocks].buf = &data->buffer[config->line_size * block_start_line];
+        data->spi_cmd_buf[num_blocks].len = config->line_size * num_lines;
       }
 
       if (num_blocks > 0) {
         cmd_buf[0] = cmd + data->vcom_flag;
-        spi_cmd_buf[0].len = 1;
+        data->spi_cmd_buf[0].len = 1;
         spi_cmd_buf_set.count = num_blocks + 1;
         err = spi_write_dt(&config->bus, &spi_cmd_buf_set);
       }
@@ -136,7 +134,7 @@ static int _spi_cmd_write(const struct device *dev, uint8_t cmd) {
       /* send hold command instead of update command */
       if (num_blocks == 0) {
         cmd_buf[0] = LS0XX_CMD_HOLD + data->vcom_flag;
-        spi_cmd_buf[0].len = 2;
+        data->spi_cmd_buf[0].len = 2;
         spi_cmd_buf_set.count = 1;
         err = spi_write_dt(&config->bus, &spi_cmd_buf_set);
       }
@@ -378,7 +376,13 @@ static int ls0xx_write(const struct device *dev, const uint16_t x, const uint16_
 
   _buffer_write(dev, x, y, desc, buf);
 
-  LOG_DBG("end");
+/* check ZMK display thread  */
+#if IS_ENABLED(CONFIG_DISPLAY_LOG_LEVEL_DBG)
+  size_t unused_stack_space;
+  if (k_thread_stack_space_get(k_current_get(), &unused_stack_space) == 0) {
+    LOG_DBG("end unused stack space: %zu bytes", unused_stack_space);
+  }
+#endif
   return 0;
 }
 
@@ -495,6 +499,17 @@ static void ls0xx_thread(void *arg1, void *arg2, void *arg3) {
     if (err) {
       LOG_ERR("SPI communication Failed. err: %d", err);
     }
+
+#if IS_ENABLED(CONFIG_DISPLAY_LOG_LEVEL_DBG)
+    static uint8_t log_suppress_counter = 0;
+    if (log_suppress_counter == 0) {
+      size_t unused_stack_space;
+      if (k_thread_stack_space_get(k_current_get(), &unused_stack_space) == 0) {
+        LOG_DBG("Unused stack space: %zu bytes", unused_stack_space);
+      }
+    }
+    log_suppress_counter++;
+#endif
 
     k_timer_status_sync(&data->timer);
   }
@@ -666,7 +681,8 @@ static int ls0xx_pm_action(const struct device *dev, enum pm_device_action actio
 
 #define BUFFER_DEF(n)                                                         \
   static uint8_t ls0xx_buffer_##n[BUFFER_NUM_LINES(n) * BUFFER_LINE_SIZE(n)]; \
-  static bool ls0xx_dirty_##n[BUFFER_NUM_LINES(n)]
+  static bool ls0xx_dirty_##n[BUFFER_NUM_LINES(n)];                           \
+  static struct spi_buf ls0xx_spi_cmd_buf_##n[DIV_ROUND_UP(BUFFER_NUM_LINES(n), 2) + 1]
 
 #define LS0XX_INIT(n)                                                                 \
   LS0XX_GPIO_DEF(n);                                                                  \
@@ -675,8 +691,11 @@ static int ls0xx_pm_action(const struct device *dev, enum pm_device_action actio
                                                                                       \
   BUFFER_DEF(n);                                                                      \
                                                                                       \
-  static struct ls0xx_data ls0xx_data_##n = {.buffer = ls0xx_buffer_##n,              \
-                                             .dirty = ls0xx_dirty_##n};               \
+  static struct ls0xx_data ls0xx_data_##n = {                                         \
+    .buffer = ls0xx_buffer_##n,                                                       \
+    .dirty = ls0xx_dirty_##n,                                                         \
+    .spi_cmd_buf = ls0xx_spi_cmd_buf_##n,                                             \
+  };                                                                                  \
                                                                                       \
   PM_DEVICE_DT_INST_DEFINE(n, ls0xx_pm_action);                                       \
                                                                                       \
