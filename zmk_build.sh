@@ -739,8 +739,16 @@ _download_fonts() {
   if [[ -d teko ]]; then
     cd teko
     git pull
+    cd ..
   else
     git clone --depth 1 https://github.com/googlefonts/teko.git
+  fi
+
+  if [[ ! -d rushfonts ]]; then
+    mkdir  rushfonts
+    wget https://www.2112.net/rushfonts/rushfonts.zip
+    unzip -o rushfonts.zip -d rushfonts
+    rm -f rushfonts.zip
   fi
 }
 
