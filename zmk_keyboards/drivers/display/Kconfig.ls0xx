@@ -6,6 +6,7 @@ config LS0XX_YA
     default y
     depends on DT_HAS_SHARP_LS0XX_YA_ENABLED
     select SPI
+    select INIT_STACKS if DISPLAY_LOG_LEVEL >= 4
     help
       Enable driver for sharp memory display series LS0XXX7DXXX
 
@@ -23,4 +24,4 @@ config LS0XX_THREAD_PRIORITY
     help
       Priority level of the ls0xx thread.
 
-endif
+endif # LS0XX_YA

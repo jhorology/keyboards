@@ -190,15 +190,27 @@ static inline int _buffer_rot_90_write(const struct device *dev, const uint16_t 
     uint8_t *dst =
       &data
          ->buffer[(config->width - x - 1) * config->line_size + dst_x / LS0XX_PIXELS_PER_BYTE + 1];
+
     uint8_t dst_bit = dst_x % LS0XX_PIXELS_PER_BYTE;
+    uint8_t dst_bit_set = 1 << dst_bit;
+    uint8_t dst_bit_clr = ~dst_bit_set;
+
     for (uint16_t src_x = 0; src_x < x_max_exclusive; src_x++) {
-      if (src[src_x / LS0XX_PIXELS_PER_BYTE] & (1 << (src_x % LS0XX_PIXELS_PER_BYTE))) {
-        *dst |= 1 << dst_bit;
-      } else {
-        *dst &= ~(1 << dst_bit);
+      /*
+        LVGL call display_write() with the x-coordinate and width of byte boundaries.
+        To suppress unnecessary update, use xor to get changes.
+      */
+      uint8_t src_pixel =
+        (src[src_x / LS0XX_PIXELS_PER_BYTE] >> (src_x % LS0XX_PIXELS_PER_BYTE)) & 1;
+      if (src_pixel ^ ((*dst >> dst_bit) & 1)) {
+        if (src_pixel) {
+          *dst |= dst_bit_set;
+        } else {
+          *dst &= dst_bit_clr;
+        }
+        data->dirty[config->width - x - src_x - 1] = true;
       }
       dst -= config->line_size;
-      data->dirty[config->width - x - src_x - 1] = true;
     }
     src += src_line_size;
   }
@@ -218,6 +230,7 @@ static inline int _buffer_rot_180_write(const struct device *dev, const uint16_t
   /* +1 for gate-line address  */
   uint8_t *dst =
     &data->buffer[config->line_size * line + src_line_size + x / LS0XX_PIXELS_PER_BYTE];
+
   for (; line >= line_min_inclusive; line--) {
     for (uint8_t i = 0; i < src_line_size; i++) {
       dst[-i] = _reverse_bits(src[i]);
@@ -245,16 +258,26 @@ static inline int _buffer_rot_270_write(const struct device *dev, const uint16_t
     uint16_t dst_x = config->height - y - src_y - 1;
     /* +1 for gate-line address  */
     uint8_t *dst = &data->buffer[x * config->line_size + dst_x / LS0XX_PIXELS_PER_BYTE + 1];
-
     uint8_t dst_bit = dst_x % LS0XX_PIXELS_PER_BYTE;
+    uint8_t dst_bit_set = 1 << dst_bit;
+    uint8_t dst_bit_clr = ~dst_bit_set;
+
     for (uint16_t src_x = 0; src_x < x_max_exclusive; src_x++) {
-      if (src[src_x / LS0XX_PIXELS_PER_BYTE] & (1 << (src_x % LS0XX_PIXELS_PER_BYTE))) {
-        *dst |= 1 << dst_bit;
-      } else {
-        *dst &= ~(1 << dst_bit);
+      /*
+        LVGL call display_write() with the x-coordinate and width of byte boundaries.
+        To suppress unnecessary update, use xor to get changes.
+      */
+      uint8_t src_pixel =
+        (src[src_x / LS0XX_PIXELS_PER_BYTE] >> (src_x % LS0XX_PIXELS_PER_BYTE)) & 1;
+      if (src_pixel ^ ((*dst >> dst_bit) & 1)) {
+        if (src_pixel) {
+          *dst |= dst_bit_set;
+        } else {
+          *dst &= dst_bit_clr;
+        }
+        data->dirty[src_x + x] = true;
       }
       dst += config->line_size;
-      data->dirty[src_x + x] = true;
     }
     src += src_line_size;
   }
@@ -377,7 +400,7 @@ static int ls0xx_write(const struct device *dev, const uint16_t x, const uint16_
   _buffer_write(dev, x, y, desc, buf);
 
 /* check ZMK display thread  */
-#if IS_ENABLED(CONFIG_DISPLAY_LOG_LEVEL_DBG)
+#if CONFIG_DISPLAY_LOG_LEVEL >= LOG_LEVEL_DBG
   size_t unused_stack_space;
   if (k_thread_stack_space_get(k_current_get(), &unused_stack_space) == 0) {
     LOG_DBG("end unused stack space: %zu bytes", unused_stack_space);
@@ -500,7 +523,7 @@ static void ls0xx_thread(void *arg1, void *arg2, void *arg3) {
       LOG_ERR("SPI communication Failed. err: %d", err);
     }
 
-#if IS_ENABLED(CONFIG_DISPLAY_LOG_LEVEL_DBG)
+#if CONFIG_DISPLAY_LOG_LEVEL >= LOG_LEVEL_DBG
     static uint8_t log_suppress_counter = 0;
     if (log_suppress_counter == 0) {
       size_t unused_stack_space;
