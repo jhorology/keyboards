@@ -344,12 +344,11 @@
 
 /* for debugging ls0xx driver */
 &ls011b7dh3 {
-  // compatible = "sharp,ls0xx,ya";
-  /* for debug */
-  // default 30
-  com-frequency = <35>;
-
   // experimental setting
+
+  // default 60
+  refresh-rate = <70>;
+
   // default 1000000
   // spi-max-frequency = <1000000>;
   // spi-max-frequency = <2000000>;

@@ -41,7 +41,7 @@ struct ls0xx_config {
   const struct gpio_dt_spec *extcomin_gpio;
   uint16_t width;
   uint16_t height;
-  uint8_t com_frequency;
+  uint8_t refresh_rate;
   enum screen_rotated rotated;
   uint16_t line_size;
   uint16_t num_lines;
@@ -141,8 +141,8 @@ static int _spi_cmd_write(const struct device *dev, uint8_t cmd) {
 static void _timer_start(const struct device *dev) {
   const struct ls0xx_config *config = dev->config;
   struct ls0xx_data *data = dev->data;
-  k_timer_start(&data->timer, K_USEC(USEC_PER_SEC / config->com_frequency / 2),
-                K_USEC(USEC_PER_SEC / config->com_frequency / 2));
+  k_timer_start(&data->timer, K_USEC(USEC_PER_SEC / config->refresh_rate),
+                K_USEC(USEC_PER_SEC / config->refresh_rate));
 }
 
 static inline int _buffer_rot_0_write(const struct device *dev, const uint16_t x, const uint16_t y,
@@ -689,7 +689,7 @@ static int ls0xx_pm_action(const struct device *dev, enum pm_device_action actio
       COND_CODE_1(DT_INST_NODE_HAS_PROP(n, disp_en_gpios), (&disp_en_gpio_##n), (NULL)),  \
     .extcomin_gpio =                                                                      \
       COND_CODE_1(DT_INST_NODE_HAS_PROP(n, extcomin_gpio), (&extcomin_gpio_##n), (NULL)), \
-    .com_frequency = DT_INST_PROP(n, com_frequency),                                      \
+    .refresh_rate = DT_INST_PROP(n, refresh_rate),                                        \
     .rotated = DT_INST_ENUM_IDX(n, rotated),                                              \
     .line_size = BUFFER_LINE_SIZE(n),                                                     \
     .num_lines = BUFFER_NUM_LINES(n),                                                     \

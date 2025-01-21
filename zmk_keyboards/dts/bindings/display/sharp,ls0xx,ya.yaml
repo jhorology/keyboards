@@ -15,17 +15,13 @@ properties:
       The EXTCOMIN pin is where a square pulse for toggling VCOM will
       be given
 
-  com-frequency:
+  refresh-rate:
     type: int
-    default: 30
-    description: fCOM prolarity inversion frequency
+    default: 60
+    description: Screen refresh frequency (Hz)
 
-      The frequency with which the EXTCOMIN pin or M1 bit should be toggled. See
-      datasheet of particular display. Higher frequency gives better
-      contrast while low frequency saves power.
-
-      According to the LS011B specifications, the recommended value is 28.5Hz to 35Hz
-      Display refresh rate is twice of fCOM.
+      How many times per second a display updates its image on the screen.
+      According to the LS011B specifications, the recommended value is 57 to 70Hz.
 
   disp-en-gpios:
     type: phandle-array
