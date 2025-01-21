@@ -51,7 +51,7 @@ struct usb_status_state {
 LV_FONT_DECLARE(cozetta_icons_13);
 
 static struct zmk_lv_usb_status_user_data user_data;
-static bool initialized;
+static bool initial;
 
 static struct usb_status_state get_state(const zmk_event_t *_eh) {
   return (struct usb_status_state){.selected_endpoint = zmk_endpoints_selected(),
@@ -67,7 +67,7 @@ static void usb_status_update_cb(struct usb_status_state state) {
 #if IS_ENABLED(CONFIG_ZMK_WIDGET_ENDPOINT_INDICATOR)
   static bool is_usb;
   bool new_is_usb = state.selected_endpoint.transport == ZMK_TRANSPORT_USB;
-  if (initialized || new_is_usb != is_usb) {
+  if (initial || new_is_usb != is_usb) {
     is_usb = new_is_usb;
     lv_obj_t *container = lv_obj_get_parent(user_data.icon_label);
     lv_obj_set_style_bg_color(container, is_usb ? lv_color_black() : lv_color_white(),
@@ -98,7 +98,7 @@ static void usb_status_update_cb(struct usb_status_state state) {
   } else {
     new_icon = ICON_CLOSE;
   }
-  if (initialized || new_icon != icon) {
+  if (initial || new_icon != icon) {
     icon = new_icon;
     switch (icon) {
       case ICON_APPLE:
@@ -115,7 +115,7 @@ static void usb_status_update_cb(struct usb_status_state state) {
         break;
     }
   }
-  if (initialized) initialized = false;
+  initial = false;
 }
 
 ZMK_DISPLAY_WIDGET_LISTENER(widget_usb_status, struct usb_status_state, usb_status_update_cb,
@@ -144,13 +144,12 @@ lv_obj_t *zmk_lv_usb_status_create(lv_obj_t *parent, lv_obj_t *(*container_defau
 
   lv_obj_t *icon_label = lv_label_create(container);
   lv_obj_set_style_text_font(icon_label, &cozetta_icons_13, 0);
-  lv_label_set_text(icon_label, " ");
 
   user_data.title_label = title_label;
   user_data.icon_label = icon_label;
   lv_obj_set_user_data(container, &user_data);
 
+  initial = true;
   widget_usb_status_init();
-  initialized = true;
   return container;
 }

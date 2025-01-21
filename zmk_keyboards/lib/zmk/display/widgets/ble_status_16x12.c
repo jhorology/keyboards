@@ -48,7 +48,7 @@ LV_FONT_DECLARE(pixel_mplus_bold_10);
 LV_FONT_DECLARE(cozetta_icons_13);
 
 static struct zmk_lv_ble_status_user_data user_data;
-static bool initialized;
+static bool initial;
 
 static struct ble_status_state get_state(const zmk_event_t *eh) {
   return (struct ble_status_state){
@@ -61,7 +61,7 @@ static void ble_status_update_cb(struct ble_status_state state) {
 #if IS_ENABLED(CONFIG_ZMK_WIDGET_ENDPOINT_INDICATOR)
   static bool is_ble;
   bool new_is_ble = state.selected_endpoint.transport == ZMK_TRANSPORT_BLE;
-  if (initialized || new_is_ble != is_ble) {
+  if (initial || new_is_ble != is_ble) {
     is_ble = new_is_ble;
     lv_obj_t *container = lv_obj_get_parent(user_data.icon_label);
     lv_obj_set_style_bg_color(container, is_ble ? lv_color_black() : lv_color_white(),
@@ -75,7 +75,7 @@ static void ble_status_update_cb(struct ble_status_state state) {
   enum icon new_icon = !state.active_profile_bonded     ? ICON_SETTING
                        : state.active_profile_connected ? ICON_OPEN
                                                         : ICON_CLOSE;
-  if (initialized || new_icon != icon) {
+  if (initial || new_icon != icon) {
     icon = new_icon;
     switch (icon) {
       case ICON_OPEN:
@@ -92,11 +92,11 @@ static void ble_status_update_cb(struct ble_status_state state) {
 
   static uint8_t index;
   uint8_t new_index = state.selected_endpoint.ble.profile_index;
-  if (initialized || new_index != index) {
+  if (initial || new_index != index) {
     index = new_index;
     lv_label_set_text_fmt(user_data.index_label, "%i", index + 1);
   }
-  if (initialized) initialized = false;
+  initial = false;
 }
 
 ZMK_DISPLAY_WIDGET_LISTENER(widget_ble_status, struct ble_status_state, ble_status_update_cb,
@@ -128,8 +128,8 @@ lv_obj_t *zmk_lv_ble_status_create(lv_obj_t *parent, lv_obj_t *(*container_defau
   user_data.index_label = index_label;
   lv_obj_set_user_data(container, &user_data);
 
+  initial = true;
   widget_ble_status_init();
 
-  initialized = true;
   return container;
 }
