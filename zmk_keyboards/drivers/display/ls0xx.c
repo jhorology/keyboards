@@ -233,7 +233,7 @@ static inline int _buffer_rot_180_write(const struct device *dev, const uint16_t
 
   for (; line >= line_min_inclusive; line--) {
     for (uint8_t i = 0; i < src_line_size; i++) {
-      dst[-i] = _reverse_bits(src[i]);
+      dst[-i] = src[i];
     }
     data->dirty[line] = true;
     dst -= config->line_size;
@@ -437,7 +437,9 @@ static void ls0xx_get_capabilities(const struct device *dev, struct display_capa
   caps->y_resolution = config->height;
   caps->supported_pixel_formats = PIXEL_FORMAT_MONO01;
   caps->current_pixel_format = PIXEL_FORMAT_MONO01;
-  // caps->screen_info = SCREEN_INFO_X_ALIGNMENT_WIDTH;
+  if (config->rotated == LS0XX_ROT_180) {
+    caps->screen_info = SCREEN_INFO_MONO_MSB_FIRST;
+  }
 }
 
 static int ls0xx_set_orientation(const struct device *dev,
