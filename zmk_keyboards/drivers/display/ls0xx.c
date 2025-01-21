@@ -64,13 +64,6 @@ struct ls0xx_data {
   K_KERNEL_STACK_MEMBER(thread_stack, CONFIG_LS0XX_THREAD_STACK_SIZE);
 };
 
-static inline uint8_t _reverse_bits(uint8_t d) {
-  d = ((d & 0x0f) << 4) | ((d >> 4) & 0x0f);
-  d = ((d & 0x33) << 2) | ((d >> 2) & 0x33);
-  d = ((d & 0x55) << 1) | ((d >> 1) & 0x55);
-  return d;
-}
-
 static int _spi_cmd_write(const struct device *dev, uint8_t cmd) {
   const struct ls0xx_config *config = dev->config;
   struct ls0xx_data *data = dev->data;
@@ -163,7 +156,7 @@ static inline int _buffer_rot_0_write(const struct device *dev, const uint16_t x
   uint16_t src_line_size = DIV_ROUND_UP(desc->pitch, LS0XX_PIXELS_PER_BYTE);
   /* +1 for gate-line address  */
   uint8_t *dst = &data->buffer[config->line_size * y + x / LS0XX_PIXELS_PER_BYTE + 1];
-  int16_t line_max_exclusive = y + desc->height;
+  int16_t line_max_exclusive = MIN(config->height, y + desc->height);
   for (int16_t line = y; line < line_max_exclusive; line++) {
     memcpy(dst, src, src_line_size);
     data->dirty[line] = true;
@@ -173,50 +166,41 @@ static inline int _buffer_rot_0_write(const struct device *dev, const uint16_t x
   return 0;
 }
 
+/*
+ * caps->screen_info = SCREEN_INFO_MONO_VTILED
+ */
 static inline int _buffer_rot_90_write(const struct device *dev, const uint16_t x, const uint16_t y,
                                        const struct display_buffer_descriptor *desc,
                                        const void *buf) {
   const struct ls0xx_config *config = dev->config;
   struct ls0xx_data *data = dev->data;
 
+  /* +1 for gate-line address  */
+  uint16_t dst_h_offset = y / LS0XX_PIXELS_PER_BYTE + 1;
+  uint16_t src_y_oct_len = DIV_ROUND_UP(desc->height, LS0XX_PIXELS_PER_BYTE);
+  uint16_t src_x_max_exclusive = MIN(x + desc->width, config->width) - x;
   uint8_t *src = (uint8_t *)buf;
-  uint16_t src_line_size = DIV_ROUND_UP(desc->pitch, LS0XX_PIXELS_PER_BYTE);
-  uint16_t x_max_exclusive = MIN(x + desc->width, config->width) - x;
-  uint16_t y_max_exclusive = MIN(y + desc->height, config->height) - y;
 
-  for (uint16_t src_y = 0; src_y < y_max_exclusive; src_y++) {
-    uint16_t dst_x = y + src_y;
-    /* +1 for gate-line address  */
-    uint8_t *dst =
-      &data
-         ->buffer[(config->width - x - 1) * config->line_size + dst_x / LS0XX_PIXELS_PER_BYTE + 1];
-
-    uint8_t dst_bit = dst_x % LS0XX_PIXELS_PER_BYTE;
-    uint8_t dst_bit_set = 1 << dst_bit;
-    uint8_t dst_bit_clr = ~dst_bit_set;
-
-    for (uint16_t src_x = 0; src_x < x_max_exclusive; src_x++) {
-      /*
-        LVGL call display_write() with the x-coordinate and width of byte boundaries.
-        To suppress unnecessary update, use xor to get changes.
-      */
-      uint8_t src_pixel =
-        (src[src_x / LS0XX_PIXELS_PER_BYTE] >> (src_x % LS0XX_PIXELS_PER_BYTE)) & 1;
-      if (src_pixel ^ ((*dst >> dst_bit) & 1)) {
-        if (src_pixel) {
-          *dst |= dst_bit_set;
-        } else {
-          *dst &= dst_bit_clr;
-        }
-        data->dirty[config->width - x - src_x - 1] = true;
+  for (uint8_t i = 0; i < src_y_oct_len; i++) {
+    uint8_t line = config->width - x - 1;
+    uint8_t *dst = &data->buffer[config->line_size * line + dst_h_offset + i];
+    for (uint16_t j = 0; j < src_x_max_exclusive; j++) {
+      /* +1 for gate-line address  */
+      if (*src ^ *dst) {
+        *dst = *src;
+        data->dirty[line] = true;
       }
+      src++;
+      line--;
       dst -= config->line_size;
     }
-    src += src_line_size;
   }
   return 0;
 }
 
+/*
+ * caps->screen_info = SCREEN_INFO_MONO_MSB_FIRST
+ */
 static inline int _buffer_rot_180_write(const struct device *dev, const uint16_t x,
                                         const uint16_t y,
                                         const struct display_buffer_descriptor *desc,
@@ -242,6 +226,9 @@ static inline int _buffer_rot_180_write(const struct device *dev, const uint16_t
   return 0;
 }
 
+/*
+ *  caps->screen_info = SCREEN_INFO_MONO_VTILED + SCREEN_INFO_MONO_MSB_FIRST;
+ */
 static inline int _buffer_rot_270_write(const struct device *dev, const uint16_t x,
                                         const uint16_t y,
                                         const struct display_buffer_descriptor *desc,
@@ -249,37 +236,25 @@ static inline int _buffer_rot_270_write(const struct device *dev, const uint16_t
   const struct ls0xx_config *config = dev->config;
   struct ls0xx_data *data = dev->data;
 
+  /* +1 for gate-line address  */
+  uint16_t dst_h_offset =
+    DIV_ROUND_UP(config->height, LS0XX_PIXELS_PER_BYTE) - y / LS0XX_PIXELS_PER_BYTE;
+  uint16_t src_y_oct_len = DIV_ROUND_UP(desc->height, LS0XX_PIXELS_PER_BYTE);
+  uint16_t src_x_max_exclusive = MIN(x + desc->width, config->width) - x;
   uint8_t *src = (uint8_t *)buf;
-  uint16_t src_line_size = DIV_ROUND_UP(desc->pitch, LS0XX_PIXELS_PER_BYTE);
-  uint16_t x_max_exclusive = MIN(x + desc->width, config->width) - x;
-  uint16_t y_max_exclusive = MIN(y + desc->height, config->height) - y;
 
-  for (uint16_t src_y = 0; src_y < y_max_exclusive; src_y++) {
-    uint16_t dst_x = config->height - y - src_y - 1;
-    /* +1 for gate-line address  */
-    uint8_t *dst = &data->buffer[x * config->line_size + dst_x / LS0XX_PIXELS_PER_BYTE + 1];
-    uint8_t dst_bit = dst_x % LS0XX_PIXELS_PER_BYTE;
-    uint8_t dst_bit_set = 1 << dst_bit;
-    uint8_t dst_bit_clr = ~dst_bit_set;
-
-    for (uint16_t src_x = 0; src_x < x_max_exclusive; src_x++) {
-      /*
-        LVGL call display_write() with the x-coordinate and width of byte boundaries.
-        To suppress unnecessary update, use xor to get changes.
-      */
-      uint8_t src_pixel =
-        (src[src_x / LS0XX_PIXELS_PER_BYTE] >> (src_x % LS0XX_PIXELS_PER_BYTE)) & 1;
-      if (src_pixel ^ ((*dst >> dst_bit) & 1)) {
-        if (src_pixel) {
-          *dst |= dst_bit_set;
-        } else {
-          *dst &= dst_bit_clr;
-        }
-        data->dirty[src_x + x] = true;
+  for (uint8_t i = 0; i < src_y_oct_len; i++) {
+    uint8_t line = x;
+    uint8_t *dst = &data->buffer[config->line_size * line + dst_h_offset - i];
+    for (uint16_t j = 0; j < src_x_max_exclusive; j++) {
+      if (*src ^ *dst) {
+        *dst = *src;
+        data->dirty[line] = true;
       }
+      src++;
+      line++;
       dst += config->line_size;
     }
-    src += src_line_size;
   }
   return 0;
 }
@@ -437,8 +412,19 @@ static void ls0xx_get_capabilities(const struct device *dev, struct display_capa
   caps->y_resolution = config->height;
   caps->supported_pixel_formats = PIXEL_FORMAT_MONO01;
   caps->current_pixel_format = PIXEL_FORMAT_MONO01;
-  if (config->rotated == LS0XX_ROT_180) {
-    caps->screen_info = SCREEN_INFO_MONO_MSB_FIRST;
+  switch (config->rotated) {
+    case LS0XX_ROT_90:
+      caps->screen_info = SCREEN_INFO_MONO_VTILED;
+      break;
+    case LS0XX_ROT_180:
+      caps->screen_info = SCREEN_INFO_MONO_MSB_FIRST;
+
+      break;
+    case LS0XX_ROT_270:
+      caps->screen_info = SCREEN_INFO_MONO_VTILED + SCREEN_INFO_MONO_MSB_FIRST;
+      break;
+    default:
+      break;
   }
 }
 
