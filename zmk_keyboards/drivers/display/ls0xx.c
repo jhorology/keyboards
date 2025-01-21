@@ -72,8 +72,10 @@ static int _spi_cmd_write(const struct device *dev, uint8_t cmd) {
   struct spi_buf_set spi_cmd_buf_set = {.buffers = data->spi_cmd_buf};
   int err = 0;
 
-  data->spi_cmd_buf[0].buf = cmd_buf;
+  /* lock SPI and buffer  */
+  k_mutex_lock(&data->lock, K_FOREVER);
 
+  data->spi_cmd_buf[0].buf = cmd_buf;
   switch (cmd) {
     case LS0XX_CMD_HOLD:
     case LS0XX_CMD_CLEAR:
@@ -87,9 +89,6 @@ static int _spi_cmd_write(const struct device *dev, uint8_t cmd) {
       uint8_t num_blocks = 0;
       uint8_t num_lines = 0;
       uint8_t block_start_line;
-
-      /* lock buffer  */
-      k_mutex_lock(&data->lock, K_FOREVER);
 
       for (uint8_t line = 0; line < config->num_lines; line++) {
         if (data->dirty[line]) {
@@ -121,9 +120,6 @@ static int _spi_cmd_write(const struct device *dev, uint8_t cmd) {
         err = spi_write_dt(&config->bus, &spi_cmd_buf_set);
       }
 
-      /* unlock buffer  */
-      k_mutex_unlock(&data->lock);
-
       /* send hold command instead of update command */
       if (num_blocks == 0) {
         cmd_buf[0] = LS0XX_CMD_HOLD + data->vcom_flag;
@@ -135,6 +131,9 @@ static int _spi_cmd_write(const struct device *dev, uint8_t cmd) {
     }
   }
   spi_release_dt(&config->bus);
+
+  /* unlock spi and buffer  */
+  k_mutex_unlock(&data->lock);
 
   return err;
 }
@@ -185,7 +184,6 @@ static inline int _buffer_rot_90_write(const struct device *dev, const uint16_t 
     uint8_t line = config->width - x - 1;
     uint8_t *dst = &data->buffer[config->line_size * line + dst_h_offset + i];
     for (uint16_t j = 0; j < src_x_max_exclusive; j++) {
-      /* +1 for gate-line address  */
       if (*src ^ *dst) {
         *dst = *src;
         data->dirty[line] = true;
@@ -286,7 +284,7 @@ static inline void _buffer_write(const struct device *dev, const uint16_t x, con
   k_mutex_unlock(&data->lock);
 }
 
-static void _buffer_clear(const struct device *dev) {
+static void _buffer_clear(const struct device *dev, bool flush) {
   const struct ls0xx_config *config = dev->config;
   struct ls0xx_data *data = dev->data;
 
@@ -297,8 +295,13 @@ static void _buffer_clear(const struct device *dev) {
   for (size_t line = 0; line < config->num_lines; line++) {
     /* gate-line address  */
     dst[0] = line + 1;
-    memset(&dst[1], 0, config->line_size - 1);
-    data->dirty[line] = false;
+
+    /*
+      PANEL_PIXEL_FORMAT_MONO01  0=Black 1=White
+       white should be the default color for LCD
+    */
+    memset(&dst[1], 0xff, config->line_size - 1);
+    data->dirty[line] = flush;
 
     dst += config->line_size;
   }
@@ -307,7 +310,7 @@ static void _buffer_clear(const struct device *dev) {
   k_mutex_unlock(&data->lock);
 }
 
-static void _buffer_full_flush(const struct device *dev) {
+static void _buffer_flush(const struct device *dev) {
   const struct ls0xx_config *config = dev->config;
   struct ls0xx_data *data = dev->data;
 
@@ -411,6 +414,10 @@ static void ls0xx_get_capabilities(const struct device *dev, struct display_capa
   caps->x_resolution = config->width;
   caps->y_resolution = config->height;
   caps->supported_pixel_formats = PIXEL_FORMAT_MONO01;
+  /*
+    PANEL_PIXEL_FORMAT_MONO01  0=Black 1=White
+    PANEL_PIXEL_FORMAT_MONO10  1=Black 0=White
+  */
   caps->current_pixel_format = PIXEL_FORMAT_MONO01;
   switch (config->rotated) {
     case LS0XX_ROT_90:
@@ -452,26 +459,16 @@ static void ls0xx_thread(void *arg1, void *arg2, void *arg3) {
 
   bool prev_blanking = false;
 
-  _buffer_clear(dev);
-  _buffer_full_flush(dev);
-
   while (1) {
 #if IS_ENABLED(CONFIG_PM_DEVICE)
     if (atomic_get(&data->suspended) == 1) {
-      _buffer_clear(dev);
-
-      /* for the devcie that are always powered */
-      int err = _spi_cmd_write(dev, LS0XX_CMD_CLEAR);
-      if (err) {
-        LOG_ERR("SPI communication Failed. err: %d", err);
-      }
+      /*
+        Do not use SPI in this scope as it may already be suspended.
+      */
 
       LOG_DBG("Suspended");
-
       k_sem_take(&data->wakeup, K_FOREVER);
-
       LOG_DBG("Wakeup");
-      _buffer_full_flush(dev);
     }
 #endif
     if (config->extcomin_gpio != NULL) {
@@ -501,7 +498,7 @@ static void ls0xx_thread(void *arg1, void *arg2, void *arg3) {
       } else {
         if (prev_blanking) {
           LOG_DBG("buffer full flush for un-blanking");
-          _buffer_full_flush(dev);
+          _buffer_flush(dev);
         }
         prev_blanking = false;
       }
@@ -583,6 +580,8 @@ static int ls0xx_init(const struct device *dev) {
   }
 #endif
 
+  _buffer_clear(dev, true);
+
 #if IS_ENABLED(CONFIG_PM_DEVICE_RUNTIM)
 
   atomic_set(&data->suspended, 1);
@@ -632,11 +631,17 @@ static int ls0xx_pm_action(const struct device *dev, enum pm_device_action actio
       LOG_DBG("action suspend");
       atomic_set(&data->suspended, 1);
       k_timer_stop(&data->timer);
+      _buffer_clear(dev, false);
+      int err = _spi_cmd_write(dev, LS0XX_CMD_CLEAR);
+      if (err) {
+        LOG_ERR("SPI communication Failed. err: %d", err);
+      }
       break;
     case PM_DEVICE_ACTION_RESUME:
       LOG_DBG("action resume");
-      _timer_start(dev);
       atomic_set(&data->suspended, 0);
+      _buffer_clear(dev, true);
+      _timer_start(dev);
       k_sem_give(&data->wakeup);
       break;
     default:
