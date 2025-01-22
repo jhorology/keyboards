@@ -53,7 +53,8 @@ struct ls0xx_data {
   struct k_timer timer;
   atomic_t blanking;
 #if IS_ENABLED(CONFIG_PM_DEVICE)
-  atomic_t suspended;
+  atomic_t suspend;
+  struct k_sem suspended;
   struct k_sem wakeup;
 #endif
   struct k_mutex lock;
@@ -72,9 +73,6 @@ static int _spi_cmd_write(const struct device *dev, uint8_t cmd) {
   struct spi_buf_set spi_cmd_buf_set = {.buffers = data->spi_cmd_buf};
   int err = 0;
 
-  /* lock SPI and buffer  */
-  k_mutex_lock(&data->lock, K_FOREVER);
-
   data->spi_cmd_buf[0].buf = cmd_buf;
   switch (cmd) {
     case LS0XX_CMD_HOLD:
@@ -89,6 +87,9 @@ static int _spi_cmd_write(const struct device *dev, uint8_t cmd) {
       uint8_t num_blocks = 0;
       uint8_t num_lines = 0;
       uint8_t block_start_line;
+
+      /* lock buffer  */
+      k_mutex_lock(&data->lock, K_FOREVER);
 
       for (uint8_t line = 0; line < config->num_lines; line++) {
         if (data->dirty[line]) {
@@ -120,6 +121,9 @@ static int _spi_cmd_write(const struct device *dev, uint8_t cmd) {
         err = spi_write_dt(&config->bus, &spi_cmd_buf_set);
       }
 
+      /* unlock buffer  */
+      k_mutex_unlock(&data->lock);
+
       /* send hold command instead of update command */
       if (num_blocks == 0) {
         cmd_buf[0] = LS0XX_CMD_HOLD + data->vcom_flag;
@@ -131,9 +135,6 @@ static int _spi_cmd_write(const struct device *dev, uint8_t cmd) {
     }
   }
   spi_release_dt(&config->bus);
-
-  /* unlock spi and buffer  */
-  k_mutex_unlock(&data->lock);
 
   return err;
 }
@@ -325,6 +326,45 @@ static void _buffer_flush(const struct device *dev) {
   k_mutex_unlock(&data->lock);
 }
 
+#if IS_ENABLED(CONFIG_PM_DEVICE)
+
+static inline int _suspend(const struct device *dev) {
+  const struct ls0xx_config *config = dev->config;
+  int err = 0;
+
+  _buffer_clear(dev, false);
+
+  if (config->disp_en_gpio != NULL) {
+    err = gpio_pin_set_dt(config->disp_en_gpio, GPIO_OUTPUT_LOW);
+    if (err < 0) {
+      LOG_ERR("Failed to set disp-en-gpio. err: %d", err);
+    }
+  } else {
+    err = _spi_cmd_write(dev, LS0XX_CMD_CLEAR);
+    if (err < 0) {
+      LOG_ERR("SPI communication Failed. err: %d", err);
+    }
+  }
+  return err;
+}
+
+static inline int _resume(const struct device *dev) {
+  const struct ls0xx_config *config = dev->config;
+  int err = 0;
+
+  _buffer_clear(dev, true);
+
+  if (config->disp_en_gpio != NULL) {
+    gpio_pin_set_dt(config->disp_en_gpio, GPIO_OUTPUT_HIGH);
+    if (err < 0) {
+      LOG_ERR("Failed to set disp-en-gpio. err: %d", err);
+    }
+  }
+  return err;
+}
+
+#endif  // IS_ENABLED(CONFIG_PM_DEVICE)
+
 // driver API -->
 
 static int ls0xx_blanking_on(const struct device *dev) {
@@ -369,7 +409,7 @@ static int ls0xx_write(const struct device *dev, const uint16_t x, const uint16_
           desc->buf_size, desc->pitch, config->rotated);
 
 #if IS_ENABLED(CONFIG_PM_DEVICE)
-  if (atomic_get(&data->suspended) == 1) {
+  if (atomic_get(&data->suspend) == 1) {
     LOG_WRN("Display has been suspended");
     return -EINVAL;
   }
@@ -452,6 +492,9 @@ static int ls0xx_set_pixel_format(const struct device *dev, const enum display_p
 
 // <-- driver API
 
+/*
+   all spi transactions are executed in this thread.
+ */
 static void ls0xx_thread(void *arg1, void *arg2, void *arg3) {
   const struct device *dev = arg1;
   const struct ls0xx_config *config = dev->config;
@@ -461,14 +504,15 @@ static void ls0xx_thread(void *arg1, void *arg2, void *arg3) {
 
   while (1) {
 #if IS_ENABLED(CONFIG_PM_DEVICE)
-    if (atomic_get(&data->suspended) == 1) {
-      /*
-        Do not use SPI in this scope as it may already be suspended.
-      */
+    if (atomic_get(&data->suspend) == 1) {
+      _suspend(dev);
+      k_sem_give(&data->suspended);
 
       LOG_DBG("Suspended");
       k_sem_take(&data->wakeup, K_FOREVER);
       LOG_DBG("Wakeup");
+
+      _resume(dev);
     }
 #endif
     if (config->extcomin_gpio != NULL) {
@@ -540,12 +584,6 @@ static int ls0xx_init(const struct device *dev) {
       LOG_ERR("DISP port device not ready. err: %d", err);
       return err;
     }
-    LOG_INF("Configuring DISP pin to OUTPUT_HIGH");
-    err = gpio_pin_configure_dt(config->disp_en_gpio, GPIO_OUTPUT_HIGH);
-    if (err < 0) {
-      LOG_ERR("Failed to configure DISP port device. err: %d", err);
-      return err;
-    }
   }
 
   if (config->extcomin_gpio != NULL) {
@@ -573,6 +611,11 @@ static int ls0xx_init(const struct device *dev) {
   k_timer_init(&data->timer, NULL, NULL);
 
 #if IS_ENABLED(CONFIG_PM_DEVICE)
+  err = k_sem_init(&data->suspended, 0, 1);
+  if (err < 0) {
+    LOG_ERR("Failed to initialize semaphore. err: %d", err);
+    return err;
+  }
   err = k_sem_init(&data->wakeup, 0, 1);
   if (err < 0) {
     LOG_ERR("Failed to initialize semaphore. err: %d", err);
@@ -580,18 +623,19 @@ static int ls0xx_init(const struct device *dev) {
   }
 #endif
 
-  _buffer_clear(dev, true);
-
 #if IS_ENABLED(CONFIG_PM_DEVICE_RUNTIM)
 
-  atomic_set(&data->suspended, 1);
-
+  atomic_set(&data->suspend, 1);
   pm_device_init_suspended(dev);
   err = pm_device_runtime_enable(dev);
   if (err < 0) {
     LOG_ERR("Failed to enable runtime power management");
   }
 #else
+  err = _resume(dev);
+  if (err) {
+    return err;
+  }
   _timer_start(dev);
 #endif
 
@@ -625,22 +669,22 @@ static struct display_driver_api ls0xx_driver_api = {
 
 static int ls0xx_pm_action(const struct device *dev, enum pm_device_action action) {
   struct ls0xx_data *data = dev->data;
-
+  int err = 0;
   switch (action) {
     case PM_DEVICE_ACTION_SUSPEND:
       LOG_DBG("action suspend");
-      atomic_set(&data->suspended, 1);
+
+      atomic_set(&data->suspend, 1);
       k_timer_stop(&data->timer);
-      _buffer_clear(dev, false);
-      int err = _spi_cmd_write(dev, LS0XX_CMD_CLEAR);
-      if (err) {
-        LOG_ERR("SPI communication Failed. err: %d", err);
-      }
+      /*
+         At deep-sleep and soft-off, ZMK immediately execute sys_poweroff() after suspend devices.
+          So wait here until ls0xx_thread is suspended.
+       */
+      k_sem_take(&data->suspended, K_FOREVER);
       break;
     case PM_DEVICE_ACTION_RESUME:
       LOG_DBG("action resume");
-      atomic_set(&data->suspended, 0);
-      _buffer_clear(dev, true);
+      atomic_set(&data->suspend, 0);
       _timer_start(dev);
       k_sem_give(&data->wakeup);
       break;
@@ -648,7 +692,7 @@ static int ls0xx_pm_action(const struct device *dev, enum pm_device_action actio
       return -ENOTSUP;
   }
 
-  return 0;
+  return err;
 }
 #endif
 
