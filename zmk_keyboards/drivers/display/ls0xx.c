@@ -33,6 +33,13 @@ LOG_MODULE_REGISTER(ls0xx, CONFIG_DISPLAY_LOG_LEVEL);
 
 #define LS0XX_BIT_VCOM 0x02
 
+#define LS0XX_BIT_DIRTY 0x01
+
+#define LS0XX_FLAG_SUSPEND 0
+#define LS0XX_FLAG_BLANKING 1
+
+#define THREAD_SYNC_TIMEOUT K_MSEC(100)
+
 enum screen_rotated { LS0XX_ROT_0, LS0XX_ROT_90, LS0XX_ROT_180, LS0XX_ROT_270 };
 
 struct ls0xx_config {
@@ -51,15 +58,13 @@ struct ls0xx_data {
   uint8_t vcom_flag;
   struct k_thread thread;
   struct k_timer timer;
-  atomic_t blanking;
+  atomic_t flags;
 #if IS_ENABLED(CONFIG_PM_DEVICE)
-  atomic_t suspend;
-  struct k_sem suspended;
+  struct k_sem sync;
   struct k_sem wakeup;
 #endif
   struct k_mutex lock;
   uint8_t *buffer;
-  bool *dirty;
   struct spi_buf *spi_cmd_buf;
 
   K_KERNEL_STACK_MEMBER(thread_stack, CONFIG_LS0XX_THREAD_STACK_SIZE);
@@ -84,25 +89,26 @@ static int _spi_cmd_write(const struct device *dev, uint8_t cmd) {
       break;
 
     case LS0XX_CMD_UPDATE: {
+      uint8_t(*src)[config->line_size] = (uint8_t(*)[config->line_size])data->buffer;
       uint8_t num_blocks = 0;
       uint8_t num_lines = 0;
       uint8_t block_start_line;
-
       /* lock buffer  */
       k_mutex_lock(&data->lock, K_FOREVER);
 
       for (uint8_t line = 0; line < config->num_lines; line++) {
-        if (data->dirty[line]) {
+        if (src[line][config->line_size - 1] & LS0XX_BIT_DIRTY) {
           LOG_DBG("cmd update line: %d", line);
           if (num_lines == 0) {
             block_start_line = line;
           }
           num_lines++;
-          data->dirty[line] = false;
+          /* flags  */
+          src[line][config->line_size - 1] &= ~LS0XX_BIT_DIRTY;
         } else if (num_lines > 0) {
           num_blocks++;
           /* gate-line address + pixel data + dymmy data */
-          data->spi_cmd_buf[num_blocks].buf = &data->buffer[config->line_size * block_start_line];
+          data->spi_cmd_buf[num_blocks].buf = src[block_start_line];
           data->spi_cmd_buf[num_blocks].len = config->line_size * num_lines;
           num_lines = 0;
         }
@@ -110,7 +116,7 @@ static int _spi_cmd_write(const struct device *dev, uint8_t cmd) {
       if (num_lines > 0) {
         num_blocks++;
         /* gate-line address + pixel data + dymmy data */
-        data->spi_cmd_buf[num_blocks].buf = &data->buffer[config->line_size * block_start_line];
+        data->spi_cmd_buf[num_blocks].buf = src[block_start_line];
         data->spi_cmd_buf[num_blocks].len = config->line_size * num_lines;
       }
 
@@ -152,16 +158,17 @@ static inline int _buffer_rot_0_write(const struct device *dev, const uint16_t x
   const struct ls0xx_config *config = dev->config;
   struct ls0xx_data *data = dev->data;
 
-  uint8_t *src = (uint8_t *)buf;
-  uint16_t src_line_size = DIV_ROUND_UP(desc->pitch, LS0XX_PIXELS_PER_BYTE);
+  uint16_t src_x_len = DIV_ROUND_UP(desc->pitch, LS0XX_PIXELS_PER_BYTE);
+  uint8_t(*src)[src_x_len] = (uint8_t(*)[src_x_len])buf;
+  uint8_t(*dst)[config->line_size] = (uint8_t(*)[config->line_size])data->buffer;
+
   /* +1 for gate-line address  */
-  uint8_t *dst = &data->buffer[config->line_size * y + x / LS0XX_PIXELS_PER_BYTE + 1];
-  int16_t line_max_exclusive = MIN(config->height, y + desc->height);
-  for (int16_t line = y; line < line_max_exclusive; line++) {
-    memcpy(dst, src, src_line_size);
-    data->dirty[line] = true;
-    src += src_line_size;
-    dst += config->line_size;
+  uint16_t dst_x_offset = x / LS0XX_PIXELS_PER_BYTE + 1;
+  uint16_t dst_y = y;
+  for (int16_t src_y = 0; src_y < desc->height; src_y++, dst_y++) {
+    memcpy(&dst[dst_y][dst_x_offset], src[src_y], src_x_len);
+    /* flags */
+    dst[dst_y][config->line_size - 1] |= LS0XX_BIT_DIRTY;
   }
   return 0;
 }
@@ -175,24 +182,20 @@ static inline int _buffer_rot_90_write(const struct device *dev, const uint16_t 
   const struct ls0xx_config *config = dev->config;
   struct ls0xx_data *data = dev->data;
 
-  /* +1 for gate-line address  */
-  uint16_t dst_h_offset = y / LS0XX_PIXELS_PER_BYTE + 1;
-  uint16_t src_y_oct_len = DIV_ROUND_UP(desc->height, LS0XX_PIXELS_PER_BYTE);
-  uint16_t src_x_max_exclusive = MIN(x + desc->width, config->width) - x;
-  uint8_t *src = (uint8_t *)buf;
+  uint16_t src_y_len = DIV_ROUND_UP(desc->height, LS0XX_PIXELS_PER_BYTE);
+  uint8_t(*src)[desc->width] = (uint8_t(*)[desc->width])buf;
+  uint8_t(*dst)[config->line_size] = (uint8_t(*)[config->line_size])data->buffer;
 
-  for (uint8_t i = 0; i < src_y_oct_len; i++) {
-    uint8_t line = config->width - x - 1;
-    uint8_t *dst = &data->buffer[config->line_size * line + dst_h_offset + i];
-    for (uint16_t j = 0; j < src_x_max_exclusive; j++) {
-      if (*src ^ *dst) {
-        *dst = *src;
-        data->dirty[line] = true;
-      }
-      src++;
-      line--;
-      dst -= config->line_size;
+  /* +1 for gate-line address  */
+  uint16_t dst_x_offset = y / LS0XX_PIXELS_PER_BYTE + 1;
+  uint16_t dst_y = config->width - x - 1;
+  for (uint16_t src_x = 0; src_x < desc->width; src_x++, dst_y--) {
+    uint16_t dst_x = dst_x_offset;
+    for (uint8_t src_y = 0; src_y < src_y_len; src_y++, dst_x++) {
+      dst[dst_y][dst_x] = src[src_y][src_x];
     }
+    /* flags  */
+    dst[dst_y][config->line_size - 1] |= LS0XX_BIT_DIRTY;
   }
   return 0;
 }
@@ -206,21 +209,25 @@ static inline int _buffer_rot_180_write(const struct device *dev, const uint16_t
                                         const void *buf) {
   const struct ls0xx_config *config = dev->config;
   struct ls0xx_data *data = dev->data;
-  uint16_t src_line_size = DIV_ROUND_UP(desc->pitch, LS0XX_PIXELS_PER_BYTE);
-  uint8_t *src = (uint8_t *)buf;
-  int16_t line = config->height - y - 1;
-  int16_t line_min_inclusive = config->height - desc->height - y;
-  /* +1 for gate-line address  */
-  uint8_t *dst =
-    &data->buffer[config->line_size * line + src_line_size + x / LS0XX_PIXELS_PER_BYTE];
 
-  for (; line >= line_min_inclusive; line--) {
-    for (uint8_t i = 0; i < src_line_size; i++) {
-      dst[-i] = src[i];
+  LOG_DBG("X:%d Y:%d W:%d H:%d P:%d", x, y, desc->width, desc->height, desc->pitch);
+
+  uint16_t src_x_len = DIV_ROUND_UP(desc->pitch, LS0XX_PIXELS_PER_BYTE);
+  uint8_t(*src)[src_x_len] = (uint8_t(*)[src_x_len])buf;
+  uint8_t(*dst)[config->line_size] = (uint8_t(*)[config->line_size])data->buffer;
+
+  /* -2 for gate-line address and flags, +1 for gate-line address, -1 for flags
+     (config->line_size - 2) - x / LS0XX_PIXELS_PER_BYTE - 1 + 1
+   */
+  uint16_t dst_x_offset = config->line_size - x / LS0XX_PIXELS_PER_BYTE - 2;
+  uint16_t dst_y = config->height - y - 1;
+  for (uint16_t src_y = 0; src_y < desc->height; src_y++, dst_y--) {
+    uint16_t dst_x = dst_x_offset;
+    for (uint16_t src_x = 0; src_x < src_x_len; src_x++, dst_x--) {
+      dst[dst_y][dst_x] = src[src_y][src_x];
     }
-    data->dirty[line] = true;
-    dst -= config->line_size;
-    src += src_line_size;
+    /* flags  */
+    dst[dst_y][config->line_size - 1] |= LS0XX_BIT_DIRTY;
   }
   return 0;
 }
@@ -235,26 +242,24 @@ static inline int _buffer_rot_270_write(const struct device *dev, const uint16_t
   const struct ls0xx_config *config = dev->config;
   struct ls0xx_data *data = dev->data;
 
-  /* +1 for gate-line address  */
-  uint16_t dst_h_offset =
-    DIV_ROUND_UP(config->height, LS0XX_PIXELS_PER_BYTE) - y / LS0XX_PIXELS_PER_BYTE;
-  uint16_t src_y_oct_len = DIV_ROUND_UP(desc->height, LS0XX_PIXELS_PER_BYTE);
-  uint16_t src_x_max_exclusive = MIN(x + desc->width, config->width) - x;
-  uint8_t *src = (uint8_t *)buf;
+  uint16_t src_y_len = DIV_ROUND_UP(desc->height, LS0XX_PIXELS_PER_BYTE);
+  uint8_t(*src)[desc->width] = (uint8_t(*)[desc->width])buf;
+  uint8_t(*dst)[config->line_size] = (uint8_t(*)[config->line_size])data->buffer;
 
-  for (uint8_t i = 0; i < src_y_oct_len; i++) {
-    uint8_t line = x;
-    uint8_t *dst = &data->buffer[config->line_size * line + dst_h_offset - i];
-    for (uint16_t j = 0; j < src_x_max_exclusive; j++) {
-      if (*src ^ *dst) {
-        *dst = *src;
-        data->dirty[line] = true;
-      }
-      src++;
-      line++;
-      dst += config->line_size;
+  /* -2 for gate-line address and flags, +1 for gate-line address, -1 for flags
+     (config->line_size - 2) - x / LS0XX_PIXELS_PER_BYTE - 1 + 1
+   */
+  uint16_t dst_x_offset = config->line_size - y / LS0XX_PIXELS_PER_BYTE - 2;
+  uint16_t dst_y = x;
+  for (uint16_t src_x = 0; src_x < desc->width; src_x++, dst_y++) {
+    uint16_t dst_x = dst_x_offset;
+    for (uint8_t src_y = 0; src_y < src_y_len; src_y++, dst_x--) {
+      dst[dst_y][dst_x] = src[src_y][src_x];
     }
+    /* flags  */
+    dst[dst_y][config->line_size - 1] |= LS0XX_BIT_DIRTY;
   }
+
   return 0;
 }
 
@@ -289,22 +294,27 @@ static void _buffer_clear(const struct device *dev, bool flush) {
   const struct ls0xx_config *config = dev->config;
   struct ls0xx_data *data = dev->data;
 
+  uint8_t(*dst)[config->line_size] = (uint8_t(*)[config->line_size])data->buffer;
+
   /* lock buffer  */
   k_mutex_lock(&data->lock, K_FOREVER);
 
-  uint8_t *dst = data->buffer;
   for (size_t line = 0; line < config->num_lines; line++) {
     /* gate-line address  */
-    dst[0] = line + 1;
+    dst[line][0] = line + 1;
 
     /*
       PANEL_PIXEL_FORMAT_MONO01  0=Black 1=White
        white should be the default color for LCD
     */
-    memset(&dst[1], 0xff, config->line_size - 1);
-    data->dirty[line] = flush;
+    memset(&dst[line][1], 0xff, config->line_size - 2);
 
-    dst += config->line_size;
+    /* flags  */
+    if (flush) {
+      dst[line][config->line_size - 1] |= LS0XX_BIT_DIRTY;
+    } else {
+      dst[line][config->line_size - 1] &= ~LS0XX_BIT_DIRTY;
+    }
   }
 
   /* unlock buffer  */
@@ -315,11 +325,14 @@ static void _buffer_flush(const struct device *dev) {
   const struct ls0xx_config *config = dev->config;
   struct ls0xx_data *data = dev->data;
 
+  uint8_t(*dst)[config->line_size] = (uint8_t(*)[config->line_size])data->buffer;
+
   /* lock buffer  */
   k_mutex_lock(&data->lock, K_FOREVER);
 
   for (int line = 0; line < config->num_lines; line++) {
-    data->dirty[line] = true;
+    /* flags  */
+    dst[line][config->line_size - 1] |= LS0XX_BIT_DIRTY;
   }
 
   /* unlock buffer  */
@@ -348,7 +361,7 @@ static inline int _suspend(const struct device *dev) {
   return err;
 }
 
-static inline int _resume(const struct device *dev) {
+static int _resume(const struct device *dev) {
   const struct ls0xx_config *config = dev->config;
   int err = 0;
 
@@ -373,9 +386,10 @@ static int ls0xx_blanking_on(const struct device *dev) {
 
   LOG_DBG("start");
 
-  atomic_set(&data->blanking, 1);
-  if (config->disp_en_gpio != NULL) {
-    return gpio_pin_set_dt(config->disp_en_gpio, 0);
+  if (!atomic_test_and_set_bit(&data->flags, LS0XX_FLAG_BLANKING)) {
+    if (config->disp_en_gpio != NULL) {
+      return gpio_pin_set_dt(config->disp_en_gpio, 0);
+    }
   }
 
   LOG_DBG("end");
@@ -389,9 +403,10 @@ static int ls0xx_blanking_off(const struct device *dev) {
 
   LOG_DBG("start");
 
-  atomic_set(&data->blanking, 0);
-  if (config->disp_en_gpio != NULL) {
-    return gpio_pin_set_dt(config->disp_en_gpio, 1);
+  if (atomic_test_and_clear_bit(&data->flags, LS0XX_FLAG_BLANKING)) {
+    if (config->disp_en_gpio != NULL) {
+      return gpio_pin_set_dt(config->disp_en_gpio, 1);
+    }
   }
 
   LOG_DBG("end");
@@ -409,7 +424,7 @@ static int ls0xx_write(const struct device *dev, const uint16_t x, const uint16_
           desc->buf_size, desc->pitch, config->rotated);
 
 #if IS_ENABLED(CONFIG_PM_DEVICE)
-  if (atomic_get(&data->suspend) == 1) {
+  if (atomic_test_bit(&data->flags, LS0XX_FLAG_SUSPEND)) {
     LOG_WRN("Display has been suspended");
     return -EINVAL;
   }
@@ -502,17 +517,23 @@ static void ls0xx_thread(void *arg1, void *arg2, void *arg3) {
 
   bool prev_blanking = false;
 
+  if (!atomic_test_bit(&data->flags, LS0XX_FLAG_SUSPEND)) {
+    _resume(dev);
+  }
+  k_sem_give(&data->sync);
+
   while (1) {
 #if IS_ENABLED(CONFIG_PM_DEVICE)
-    if (atomic_get(&data->suspend) == 1) {
+    if (atomic_test_bit(&data->flags, LS0XX_FLAG_SUSPEND)) {
       _suspend(dev);
-      k_sem_give(&data->suspended);
+      k_sem_give(&data->sync);
 
       LOG_DBG("Suspended");
       k_sem_take(&data->wakeup, K_FOREVER);
       LOG_DBG("Wakeup");
 
       _resume(dev);
+      k_sem_give(&data->sync);
     }
 #endif
     if (config->extcomin_gpio != NULL) {
@@ -531,7 +552,7 @@ static void ls0xx_thread(void *arg1, void *arg2, void *arg3) {
     uint8_t cmd = LS0XX_CMD_UPDATE;
 
     if (config->disp_en_gpio == NULL) {
-      if (atomic_get(&data->blanking) == 1) {
+      if (atomic_test_bit(&data->flags, LS0XX_FLAG_BLANKING)) {
         if (!prev_blanking) {
           LOG_DBG("clear command for blanking");
           cmd = LS0XX_CMD_CLEAR;
@@ -600,8 +621,6 @@ static int ls0xx_init(const struct device *dev) {
     }
   }
 
-  atomic_set(&data->blanking, 0);
-
   err = k_mutex_init(&data->lock);
   if (err < 0) {
     LOG_ERR("Failed to initialize mutex. err: %d", err);
@@ -610,12 +629,13 @@ static int ls0xx_init(const struct device *dev) {
 
   k_timer_init(&data->timer, NULL, NULL);
 
-#if IS_ENABLED(CONFIG_PM_DEVICE)
-  err = k_sem_init(&data->suspended, 0, 1);
+  err = k_sem_init(&data->sync, 0, 1);
   if (err < 0) {
     LOG_ERR("Failed to initialize semaphore. err: %d", err);
     return err;
   }
+
+#if IS_ENABLED(CONFIG_PM_DEVICE)
   err = k_sem_init(&data->wakeup, 0, 1);
   if (err < 0) {
     LOG_ERR("Failed to initialize semaphore. err: %d", err);
@@ -625,17 +645,13 @@ static int ls0xx_init(const struct device *dev) {
 
 #if IS_ENABLED(CONFIG_PM_DEVICE_RUNTIM)
 
-  atomic_set(&data->suspend, 1);
+  atomic_set_bit(&data->flags, LS0XX_FLAG_SUSPEND1);
   pm_device_init_suspended(dev);
   err = pm_device_runtime_enable(dev);
   if (err < 0) {
     LOG_ERR("Failed to enable runtime power management");
   }
 #else
-  err = _resume(dev);
-  if (err) {
-    return err;
-  }
   _timer_start(dev);
 #endif
 
@@ -645,7 +661,7 @@ static int ls0xx_init(const struct device *dev) {
     (void *)dev, NULL, NULL, CONFIG_LS0XX_THREAD_PRIORITY, 0, K_NO_WAIT);
   k_thread_name_set(tid, "ls0xx_vcom");
 
-  return 0;
+  return k_sem_take(&data->sync, THREAD_SYNC_TIMEOUT);
 }
 
 static struct display_driver_api ls0xx_driver_api = {
@@ -673,20 +689,22 @@ static int ls0xx_pm_action(const struct device *dev, enum pm_device_action actio
   switch (action) {
     case PM_DEVICE_ACTION_SUSPEND:
       LOG_DBG("action suspend");
-
-      atomic_set(&data->suspend, 1);
-      k_timer_stop(&data->timer);
-      /*
-         At deep-sleep and soft-off, ZMK immediately execute sys_poweroff() after suspend devices.
-          So wait here until ls0xx_thread is suspended.
-       */
-      k_sem_take(&data->suspended, K_FOREVER);
+      if (!atomic_test_and_set_bit(&data->flags, LS0XX_FLAG_SUSPEND)) {
+        k_timer_stop(&data->timer);
+        /*
+           At deep-sleep and soft-off, ZMK immediately execute sys_poweroff() after suspend devices.
+            So wait here until ls0xx_thread is suspended.
+         */
+        k_sem_take(&data->sync, THREAD_SYNC_TIMEOUT);
+      }
       break;
     case PM_DEVICE_ACTION_RESUME:
       LOG_DBG("action resume");
-      atomic_set(&data->suspend, 0);
-      _timer_start(dev);
-      k_sem_give(&data->wakeup);
+      if (atomic_test_and_clear_bit(&data->flags, LS0XX_FLAG_SUSPEND)) {
+        _timer_start(dev);
+        k_sem_give(&data->wakeup);
+        err = k_sem_take(&data->sync, THREAD_SYNC_TIMEOUT);
+      }
       break;
     default:
       return -ENOTSUP;
@@ -702,8 +720,8 @@ static int ls0xx_pm_action(const struct device *dev, enum pm_device_action actio
 
 /*
  *  +2 for gate-line address and dummy data
- *  +0                +1                       +DIV_ROUND_UP(pixel_size, 8)
- *   |gate-line address|<-----pixel data------>|dummy|
+ *  +0                +1                       +DIV_ROUND_UP(pixel_size, 8) + 1
+ *   |gate-line address|<-----pixel data------>|flags(dummy data for LS0XX)|
  */
 #define BUFFER_LINE_SIZE(n)                                                                      \
   (COND_CODE_1(IS_WH_SWAPPED(n), (DIV_ROUND_UP(DT_INST_PROP(n, height), LS0XX_PIXELS_PER_BYTE)), \
@@ -741,7 +759,6 @@ static int ls0xx_pm_action(const struct device *dev, enum pm_device_action actio
 
 #define BUFFER_DEF(n)                                                         \
   static uint8_t ls0xx_buffer_##n[BUFFER_NUM_LINES(n) * BUFFER_LINE_SIZE(n)]; \
-  static bool ls0xx_dirty_##n[BUFFER_NUM_LINES(n)];                           \
   static struct spi_buf ls0xx_spi_cmd_buf_##n[DIV_ROUND_UP(BUFFER_NUM_LINES(n), 2) + 1]
 
 #define LS0XX_INIT(n)                                                                 \
@@ -753,7 +770,6 @@ static int ls0xx_pm_action(const struct device *dev, enum pm_device_action actio
                                                                                       \
   static struct ls0xx_data ls0xx_data_##n = {                                         \
     .buffer = ls0xx_buffer_##n,                                                       \
-    .dirty = ls0xx_dirty_##n,                                                         \
     .spi_cmd_buf = ls0xx_spi_cmd_buf_##n,                                             \
   };                                                                                  \
                                                                                       \
