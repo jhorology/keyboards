@@ -1,2 +1,2 @@
-zephyr_library_sources_ifdef(CONFIG_RPS_FLASH_INFO_SHELL rp2flash.c)
+zephyr_library_sources_ifdef(CONFIG_RP2_FLASH_INFO_SHELL rp2flash.c)
 zephyr_library_sources_ifdef(CONFIG_INPUT_ANALOG_AXIS_SHELL analog_axis.c)
