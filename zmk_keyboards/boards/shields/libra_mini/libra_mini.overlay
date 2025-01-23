@@ -179,7 +179,7 @@
   *
   */
   joystick: analog_axis {
-    compatible = "analog-axis";
+    compatible = "analog-axis,ya";
     poll-period-ms = <15>;
     velocity-integral;
     power-domain = <&{/EXT_POWER}>;

@@ -67,7 +67,7 @@ struct ls0xx_data {
   uint8_t *buffer;
   struct spi_buf *spi_cmd_buf;
 
-  K_KERNEL_STACK_MEMBER(thread_stack, CONFIG_LS0XX_THREAD_STACK_SIZE);
+  K_KERNEL_STACK_MEMBER(thread_stack, CONFIG_LS0XX_YA_THREAD_STACK_SIZE);
 };
 
 static int _spi_cmd_write(const struct device *dev, uint8_t cmd) {
@@ -216,7 +216,7 @@ static inline int _buffer_rot_180_write(const struct device *dev, const uint16_t
   uint8_t(*src)[src_x_len] = (uint8_t(*)[src_x_len])buf;
   uint8_t(*dst)[config->line_size] = (uint8_t(*)[config->line_size])data->buffer;
 
-  /* -2 for gate-line address and flags, +1 for gate-line address, -1 for flags
+  /* -2 for gate-line address and flags, +1 for gate-line address
      (config->line_size - 2) - x / LS0XX_PIXELS_PER_BYTE - 1 + 1
    */
   uint16_t dst_x_offset = config->line_size - x / LS0XX_PIXELS_PER_BYTE - 2;
@@ -246,7 +246,7 @@ static inline int _buffer_rot_270_write(const struct device *dev, const uint16_t
   uint8_t(*src)[desc->width] = (uint8_t(*)[desc->width])buf;
   uint8_t(*dst)[config->line_size] = (uint8_t(*)[config->line_size])data->buffer;
 
-  /* -2 for gate-line address and flags, +1 for gate-line address, -1 for flags
+  /* -2 for gate-line address and flags, +1 for gate-line address
      (config->line_size - 2) - x / LS0XX_PIXELS_PER_BYTE - 1 + 1
    */
   uint16_t dst_x_offset = config->line_size - y / LS0XX_PIXELS_PER_BYTE - 2;
@@ -658,7 +658,7 @@ static int ls0xx_init(const struct device *dev) {
   /* Start thread for toggling VCOM */
   k_tid_t tid = k_thread_create(
     &data->thread, data->thread_stack, K_KERNEL_STACK_SIZEOF(data->thread_stack), ls0xx_thread,
-    (void *)dev, NULL, NULL, CONFIG_LS0XX_THREAD_PRIORITY, 0, K_NO_WAIT);
+    (void *)dev, NULL, NULL, CONFIG_LS0XX_YA_THREAD_PRIORITY, 0, K_NO_WAIT);
   k_thread_name_set(tid, "ls0xx_vcom");
 
   return k_sem_take(&data->sync, THREAD_SYNC_TIMEOUT);
@@ -695,7 +695,7 @@ static int ls0xx_pm_action(const struct device *dev, enum pm_device_action actio
            At deep-sleep and soft-off, ZMK immediately execute sys_poweroff() after suspend devices.
             So wait here until ls0xx_thread is suspended.
          */
-        k_sem_take(&data->sync, THREAD_SYNC_TIMEOUT);
+        err = k_sem_take(&data->sync, THREAD_SYNC_TIMEOUT);
       }
       break;
     case PM_DEVICE_ACTION_RESUME:

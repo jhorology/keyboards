@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#define DT_DRV_COMPAT analog_axis
+#define DT_DRV_COMPAT analog_axis_ya
 
 #include <stdlib.h>
 #include <zephyr/device.h>
@@ -31,7 +31,7 @@ struct analog_axis_channel_config {
 };
 
 struct analog_axis_channel_data {
-#if IS_ENABLED(CONFIG_INPUT_ANALOG_AXIS_REPORT_USING_SYSTEM_WORKQUEUE)
+#if IS_ENABLED(CONFIG_INPUT_ANALOG_AXIS_YA_REPORT_USING_SYSTEM_WORKQUEUE)
   int out;
 #endif
   int last_out;
@@ -52,13 +52,13 @@ struct analog_axis_data {
   struct k_timer timer;
   struct k_thread thread;
 
-  K_KERNEL_STACK_MEMBER(thread_stack, CONFIG_INPUT_ANALOG_AXIS_THREAD_STACK_SIZE);
+  K_KERNEL_STACK_MEMBER(thread_stack, CONFIG_INPUT_ANALOG_AXIS_YA_THREAD_STACK_SIZE);
 
 #if IS_ENABLED(CONFIG_PM_DEVICE)
   atomic_t suspended;
   struct k_sem wakeup;
 #endif
-#if IS_ENABLED(CONFIG_INPUT_ANALOG_AXIS_REPORT_USING_SYSTEM_WORKQUEUE)
+#if IS_ENABLED(CONFIG_INPUT_ANALOG_AXIS_YA_REPORT_USING_SYSTEM_WORKQUEUE)
   struct k_work work;
 #endif
 };
@@ -220,7 +220,7 @@ static void analog_axis_loop(const struct device *dev) {
       out = axis_cfg->out_max - out + axis_cfg->out_min;
     }
 
-#if IS_ENABLED(CONFIG_INPUT_ANALOG_AXIS_REPORT_USING_SYSTEM_WORKQUEUE)
+#if IS_ENABLED(CONFIG_INPUT_ANALOG_AXIS_YA_REPORT_USING_SYSTEM_WORKQUEUE)
     axis_data->out = out;
 #else
     if (cfg->velocity_integral) {
@@ -236,13 +236,13 @@ static void analog_axis_loop(const struct device *dev) {
     axis_data->last_out = out;
 #endif
   }
-#if IS_ENABLED(CONFIG_INPUT_ANALOG_AXIS_REPORT_USING_SYSTEM_WORKQUEUE)
+#if IS_ENABLED(CONFIG_INPUT_ANALOG_AXIS_YA_REPORT_USING_SYSTEM_WORKQUEUE)
   k_work_submit(&data->work);
 #endif
   k_sem_give(&data->cal_lock);
 }
 
-#if IS_ENABLED(CONFIG_INPUT_ANALOG_AXIS_REPORT_USING_SYSTEM_WORKQUEUE)
+#if IS_ENABLED(CONFIG_INPUT_ANALOG_AXIS_YA_REPORT_USING_SYSTEM_WORKQUEUE)
 static void input_report_work_handler(const struct device *dev, struct k_work *work) {
   const struct analog_axis_config *cfg = dev->config;
   struct analog_axis_data *data = dev->data;
@@ -312,7 +312,7 @@ static int analog_axis_init(const struct device *dev) {
 
   tid = k_thread_create(&data->thread, data->thread_stack,
                         K_KERNEL_STACK_SIZEOF(data->thread_stack), analog_axis_thread, (void *)dev,
-                        NULL, NULL, CONFIG_INPUT_ANALOG_AXIS_THREAD_PRIORITY, 0, K_NO_WAIT);
+                        NULL, NULL, CONFIG_INPUT_ANALOG_AXIS_YA_THREAD_PRIORITY, 0, K_NO_WAIT);
   if (!tid) {
     LOG_ERR("thread creation failed");
     return -ENODEV;
@@ -401,7 +401,7 @@ static int analog_axis_pm_action(const struct device *dev, enum pm_device_action
     .num_channels = ARRAY_SIZE(analog_axis_channel_cfg_##inst),                         \
   };                                                                                    \
                                                                                         \
-  COND_CODE_1(CONFIG_INPUT_ANALOG_AXIS_REPORT_USING_SYSTEM_WORKQUEUE,                   \
+  COND_CODE_1(CONFIG_INPUT_ANALOG_AXIS_YA_REPORT_USING_SYSTEM_WORKQUEUE,                \
               (static void analog_axis_work_handler_##inst(struct k_work *work) {       \
                 input_report_work_handler(DEVICE_DT_INST_GET(inst), work);              \
               };                                                                        \

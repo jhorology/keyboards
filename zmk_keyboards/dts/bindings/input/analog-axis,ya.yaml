@@ -23,7 +23,7 @@ description: |
           };
   };
 
-compatible: "analog-axis"
+compatible: "analog-axis,ya"
 
 include: base.yaml
 

@@ -16,7 +16,7 @@ LOG_MODULE_REGISTER(analog_axis_settings, CONFIG_INPUT_LOG_LEVEL);
 
 #define ANALOG_AXIS_SETTINGS_PATH_MAX 32
 
-#define MAX_AXES CONFIG_INPUT_ANALOG_AXIS_SETTINGS_MAX_AXES
+#define MAX_AXES CONFIG_INPUT_ANALOG_AXIS_YA_SETTINGS_MAX_AXES
 
 static void analog_axis_calibration_log(const struct device *dev) {
   struct analog_axis_calibration cal;
