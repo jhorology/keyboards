@@ -69,10 +69,14 @@ LV_FONT_DECLARE(cozetta_icons_13);
    : level > 15 ? NF_MDI_BATTERY_20 \
                 : NF_MDI_BATTERY_10)
 
-static void battery_icon_cb(lv_event_t *event) {
-  lv_obj_t *battery_icon_label = lv_event_get_current_target(event);
+static void battery_state_cb(lv_event_t *event) {
+  lv_obj_t *container = lv_event_get_current_target(event);
   struct lv_zmk_status *state = lv_event_get_param(event);
+  lv_obj_t *battery_icon_label = lv_obj_get_child(container, 0);
+  lv_obj_t *perc_label = lv_obj_get_child(container, -1);
+
   lv_label_set_text_fmt(battery_icon_label, "%s", SELECT_BATTERY_ICON(state->battery_level));
+  lv_label_set_text_fmt(perc_label, "%u%%", state->battery_level);
 }
 
 #if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
@@ -83,12 +87,6 @@ static void battery_charging_cb(lv_event_t *event) {
   lv_label_set_text(charging_icon_label, state->battery_charging ? NF_FA_BOLT : "");
 }
 #endif
-
-static void battery_perc_cb(lv_event_t *event) {
-  lv_obj_t *perc_label = lv_event_get_current_target(event);
-  struct lv_zmk_status *state = lv_event_get_param(event);
-  lv_label_set_text_fmt(perc_label, "%u%%", state->battery_level);
-}
 
 lv_obj_t *lv_battery_status_create(lv_obj_t *parent, lv_obj_t *(*container_default)(lv_obj_t *),
                                    lv_align_t align) {
@@ -101,10 +99,6 @@ lv_obj_t *lv_battery_status_create(lv_obj_t *parent, lv_obj_t *(*container_defau
 
   lv_obj_t *battery_icon_label = lv_label_create(container);
   lv_obj_set_style_text_font(battery_icon_label, &cozetta_icons_13, LV_PART_MAIN);
-
-  lv_obj_add_event_cb(battery_icon_label, battery_icon_cb, LV_ZMK_EVENT_CODE(battery_state), NULL);
-  /* TODO auto register */
-  zmk_status_presenter_register(battery_icon_label, LV_ZMK_EVENT_CODE(battery_state));
 
 #if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
   lv_obj_t *charging_icon_label = lv_label_create(container);
@@ -119,9 +113,9 @@ lv_obj_t *lv_battery_status_create(lv_obj_t *parent, lv_obj_t *(*container_defau
   lv_obj_t *perc_label = lv_label_create(container);
   lv_obj_set_style_text_font(perc_label, &pixel_mplus_10, LV_PART_MAIN);
 
-  lv_obj_add_event_cb(perc_label, battery_perc_cb, LV_ZMK_EVENT_CODE(battery_state), NULL);
+  lv_obj_add_event_cb(container, battery_state_cb, LV_ZMK_EVENT_CODE(battery_state), NULL);
   /* TODO auto register */
-  zmk_status_presenter_register(perc_label, LV_ZMK_EVENT_CODE(battery_state));
+  zmk_status_presenter_register(container, LV_ZMK_EVENT_CODE(battery_state));
 
   return container;
 }

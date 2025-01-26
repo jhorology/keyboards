@@ -35,9 +35,11 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 LV_FONT_DECLARE(pixel_mplus_bold_10);
 LV_FONT_DECLARE(cozetta_icons_13);
 
-static void icon_cb(lv_event_t *event) {
-  lv_obj_t *icon_label = lv_event_get_current_target(event);
+static void ble_active_profile_cb(lv_event_t *event) {
+  lv_obj_t *container = lv_event_get_current_target(event);
   struct lv_zmk_status *state = lv_event_get_param(event);
+  lv_obj_t *icon_label = lv_obj_get_child(container, 0);
+  lv_obj_t *index_label = lv_obj_get_child(container, 1);
 
   switch (state->ble_conn_state) {
     case BLE_NOT_PAIERD:
@@ -50,11 +52,6 @@ static void icon_cb(lv_event_t *event) {
       lv_label_set_text(icon_label, NF_FA_BLUETOOTH);
       break;
   }
-}
-static void index_cb(lv_event_t *event) {
-  lv_obj_t *index_label = lv_event_get_current_target(event);
-  struct lv_zmk_status *state = lv_event_get_param(event);
-
   lv_label_set_text_fmt(index_label, "%i", state->ble_profile_index);
 }
 
@@ -76,22 +73,21 @@ lv_obj_t *lv_ble_status_create(lv_obj_t *parent, lv_obj_t *(*container_default)(
     container_default != NULL ? container_default(parent) : lv_obj_create(parent);
   lv_obj_set_size(container, WIDTH, HEIGHT);
   lv_obj_set_flex_flow(container, LV_FLEX_FLOW_ROW);
-  lv_obj_set_style_pad_gap(container, 1, LV_PART_MAIN);
+  lv_obj_set_style_pad_gap(container, 2, LV_PART_MAIN);
   ALIGN_FLEX_FLOW_ROW_COMPOSITE_WIDGET(container, align, LV_FLEX_ALIGN_END);
 
   lv_obj_set_style_opa(container, LV_OPA_COVER, LV_PART_MAIN);
 
   lv_obj_t *icon_label = lv_label_create(container);
   lv_obj_set_style_text_font(icon_label, &cozetta_icons_13, LV_PART_MAIN);
-  lv_obj_add_event_cb(icon_label, icon_cb, LV_ZMK_EVENT_CODE(ble_active_profile), NULL);
-  /* TODO auto register */
-  zmk_status_presenter_register(icon_label, LV_ZMK_EVENT_CODE(ble_active_profile));
 
   lv_obj_t *index_label = lv_label_create(container);
   lv_obj_set_style_text_font(index_label, &pixel_mplus_bold_10, LV_PART_MAIN);
-  lv_obj_add_event_cb(index_label, index_cb, LV_ZMK_EVENT_CODE(ble_active_profile), NULL);
+
+  lv_obj_add_event_cb(container, ble_active_profile_cb, LV_ZMK_EVENT_CODE(ble_active_profile),
+                      NULL);
   /* TODO auto register */
-  zmk_status_presenter_register(index_label, LV_ZMK_EVENT_CODE(ble_active_profile));
+  zmk_status_presenter_register(container, LV_ZMK_EVENT_CODE(ble_active_profile));
 
 #if IS_ENABLED(CONFIG_ZMK_USB) && IS_ENABLED(CONFIG_ZMK_BLE)
   lv_obj_add_event_cb(container, endpoint_cb, LV_ZMK_EVENT_CODE(endpoint), NULL);

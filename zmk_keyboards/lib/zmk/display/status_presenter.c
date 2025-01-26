@@ -73,12 +73,13 @@ ZMK_EVENT_PRESENTER(usb_conn_state, enum zmk_usb_conn_state,
 // ------------------------------------------------------------
 #if IS_LV_ZMK_EVENT_ENABLED(endpoint)
 #  include <zmk/endpoints_types.h>
+#  include <zmk/endpoints.h>
 #  include <zmk/events/endpoint_changed.h>
 ZMK_EVENT_PRESENTER(endpoint, struct zmk_endpoint_instance,
                     (zmk_status.usb_selected = state.transport == ZMK_TRANSPORT_USB;
                      zmk_status.ble_selected = state.transport == ZMK_TRANSPORT_BLE;
                      send_event(LV_ZMK_EVENT_CODE(endpoint))),
-                    (return (ev != NULL) ? ev->endpoint : (struct zmk_endpoint_instance){0}));
+                    (return (ev != NULL) ? ev->endpoint : zmk_endpoints_selected()));
 
 #endif
 
