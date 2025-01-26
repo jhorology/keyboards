@@ -4,56 +4,36 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include <zephyr/kernel.h>
-#include <zephyr/logging/log.h>
-#include "core/lv_obj.h"
-#include "core/lv_obj_pos.h"
-#include "core/lv_obj_style.h"
-#include "misc/lv_area.h"
-#include "misc/lv_color.h"
-#include "misc/lv_txt.h"
-#include "widgets/lv_label.h"
-LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
-
-#include <zmk/display.h>
-#include <zmk/events/layer_state_changed.h>
-#include <zmk/event_manager.h>
-#include <zmk/endpoints.h>
-#include <zmk/keymap.h>
-
+#include <zmk/display/lv_zmk_event.h>
+#include <zmk/display/lv_zmk_status.h>
+#include <zmk/display/status_presenter.h>
 #include <zmk/display/util_macros.h>
 #include <zmk/display/widgets/layer_status_h15.h>
+#include <zephyr/logging/log.h>
+#include "core/lv_event.h"
+LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #define HEIGHT 15
 
 LV_FONT_DECLARE(teko_bold_15);
 LV_FONT_DECLARE(pixel_mplus_bold_10);
 
-struct layer_status_state {
-  zmk_keymap_layer_index_t index;
-  const char *label;
-};
+static void index_cb(lv_event_t *event) {
+  lv_obj_t *index_label = lv_event_get_current_target(event);
+  struct lv_zmk_status *state = lv_event_get_param(event);
 
-static struct zmk_lv_layer_status_user_data user_data;
-
-static void layer_status_update_cb(struct layer_status_state state) {
-  lv_label_set_text_fmt(user_data.index_label, "%c", (char)('1' + state.index));
-  lv_label_set_text_fmt(user_data.name_label, "%s", state.label);
+  lv_label_set_text_fmt(index_label, "%d", state->layer_index);
 }
 
-static struct layer_status_state layer_status_get_state(const zmk_event_t *eh) {
-  zmk_keymap_layer_index_t index = zmk_keymap_highest_layer_active();
-  return (struct layer_status_state){
-    .index = index, .label = zmk_keymap_layer_name(zmk_keymap_layer_index_to_id(index))};
+static void name_cb(lv_event_t *event) {
+  lv_obj_t *name_label = lv_event_get_current_target(event);
+  struct lv_zmk_status *state = lv_event_get_param(event);
+
+  lv_label_set_text_fmt(name_label, "%s", state->layer_name);
 }
 
-ZMK_DISPLAY_WIDGET_LISTENER(widget_layer_status, struct layer_status_state, layer_status_update_cb,
-                            layer_status_get_state)
-
-ZMK_SUBSCRIPTION(widget_layer_status, zmk_layer_state_changed);
-
-lv_obj_t *zmk_lv_layer_status_create(lv_obj_t *parent, lv_obj_t *(*container_default)(lv_obj_t *),
-                                     lv_align_t align, lv_coord_t width) {
+lv_obj_t *lv_layer_status_create(lv_obj_t *parent, lv_obj_t *(*container_default)(lv_obj_t *),
+                                 lv_align_t align, lv_coord_t width) {
   lv_obj_t *container =
     container_default != NULL ? container_default(parent) : lv_obj_create(parent);
   /* WIDTH is not defined in herer  */
@@ -74,6 +54,9 @@ lv_obj_t *zmk_lv_layer_status_create(lv_obj_t *parent, lv_obj_t *(*container_def
   lv_obj_set_style_text_align(index_label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
   lv_obj_set_style_pad_top(index_label, 2, LV_PART_MAIN);
   lv_obj_set_style_radius(index_label, 2, LV_PART_MAIN);
+  lv_obj_add_event_cb(index_label, index_cb, LV_ZMK_EVENT_CODE(layer_state), NULL);
+  /* TODO auto register */
+  zmk_status_presenter_register(index_label, LV_ZMK_EVENT_CODE(layer_state));
 
   lv_obj_t *name_label = lv_label_create(container);
   lv_obj_set_style_text_font(name_label, &teko_bold_15, LV_PART_MAIN);
@@ -81,10 +64,9 @@ lv_obj_t *zmk_lv_layer_status_create(lv_obj_t *parent, lv_obj_t *(*container_def
   lv_obj_set_flex_grow(name_label, 1);
   lv_label_set_long_mode(name_label, LV_LABEL_LONG_CLIP);
 
-  user_data.index_label = index_label;
-  user_data.name_label = name_label;
-  lv_obj_set_user_data(container, &user_data);
+  lv_obj_add_event_cb(name_label, name_cb, LV_ZMK_EVENT_CODE(layer_state), NULL);
+  /* TODO auto register */
+  zmk_status_presenter_register(name_label, LV_ZMK_EVENT_CODE(layer_state));
 
-  widget_layer_status_init();
   return container;
 }

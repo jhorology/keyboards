@@ -4,18 +4,14 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include <zephyr/kernel.h>
-
-#include <zephyr/logging/log.h>
-LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
-
-#include <zmk/display.h>
-#include <zmk/event_manager.h>
-#include <zmk/split/bluetooth/peripheral.h>
-#include <zmk/events/split_peripheral_status_changed.h>
-
+#include <zmk/display/lv_zmk_event.h>
+#include <zmk/display/lv_zmk_status.h>
+#include <zmk/display/status_presenter.h>
 #include <zmk/display/util_macros.h>
 #include <zmk/display/widgets/peripheral_status_36x12.h>
+#include <zephyr/logging/log.h>
+#include "core/lv_event.h"
+LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 /* 0x0f293  nf-fa-bluetooth */
 #define NF_FA_BLUETOOTH "\xEF\x8A\x93"
@@ -38,30 +34,16 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 LV_FONT_DECLARE(cozetta_icons_13);
 LV_FONT_DECLARE(pixel_mplus_10);
 
-struct peripheral_status_state {
-  bool connected;
-};
+static void icon_cb(lv_event_t *event) {
+  lv_obj_t *icon_label = lv_event_get_current_target(event);
+  struct lv_zmk_status *state = lv_event_get_param(event);
 
-static struct zmk_lv_peripheral_status_user_data user_data;
-
-static struct peripheral_status_state get_state(const zmk_event_t *_eh) {
-  return (struct peripheral_status_state){.connected = zmk_split_bt_peripheral_is_connected()};
+  lv_label_set_text(icon_label,
+                    state->peripheral_connected ? NF_FA_BLUETOOTH : NF_MDI_BLUETOOTH_OFF);
 }
 
-static void output_status_update_cb(struct peripheral_status_state state) {
-  lv_label_set_text(user_data.icon_label, state.connected ? NF_FA_BLUETOOTH : NF_MDI_BLUETOOTH_OFF);
-
-  // TODO RSSI
-  lv_label_set_text(user_data.desc_label, "-70dBm");
-}
-
-ZMK_DISPLAY_WIDGET_LISTENER(widget_peripheral_status, struct peripheral_status_state,
-                            output_status_update_cb, get_state)
-ZMK_SUBSCRIPTION(widget_peripheral_status, zmk_split_peripheral_status_changed);
-
-lv_obj_t *zmk_lv_peripheral_status_create(lv_obj_t *parent,
-                                          lv_obj_t *(*container_default)(lv_obj_t *),
-                                          lv_align_t align) {
+lv_obj_t *lv_peripheral_status_create(lv_obj_t *parent, lv_obj_t *(*container_default)(lv_obj_t *),
+                                      lv_align_t align) {
   lv_obj_t *container =
     container_default != NULL ? container_default(parent) : lv_obj_create(parent);
   lv_obj_set_size(container, WIDTH, HEIGHT);
@@ -71,16 +53,15 @@ lv_obj_t *zmk_lv_peripheral_status_create(lv_obj_t *parent,
   lv_obj_t *icon_label = lv_label_create(container);
   lv_obj_set_style_text_font(icon_label, &cozetta_icons_13, LV_PART_MAIN);
   lv_obj_set_width(icon_label, 6);
+  lv_obj_add_event_cb(icon_label, icon_cb, LV_ZMK_EVENT_CODE(split_peripheral_status), NULL);
+  /* TODO auto register  */
+  zmk_status_presenter_register(icon_label, LV_ZMK_EVENT_CODE(split_peripheral_status));
 
-  lv_obj_t *desc_label = lv_label_create(container);
-  lv_label_set_long_mode(desc_label, LV_LABEL_LONG_CLIP);
-  lv_obj_set_style_text_font(desc_label, &pixel_mplus_10, LV_PART_MAIN);
-
-  user_data.icon_label = icon_label;
-  user_data.desc_label = desc_label;
-  lv_obj_set_user_data(container, &user_data);
-
-  widget_peripheral_status_init();
+  lv_obj_t *rssi_label = lv_label_create(container);
+  lv_label_set_long_mode(rssi_label, LV_LABEL_LONG_CLIP);
+  lv_obj_set_style_text_font(rssi_label, &pixel_mplus_10, LV_PART_MAIN);
+  // TODO RSSI
+  lv_label_set_text(rssi_label, "-70dBm");
 
   return container;
 }

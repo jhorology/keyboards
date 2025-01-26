@@ -4,8 +4,8 @@
 config ZMK_CUSTOM_KEYBOARD_LOGO
   bool "Enable custom keyboard logo"
 
-config ZMK_WIDGET_ENDPOINT_INDICATOR
-  bool "Enable indicating selected endpoint"
+config ZMK_DISPLAY_STATUS_PRESENTER
+  bool "Enable staus presener"
 
 rsource "Kconfig.80x128_mono"
 rsource "Kconfig.68x160_mono"

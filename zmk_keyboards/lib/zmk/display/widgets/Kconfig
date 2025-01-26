@@ -15,7 +15,7 @@ config ZMK_WIDGET_USB_STATUS_16X12
 
 config ZMK_WIDGET_BATTERY_STATUS_32X12
     bool "Widget for battery charge information, using small icons"
-    depends on BT
+    depends on ZMK_BATTERY_REPORTING
     select ZMK_FONT_PIXEL_MPLUS_10
     select ZMK_FONT_COZETTA_ICONS_13
     select LV_USE_FLEX

@@ -4,20 +4,14 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include <zephyr/kernel.h>
-
-#include <zephyr/logging/log.h>
-LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
-
-#include <zmk/battery.h>
-#include <zmk/display.h>
-#include <zmk/usb.h>
-#include <zmk/events/usb_conn_state_changed.h>
-#include <zmk/event_manager.h>
-#include <zmk/events/battery_state_changed.h>
-
+#include <zmk/display/lv_zmk_event.h>
+#include <zmk/display/lv_zmk_status.h>
+#include <zmk/display/status_presenter.h>
 #include <zmk/display/util_macros.h>
 #include <zmk/display/widgets/battery_status_32x12.h>
+#include <zephyr/logging/log.h>
+#include "core/lv_event.h"
+LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 /* 0x0f0e7  nf-fa-bolt nf-fa-flash */
 #define NF_FA_BOLT "\xEF\x83\xA7"
@@ -63,15 +57,6 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 LV_FONT_DECLARE(pixel_mplus_10);
 LV_FONT_DECLARE(cozetta_icons_13);
 
-struct battery_status_state {
-  uint8_t level;
-#if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
-  bool usb_present;
-#endif
-};
-
-static struct zmk_lv_battery_status_user_data user_data;
-
 #define SELECT_BATTERY_ICON(level)  \
   (level > 95   ? NF_MDI_BATTERY    \
    : level > 85 ? NF_MDI_BATTERY_90 \
@@ -84,37 +69,29 @@ static struct zmk_lv_battery_status_user_data user_data;
    : level > 15 ? NF_MDI_BATTERY_20 \
                 : NF_MDI_BATTERY_10)
 
-static void battery_status_update_cb(struct battery_status_state state) {
-#if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
-  lv_label_set_text_fmt(user_data.icons_label, "%s%s", SELECT_BATTERY_ICON(state.level),
-                        state.usb_present ? NF_FA_BOLT : "");
-#else
-  lv_label_set_text_fmt(user_data.icons_label, "%s", SELECT_BATTERY_ICON(state.level));
-#endif
-  lv_label_set_text_fmt(user_data.perc_label, "%u%%", state.level);
+static void battery_icon_cb(lv_event_t *event) {
+  lv_obj_t *battery_icon_label = lv_event_get_current_target(event);
+  struct lv_zmk_status *state = lv_event_get_param(event);
+  lv_label_set_text_fmt(battery_icon_label, "%s", SELECT_BATTERY_ICON(state->battery_level));
 }
 
-static struct battery_status_state battery_status_get_state(const zmk_event_t *eh) {
-  const struct zmk_battery_state_changed *ev = as_zmk_battery_state_changed(eh);
-
-  return (struct battery_status_state){
-    .level = (ev != NULL) ? ev->state_of_charge : zmk_battery_state_of_charge(),
 #if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
-    .usb_present = zmk_usb_is_powered(),
+static void battery_charging_cb(lv_event_t *event) {
+  lv_obj_t *charging_icon_label = lv_event_get_current_target(event);
+  struct lv_zmk_status *state = lv_event_get_param(event);
+
+  lv_label_set_text(charging_icon_label, state->battery_charging ? NF_FA_BOLT : "");
+}
 #endif
-  };
+
+static void battery_perc_cb(lv_event_t *event) {
+  lv_obj_t *perc_label = lv_event_get_current_target(event);
+  struct lv_zmk_status *state = lv_event_get_param(event);
+  lv_label_set_text_fmt(perc_label, "%u%%", state->battery_level);
 }
 
-ZMK_DISPLAY_WIDGET_LISTENER(widget_battery_status, struct battery_status_state,
-                            battery_status_update_cb, battery_status_get_state)
-
-ZMK_SUBSCRIPTION(widget_battery_status, zmk_battery_state_changed);
-#if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
-ZMK_SUBSCRIPTION(widget_battery_status, zmk_usb_conn_state_changed);
-#endif
-
-lv_obj_t *zmk_lv_battery_status_create(lv_obj_t *parent, lv_obj_t *(*container_default)(lv_obj_t *),
-                                       lv_align_t align) {
+lv_obj_t *lv_battery_status_create(lv_obj_t *parent, lv_obj_t *(*container_default)(lv_obj_t *),
+                                   lv_align_t align) {
   lv_obj_t *container =
     container_default != NULL ? container_default(parent) : lv_obj_create(parent);
   lv_obj_set_size(container, WIDTH, HEIGHT);
@@ -122,17 +99,29 @@ lv_obj_t *zmk_lv_battery_status_create(lv_obj_t *parent, lv_obj_t *(*container_d
   lv_obj_set_style_pad_gap(container, 1, LV_PART_MAIN);
   ALIGN_FLEX_FLOW_ROW_COMPOSITE_WIDGET(container, align, LV_FLEX_ALIGN_END);
 
-  lv_obj_t *icons_label = lv_label_create(container);
-  lv_obj_set_style_text_font(icons_label, &cozetta_icons_13, LV_PART_MAIN);
+  lv_obj_t *battery_icon_label = lv_label_create(container);
+  lv_obj_set_style_text_font(battery_icon_label, &cozetta_icons_13, LV_PART_MAIN);
+
+  lv_obj_add_event_cb(battery_icon_label, battery_icon_cb, LV_ZMK_EVENT_CODE(battery_state), NULL);
+  /* TODO auto register */
+  zmk_status_presenter_register(battery_icon_label, LV_ZMK_EVENT_CODE(battery_state));
+
+#if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
+  lv_obj_t *charging_icon_label = lv_label_create(container);
+  lv_obj_set_style_text_font(charging_icon_label, &cozetta_icons_13, LV_PART_MAIN);
+
+  lv_obj_add_event_cb(charging_icon_label, battery_charging_cb, LV_ZMK_EVENT_CODE(usb_conn_state),
+                      NULL);
+  /* TODO auto register */
+  zmk_status_presenter_register(charging_icon_label, LV_ZMK_EVENT_CODE(usb_conn_state));
+#endif
 
   lv_obj_t *perc_label = lv_label_create(container);
   lv_obj_set_style_text_font(perc_label, &pixel_mplus_10, LV_PART_MAIN);
 
-  user_data.icons_label = icons_label;
-  user_data.perc_label = perc_label;
-  lv_obj_set_user_data(container, &user_data);
-
-  widget_battery_status_init();
+  lv_obj_add_event_cb(perc_label, battery_perc_cb, LV_ZMK_EVENT_CODE(battery_state), NULL);
+  /* TODO auto register */
+  zmk_status_presenter_register(perc_label, LV_ZMK_EVENT_CODE(battery_state));
 
   return container;
 }

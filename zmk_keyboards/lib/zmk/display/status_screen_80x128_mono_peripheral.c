@@ -7,6 +7,7 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
+#include <zmk/display/status_presenter.h>
 #include <zmk/display/widgets/peripheral_status_36x12.h>
 #include <zmk/display/widgets/battery_status_32x12.h>
 
@@ -42,7 +43,7 @@ static inline lv_obj_t *status_bar_create(lv_obj_t *parent) {
   lv_obj_set_style_pad_top(container, 1, LV_PART_MAIN);
 
 #if IS_ENABLED(CONFIG_ZMK_WIDGET_PERIPHERAL_STATUS_36X12)
-  zmk_lv_peripheral_status_create(container, container_default, LV_ALIGN_TOP_LEFT);
+  lv_peripheral_status_create(container, container_default, LV_ALIGN_TOP_LEFT);
 #endif
 
   // just a placeholder
@@ -50,7 +51,7 @@ static inline lv_obj_t *status_bar_create(lv_obj_t *parent) {
   lv_obj_set_flex_grow(placeholder, 1);
 
 #if IS_ENABLED(CONFIG_ZMK_WIDGET_BATTERY_STATUS_32X12)
-  zmk_lv_battery_status_create(container, container_default, LV_ALIGN_TOP_RIGHT);
+  lv_battery_status_create(container, container_default, LV_ALIGN_TOP_RIGHT);
 #endif
 
   return container;
@@ -72,6 +73,9 @@ static inline lv_obj_t *content_create(lv_obj_t *parent) {
 
 lv_obj_t *zmk_display_status_screen() {
   lv_obj_t *container = container_default(NULL);
+
+  zmk_status_presenter_init();
+
   lv_obj_set_size(container, WIDTH, HEIGHT);
   lv_obj_set_flex_flow(container, LV_FLEX_FLOW_COLUMN);
   lv_obj_set_flex_align(container, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
@@ -91,5 +95,8 @@ lv_obj_t *zmk_display_status_screen() {
 #else
   lv_img_set_src(kbd_logo, &starman_80x80);
 #endif
+
+  zmk_status_presenter_dispatch(container);
+
   return container;
 }

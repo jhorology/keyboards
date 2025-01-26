@@ -7,6 +7,7 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
+#include <zmk/display/status_presenter.h>
 #include <zmk/display/widgets/usb_status_16x12.h>
 #include <zmk/display/widgets/ble_status_16x12.h>
 #include <zmk/display/widgets/battery_status_32x12.h>
@@ -42,7 +43,7 @@ static inline lv_obj_t *status_bar_create(lv_obj_t *parent) {
   lv_obj_set_style_pad_top(container, 1, LV_PART_MAIN);
 
 #if IS_ENABLED(CONFIG_ZMK_WIDGET_BLE_STATUS_16X12)
-  zmk_lv_ble_status_create(container, container_default, LV_ALIGN_TOP_MID);
+  lv_ble_status_create(container, container_default, LV_ALIGN_TOP_MID);
 #endif
 
 #if IS_ENABLED(CONFIG_ZMK_WIDGET_BLE_STATUS_16X12) && IS_ENABLED(CONFIG_ZMK_WIDGET_USB_STATUS_16X12)
@@ -54,7 +55,7 @@ static inline lv_obj_t *status_bar_create(lv_obj_t *parent) {
 #endif
 
 #if IS_ENABLED(CONFIG_ZMK_WIDGET_USB_STATUS_16X12)
-  zmk_lv_usb_status_create(container, container_default, LV_ALIGN_TOP_MID);
+  lv_usb_status_create(container, container_default, LV_ALIGN_TOP_MID);
 #endif
 
   // just a placeholder
@@ -62,7 +63,7 @@ static inline lv_obj_t *status_bar_create(lv_obj_t *parent) {
   lv_obj_set_flex_grow(placeholder, 1);
 
 #if IS_ENABLED(CONFIG_ZMK_WIDGET_BATTERY_STATUS_32X12)
-  zmk_lv_battery_status_create(container, container_default, LV_ALIGN_TOP_RIGHT);
+  lv_battery_status_create(container, container_default, LV_ALIGN_TOP_RIGHT);
 #endif
 
   return container;
@@ -83,6 +84,9 @@ static inline lv_obj_t *content_create(lv_obj_t *parent) {
 
 lv_obj_t *zmk_display_status_screen() {
   lv_obj_t *container = container_default(NULL);
+
+  zmk_status_presenter_init();
+
   lv_obj_set_size(container, WIDTH, HEIGHT);
   lv_obj_set_flex_flow(container, LV_FLEX_FLOW_COLUMN);
   lv_obj_set_flex_align(container, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
@@ -92,7 +96,7 @@ lv_obj_t *zmk_display_status_screen() {
   lv_obj_set_size(status_bar, CONTENT_WIDTH, STATUS_BAR_HEIGHT);
 
 #if IS_ENABLED(CONFIG_ZMK_WIDGET_LAYER_STATUS_H15)
-  zmk_lv_layer_status_create(container, container_default, LV_ALIGN_TOP_LEFT, CONTENT_WIDTH);
+  lv_layer_status_create(container, container_default, LV_ALIGN_TOP_LEFT, CONTENT_WIDTH);
 #endif
 
   lv_obj_t *content = content_create(container);
@@ -106,6 +110,8 @@ lv_obj_t *zmk_display_status_screen() {
   lv_obj_t *zmk_logo = lv_img_create(container);
   lv_img_set_src(zmk_logo, &zmk_logo_40x40);
   lv_obj_set_style_pad_bottom(zmk_logo, MARGIN, 0);
+
+  zmk_status_presenter_dispatch(container);
 
   return container;
 }
