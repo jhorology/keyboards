@@ -143,18 +143,20 @@ ZMK_EVENT_PRESENTER(split_peripheral_status, bool,
 /* TODO use pre-registration list instead of broadcast  */
 static void send_event(lv_obj_t *obj, lv_event_code_t event_code, lv_zmk_event_interests mask,
                        uint8_t depth) {
-  uint32_t cnt = lv_obj_get_child_cnt(obj);
-  if (cnt > 0 && depth < broadcast_depth) {
-    for (uint32_t i = 0; i < cnt; i++) {
-      send_event(lv_obj_get_child(obj, i), event_code, mask, depth + 1);
-    }
-  }
   lv_zmk_event_interests *interests = (lv_zmk_event_interests *)lv_obj_get_user_data(obj);
   LOG_DBG("event: %d, mask: 0x%04x, depth: %d", event_code, mask, depth);
   if (interests != NULL) {
     LOG_DBG("interests: 0x%04x", *interests);
     if (*interests & mask) {
       lv_event_send(obj, event_code, &zmk_status);
+      /* it is parent's responsibility to propagate events to children. */
+      return;
+    }
+  }
+  uint32_t cnt = lv_obj_get_child_cnt(obj);
+  if (cnt > 0 && depth < broadcast_depth) {
+    for (uint32_t i = 0; i < cnt; i++) {
+      send_event(lv_obj_get_child(obj, i), event_code, mask, depth + 1);
     }
   }
 }

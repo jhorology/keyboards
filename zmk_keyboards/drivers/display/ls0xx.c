@@ -59,11 +59,11 @@ struct ls0xx_data {
   struct k_thread thread;
   struct k_timer timer;
   atomic_t flags;
-#if IS_ENABLED(CONFIG_PM_DEVICE)
   struct k_sem sync;
+  struct k_mutex lock;
+#if IS_ENABLED(CONFIG_PM_DEVICE)
   struct k_sem wakeup;
 #endif
-  struct k_mutex lock;
   uint8_t *buffer;
   struct spi_buf *spi_cmd_buf;
 
@@ -361,6 +361,8 @@ static inline int _suspend(const struct device *dev) {
   return err;
 }
 
+#endif  // IS_ENABLED(CONFIG_PM_DEVICE)
+
 static int _resume(const struct device *dev) {
   const struct ls0xx_config *config = dev->config;
   int err = 0;
@@ -375,8 +377,6 @@ static int _resume(const struct device *dev) {
   }
   return err;
 }
-
-#endif  // IS_ENABLED(CONFIG_PM_DEVICE)
 
 // driver API -->
 
@@ -418,17 +418,16 @@ static int ls0xx_blanking_off(const struct device *dev) {
 static int ls0xx_write(const struct device *dev, const uint16_t x, const uint16_t y,
                        const struct display_buffer_descriptor *desc, const void *buf) {
   const struct ls0xx_config *config = dev->config;
-  struct ls0xx_data *data = dev->data;
-
-  LOG_DBG("start X:%d, Y:%d, W:%d, H:%d, L:%d, P:%d, R:%d", x, y, desc->width, desc->height,
-          desc->buf_size, desc->pitch, config->rotated);
-
 #if IS_ENABLED(CONFIG_PM_DEVICE)
+  struct ls0xx_data *data = dev->data;
   if (atomic_test_bit(&data->flags, LS0XX_FLAG_SUSPEND)) {
     LOG_WRN("Display has been suspended");
     return -EINVAL;
   }
 #endif
+
+  LOG_DBG("start X:%d, Y:%d, W:%d, H:%d, L:%d, P:%d, R:%d", x, y, desc->width, desc->height,
+          desc->buf_size, desc->pitch, config->rotated);
 
   _buffer_write(dev, x, y, desc, buf);
 
