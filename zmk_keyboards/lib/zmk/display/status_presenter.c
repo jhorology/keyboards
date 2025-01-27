@@ -7,7 +7,6 @@
 #include <zmk/display/status_presenter.h>
 
 #include <zephyr/logging/log.h>
-#include "core/lv_obj.h"
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #define ZMK_EVENT_PRESENTER(e, state_type, update_code, get_code)                               \

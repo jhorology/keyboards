@@ -4,13 +4,12 @@
  * SPDX-License-Identifier: MIT
  */
 
+#include <lvgl.h>
 #include <zmk/display/lv_zmk_event.h>
 #include <zmk/display/lv_zmk_status.h>
 #include <zmk/display/util_macros.h>
 #include <zmk/display/widgets/layer_status_h15.h>
 #include <zephyr/logging/log.h>
-#include "core/lv_event.h"
-#include "core/lv_obj_tree.h"
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #define HEIGHT 15
