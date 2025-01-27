@@ -12,23 +12,19 @@ enum lv_zmk_usb_conn_state {
 };
 
 struct lv_zmk_status {
-#if IS_LV_ZMK_EVENT_ENABLED(battery_state)
-  /* LV_ZMK_BATTERY_STATE_CHANGED  */
+#if LV_ZMK_EVENT_IS_ENABLED(battery_state)
   uint8_t battery_level;
 #endif
 
-#if IS_LV_ZMK_EVENT_ENABLED(usb_conn_state)
-  /* LV_ZMK_USB_CONN_STATE_CHANGED */
+#if LV_ZMK_EVENT_IS_ENABLED(usb_conn_state)
   bool battery_charging;
 #endif
 
-#if IS_LV_ZMK_EVENT_ENABLED(endpoint)
-  /* LV_ZMK_ENDPOINT_CHANGED */
+#if LV_ZMK_EVENT_IS_ENABLED(endpoint)
   bool ble_selected;
 #endif
 
-#if IS_LV_ZMK_EVENT_ENABLED(ble_active_profile)
-  /* LV_ZMK_BLE_ACTIVE_PROFILE_CHANGED */
+#if LV_ZMK_EVENT_IS_ENABLED(ble_active_profile)
   uint8_t ble_profile_index;
 
   /* LV_ZMK_BLE_ACTIVE_PROFILE_CHANGED */
@@ -38,29 +34,24 @@ struct lv_zmk_status {
   uint8_t ble_rssi;
 #endif
 
-#if IS_LV_ZMK_EVENT_ENABLED(endpoint)
-  /* LV_ZMK_ENDPOINT_CHANGED */
+#if LV_ZMK_EVENT_IS_ENABLED(endpoint)
   bool usb_selected;
 #endif
 
-#if IS_LV_ZMK_EVENT_ENABLED(usb_conn_state)
-  /* LV_ZMK_USB_CONN_STATE_CHANGED */
+#if LV_ZMK_EVENT_IS_ENABLED(usb_conn_state)
   enum lv_zmk_usb_conn_state usb_conn_state;
 #endif
 
-#if IS_LV_ZMK_EVENT_ENABLED(layer_state)
-  /* LV_ZMK_LAYER_STATE_CHANGED */
+#if LV_ZMK_EVENT_IS_ENABLED(layer_state)
   uint8_t layer_index;
 
-  /* LV_ZMK_LAYER_STATE_CHANGED */
   const char *layer_name;
 #endif
 
-#if IS_LV_ZMK_EVENT_ENABLED(split_peripheral_status)
-  /* LV_ZMK_SPLIT_PERIPHERAL_STATUS_CHANGED */
+#if LV_ZMK_EVENT_IS_ENABLED(split_peripheral_status)
   bool peripheral_connected;
 
-  /* TODO  */
+  /* TODO */
   uint8_t peropheral_rssi;
 #endif
 };

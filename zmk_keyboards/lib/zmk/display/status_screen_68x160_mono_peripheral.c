@@ -80,7 +80,7 @@ lv_obj_t *zmk_display_status_screen() {
   lv_img_set_src(kbd_logo, &starman_68x80);
 #endif
 
-  zmk_status_presenter_dispatch(container);
+  zmk_status_presenter_dispatch(container, 2);
 
   return container;
 }

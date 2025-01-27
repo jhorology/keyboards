@@ -6,11 +6,12 @@
 
 #include <zmk/display/lv_zmk_event.h>
 #include <zmk/display/lv_zmk_status.h>
-#include <zmk/display/status_presenter.h>
 #include <zmk/display/util_macros.h>
 #include <zmk/display/widgets/battery_status_32x12.h>
 #include <zephyr/logging/log.h>
 #include "core/lv_event.h"
+#include "core/lv_obj.h"
+#include "core/lv_obj_tree.h"
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 /* 0x0f0e7  nf-fa-bolt nf-fa-flash */
@@ -54,6 +55,9 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define WIDTH 32
 #define HEIGHT 12
 
+static const lv_zmk_event_interests zmk_event_interests =
+  LV_ZMK_EVENT_INTERESTS(battery_state, usb_conn_state);
+
 LV_FONT_DECLARE(pixel_mplus_10);
 LV_FONT_DECLARE(cozetta_icons_13);
 
@@ -80,9 +84,10 @@ static void battery_state_cb(lv_event_t *event) {
 }
 
 #if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
-static void battery_charging_cb(lv_event_t *event) {
-  lv_obj_t *charging_icon_label = lv_event_get_current_target(event);
+static void usb_conn_state_cb(lv_event_t *event) {
+  lv_obj_t *container = lv_event_get_current_target(event);
   struct lv_zmk_status *state = lv_event_get_param(event);
+  lv_obj_t *charging_icon_label = lv_obj_get_child(container, 1);
 
   lv_label_set_text(charging_icon_label, state->battery_charging ? NF_FA_BOLT : "");
 }
@@ -103,19 +108,18 @@ lv_obj_t *lv_battery_status_create(lv_obj_t *parent, lv_obj_t *(*container_defau
 #if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
   lv_obj_t *charging_icon_label = lv_label_create(container);
   lv_obj_set_style_text_font(charging_icon_label, &cozetta_icons_13, LV_PART_MAIN);
-
-  lv_obj_add_event_cb(charging_icon_label, battery_charging_cb, LV_ZMK_EVENT_CODE(usb_conn_state),
-                      NULL);
-  /* TODO auto register */
-  zmk_status_presenter_register(charging_icon_label, LV_ZMK_EVENT_CODE(usb_conn_state));
 #endif
 
   lv_obj_t *perc_label = lv_label_create(container);
   lv_obj_set_style_text_font(perc_label, &pixel_mplus_10, LV_PART_MAIN);
 
+  // events
   lv_obj_add_event_cb(container, battery_state_cb, LV_ZMK_EVENT_CODE(battery_state), NULL);
-  /* TODO auto register */
-  zmk_status_presenter_register(container, LV_ZMK_EVENT_CODE(battery_state));
+#if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
+  lv_obj_add_event_cb(container, usb_conn_state_cb, LV_ZMK_EVENT_CODE(usb_conn_state), NULL);
+#endif
+
+  lv_obj_set_user_data(container, (void *)&zmk_event_interests);
 
   return container;
 }

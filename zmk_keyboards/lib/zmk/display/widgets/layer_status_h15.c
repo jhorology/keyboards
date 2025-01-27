@@ -6,7 +6,6 @@
 
 #include <zmk/display/lv_zmk_event.h>
 #include <zmk/display/lv_zmk_status.h>
-#include <zmk/display/status_presenter.h>
 #include <zmk/display/util_macros.h>
 #include <zmk/display/widgets/layer_status_h15.h>
 #include <zephyr/logging/log.h>
@@ -16,10 +15,12 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #define HEIGHT 15
 
+static const lv_zmk_event_interests zmk_event_interests = LV_ZMK_EVENT_INTERESTS(layer_state);
+
 LV_FONT_DECLARE(teko_bold_15);
 LV_FONT_DECLARE(pixel_mplus_bold_10);
 
-static void layer_cb(lv_event_t *event) {
+static void layer_state_cb(lv_event_t *event) {
   lv_obj_t *container = lv_event_get_current_target(event);
   struct lv_zmk_status *state = lv_event_get_param(event);
   lv_obj_t *index_label = lv_obj_get_child(container, 0);
@@ -58,9 +59,9 @@ lv_obj_t *lv_layer_status_create(lv_obj_t *parent, lv_obj_t *(*container_default
   lv_obj_set_flex_grow(name_label, 1);
   lv_label_set_long_mode(name_label, LV_LABEL_LONG_CLIP);
 
-  lv_obj_add_event_cb(container, layer_cb, LV_ZMK_EVENT_CODE(layer_state), NULL);
-  /* TODO auto register */
-  zmk_status_presenter_register(container, LV_ZMK_EVENT_CODE(layer_state));
+  lv_obj_add_event_cb(container, layer_state_cb, LV_ZMK_EVENT_CODE(layer_state), NULL);
+
+  lv_obj_set_user_data(container, (void *)&zmk_event_interests);
 
   return container;
 }

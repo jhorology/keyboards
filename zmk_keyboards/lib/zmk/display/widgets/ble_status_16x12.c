@@ -6,7 +6,6 @@
 
 #include <zmk/display/lv_zmk_event.h>
 #include <zmk/display/lv_zmk_status.h>
-#include <zmk/display/status_presenter.h>
 #include <zmk/display/util_macros.h>
 #include <zmk/display/widgets/ble_status_16x12.h>
 #include <zephyr/logging/log.h>
@@ -31,6 +30,9 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #define WIDTH 16
 #define HEIGHT 12
+
+static const lv_zmk_event_interests zmk_event_interests =
+  LV_ZMK_EVENT_INTERESTS(ble_active_profile, endpoint);
 
 LV_FONT_DECLARE(pixel_mplus_bold_10);
 LV_FONT_DECLARE(cozetta_icons_13);
@@ -86,14 +88,12 @@ lv_obj_t *lv_ble_status_create(lv_obj_t *parent, lv_obj_t *(*container_default)(
 
   lv_obj_add_event_cb(container, ble_active_profile_cb, LV_ZMK_EVENT_CODE(ble_active_profile),
                       NULL);
-  /* TODO auto register */
-  zmk_status_presenter_register(container, LV_ZMK_EVENT_CODE(ble_active_profile));
 
 #if IS_ENABLED(CONFIG_ZMK_USB) && IS_ENABLED(CONFIG_ZMK_BLE)
   lv_obj_add_event_cb(container, endpoint_cb, LV_ZMK_EVENT_CODE(endpoint), NULL);
-  /* TODO auto register */
-  zmk_status_presenter_register(container, LV_ZMK_EVENT_CODE(endpoint));
 #endif
+
+  lv_obj_set_user_data(container, (void *)&zmk_event_interests);
 
   return container;
 }

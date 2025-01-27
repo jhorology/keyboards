@@ -6,7 +6,6 @@
 
 #include <zmk/display/lv_zmk_event.h>
 #include <zmk/display/lv_zmk_status.h>
-#include <zmk/display/status_presenter.h>
 #include <zmk/display/util_macros.h>
 #include <zmk/display/widgets/peripheral_status_36x12.h>
 #include <zephyr/logging/log.h>
@@ -31,12 +30,16 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define WIDTH 36
 #define HEIGHT 12
 
+static const lv_zmk_event_interests zmk_event_interests =
+  LV_ZMK_EVENT_INTERESTS(split_peripheral_status);
+
 LV_FONT_DECLARE(cozetta_icons_13);
 LV_FONT_DECLARE(pixel_mplus_10);
 
-static void icon_cb(lv_event_t *event) {
-  lv_obj_t *icon_label = lv_event_get_current_target(event);
+static void split_peripheral_status_cb(lv_event_t *event) {
+  lv_obj_t *container = lv_event_get_current_target(event);
   struct lv_zmk_status *state = lv_event_get_param(event);
+  lv_obj_t *icon_label = lv_obj_get_child(container, 0);
 
   lv_label_set_text(icon_label,
                     state->peripheral_connected ? NF_FA_BLUETOOTH : NF_MDI_BLUETOOTH_OFF);
@@ -53,15 +56,17 @@ lv_obj_t *lv_peripheral_status_create(lv_obj_t *parent, lv_obj_t *(*container_de
   lv_obj_t *icon_label = lv_label_create(container);
   lv_obj_set_style_text_font(icon_label, &cozetta_icons_13, LV_PART_MAIN);
   lv_obj_set_width(icon_label, 6);
-  lv_obj_add_event_cb(icon_label, icon_cb, LV_ZMK_EVENT_CODE(split_peripheral_status), NULL);
-  /* TODO auto register  */
-  zmk_status_presenter_register(icon_label, LV_ZMK_EVENT_CODE(split_peripheral_status));
 
   lv_obj_t *rssi_label = lv_label_create(container);
   lv_label_set_long_mode(rssi_label, LV_LABEL_LONG_CLIP);
   lv_obj_set_style_text_font(rssi_label, &pixel_mplus_10, LV_PART_MAIN);
   // TODO RSSI
   lv_label_set_text(rssi_label, "-70dBm");
+
+  lv_obj_add_event_cb(container, split_peripheral_status_cb,
+                      LV_ZMK_EVENT_CODE(split_peripheral_status), NULL);
+
+  lv_obj_set_user_data(container, (void *)&zmk_event_interests);
 
   return container;
 }

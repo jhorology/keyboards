@@ -6,7 +6,6 @@
 
 #include <zmk/display/lv_zmk_event.h>
 #include <zmk/display/lv_zmk_status.h>
-#include <zmk/display/status_presenter.h>
 #include <zmk/display/util_macros.h>
 #include <zmk/display/widgets/usb_status_16x12.h>
 #include <zephyr/logging/log.h>
@@ -27,11 +26,15 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define WIDTH 16
 #define HEIGHT 12
 
+static const lv_zmk_event_interests zmk_event_interests =
+  LV_ZMK_EVENT_INTERESTS(usb_conn_state, usb_host_os, endpoint);
+
 LV_FONT_DECLARE(cozetta_icons_13);
 
-static void icon_cb(lv_event_t *event) {
-  lv_obj_t *icon_label = lv_event_get_current_target(event);
+static void usb_conn_state_cb(lv_event_t *event) {
+  lv_obj_t *container = lv_event_get_current_target(event);
   struct lv_zmk_status *state = lv_event_get_param(event);
+  lv_obj_t *icon_label = lv_obj_get_child(container, 1);
 
   switch (state->usb_conn_state) {
     case USB_DISCONNECTED:
@@ -39,6 +42,7 @@ static void icon_cb(lv_event_t *event) {
       break;
     case USB_CONNECTED:
       lv_label_set_text(icon_label, NF_FA_CHECK);
+
       break;
     case USB_CONNECTED_MAC:
       lv_label_set_text(icon_label, NF_FA_APPLE);
@@ -80,18 +84,15 @@ lv_obj_t *lv_usb_status_create(lv_obj_t *parent, lv_obj_t *(*container_default)(
   lv_obj_t *icon_label = lv_label_create(container);
   lv_obj_set_style_text_font(icon_label, &cozetta_icons_13, 0);
 
-  lv_obj_add_event_cb(icon_label, icon_cb, LV_ZMK_EVENT_CODE(usb_conn_state), NULL);
-  /* TODO auto register */
-  zmk_status_presenter_register(icon_label, LV_ZMK_EVENT_CODE(usb_conn_state));
+  // events
 
-  lv_obj_add_event_cb(icon_label, icon_cb, LV_ZMK_EVENT_CODE(usb_host_os), NULL);
-  /* TODO auto register */
-  zmk_status_presenter_register(icon_label, LV_ZMK_EVENT_CODE(usb_host_os));
-
+  lv_obj_add_event_cb(container, usb_conn_state_cb, LV_ZMK_EVENT_CODE(usb_conn_state), NULL);
+  lv_obj_add_event_cb(container, usb_conn_state_cb, LV_ZMK_EVENT_CODE(usb_host_os), NULL);
 #if IS_ENABLED(CONFIG_ZMK_USB) && IS_ENABLED(CONFIG_ZMK_BLE)
   lv_obj_add_event_cb(container, endpoint_cb, LV_ZMK_EVENT_CODE(endpoint), NULL);
-  /* TODO auto register */
-  zmk_status_presenter_register(container, LV_ZMK_EVENT_CODE(endpoint));
 #endif
+
+  lv_obj_set_user_data(container, (void *)&zmk_event_interests);
+
   return container;
 }

@@ -111,7 +111,7 @@ lv_obj_t *zmk_display_status_screen() {
   lv_img_set_src(zmk_logo, &zmk_logo_40x40);
   lv_obj_set_style_pad_bottom(zmk_logo, MARGIN, 0);
 
-  zmk_status_presenter_dispatch(container);
+  zmk_status_presenter_dispatch(container, 2);
 
   return container;
 }
