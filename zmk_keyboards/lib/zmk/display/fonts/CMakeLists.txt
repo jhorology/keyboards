@@ -26,7 +26,7 @@ if(CONFIG_ZMK_FONT_PIXEL_MPLUS_12)
   generate_lv_font_for_target(
     app
     ${ZEPHYR_BASE}/../fonts/PixelMplus-20130602/PixelMplus12-Regular.ttf
-    pixel_mplus_12        # structure name
+    pixel_mplus_12             # structure name
     1                          # bpp
     12                         # size
     --autohint-off             # should be off for pixel font
@@ -39,7 +39,7 @@ if(CONFIG_ZMK_FONT_PIXEL_MPLUS_BOLD_10)
   generate_lv_font_for_target(
     app
     ${ZEPHYR_BASE}/../fonts/PixelMplus-20130602/PixelMplus10-Bold.ttf
-    pixel_mplus_bold_10  # structure name
+    pixel_mplus_bold_10        # structure name
     1                          # bpp
     10                         # size
     --autohint-off             # should be off for pixel font
@@ -70,6 +70,18 @@ if(CONFIG_ZMK_FONT_TEKO_BOLD_15)
     app
     ${ZEPHYR_BASE}/../fonts/teko/fonts/ttf/Teko-SemiBold.ttf
     teko_bold_15               # structure name
+    1                          # bpp
+    15                         # size
+    # --autohint-off
+    --range 0x20-0x7f          # only ascii glyph
+  )
+endif()
+
+if(CONFIG_ZMK_FONT_TEKO_15)
+  generate_lv_font_for_target(
+    app
+    ${ZEPHYR_BASE}/../fonts/teko/fonts/ttf/Teko-Regular.ttf
+    teko_15                    # structure name
     1                          # bpp
     15                         # size
     # --autohint-off

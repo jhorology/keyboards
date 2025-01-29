@@ -161,8 +161,8 @@ static void send_event(lv_obj_t *obj, lv_event_code_t event_code, lv_zmk_event_i
   }
 }
 
-#define EVENT_CODE_REGISTER(e) LV_ZMK_EVENT_CODE(e) = lv_event_register_id()
-void zmk_status_presenter_init(void) { LV_ZMK_EVENT_FOR_EACH(EVENT_CODE_REGISTER, (;)); }
+#define EVENT_CODE_REGISTER(e) LV_ZMK_EVENT_CODE(e) = lv_event_register_id();
+void zmk_status_presenter_init(void) { LV_ZMK_EVENT_FOR_EACH(EVENT_CODE_REGISTER, ()) }
 
 #define ZMK_EVENT_INIT_FUNC(e) e##_init();
 void zmk_status_presenter_dispatch(lv_obj_t *container, uint8_t depth) {

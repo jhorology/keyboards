@@ -719,9 +719,9 @@ _download_fonts() {
   mkdir -p fonts
   cd fonts
   if [[ ! -d CozetteFonts ]]; then
-    wget https://github.com/slavfox/Cozette/releases/download/v.1.25.2/CozetteFonts-v-1-25-2.zip
-    unzip CozetteFonts-v-1-25-2.zip
-    rm -f CozetteFonts-v-1-25-2.zip
+    wget https://github.com/slavfox/Cozette/releases/download/v.1.26.0/CozetteFonts-v-1-26-0.zip
+    unzip CozetteFonts-v-1-26-0.zip
+    rm -f CozetteFonts-v-1-26-0.zip
   fi
 
   if [[ ! -d fonts-DSEG_v046 ]]; then
