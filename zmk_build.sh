@@ -718,24 +718,29 @@ _download_fonts() {
   cd $PROJECT
   mkdir -p fonts
   cd fonts
+
+  # MIT license
   if [[ ! -d CozetteFonts ]]; then
     wget https://github.com/slavfox/Cozette/releases/download/v.1.26.0/CozetteFonts-v-1-26-0.zip
     unzip CozetteFonts-v-1-26-0.zip
     rm -f CozetteFonts-v-1-26-0.zip
   fi
 
+  # OFL-1.1 license
   if [[ ! -d fonts-DSEG_v046 ]]; then
     wget https://github.com/keshikan/DSEG/releases/download/v0.46/fonts-DSEG_v046.zip
     unzip fonts-DSEG_v046.zip
     rm -f fonts-DSEG_v046.zip
   fi
 
+  # M+ FONT license
   if [[ ! -d PixelMplus-20130602 ]]; then
     wget https://github.com/itouhiro/PixelMplus/releases/download/v1.0.0/PixelMplus-20130602.zip
     unzip PixelMplus-20130602.zip
     rm -f PixelMplus-20130602.zip
   fi
 
+  # OFL-1.1 license
   if [[ -d teko ]]; then
     cd teko
     git pull
@@ -744,11 +749,30 @@ _download_fonts() {
     git clone --depth 1 https://github.com/googlefonts/teko.git
   fi
 
+  # unknown license
+  # https://www.2112.net/rushfonts
   if [[ ! -d rushfonts ]]; then
     mkdir  rushfonts
     wget https://www.2112.net/rushfonts/rushfonts.zip
     unzip -o rushfonts.zip -d rushfonts
     rm -f rushfonts.zip
+  fi
+
+  # completly free for any prupose
+  # http://fontlab.web.fc2.com/extra-small-font.html
+  if [[ ! -d extra-small-font ]]; then
+    wget https://ftp.vector.co.jp/66/05/114/extra-small-font.zip
+    unzip extra-small-font.zip
+    rm -f extra-small-font.zip
+  fi
+
+  # OFL-1.1 license
+  if [[ -d font_Tiny5 ]]; then
+    cd font_Tiny5
+    git pull
+    cd ..
+  else
+    git clone --depth 1 https://github.com/Gissio/font_Tiny5.git
   fi
 }
 
