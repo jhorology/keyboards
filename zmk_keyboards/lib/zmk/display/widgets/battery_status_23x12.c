@@ -8,8 +8,9 @@
 #include <zmk/display/lv_zmk_event.h>
 #include <zmk/display/lv_zmk_status.h>
 #include <zmk/display/util_macros.h>
-#include <zmk/display/widgets/battery_status_32x12.h>
+#include <zmk/display/widgets/battery_status_23x12.h>
 #include <zephyr/logging/log.h>
+#include "core/lv_obj.h"
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 /* 0x0f0e7  nf-fa-bolt nf-fa-flash */
@@ -50,13 +51,13 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 /* 0x0f58a=>0xf008b =>󰂋 nf-md-battery_charging_90 */
 #define NF_MDI_BATTERY_CHARGING_90 "\xEF\x96\x8A"
 
-#define WIDTH 32
+#define WIDTH 23
 #define HEIGHT 12
 
 static const lv_zmk_event_interests zmk_event_interests =
   LV_ZMK_EVENT_INTERESTS(battery_state, usb_conn_state);
 
-LV_FONT_DECLARE(pixel_mplus_10);
+LV_FONT_DECLARE(micro5_10);
 LV_FONT_DECLARE(cozetta_icons_13);
 
 #define SELECT_BATTERY_ICON(level)  \
@@ -78,7 +79,7 @@ static void battery_state_cb(lv_event_t *event) {
   lv_obj_t *perc_label = lv_obj_get_child(container, -1);
 
   lv_label_set_text_fmt(battery_icon_label, "%s", SELECT_BATTERY_ICON(state->battery_level));
-  lv_label_set_text_fmt(perc_label, "%u%%", state->battery_level);
+  lv_label_set_text_fmt(perc_label, "%u", state->battery_level);
 }
 
 #if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
@@ -97,7 +98,7 @@ lv_obj_t *lv_battery_status_create(lv_obj_t *parent, lv_obj_t *(*container_defau
     container_default != NULL ? container_default(parent) : lv_obj_create(parent);
   lv_obj_set_size(container, WIDTH, HEIGHT);
   lv_obj_set_flex_flow(container, LV_FLEX_FLOW_ROW);
-  lv_obj_set_style_pad_gap(container, 1, LV_PART_MAIN);
+  lv_obj_set_style_pad_column(container, 1, LV_PART_MAIN);
   ALIGN_FLEX_FLOW_ROW_COMPOSITE_WIDGET(container, align, LV_FLEX_ALIGN_END);
 
   lv_obj_t *battery_icon_label = lv_label_create(container);
@@ -109,7 +110,8 @@ lv_obj_t *lv_battery_status_create(lv_obj_t *parent, lv_obj_t *(*container_defau
 #endif
 
   lv_obj_t *perc_label = lv_label_create(container);
-  lv_obj_set_style_text_font(perc_label, &pixel_mplus_10, LV_PART_MAIN);
+  lv_obj_set_style_text_font(perc_label, &micro5_10, LV_PART_MAIN);
+  lv_obj_set_style_pad_bottom(perc_label, 1, LV_PART_MAIN);
 
   // events
   lv_obj_add_event_cb(container, battery_state_cb, LV_ZMK_EVENT_CODE(battery_state), NULL);

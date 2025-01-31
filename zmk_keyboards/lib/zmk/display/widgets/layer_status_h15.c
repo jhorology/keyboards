@@ -42,14 +42,14 @@ lv_obj_t *lv_layer_status_create(lv_obj_t *parent, lv_obj_t *(*container_default
   lv_obj_set_style_pad_gap(container, 2, LV_PART_MAIN);
 
   lv_obj_t *index_label = lv_label_create(container);
-  lv_obj_set_size(index_label, 11, 13);
+  lv_obj_set_size(index_label, 11, 11);
 
   lv_obj_set_style_bg_opa(index_label, LV_OPA_COVER, LV_PART_MAIN);
   lv_obj_set_style_bg_color(index_label, lv_color_black(), LV_PART_MAIN);
   lv_obj_set_style_text_font(index_label, &pixel_mplus_bold_10, LV_PART_MAIN);
   lv_obj_set_style_text_color(index_label, lv_color_white(), LV_PART_MAIN);
-  lv_obj_set_style_text_align(index_label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-  lv_obj_set_style_pad_top(index_label, 2, LV_PART_MAIN);
+  lv_obj_set_style_pad_top(index_label, 1, LV_PART_MAIN);
+  lv_obj_set_style_pad_left(index_label, 3, LV_PART_MAIN);
   lv_obj_set_style_radius(index_label, 2, LV_PART_MAIN);
 
   lv_obj_t *name_label = lv_label_create(container);

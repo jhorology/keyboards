@@ -73,7 +73,7 @@ lv_obj_t *lv_ble_status_create(lv_obj_t *parent, lv_obj_t *(*container_default)(
     container_default != NULL ? container_default(parent) : lv_obj_create(parent);
   lv_obj_set_size(container, WIDTH, HEIGHT);
   lv_obj_set_flex_flow(container, LV_FLEX_FLOW_ROW);
-  lv_obj_set_style_pad_gap(container, 2, LV_PART_MAIN);
+  lv_obj_set_style_pad_column(container, 2, LV_PART_MAIN);
   ALIGN_FLEX_FLOW_ROW_COMPOSITE_WIDGET(container, align, LV_FLEX_ALIGN_END);
 
   lv_obj_set_style_opa(container, LV_OPA_COVER, LV_PART_MAIN);

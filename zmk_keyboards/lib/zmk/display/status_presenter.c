@@ -94,15 +94,18 @@ ZMK_EVENT_PRESENTER(ble_active_profile, struct ble_active_profile,
 #  include <zmk/events/layer_state_changed.h>
 struct layer_state {
   uint8_t index;
+  uint16_t layers_state;
   const char *name;
 };
 ZMK_EVENT_PRESENTER(layer_state, struct layer_state,
-                    (zmk_status.layer_index = state.index + 1; zmk_status.layer_name = state.name;
-                     SEND_EVENT(layer_state);),
+                    (zmk_status.layer_index = state.index + 1;
+                     zmk_status.layers_state = state.layers_state;
+                     zmk_status.layer_name = state.name; SEND_EVENT(layer_state);),
                     (ARG_UNUSED(ev);
                      zmk_keymap_layer_index_t index = zmk_keymap_highest_layer_active();
                      return (struct layer_state){
                        .index = index,
+                       .layers_state = zmk_keymap_layer_state() & 0xffff,
                        .name = zmk_keymap_layer_name(zmk_keymap_layer_index_to_id(index)),
                      };));
 #endif
@@ -138,6 +141,16 @@ ZMK_EVENT_PRESENTER(usb_host_os, enum usb_host_os,
 ZMK_EVENT_PRESENTER(split_peripheral_status, bool,
                     (zmk_status.peripheral_connected = state; SEND_EVENT(split_peripheral_status);),
                     (return ev != NULL ? ev->connected : zmk_split_bt_peripheral_is_connected();));
+#endif
+
+// hid_indicators
+// ------------------------------------------------------------
+#if LV_ZMK_EVENT_IS_ENABLED(hid_indicators)
+#  include <zmk/hid_indicators.h>
+#  include <zmk/events/hid_indicators_changed.h>
+ZMK_EVENT_PRESENTER(
+  hid_indicators, uint8_t, (zmk_status.indicators_state = state; SEND_EVENT(hid_indicators);),
+  (return (ev != NULL ? ev->indicators : zmk_hid_indicators_get_current_profile()) & 0xff;));
 #endif
 
 /* TODO use pre-registration list instead of broadcast  */

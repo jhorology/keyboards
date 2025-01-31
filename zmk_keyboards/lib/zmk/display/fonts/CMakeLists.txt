@@ -3,10 +3,56 @@
 include(${ZEPHYR_CURRENT_MODULE_DIR}/cmake/lv_font_conv.cmake NO_POLICY_SCOPE)
 
 #------------------------------------------------------------------------------
+# micro5
+# https://github.com/scfried/soft-type-micro.git
+# OFL-1.1 license
+#------------------------------------------------------------------------------
+if(CONFIG_ZMK_FONT_MICRO5_10)
+  generate_lv_font_for_target(
+    app
+    ${ZEPHYR_BASE}/../fonts/soft-type-micro/fonts//ttf/Micro5-Regular.ttf
+    micro5_10                  # structure name
+    1                          # bpp
+    10                         # size
+    --autohint-off             # should be off for pixel font
+    --range 0x20-0x7f          # only ascii glyph
+  )
+endif()
+
+#------------------------------------------------------------------------------
+# tiny5
+# https://github.com/Gissio/font_Tiny5
+# OFL-1.1 license
+#------------------------------------------------------------------------------
+if(CONFIG_ZMK_FONT_TINY5_9)
+  generate_lv_font_for_target(
+    app
+    ${ZEPHYR_BASE}/../fonts/font_Tiny5/fonts//ttf/Tiny5-SolidRegular.ttf
+    tiny5_9                    # structure name
+    1                          # bpp
+    9                          # size
+    # --autohint-off           # should be off for pixel font
+    --range 0x20-0x7f          # only ascii glyph
+  )
+endif()
+
+if(CONFIG_ZMK_FONT_TINY5_BOLD_9)
+  generate_lv_font_for_target(
+    app
+    ${ZEPHYR_BASE}/../fonts/font_Tiny5/fonts//ttf/Tiny5-SolidBold.ttf
+    tiny5_bold_9               # structure name
+    1                          # bpp
+    9                          # size
+    # --autohint-off           # should be off for pixel font
+    --range 0x20-0x7f          # only ascii glyph
+  )
+endif()
+
+#------------------------------------------------------------------------------
 # PixelMplus font
 # https://github.com/itouhiro/PixelMplus
+# M+ FONT lisense
 #------------------------------------------------------------------------------
-
 if(CONFIG_ZMK_FONT_PIXEL_MPLUS_10)
   # 5x10 mono
   generate_lv_font_for_target(
@@ -63,6 +109,7 @@ endif()
 #------------------------------------------------------------------------------
 # teko
 # https://github.com/googlefonts/teko
+# OFL-1.1 license
 # condensed, propotional
 #------------------------------------------------------------------------------
 if(CONFIG_ZMK_FONT_TEKO_BOLD_15)
@@ -92,6 +139,7 @@ endif()
 #------------------------------------------------------------------------------
 # Cozetta 6x13 pixel font
 # https://github.com/slavfox/Cozette
+# MIT license
 #
 # TODO delete unnecessary icons
 # TODO search pixel perfect icons in a little bigger size

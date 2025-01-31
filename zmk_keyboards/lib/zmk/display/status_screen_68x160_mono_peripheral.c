@@ -9,7 +9,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #include <zmk/display/status_presenter.h>
 #include <zmk/display/widgets/peripheral_status_36x12.h>
-#include <zmk/display/widgets/battery_status_32x12.h>
+#include <zmk/display/widgets/battery_status_23x12.h>
 
 #define WIDTH 68
 #define HEIGHT 160
@@ -60,7 +60,7 @@ lv_obj_t *zmk_display_status_screen() {
   lv_obj_set_flex_align(container, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
   lv_obj_set_style_pad_gap(container, 1, LV_PART_MAIN);
 
-#if IS_ENABLED(CONFIG_ZMK_WIDGET_BATTERY_STATUS_32X12)
+#if IS_ENABLED(CONFIG_ZMK_WIDGET_BATTERY_STATUS_23X12)
   lv_battery_status_create(container, container_default, LV_ALIGN_CENTER);
 #endif
 

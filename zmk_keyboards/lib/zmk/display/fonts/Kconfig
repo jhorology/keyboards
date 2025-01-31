@@ -1,6 +1,26 @@
 #------------------------------------------------------------------------------
+# tiny5
+# https://github.com/Gissio/font_Tiny5
+# OFL-1.1 license
+#------------------------------------------------------------------------------
+config ZMK_FONT_MICRO5_10
+  bool "Enable micro5_10 font"
+
+#------------------------------------------------------------------------------
+# tiny5
+# https://github.com/Gissio/font_Tiny5
+# OFL-1.1 license
+#------------------------------------------------------------------------------
+config ZMK_FONT_TINY5_9
+  bool "Enable tiny5_9 font"
+
+config ZMK_FONT_TINY5_BOLD_9
+  bool "Enable tiny5_bold_9 font"
+
+#------------------------------------------------------------------------------
 # PixelMplus font
 # https://github.com/itouhiro/PixelMplus
+# M+ FONT license
 #------------------------------------------------------------------------------
 config ZMK_FONT_PIXEL_MPLUS_10
   bool "Enable pixel_mplus_10 font"
@@ -17,6 +37,7 @@ config ZMK_FONT_PIXEL_MPLUS_BOLD_12
 #------------------------------------------------------------------------------
 # teko
 # https://github.com/googlefonts/teko
+# OFL-1.1 license
 # condensed, propotional
 #------------------------------------------------------------------------------
 config ZMK_FONT_TEKO_15
@@ -28,6 +49,7 @@ config ZMK_FONT_TEKO_BOLD_15
 #------------------------------------------------------------------------------
 # Cozetta 6x13 pixel font
 # https://github.com/slavfox/Cozette
+# MIT license
 #------------------------------------------------------------------------------
 config ZMK_FONT_COZETTA_ICONS_13
   bool "Enable cozeeta_icons_13 font for 13pix icons"

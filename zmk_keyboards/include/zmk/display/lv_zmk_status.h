@@ -1,6 +1,5 @@
 #pragma once
 
-#include <zephyr/sys/util.h>
 #include <zmk/display/lv_zmk_event.h>
 
 enum lv_zmk_ble_conn_state { BLE_NOT_PAIERD, BLE_DISCONNECTED, BLE_CONNECTED };
@@ -9,6 +8,14 @@ enum lv_zmk_usb_conn_state {
   USB_CONNECTED,
   USB_CONNECTED_MAC,
   USB_CONNECTED_WIN
+};
+
+enum lv_zmk_indicator {
+  INDICATOR_NUM_LOCK,
+  INDICATOR_CAPS_LOCK,
+  INDICATOR_SCROLL_LOCK,
+  INDICATOR_COMPOSE,
+  INDICATOR_KANA_LOCK
 };
 
 struct lv_zmk_status {
@@ -44,7 +51,7 @@ struct lv_zmk_status {
 
 #if LV_ZMK_EVENT_IS_ENABLED(layer_state)
   uint8_t layer_index;
-
+  uint16_t layers_state;
   const char *layer_name;
 #endif
 
@@ -53,5 +60,9 @@ struct lv_zmk_status {
 
   /* TODO */
   uint8_t peropheral_rssi;
+#endif
+
+#if LV_ZMK_EVENT_IS_ENABLED(hid_indicators)
+  uint8_t indicators_state;
 #endif
 };

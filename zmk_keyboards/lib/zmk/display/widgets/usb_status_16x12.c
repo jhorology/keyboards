@@ -73,7 +73,7 @@ lv_obj_t *lv_usb_status_create(lv_obj_t *parent, lv_obj_t *(*container_default)(
     container_default != NULL ? container_default(parent) : lv_obj_create(parent);
   lv_obj_set_size(container, WIDTH, HEIGHT);
   lv_obj_set_flex_flow(container, LV_FLEX_FLOW_ROW);
-  lv_obj_set_style_pad_gap(container, 1, LV_PART_MAIN);
+  lv_obj_set_style_pad_column(container, 1, LV_PART_MAIN);
   lv_obj_set_style_pad_top(container, 1, LV_PART_MAIN);
   ALIGN_FLEX_FLOW_ROW_COMPOSITE_WIDGET(container, align, LV_FLEX_ALIGN_END);
 

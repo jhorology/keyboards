@@ -774,6 +774,15 @@ _download_fonts() {
   else
     git clone --depth 1 https://github.com/Gissio/font_Tiny5.git
   fi
+
+  # OFL-1.1 license
+  if [[ -d soft-type-micro ]]; then
+    cd soft-type-micro
+    git pull
+    cd ..
+  else
+    git clone --depth 1 https://github.com/scfried/soft-type-micro.git
+  fi
 }
 
 _setup_zmk_studio() {

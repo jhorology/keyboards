@@ -9,7 +9,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #include <zmk/display/status_presenter.h>
 #include <zmk/display/widgets/peripheral_status_36x12.h>
-#include <zmk/display/widgets/battery_status_32x12.h>
+#include <zmk/display/widgets/battery_status_23x12.h>
 
 #define WIDTH 80
 #define HEIGHT 128
@@ -38,19 +38,17 @@ LV_IMG_DECLARE(starman_80x80);
 
 static inline lv_obj_t *status_bar_create(lv_obj_t *parent) {
   lv_obj_t *container = container_default(parent);
+  lv_obj_set_size(container, CONTENT_WIDTH, STATUS_BAR_HEIGHT);
   lv_obj_set_flex_flow(container, LV_FLEX_FLOW_ROW);
-  lv_obj_set_flex_align(container, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+  lv_obj_set_flex_align(container, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_CENTER,
+                        LV_FLEX_ALIGN_CENTER);
   lv_obj_set_style_pad_top(container, 1, LV_PART_MAIN);
 
 #if IS_ENABLED(CONFIG_ZMK_WIDGET_PERIPHERAL_STATUS_36X12)
   lv_peripheral_status_create(container, container_default, LV_ALIGN_TOP_LEFT);
 #endif
 
-  // just a placeholder
-  lv_obj_t *placeholder = container_default(container);
-  lv_obj_set_flex_grow(placeholder, 1);
-
-#if IS_ENABLED(CONFIG_ZMK_WIDGET_BATTERY_STATUS_32X12)
+#if IS_ENABLED(CONFIG_ZMK_WIDGET_BATTERY_STATUS_23X12)
   lv_battery_status_create(container, container_default, LV_ALIGN_TOP_RIGHT);
 #endif
 
@@ -81,8 +79,7 @@ lv_obj_t *zmk_display_status_screen() {
   lv_obj_set_flex_align(container, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
   lv_obj_set_style_pad_gap(container, 1, LV_PART_MAIN);
 
-  lv_obj_t *status_bar = status_bar_create(container);
-  lv_obj_set_size(status_bar, CONTENT_WIDTH, STATUS_BAR_HEIGHT);
+  status_bar_create(container);
 
   lv_obj_t *content = content_create(container);
   lv_obj_set_width(content, CONTENT_WIDTH);

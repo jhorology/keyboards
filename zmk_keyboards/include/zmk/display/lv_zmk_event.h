@@ -5,7 +5,7 @@
 
 #define _LV_ZMK_EVENT_LIST                                                               \
   battery_state, usb_conn_state, endpoint, ble_active_profile, layer_state, usb_host_os, \
-    split_peripheral_status
+    split_peripheral_status, hid_indicators
 
 #define _LV_ZMK_ENABLED(e) _lv_zmk_##e##_enabled
 #define _LV_ZMK_IDX(e) _lv_zmk_##e##_idx
@@ -52,6 +52,14 @@
 #define _lv_zmk_split_peripheral_status_idx                                                 \
   COND_CODE_1(_lv_zmk_split_peripheral_status_enabled, (UTIL_INC(_lv_zmk_usb_host_os_idx)), \
               (_lv_zmk_usb_host_os_idx))
+
+#define _lv_zmk_hid_indicators_enabled     \
+  UTIL_AND(                                \
+    IS_ENABLED(CONFIG_ZMK_HID_INDICATORS), \
+    UTIL_OR(IS_EQ(IS_ENABLED(CONFIG_ZMK_SPLIT), 0), IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)))
+#define _lv_zmk_hid_indicators_idx                                                             \
+  COND_CODE_1(_lv_zmk_hid_indicators_enabled, (UTIL_INC(_lv_zmk_split_peripheral_status_idx)), \
+              (_lv_zmk_split_peripheral_status_idx))
 
 #define LV_ZMK_EVENT_LIST \
   LIST_DROP_EMPTY(FOR_EACH(_LV_ZMK_EVENT_IDENTITY, (, ), _LV_ZMK_EVENT_LIST))
