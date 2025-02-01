@@ -1,0 +1,13 @@
+diff --git a/app/src/display/main.c b/app/src/display/main.c
+index e15e2de..6bb088f 100644
+--- a/app/src/display/main.c
++++ b/app/src/display/main.c
+@@ -130,6 +130,8 @@ int zmk_display_init() {
+     k_work_queue_start(&display_work_q, display_work_stack_area,
+                        K_THREAD_STACK_SIZEOF(display_work_stack_area),
+                        CONFIG_ZMK_DISPLAY_DEDICATED_THREAD_PRIORITY, NULL);
++    k_tid_t tid = k_work_queue_thread_get(&display_work_q);
++    k_thread_name_set(tid, "zmk_display");
+ #endif
+ 
+     k_work_submit_to_queue(zmk_display_work_q(), &init_work);
