@@ -1035,7 +1035,7 @@ _fedora_flash_uf2() {
       echo ""
       echo "copying firmware [$firmware] to drive [$dfu_drive]..."
       sleep 1
-      $WIN_SUDO c:\\Windows\\System32\\xcopy.exe "$(wslpath -w $firmware)" $dfu_drive\\
+      $WIN_SUDO --inline c:\\Windows\\System32\\xcopy.exe "$(wslpath -w $firmware)" $dfu_drive\\
       echo "flashing firmware finished successfully."
       break
     else
@@ -1061,9 +1061,9 @@ _fedora_flash_bin() {
     dfu_device=$($WIN_USBIPD list 2> /dev/null | grep "$hardware_id" || echo -n "")
     if [[ ! -z $dfu_device ]]; then
       if [[ $dfu_device =~ "Not shared" ]]; then
-        $WIN_SUDO "$(wslpath -w $WIN_USBIPD)" bind --hardware-id $hardware_id
+        $WIN_SUDO --inline "$(wslpath -w $WIN_USBIPD)" bind --hardware-id $hardware_id
       elif [[ $dfu_device =~ "Shared" ]]; then
-        $WIN_SUDO "$(wslpath -w $WIN_USBIPD)" attach --wsl --hardware-id $hardware_id
+        $WIN_SUDO --inline "$(wslpath -w $WIN_USBIPD)" attach --wsl --hardware-id $hardware_id
       elif [[ $dfu_device =~ "Attached" ]]; then
         sudo chmod -R 777 /dev/bus/usb
         west flash --build-dir build/$target || true
@@ -1167,7 +1167,7 @@ _fedora_log_console() {
   if [[ $#com_ports = 1 ]]; then
     com_port=$com_ports[1]
   elif [[ $#com_ports -gt 1 ]]; then
-    if (( $#with_studio )) || $props[studio] && ! (( $#without_studio )) && ! props[ble]; then
+    if (( $#with_studio )) || $props[studio] && ! (( $#without_studio )) && ! $props[ble]; then
       # studio enabled
       # 1 - studio uart
       # 2 - loggging uart
