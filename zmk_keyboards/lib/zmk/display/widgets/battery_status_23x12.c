@@ -11,6 +11,7 @@
 #include <zmk/display/widgets/battery_status_23x12.h>
 #include <zephyr/logging/log.h>
 #include "core/lv_obj.h"
+#include "widgets/lv_label.h"
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 /* 0x0f0e7  nf-fa-bolt nf-fa-flash */
@@ -87,8 +88,11 @@ static void usb_conn_state_cb(lv_event_t *event) {
   lv_obj_t *container = lv_event_get_current_target(event);
   struct lv_zmk_status *state = lv_event_get_param(event);
   lv_obj_t *charging_icon_label = lv_obj_get_child(container, 1);
-
-  lv_label_set_text(charging_icon_label, state->battery_charging ? NF_FA_BOLT : "");
+  if (state->battery_charging) {
+    lv_obj_clear_flag(charging_icon_label, LV_OBJ_FLAG_HIDDEN);
+  } else {
+    lv_obj_add_flag(charging_icon_label, LV_OBJ_FLAG_HIDDEN);
+  }
 }
 #endif
 
@@ -107,6 +111,7 @@ lv_obj_t *lv_battery_status_create(lv_obj_t *parent, lv_obj_t *(*container_defau
 #if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
   lv_obj_t *charging_icon_label = lv_label_create(container);
   lv_obj_set_style_text_font(charging_icon_label, &cozetta_icons_13, LV_PART_MAIN);
+  lv_label_set_text_static(charging_icon_label, NF_FA_BOLT);
 #endif
 
   lv_obj_t *perc_label = lv_label_create(container);

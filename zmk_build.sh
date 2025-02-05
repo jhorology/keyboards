@@ -119,7 +119,7 @@ declare -A cz42l=(
 )
 
 declare -A cz42r=(
-  [name]=cz42_left
+  [name]=cz42_right
   [ble]=true
   [studio]=false
   [board]=nice_nano_v2

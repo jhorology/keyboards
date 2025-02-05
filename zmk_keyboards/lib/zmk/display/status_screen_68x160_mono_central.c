@@ -5,8 +5,6 @@
 #include <zmk/display/status_screen.h>
 
 #include <zephyr/logging/log.h>
-#include "core/lv_obj.h"
-#include "misc/lv_area.h"
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #include <zmk/display/status_presenter.h>

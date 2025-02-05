@@ -13,7 +13,8 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
-#define HEIGHT 11
+#define INDICATOR_WIDTH 11
+#define INDICATOR_HEIGHT 11
 #define NUM_INDICATORS 5
 
 const char indicator_letters[] = {
@@ -54,21 +55,19 @@ lv_obj_t *lv_hid_indicators_create(lv_obj_t *parent, lv_obj_t *(*container_defau
                                    lv_align_t align) {
   lv_obj_t *container =
     container_default != NULL ? container_default(parent) : lv_obj_create(parent);
-  lv_obj_set_height(container, HEIGHT);
+  lv_obj_set_height(container, INDICATOR_HEIGHT);
   lv_obj_set_flex_flow(container, LV_FLEX_FLOW_ROW);
   lv_obj_set_style_pad_column(container, 1, LV_PART_MAIN);
   ALIGN_FLEX_FLOW_ROW_COMPOSITE_WIDGET(container, align, LV_FLEX_ALIGN_CENTER);
 
   for (uint8_t i = 0; i < NUM_INDICATORS; i++) {
     lv_obj_t *indicator = lv_label_create(container);
-    lv_obj_set_size(indicator, 11, 11);
-    lv_obj_set_style_bg_opa(indicator, LV_OPA_COVER, LV_PART_MAIN);
-    lv_obj_set_style_bg_color(indicator, lv_color_black(), LV_PART_MAIN);
+    lv_obj_set_size(indicator, INDICATOR_WIDTH, INDICATOR_HEIGHT);
+    lv_obj_set_style_border_width(indicator, 1, LV_PART_MAIN);
+
     lv_obj_set_style_text_font(indicator, &pixel_mplus_bold_10, LV_PART_MAIN);
 
-    lv_obj_set_style_text_color(indicator, lv_color_white(), LV_PART_MAIN);
-    lv_obj_set_style_pad_top(indicator, 1, LV_PART_MAIN);
-    lv_obj_set_style_pad_left(indicator, 3, LV_PART_MAIN);
+    lv_obj_set_style_pad_left(indicator, 2, LV_PART_MAIN);
     lv_label_set_text_fmt(indicator, "%c", indicator_letters[i]);
   }
 

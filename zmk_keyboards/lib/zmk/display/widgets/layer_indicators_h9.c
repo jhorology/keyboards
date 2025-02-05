@@ -13,7 +13,6 @@
 #include <zmk/keymap.h>
 
 #include <zephyr/logging/log.h>
-#include "core/lv_obj_tree.h"
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #define INDICATOR_WIDTH 9
