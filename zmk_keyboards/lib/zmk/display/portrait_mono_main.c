@@ -112,7 +112,7 @@ static inline lv_obj_t *zmk_logo_create(lv_obj_t *parent) {
 
   lv_obj_t *zmk_desc = lv_label_create(container);
   lv_obj_set_style_text_font(zmk_desc, &micro5_10, 0);
-  lv_label_set_text_static(zmk_desc, "Powered By");
+  lv_label_set_text_static(zmk_desc, "POWERED BY");
 
   lv_obj_t *zmk_logo = lv_img_create(container);
   lv_img_set_src(zmk_logo, &zmk_logo_40x40);
