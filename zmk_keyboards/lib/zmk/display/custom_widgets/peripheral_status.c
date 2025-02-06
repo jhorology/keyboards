@@ -48,7 +48,7 @@ lv_obj_t *lv_peripheral_status_create(lv_obj_t *parent,
     container_default != NULL ? container_default(parent) : lv_obj_create(parent);
   lv_obj_set_size(container, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
   lv_obj_set_flex_flow(container, LV_FLEX_FLOW_ROW);
-  lv_obj_set_style_pad_column(container, 1, LV_PART_MAIN);
+  lv_obj_set_style_pad_column(container, 2, LV_PART_MAIN);
   lv_obj_set_flex_align(container, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_START);
 
   lv_obj_t *icon_label = lv_label_create(container);

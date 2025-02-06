@@ -38,7 +38,7 @@ static inline lv_obj_t *endpoint_status_create(lv_obj_t *parent) {
   lv_obj_t *container = container_default(parent);
   lv_obj_set_flex_flow(container, LV_FLEX_FLOW_ROW);
   lv_obj_set_flex_align(container, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_START);
-  lv_obj_set_style_pad_column(container, 2, LV_PART_MAIN);
+  lv_obj_set_style_pad_gap(container, MARGIN, LV_PART_MAIN);
   lv_obj_set_size(container, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
 
   lv_ble_status_create(container, container_default);
@@ -66,10 +66,6 @@ static inline lv_obj_t *status_header_create(lv_obj_t *parent) {
                         LV_FLEX_ALIGN_START);
   lv_obj_set_style_pad_gap(container, MARGIN, LV_PART_MAIN);
 
-#if IS_ENABLED(CONFIG_ZMK_WIDGET_CUSTOM_HID_INDICATORS)
-  lv_hid_indicators_create(container, container_default);
-#endif
-
 #if IS_ENABLED(CONFIG_ZMK_WIDGET_CUSTOM_BLE_STATUS) && \
   IS_ENABLED(CONFIG_ZMK_WIDGET_CUSTOM_USB_STATUS)
   endpoint_status_create(container);
@@ -81,6 +77,10 @@ static inline lv_obj_t *status_header_create(lv_obj_t *parent) {
 
 #if IS_ENABLED(CONFIG_ZMK_WIDGET_CUSTOM_BATTERY_STATUS)
   lv_battery_status_create(container, container_default);
+#endif
+
+#if IS_ENABLED(CONFIG_ZMK_WIDGET_CUSTOM_HID_INDICATORS)
+  lv_hid_indicators_create(container, container_default);
 #endif
 
   return container;
@@ -104,6 +104,7 @@ static inline lv_obj_t *content_create(lv_obj_t *parent) {
 static inline lv_obj_t *zmk_logo_create(lv_obj_t *parent) {
   lv_obj_t *container = container_default(parent);
   lv_obj_set_flex_flow(container, LV_FLEX_FLOW_COLUMN);
+  lv_obj_set_style_pad_row(container, MARGIN, LV_PART_MAIN);
   lv_obj_set_size(container, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
 
   lv_obj_t *zmk_desc = lv_label_create(container);

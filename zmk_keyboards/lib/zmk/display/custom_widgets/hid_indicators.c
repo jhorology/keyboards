@@ -58,10 +58,13 @@ lv_obj_t *lv_hid_indicators_create(lv_obj_t *parent, lv_obj_t *(*container_defau
   lv_obj_set_style_pad_column(container, 1, LV_PART_MAIN);
   lv_obj_set_flex_align(container, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_START);
 
+  lv_color_t border_color = lv_obj_get_style_text_color(container, LV_PART_MAIN);
+
   for (uint8_t i = 0; i < NUM_INDICATORS; i++) {
     lv_obj_t *indicator = lv_label_create(container);
     lv_obj_set_size(indicator, INDICATOR_WIDTH, INDICATOR_HEIGHT);
     lv_obj_set_style_border_width(indicator, 1, LV_PART_MAIN);
+    lv_obj_set_style_border_color(indicator, border_color, LV_PART_MAIN);
 
     lv_obj_set_style_text_font(indicator, &pixel_mplus_bold_10, LV_PART_MAIN);
 
