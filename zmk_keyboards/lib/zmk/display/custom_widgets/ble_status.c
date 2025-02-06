@@ -6,8 +6,8 @@
 #include <lvgl.h>
 #include <zmk/display/lv_zmk_event.h>
 #include <zmk/display/lv_zmk_status.h>
-#include <zmk/display/util_macros.h>
-#include <zmk/display/widgets/ble_status_16x12.h>
+#include <zmk/display/custom_widgets/ble_status.h>
+
 #include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
@@ -25,9 +25,6 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 /* 0x0f5b2=>0xf00b3 =>󰂳 nf-md-bluetooth_settings */
 #define NF_MDI_BLUETOOTH_SETTING "\xEF\x96\xB2"
 #define NF_MD_BLUETOOTH_OFF_SETTING "\xF3\xB0\x82\xb3"
-
-#define WIDTH 16
-#define HEIGHT 12
 
 static const lv_zmk_event_interests zmk_event_interests =
   LV_ZMK_EVENT_INTERESTS(ble_active_profile, endpoint);
@@ -60,21 +57,24 @@ static void endpoint_cb(lv_event_t *event) {
   lv_obj_t *container = lv_event_get_current_target(event);
   struct lv_zmk_status *state = lv_event_get_param(event);
 
-  lv_obj_set_style_bg_color(container, state->ble_selected ? lv_color_black() : lv_color_white(),
-                            LV_PART_MAIN);
-  lv_obj_set_style_text_color(container, state->ble_selected ? lv_color_white() : lv_color_black(),
-                              LV_PART_MAIN);
+  // normal color
+  lv_obj_t *parent = lv_obj_get_parent(container);
+  lv_color_t bg_color = lv_obj_get_style_bg_color(parent, LV_PART_MAIN);
+  lv_color_t text_color = lv_obj_get_style_text_color(parent, LV_PART_MAIN);
+
+  lv_obj_set_style_bg_color(container, state->ble_selected ? text_color : bg_color, LV_PART_MAIN);
+  lv_obj_set_style_text_color(container, state->ble_selected ? bg_color : text_color, LV_PART_MAIN);
 }
 #endif
 
-lv_obj_t *lv_ble_status_create(lv_obj_t *parent, lv_obj_t *(*container_default)(lv_obj_t *),
-                               lv_align_t align) {
+lv_obj_t *lv_ble_status_create(lv_obj_t *parent, lv_obj_t *(*container_default)(lv_obj_t *)) {
   lv_obj_t *container =
     container_default != NULL ? container_default(parent) : lv_obj_create(parent);
-  lv_obj_set_size(container, WIDTH, HEIGHT);
+  lv_obj_set_size(container, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
   lv_obj_set_flex_flow(container, LV_FLEX_FLOW_ROW);
   lv_obj_set_style_pad_column(container, 2, LV_PART_MAIN);
-  ALIGN_FLEX_FLOW_ROW_COMPOSITE_WIDGET(container, align, LV_FLEX_ALIGN_END);
+  lv_obj_set_flex_align(container, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_START);
+  lv_obj_set_style_pad_hor(container, 1, LV_PART_MAIN);
 
   lv_obj_set_style_opa(container, LV_OPA_COVER, LV_PART_MAIN);
 

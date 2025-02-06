@@ -7,8 +7,7 @@
 #include <lvgl.h>
 #include <zmk/display/lv_zmk_event.h>
 #include <zmk/display/lv_zmk_status.h>
-#include <zmk/display/util_macros.h>
-#include <zmk/display/widgets/layer_indicators_h9.h>
+#include <zmk/display/custom_widgets/layer_indicators.h>
 
 #include <zmk/keymap.h>
 
@@ -28,32 +27,27 @@ static void layer_state_cb(lv_event_t *event) {
   lv_obj_t *container = lv_event_get_current_target(event);
   struct lv_zmk_status *state = lv_event_get_param(event);
 
+  // normal color
+  lv_color_t bg_color = lv_obj_get_style_bg_color(container, LV_PART_MAIN);
+  lv_color_t text_color = lv_obj_get_style_text_color(container, LV_PART_MAIN);
+
   for (uint8_t i = 0; i < NUM_LAYERS; i++) {
     lv_obj_t *indicator = lv_obj_get_child(container, i);
     bool active = (state->layers_state & BIT(i)) != 0;
-    lv_obj_set_style_bg_color(indicator, active ? lv_color_black() : lv_color_white(),
-                              LV_PART_MAIN);
-    lv_obj_set_style_text_color(indicator, active ? lv_color_white() : lv_color_black(),
-                                LV_PART_MAIN);
+    lv_obj_set_style_bg_color(indicator, active ? text_color : bg_color, LV_PART_MAIN);
+    lv_obj_set_style_text_color(indicator, active ? bg_color : text_color, LV_PART_MAIN);
   }
 }
 
 lv_obj_t *lv_layer_indicators_create(lv_obj_t *parent, lv_obj_t *(*container_default)(lv_obj_t *),
-                                     lv_align_t align, lv_coord_t width) {
-  uint16_t cols = (width + MARGIN) / (INDICATOR_WIDTH + MARGIN);
-  if (cols == 0) {
-    cols = 1;
-    width = INDICATOR_WIDTH;
-  }
-  uint16_t rows = DIV_ROUND_UP(NUM_LAYERS, cols);
-
+                                     lv_coord_t width) {
   lv_obj_t *container =
     container_default != NULL ? container_default(parent) : lv_obj_create(parent);
-  lv_obj_set_size(container, width, INDICATOR_HEIGHT * rows + MARGIN * (rows - 1));
+  lv_obj_set_size(container, width, LV_SIZE_CONTENT);
   lv_obj_set_flex_flow(container, LV_FLEX_FLOW_ROW_WRAP);
   lv_obj_set_style_pad_column(container, MARGIN, LV_PART_MAIN);
   lv_obj_set_style_pad_row(container, MARGIN, LV_PART_MAIN);
-  ALIGN_FLEX_FLOW_ROW_COMPOSITE_WIDGET(container, align, LV_FLEX_ALIGN_CENTER);
+  lv_obj_set_flex_align(container, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_START);
 
   for (uint8_t i = 0; i < NUM_LAYERS; i++) {
     lv_obj_t *indicator = lv_label_create(container);

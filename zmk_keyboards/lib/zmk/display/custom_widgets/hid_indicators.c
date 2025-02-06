@@ -7,8 +7,7 @@
 #include <lvgl.h>
 #include <zmk/display/lv_zmk_event.h>
 #include <zmk/display/lv_zmk_status.h>
-#include <zmk/display/util_macros.h>
-#include <zmk/display/widgets/hid_indicators_h11.h>
+#include <zmk/display/custom_widgets/hid_indicators.h>
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
@@ -51,14 +50,13 @@ static void hid_indicators_cb(lv_event_t *event) {
   }
 }
 
-lv_obj_t *lv_hid_indicators_create(lv_obj_t *parent, lv_obj_t *(*container_default)(lv_obj_t *),
-                                   lv_align_t align) {
+lv_obj_t *lv_hid_indicators_create(lv_obj_t *parent, lv_obj_t *(*container_default)(lv_obj_t *)) {
   lv_obj_t *container =
     container_default != NULL ? container_default(parent) : lv_obj_create(parent);
-  lv_obj_set_height(container, INDICATOR_HEIGHT);
+  lv_obj_set_size(container, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
   lv_obj_set_flex_flow(container, LV_FLEX_FLOW_ROW);
   lv_obj_set_style_pad_column(container, 1, LV_PART_MAIN);
-  ALIGN_FLEX_FLOW_ROW_COMPOSITE_WIDGET(container, align, LV_FLEX_ALIGN_CENTER);
+  lv_obj_set_flex_align(container, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_START);
 
   for (uint8_t i = 0; i < NUM_INDICATORS; i++) {
     lv_obj_t *indicator = lv_label_create(container);

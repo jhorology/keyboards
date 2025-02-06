@@ -7,11 +7,9 @@
 #include <lvgl.h>
 #include <zmk/display/lv_zmk_event.h>
 #include <zmk/display/lv_zmk_status.h>
-#include <zmk/display/util_macros.h>
-#include <zmk/display/widgets/battery_status_23x12.h>
+#include <zmk/display/custom_widgets/battery_status.h>
+
 #include <zephyr/logging/log.h>
-#include "core/lv_obj.h"
-#include "widgets/lv_label.h"
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 /* 0x0f0e7  nf-fa-bolt nf-fa-flash */
@@ -51,9 +49,6 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define NF_MDI_BATTERY_CHARGING_80 "\xEF\x96\x89"
 /* 0x0f58a=>0xf008b =>󰂋 nf-md-battery_charging_90 */
 #define NF_MDI_BATTERY_CHARGING_90 "\xEF\x96\x8A"
-
-#define WIDTH 23
-#define HEIGHT 12
 
 static const lv_zmk_event_interests zmk_event_interests =
   LV_ZMK_EVENT_INTERESTS(battery_state, usb_conn_state);
@@ -96,15 +91,13 @@ static void usb_conn_state_cb(lv_event_t *event) {
 }
 #endif
 
-lv_obj_t *lv_battery_status_create(lv_obj_t *parent, lv_obj_t *(*container_default)(lv_obj_t *),
-                                   lv_align_t align) {
+lv_obj_t *lv_battery_status_create(lv_obj_t *parent, lv_obj_t *(*container_default)(lv_obj_t *)) {
   lv_obj_t *container =
     container_default != NULL ? container_default(parent) : lv_obj_create(parent);
-  lv_obj_set_size(container, WIDTH, HEIGHT);
+  lv_obj_set_size(container, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
   lv_obj_set_flex_flow(container, LV_FLEX_FLOW_ROW);
   lv_obj_set_style_pad_column(container, 1, LV_PART_MAIN);
-  ALIGN_FLEX_FLOW_ROW_COMPOSITE_WIDGET(container, align, LV_FLEX_ALIGN_END);
-
+  lv_obj_set_flex_align(container, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_START);
   lv_obj_t *battery_icon_label = lv_label_create(container);
   lv_obj_set_style_text_font(battery_icon_label, &cozetta_icons_13, LV_PART_MAIN);
 

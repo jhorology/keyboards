@@ -7,8 +7,8 @@
 #include <lvgl.h>
 #include <zmk/display/lv_zmk_event.h>
 #include <zmk/display/lv_zmk_status.h>
-#include <zmk/display/util_macros.h>
-#include <zmk/display/widgets/peripheral_status_36x12.h>
+#include <zmk/display/custom_widgets/peripheral_status.h>
+
 #include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
@@ -27,14 +27,11 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define NF_MDI_LINK_OFF "\xEF\xA0\xB7"
 #define NF_MD_LINK_OFF "\xF3\xB0\x8C\xB8"
 
-#define WIDTH 36
-#define HEIGHT 12
-
 static const lv_zmk_event_interests zmk_event_interests =
   LV_ZMK_EVENT_INTERESTS(split_peripheral_status);
 
 LV_FONT_DECLARE(cozetta_icons_13);
-LV_FONT_DECLARE(pixel_mplus_10);
+LV_FONT_DECLARE(micro5_10);
 
 static void split_peripheral_status_cb(lv_event_t *event) {
   lv_obj_t *container = lv_event_get_current_target(event);
@@ -45,13 +42,14 @@ static void split_peripheral_status_cb(lv_event_t *event) {
                     state->peripheral_connected ? NF_FA_BLUETOOTH : NF_MDI_BLUETOOTH_OFF);
 }
 
-lv_obj_t *lv_peripheral_status_create(lv_obj_t *parent, lv_obj_t *(*container_default)(lv_obj_t *),
-                                      lv_align_t align) {
+lv_obj_t *lv_peripheral_status_create(lv_obj_t *parent,
+                                      lv_obj_t *(*container_default)(lv_obj_t *)) {
   lv_obj_t *container =
     container_default != NULL ? container_default(parent) : lv_obj_create(parent);
-  lv_obj_set_size(container, WIDTH, HEIGHT);
+  lv_obj_set_size(container, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
   lv_obj_set_flex_flow(container, LV_FLEX_FLOW_ROW);
-  ALIGN_FLEX_FLOW_ROW_COMPOSITE_WIDGET(container, align, LV_FLEX_ALIGN_END);
+  lv_obj_set_style_pad_column(container, 1, LV_PART_MAIN);
+  lv_obj_set_flex_align(container, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_START);
 
   lv_obj_t *icon_label = lv_label_create(container);
   lv_obj_set_style_text_font(icon_label, &cozetta_icons_13, LV_PART_MAIN);
@@ -59,7 +57,8 @@ lv_obj_t *lv_peripheral_status_create(lv_obj_t *parent, lv_obj_t *(*container_de
 
   lv_obj_t *rssi_label = lv_label_create(container);
   lv_label_set_long_mode(rssi_label, LV_LABEL_LONG_CLIP);
-  lv_obj_set_style_text_font(rssi_label, &pixel_mplus_10, LV_PART_MAIN);
+  lv_obj_set_style_text_font(rssi_label, &micro5_10, LV_PART_MAIN);
+  lv_obj_set_style_pad_bottom(rssi_label, 1, LV_PART_MAIN);
   // TODO RSSI
   lv_label_set_text(rssi_label, "-70dBm");
 

@@ -1,8 +1,5 @@
 config ZMK_IMG_LOGO_40X40
   bool "Enable 40x40 ZMK logo"
 
-config ZMK_IMG_STARMAN_80X80
-  bool "Enable 80x80 starman"
-
 config ZMK_IMG_STARMAN_68X80
   bool "Enable 80x80 starman"

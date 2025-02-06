@@ -7,8 +7,7 @@ config ZMK_CUSTOM_KEYBOARD_LOGO
 config ZMK_DISPLAY_STATUS_PRESENTER
   bool "Enable staus presener"
 
-rsource "Kconfig.80x128_mono"
-rsource "Kconfig.68x160_mono"
-rsource "widgets/Kconfig"
+rsource "Kconfig.portrait_mono"
+rsource "custom_widgets/Kconfig"
 rsource "fonts/Kconfig"
 rsource "img/Kconfig"

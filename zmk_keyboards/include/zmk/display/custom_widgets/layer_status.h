@@ -9,4 +9,4 @@
 #include <lvgl.h>
 
 lv_obj_t *lv_layer_status_create(lv_obj_t *parent, lv_obj_t *(*container_default)(lv_obj_t *),
-                                 lv_align_t align, lv_coord_t width);
+                                 lv_coord_t width);

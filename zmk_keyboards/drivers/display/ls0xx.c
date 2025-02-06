@@ -479,7 +479,6 @@ static void ls0xx_get_capabilities(const struct device *dev, struct display_capa
       break;
     case LS0XX_ROT_180:
       caps->screen_info = SCREEN_INFO_MONO_MSB_FIRST;
-
       break;
     case LS0XX_ROT_270:
       caps->screen_info = SCREEN_INFO_MONO_VTILED + SCREEN_INFO_MONO_MSB_FIRST;

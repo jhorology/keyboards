@@ -1,0 +1,7 @@
+target_sources_ifdef(CONFIG_ZMK_WIDGET_CUSTOM_BLE_STATUS app PRIVATE ble_status.c)
+target_sources_ifdef(CONFIG_ZMK_WIDGET_CUSTOM_USB_STATUS app PRIVATE usb_status.c)
+target_sources_ifdef(CONFIG_ZMK_WIDGET_CUSTOM_BATTERY_STATUS app PRIVATE battery_status.c)
+target_sources_ifdef(CONFIG_ZMK_WIDGET_CUSTOM_LAYER_STATUS app PRIVATE layer_status.c)
+target_sources_ifdef(CONFIG_ZMK_WIDGET_CUSTOM_LAYER_INDICATORS app PRIVATE layer_indicators.c)
+target_sources_ifdef(CONFIG_ZMK_WIDGET_CUSTOM_PERIPHERAL_STATUS app PRIVATE peripheral_status.c)
+target_sources_ifdef(CONFIG_ZMK_WIDGET_CUSTOM_HID_INDICATORS app PRIVATE hid_indicators.c)
