@@ -12,6 +12,8 @@
 #include <zmk/display/custom_widgets/layer_indicators.h>
 #include <zmk/display/custom_widgets/hid_indicators.h>
 
+#include <app_version.h>
+
 #include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
@@ -104,6 +106,7 @@ static inline lv_obj_t *content_create(lv_obj_t *parent) {
 static inline lv_obj_t *zmk_logo_create(lv_obj_t *parent) {
   lv_obj_t *container = container_default(parent);
   lv_obj_set_flex_flow(container, LV_FLEX_FLOW_COLUMN);
+  lv_obj_set_flex_align(container, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
   lv_obj_set_style_pad_row(container, MARGIN, LV_PART_MAIN);
   lv_obj_set_size(container, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
 
@@ -119,6 +122,11 @@ static inline lv_obj_t *zmk_logo_create(lv_obj_t *parent) {
   lv_obj_set_style_img_recolor_opa(zmk_logo, LV_OPA_COVER, LV_PART_MAIN);
   lv_obj_set_style_img_recolor(zmk_logo, img_color, LV_PART_MAIN);
 #endif
+
+  lv_obj_t *ver = lv_label_create(container);
+  lv_obj_set_style_text_font(ver, &micro5_10, 0);
+  // version + 7digits SHA same as 'git rev-parse --short'
+  lv_label_set_text_fmt(ver, "v%s (%.7s)", APP_VERSION_STRING, STRINGIFY(APP_BUILD_VERSION));
   return container;
 }
 
