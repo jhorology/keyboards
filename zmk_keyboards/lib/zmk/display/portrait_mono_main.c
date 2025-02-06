@@ -17,6 +17,11 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
+// 7digits SHA same as 'git rev-parse --short'
+#define _UINT64_0(a) _UINT64_1(a)
+#define _UINT64_1(a) 0x##a##UL
+#define APP_BUILD_VERSION_SHORT_REV (uint32_t)((_UINT64_0(APP_BUILD_VERSION) >> 20) & 0xfffffff)
+
 #define MARGIN 2
 
 static lv_obj_t *container_default(lv_obj_t *parent) {
@@ -125,8 +130,8 @@ static inline lv_obj_t *zmk_logo_create(lv_obj_t *parent) {
 
   lv_obj_t *ver = lv_label_create(container);
   lv_obj_set_style_text_font(ver, &micro5_10, 0);
-  // version + 7digits SHA same as 'git rev-parse --short'
-  lv_label_set_text_fmt(ver, "v%s (%.7s)", APP_VERSION_STRING, STRINGIFY(APP_BUILD_VERSION));
+  // version + 7digits SHA
+  lv_label_set_text_fmt(ver, "v%s (%07X)", APP_VERSION_STRING, APP_BUILD_VERSION_SHORT_REV);
   return container;
 }
 
