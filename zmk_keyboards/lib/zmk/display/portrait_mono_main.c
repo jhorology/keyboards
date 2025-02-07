@@ -24,31 +24,40 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #define MARGIN 2
 
-static lv_obj_t *container_default(lv_obj_t *parent) {
-  lv_obj_t *container = lv_obj_create(parent);
-  lv_obj_set_scrollbar_mode(container, LV_SCROLLBAR_MODE_OFF);
-  lv_obj_set_style_pad_all(container, 0, LV_PART_MAIN);
-  lv_obj_set_style_pad_column(container, 0, LV_PART_MAIN);
-  lv_obj_set_style_pad_row(container, 0, LV_PART_MAIN);
-  lv_obj_set_style_pad_gap(container, 0, LV_PART_MAIN);
-  lv_obj_set_style_border_width(container, 0, LV_PART_MAIN);
-  return container;
-}
-
-// LV_FONT_DECLARE(pixel_mplus_10);
 LV_FONT_DECLARE(micro5_10);
 LV_IMG_DECLARE(zmk_logo_40x40);
+
+struct portrait_mono_styles {
+  lv_style_t container;
+};
+
+static struct portrait_mono_styles styles;
+
+static void style_init(struct portrait_mono_styles *styles) {
+  lv_style_init(&styles->container);
+  lv_style_set_pad_all(&styles->container, 0);
+  lv_style_set_pad_gap(&styles->container, 0);
+  lv_style_set_border_width(&styles->container, 0);
+  lv_style_set_size(&styles->container, LV_SIZE_CONTENT);
+}
+
+static lv_obj_t *container_create(lv_obj_t *parent) {
+  lv_obj_t *container = lv_obj_create(parent);
+  lv_obj_add_style(container, &styles.container, LV_PART_MAIN);
+  return container;
+}
 
 #if IS_ENABLED(CONFIG_ZMK_WIDGET_CUSTOM_BLE_STATUS) && \
   IS_ENABLED(CONFIG_ZMK_WIDGET_CUSTOM_USB_STATUS)
 static inline lv_obj_t *endpoint_status_create(lv_obj_t *parent) {
-  lv_obj_t *container = container_default(parent);
+  style_init(&styles);
+
+  lv_obj_t *container = container_create(parent);
   lv_obj_set_flex_flow(container, LV_FLEX_FLOW_ROW);
   lv_obj_set_flex_align(container, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_START);
   lv_obj_set_style_pad_gap(container, MARGIN, LV_PART_MAIN);
-  lv_obj_set_size(container, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
 
-  lv_ble_status_create(container, container_default);
+  lv_ble_status_create(container, &styles.container);
 
   // normal color
   lv_color_t text_color = lv_obj_get_style_text_color(container, LV_PART_MAIN);
@@ -59,16 +68,16 @@ static inline lv_obj_t *endpoint_status_create(lv_obj_t *parent) {
   lv_obj_set_style_bg_color(separator, text_color, LV_PART_MAIN);
   lv_obj_set_size(separator, 1, 12);
 
-  lv_usb_status_create(container, container_default);
+  lv_usb_status_create(container, &styles.container);
 
   return container;
 }
 #endif
 
 static inline lv_obj_t *status_header_create(lv_obj_t *parent) {
-  lv_obj_t *container = container_default(parent);
+  lv_obj_t *container = container_create(parent);
   lv_obj_set_flex_flow(container, LV_FLEX_FLOW_ROW_WRAP);
-  lv_obj_set_size(container, lv_pct(100), LV_SIZE_CONTENT);
+  lv_obj_set_width(container, lv_pct(100));
   lv_obj_set_flex_align(container, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_CENTER,
                         LV_FLEX_ALIGN_START);
   lv_obj_set_style_pad_gap(container, MARGIN, LV_PART_MAIN);
@@ -77,24 +86,24 @@ static inline lv_obj_t *status_header_create(lv_obj_t *parent) {
   IS_ENABLED(CONFIG_ZMK_WIDGET_CUSTOM_USB_STATUS)
   endpoint_status_create(container);
 #elif IS_ENABLED(CONFIG_ZMK_WIDGET_CUSTOM_BLE_STATUS)
-  lv_ble_status_create(container, container_default);
+  lv_ble_status_create(container, &styles.container);
 #elif IS_ENABLED(CONFIG_ZMK_WIDGET_CUSTOM_USB_STATUS)
-  lv_usb_status_create(container, container_default);
+  lv_usb_status_create(container, &styles.container);
 #endif
 
 #if IS_ENABLED(CONFIG_ZMK_WIDGET_CUSTOM_BATTERY_STATUS)
-  lv_battery_status_create(container, container_default);
+  lv_battery_status_create(container, &styles.container);
 #endif
 
 #if IS_ENABLED(CONFIG_ZMK_WIDGET_CUSTOM_HID_INDICATORS)
-  lv_hid_indicators_create(container, container_default);
+  lv_hid_indicators_create(container, &styles.container);
 #endif
 
   return container;
 }
 
 static inline lv_obj_t *content_create(lv_obj_t *parent) {
-  lv_obj_t *container = container_default(parent);
+  lv_obj_t *container = container_create(parent);
   lv_obj_set_width(container, lv_pct(100));
   lv_obj_set_flex_grow(container, 1);
   lv_obj_set_style_border_width(container, 1, LV_PART_MAIN);
@@ -109,11 +118,10 @@ static inline lv_obj_t *content_create(lv_obj_t *parent) {
 }
 
 static inline lv_obj_t *zmk_logo_create(lv_obj_t *parent) {
-  lv_obj_t *container = container_default(parent);
+  lv_obj_t *container = container_create(parent);
   lv_obj_set_flex_flow(container, LV_FLEX_FLOW_COLUMN);
   lv_obj_set_flex_align(container, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
   lv_obj_set_style_pad_row(container, MARGIN, LV_PART_MAIN);
-  lv_obj_set_size(container, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
 
   lv_obj_t *zmk_desc = lv_label_create(container);
   lv_obj_set_style_text_font(zmk_desc, &micro5_10, 0);
@@ -136,10 +144,12 @@ static inline lv_obj_t *zmk_logo_create(lv_obj_t *parent) {
 }
 
 lv_obj_t *zmk_display_status_screen() {
-  lv_obj_t *screen = container_default(NULL);
-
   zmk_status_presenter_init();
+  style_init(&styles);
 
+  lv_obj_t *screen = lv_obj_create(NULL);
+  lv_obj_set_scrollbar_mode(screen, LV_SCROLLBAR_MODE_OFF);
+  lv_obj_set_style_pad_all(screen, 0, LV_PART_MAIN);
   lv_obj_set_flex_flow(screen, LV_FLEX_FLOW_COLUMN);
   lv_obj_set_flex_align(screen, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
   lv_obj_set_style_pad_row(screen, MARGIN, LV_PART_MAIN);
@@ -147,7 +157,7 @@ lv_obj_t *zmk_display_status_screen() {
   status_header_create(screen);
 
 #if IS_ENABLED(CONFIG_ZMK_WIDGET_CUSTOM_LAYER_STATUS)
-  lv_layer_status_create(screen, container_default, lv_pct(100));
+  lv_layer_status_create(screen, &styles.container, lv_pct(100));
 #endif
 
   content_create(screen);

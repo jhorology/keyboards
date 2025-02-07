@@ -8,9 +8,7 @@ function(generate_lv_font_for_target
     size           # output font size (pixels)
   )
 
-  if(IS_ABSOLUTE ${font_file})
-    get_filename_component(font_file ${font_file} ABSOLUTE)
-  else()
+  if(NOT IS_ABSOLUTE ${font_file})
     get_filename_component(font_file ${CMAKE_CURRENT_SOURCE_DIR}/${font_file} ABSOLUTE)
   endif()
 

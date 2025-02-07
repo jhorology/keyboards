@@ -8,5 +8,5 @@
 
 #include <lvgl.h>
 
-lv_obj_t *lv_layer_indicators_create(lv_obj_t *parent, lv_obj_t *(*container_default)(lv_obj_t *),
+lv_obj_t *lv_layer_indicators_create(lv_obj_t *parent, lv_style_t *container_style,
                                      lv_coord_t width);

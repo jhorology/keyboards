@@ -39,11 +39,13 @@ static void layer_state_cb(lv_event_t *event) {
   }
 }
 
-lv_obj_t *lv_layer_indicators_create(lv_obj_t *parent, lv_obj_t *(*container_default)(lv_obj_t *),
+lv_obj_t *lv_layer_indicators_create(lv_obj_t *parent, lv_style_t *container_style,
                                      lv_coord_t width) {
-  lv_obj_t *container =
-    container_default != NULL ? container_default(parent) : lv_obj_create(parent);
-  lv_obj_set_size(container, width, LV_SIZE_CONTENT);
+  lv_obj_t *container = lv_obj_create(parent);
+  if (container_style != NULL) {
+    lv_obj_add_style(container, container_style, LV_PART_MAIN);
+  }
+  lv_obj_set_width(container, width);
   lv_obj_set_flex_flow(container, LV_FLEX_FLOW_ROW_WRAP);
   lv_obj_set_style_pad_column(container, MARGIN, LV_PART_MAIN);
   lv_obj_set_style_pad_row(container, MARGIN, LV_PART_MAIN);

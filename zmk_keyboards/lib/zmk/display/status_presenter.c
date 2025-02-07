@@ -37,7 +37,7 @@ static void send_event(lv_obj_t *obj, lv_event_code_t event_code, lv_zmk_event_i
 #  include <zmk/events/battery_state_changed.h>
 ZMK_EVENT_PRESENTER(battery_state, uint8_t,
                     (zmk_status.battery_level = state; SEND_EVENT(battery_state);),
-                    (return (ev != NULL) ? ev->state_of_charge : zmk_battery_state_of_charge();));
+                    (return (ev != NULL) ? ev->state_of_charge : zmk_battery_state_of_charge();))
 #endif
 
 // usb_conn_state_changed
@@ -50,7 +50,7 @@ ZMK_EVENT_PRESENTER(usb_conn_state, enum zmk_usb_conn_state,
                      zmk_status.usb_conn_state = state == ZMK_USB_CONN_HID ? USB_CONNECTED
                                                                            : USB_DISCONNECTED;
                      SEND_EVENT(usb_conn_state);),
-                    (return (ev != NULL) ? ev->conn_state : zmk_usb_get_conn_state();));
+                    (return (ev != NULL) ? ev->conn_state : zmk_usb_get_conn_state();))
 #endif
 
 // endpoint_changed
@@ -63,7 +63,7 @@ ZMK_EVENT_PRESENTER(endpoint, struct zmk_endpoint_instance,
                     (zmk_status.usb_selected = state.transport == ZMK_TRANSPORT_USB;
                      zmk_status.ble_selected = state.transport == ZMK_TRANSPORT_BLE;
                      SEND_EVENT(endpoint);),
-                    (return (ev != NULL) ? ev->endpoint : zmk_endpoints_selected();));
+                    (return (ev != NULL) ? ev->endpoint : zmk_endpoints_selected();))
 
 #endif
 
@@ -84,7 +84,7 @@ ZMK_EVENT_PRESENTER(ble_active_profile, struct ble_active_profile,
                       .conn_state = zmk_ble_active_profile_is_connected() ? BLE_CONNECTED
                                     : zmk_ble_active_profile_is_open()    ? BLE_DISCONNECTED
                                                                           : BLE_NOT_PAIERD,
-                    };));
+                    };))
 #endif
 
 // layer_state_changed
@@ -107,7 +107,7 @@ ZMK_EVENT_PRESENTER(layer_state, struct layer_state,
                        .index = index,
                        .layers_state = zmk_keymap_layer_state() & 0xffff,
                        .name = zmk_keymap_layer_name(zmk_keymap_layer_index_to_id(index)),
-                     };));
+                     };))
 #endif
 
 // usb_host_os_changed
@@ -130,7 +130,7 @@ ZMK_EVENT_PRESENTER(usb_host_os, enum usb_host_os,
                           break;
                       }
                     }),
-                    (return ev != NULL ? ev->os : zmk_usb_host_os_detected();));
+                    (return ev != NULL ? ev->os : zmk_usb_host_os_detected();))
 #endif
 
 // split_peripheral_status_changed
@@ -140,7 +140,7 @@ ZMK_EVENT_PRESENTER(usb_host_os, enum usb_host_os,
 #  include <zmk/events/split_peripheral_status_changed.h>
 ZMK_EVENT_PRESENTER(split_peripheral_status, bool,
                     (zmk_status.peripheral_connected = state; SEND_EVENT(split_peripheral_status);),
-                    (return ev != NULL ? ev->connected : zmk_split_bt_peripheral_is_connected();));
+                    (return ev != NULL ? ev->connected : zmk_split_bt_peripheral_is_connected();))
 #endif
 
 // hid_indicators
@@ -150,7 +150,7 @@ ZMK_EVENT_PRESENTER(split_peripheral_status, bool,
 #  include <zmk/events/hid_indicators_changed.h>
 ZMK_EVENT_PRESENTER(
   hid_indicators, uint8_t, (zmk_status.indicators_state = state; SEND_EVENT(hid_indicators);),
-  (return (ev != NULL ? ev->indicators : zmk_hid_indicators_get_current_profile()) & 0xff;));
+  (return (ev != NULL ? ev->indicators : zmk_hid_indicators_get_current_profile()) & 0xff;))
 #endif
 
 /* TODO use pre-registration list instead of broadcast  */

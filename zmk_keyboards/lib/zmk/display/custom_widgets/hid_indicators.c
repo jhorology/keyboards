@@ -50,10 +50,11 @@ static void hid_indicators_cb(lv_event_t *event) {
   }
 }
 
-lv_obj_t *lv_hid_indicators_create(lv_obj_t *parent, lv_obj_t *(*container_default)(lv_obj_t *)) {
-  lv_obj_t *container =
-    container_default != NULL ? container_default(parent) : lv_obj_create(parent);
-  lv_obj_set_size(container, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+lv_obj_t *lv_hid_indicators_create(lv_obj_t *parent, lv_style_t *container_style) {
+  lv_obj_t *container = lv_obj_create(parent);
+  if (container_style != NULL) {
+    lv_obj_add_style(container, container_style, LV_PART_MAIN);
+  }
   lv_obj_set_flex_flow(container, LV_FLEX_FLOW_ROW);
   lv_obj_set_style_pad_column(container, 1, LV_PART_MAIN);
   lv_obj_set_flex_align(container, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_START);

@@ -343,7 +343,7 @@
 };
 
 /* for debugging ls0xx driver */
-&ls011b7dh3 {
+&ls011b7dh03 {
   // experimental setting
 
   // default 60

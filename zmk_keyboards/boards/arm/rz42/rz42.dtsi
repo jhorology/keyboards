@@ -17,7 +17,7 @@
     zmk,battery = &vbatt;
     zmk,kscan = &kscan0;
     zmk,underglow = &led_strip;
-    zephyr,display = &ls011b7dh3;
+    zephyr,display = &ls011b7dh03;
   };
 
   default_transform: keymap_transform_0 {
@@ -165,7 +165,7 @@ zephyr_udc0: &usbd {
 };
 
 /*  Sharp LS011B7DH03 LCD display  */
-ls011b7dh3_spi: &spi0 {
+ls011b7dh03_spi: &spi0 {
   status = "okay";
   compatible = "nordic,nrf-spim";
   pinctrl-0 = <&spi0_default>;
@@ -173,7 +173,7 @@ ls011b7dh3_spi: &spi0 {
   pinctrl-names = "default", "sleep";
   cs-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
 
-  ls011b7dh3: ls011b7dh3@0 {
+  ls011b7dh03: ls011b7dh03@0 {
     /* custom (yet another) driver */
     compatible = "sharp,ls0xx,ya";
     spi-max-frequency = <1000000>;

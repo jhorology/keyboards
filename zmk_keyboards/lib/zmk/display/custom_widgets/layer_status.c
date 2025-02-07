@@ -27,12 +27,12 @@ static void layer_state_cb(lv_event_t *event) {
   lv_label_set_text_fmt(name_label, "%s", state->layer_name);
 }
 
-lv_obj_t *lv_layer_status_create(lv_obj_t *parent, lv_obj_t *(*container_default)(lv_obj_t *),
-                                 lv_coord_t width) {
-  lv_obj_t *container =
-    container_default != NULL ? container_default(parent) : lv_obj_create(parent);
-  /* WIDTH is not defined in herer  */
-  lv_obj_set_size(container, width, LV_SIZE_CONTENT);
+lv_obj_t *lv_layer_status_create(lv_obj_t *parent, lv_style_t *container_style, lv_coord_t width) {
+  lv_obj_t *container = lv_obj_create(parent);
+  if (container_style != NULL) {
+    lv_obj_add_style(container, container_style, LV_PART_MAIN);
+  }
+  lv_obj_set_width(container, width);
   lv_obj_set_flex_flow(container, LV_FLEX_FLOW_ROW);
   lv_obj_set_style_pad_gap(container, 1, LV_PART_MAIN);
   lv_obj_set_flex_align(container, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);

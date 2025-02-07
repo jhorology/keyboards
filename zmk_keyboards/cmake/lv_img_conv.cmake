@@ -10,9 +10,7 @@ function(generate_lv_image_for_target
                    # CF_TRUE_COLOR, CF_TRUE_COLOR_ALPHA, CF_TRUE_COLOR_CHROMA, CF_RGB565A8
   )
 
-  if(IS_ABSOLUTE ${input_file})
-    get_filename_component(input_file ${input_file} ABSOLUTE)
-  else()
+  if(NOT IS_ABSOLUTE ${input_file})
     get_filename_component(input_file ${CMAKE_CURRENT_SOURCE_DIR}/${input_file} ABSOLUTE)
   endif()
 
