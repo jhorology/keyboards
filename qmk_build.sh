@@ -212,7 +212,7 @@ setup_via() {
       git reset --hard HEAD
       cp package.json package.json.old
       git pull
-      for patch in $(ls -v $PROJECT/patches/via_app_${VIA_APP_BRANCH}_*.patch); do
+      for patch in $(ls -v $PROJECT/patches/via_app_*.patch); do
         git apply -3 --verbose $patch
       done
       if [[ ! -z $(diff package.json package.json.old) ]]; then
@@ -224,7 +224,7 @@ setup_via() {
     cd $PROJECT
     git clone --depth 1 -b $VIA_APP_BRANCH https://github.com/the-via/app.git via_app
     cd via_app
-    for patch in $(ls -v $PROJECT/patches/via_app_${VIA_APP_BRANCH}_*.patch); do
+    for patch in $(ls -v $PROJECT/patches/via_app_*.patch); do
       git apply -3 --verbose $patch
     done
     npx yarn install

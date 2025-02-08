@@ -1,8 +1,8 @@
 diff --git a/src/utils/autocomplete-keycodes.ts b/src/utils/autocomplete-keycodes.ts
-index c2bbae1..9f180ba 100644
+index 21f1a07..6e698a8 100644
 --- a/src/utils/autocomplete-keycodes.ts
 +++ b/src/utils/autocomplete-keycodes.ts
-@@ -139,8 +139,8 @@ export const autocompleteKeycodes = {
+@@ -139,8 +139,8 @@ const autocompleteKeycodes = {
    KC_INT7: true,
    KC_INT8: true,
    KC_INT9: true,
@@ -44,7 +44,7 @@ index bea80db..9af97b4 100644
    KC_LANG4: 0x0093,
    KC_LANG5: 0x0094,
 diff --git a/src/utils/key-to-byte/v11.ts b/src/utils/key-to-byte/v11.ts
-index 10c4164..3abf308 100644
+index 23a68e9..ac61489 100644
 --- a/src/utils/key-to-byte/v11.ts
 +++ b/src/utils/key-to-byte/v11.ts
 @@ -168,8 +168,8 @@ export default {
@@ -59,7 +59,7 @@ index 10c4164..3abf308 100644
    KC_LANG4: 0x0093,
    KC_LANG5: 0x0094,
 diff --git a/src/utils/key-to-byte/v12.ts b/src/utils/key-to-byte/v12.ts
-index d487dd0..48c5e56 100644
+index 0f25128..91fd48e 100644
 --- a/src/utils/key-to-byte/v12.ts
 +++ b/src/utils/key-to-byte/v12.ts
 @@ -168,8 +168,8 @@ export default {
@@ -74,10 +74,10 @@ index d487dd0..48c5e56 100644
    KC_LANG4: 0x0093,
    KC_LANG5: 0x0094,
 diff --git a/src/utils/key.ts b/src/utils/key.ts
-index 2c4d28c..e307945 100644
+index 243c071..b4998bb 100644
 --- a/src/utils/key.ts
 +++ b/src/utils/key.ts
-@@ -1217,8 +1217,8 @@ export function getKeycodes(): IKeycodeMenu[] {
+@@ -783,8 +783,8 @@ export function getKeycodes(numMacros = 16): IKeycodeMenu[] {
          {name: 'Ro', code: 'KC_RO', title: 'JIS \\ and |'},
          {name: '¥', code: 'KC_JYEN', title: 'JPN Yen'},
          {name: '無変換', code: 'KC_MHEN', title: 'JIS Muhenkan'},
