@@ -347,7 +347,7 @@
   // experimental setting
 
   // default 60
-  refresh-rate = <70>;
+  // refresh-rate = <70>;
 
   // default 1000000
   // spi-max-frequency = <1000000>;
