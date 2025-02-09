@@ -57,12 +57,12 @@
 
     win_base_layer {
       display-name = "Win Base";
-      // --------------------------------------   ---------------------------------------
-      // |  TAB |  Q  |  W  |  E  |  R  |  T  |   |  Y  |  U   |  I  |  O  |  P  | BKSP |
-      // | CTRL |  A  |  S  |  D  |  F  |  G  |   |  H  |  J   |  K  |  L  |  ;  |  '   |
-      // | SHFT |  Z  |  X  |  C  |  V  |  B  |   |  N  |  M   |  ,  |  .  |  /  | SHIFT|
-      // -------------------| LALT| ENT | LWIN|   | RWIN| SPC  | fn  |------------------
-      //                    -------------------   --------------------
+      // --------------------------------------   --------------------------------------
+      // |  TAB |  Q  |  W  |  E  |  R  |  T  |   |  Y  |  U  |  I  |  O  |  P  | BKSP |
+      // | CTRL |  A  |  S  |  D  |  F  |  G  |   |  H  |  J  |  K  |  L  |  ;  |  '   |
+      // | SHFT |  Z  |  X  |  C  |  V  |  B  |   |  N  |  M  |  ,  |  .  |  /  | SHIFT|
+      // -------------------| LALT| ENT | LWIN|   | RWIN| SPC | fn  |-------------------
+      //                    -------------------   -------------------
       bindings =
         <
          &kp TAB    &kp Q  &kp W  &kp E      &kp R    &kp T     &kp Y  &kp U    &kp I      &kp O    &kp P     &kp BSPC
@@ -74,19 +74,19 @@
 
     hhkb_fn_layer {
       display-name = "HHKB Fn";
-      // --------------------------------------   ---------------------------------------
-      // | CAPS | F16 | F17 | F18 |     |     |   |PSCRN|  SLCK|  PB |  UP | INS | DEL  |
-      // | CTRL |     |     |     | [*] | [/] |   | HOME| P.UP | LEFT| DOWN|RIGHT|  '   |
-      // | SHFT |     |     |     | [+] | [-] |   | END | P.DN |     |     |     | ESC  |
-      // -------------------|     |     |     |   |     |      |     |-------------------
-      //                    -------------------   --------------------
+      // --------------------------------------   -------------------------------------
+      // | CAPS | F16 | F17 | F18 |     |     |   |     |PSCRN| SLCK|  PB | INS | DEL |
+      // |      |     |     |     | [*] | [/] |   | HOME| P.UP| LEFT|  UP |RIGHT|  '  |
+      // |      |     |     |     | [+] | [-] |   | END | P.DN|     | DOWN|     | ESC |
+      // -------------------|     |     |     |   |     |     |     |------------------
+      //                    -------------------   -------------------
       // PRSCRN(F13) / SLCK(F14) / PAUSE_BREAK(F15) / F16 / F17 / F18 for Amethyst short-cuts
       bindings =
         <
-         &kp CAPS  &kp F16  &kp F17  &kp F18  ______           ______            &kp PSCRN  &kp SLCK   &kp PAUSE_BREAK   &kp UP    &kp INS    &kp DEL
-         ______    ______   ______   ______   &kp KP_MULTIPLY  &kp KP_DIVIDE     &kp HOME   &kp PG_UP  &kp LEFT          &kp DOWN  &kp RIGHT  ______
-         ______    ______   ______   ______   &kp KP_PLUS      &kp KP_MINUS      &kp END    &kp PG_DN  ______            ______    ______     ______
-         /**/                        ______   ______           ______            ______     ______     ______
+         &kp CAPS  &kp F16  &kp F17  &kp F18  ______           ______            ______    &kp PSCRN  &kp SLCK  &kp PAUSE_BREAK  &kp INS    &kp DEL
+         ______    ______   ______   ______   &kp KP_MULTIPLY  &kp KP_DIVIDE     &kp HOME  &kp PG_UP  &kp LEFT  &kp UP           &kp RIGHT  ______
+         ______    ______   ______   ______   &kp KP_PLUS      &kp KP_MINUS      &kp END   &kp PG_DN  ______    &kp DOWN         ______     ______
+         /**/                        ______   ______           ______            ______    ______     ______
         >;
     };
 
