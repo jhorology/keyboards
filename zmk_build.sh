@@ -54,7 +54,7 @@ ZEPHYR_SDK_INSTALL_DIR=$PROJECT/.local
 # xtensa-nxp_imx_adsp_zephyr-elf
 # xtensa-nxp_imx8m_adsp_zephyr-elf
 # xtensa-sample_controller_zephyr-elf
-TARGET_TOOLCHAINS=(arm-zephyr-eabi x86_64-zephyr-elf)
+TARGET_TOOLCHAINS=(arm-zephyr-eabi ${HOST_ARCHITECTURE}-zephyr-elf)
 WITH_UPDATE=true
 WITH_PATCH=true
 WITH_EMACS=true
