@@ -1,5 +1,5 @@
 diff --git a/app/src/display/main.c b/app/src/display/main.c
-index e15e2de..1933fae 100644
+index da6686c..6138706 100644
 --- a/app/src/display/main.c
 +++ b/app/src/display/main.c
 @@ -8,6 +8,7 @@
@@ -10,7 +10,7 @@ index e15e2de..1933fae 100644
  
  #include <zephyr/logging/log.h>
  LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
-@@ -140,6 +141,7 @@ int zmk_display_init() {
+@@ -162,6 +163,7 @@ int zmk_display_init() {
  
  #if IS_ENABLED(CONFIG_ZMK_DISPLAY_BLANK_ON_IDLE)
  int display_event_handler(const zmk_event_t *eh) {
@@ -18,7 +18,7 @@ index e15e2de..1933fae 100644
      struct zmk_activity_state_changed *ev = as_zmk_activity_state_changed(eh);
      if (ev == NULL) {
          return -ENOTSUP;
-@@ -150,9 +152,17 @@ int display_event_handler(const zmk_event_t *eh) {
+@@ -172,9 +174,17 @@ int display_event_handler(const zmk_event_t *eh) {
          start_display_updates();
          break;
      case ZMK_ACTIVITY_IDLE:
