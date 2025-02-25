@@ -10,7 +10,7 @@ include(${ZEPHYR_CURRENT_MODULE_DIR}/cmake/lv_font_conv.cmake NO_POLICY_SCOPE)
 if(CONFIG_ZMK_FONT_MICRO5_10)
   generate_lv_font_for_target(
     app
-    ${ZEPHYR_BASE}/../fonts/soft-type-micro/fonts//ttf/Micro5-Regular.ttf
+    ${ZEPHYR_BASE}/../fonts/soft-type-micro/fonts/ttf/Micro5-Regular.ttf
     micro5_10                  # structure name
     1                          # bpp
     10                         # size
@@ -27,7 +27,7 @@ endif()
 if(CONFIG_ZMK_FONT_TINY5_9)
   generate_lv_font_for_target(
     app
-    ${ZEPHYR_BASE}/../fonts/font_Tiny5/fonts//ttf/Tiny5-SolidRegular.ttf
+    ${ZEPHYR_BASE}/../fonts/font_Tiny5/fonts/ttf/Tiny5-SolidRegular.ttf
     tiny5_9                    # structure name
     1                          # bpp
     9                          # size
@@ -39,7 +39,7 @@ endif()
 if(CONFIG_ZMK_FONT_TINY5_BOLD_9)
   generate_lv_font_for_target(
     app
-    ${ZEPHYR_BASE}/../fonts/font_Tiny5/fonts//ttf/Tiny5-SolidBold.ttf
+    ${ZEPHYR_BASE}/../fonts/font_Tiny5/fonts/ttf/Tiny5-SolidBold.ttf
     tiny5_bold_9               # structure name
     1                          # bpp
     9                          # size
