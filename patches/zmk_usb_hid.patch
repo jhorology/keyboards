@@ -1,5 +1,5 @@
 diff --git a/app/src/usb_hid.c b/app/src/usb_hid.c
-index 945ae98..4c3e144 100644
+index 9adc7db..4adb22c 100644
 --- a/app/src/usb_hid.c
 +++ b/app/src/usb_hid.c
 @@ -23,6 +23,9 @@
@@ -24,7 +24,7 @@ index 945ae98..4c3e144 100644
      switch (setup->wValue & HID_GET_REPORT_TYPE_MASK) {
      case HID_REPORT_TYPE_FEATURE:
          switch (setup->wValue & HID_GET_REPORT_ID_MASK) {
-@@ -119,6 +127,11 @@ static int get_report_cb(const struct device *dev, struct usb_setup_packet *setu
+@@ -121,6 +129,11 @@ static int get_report_cb(const struct device *dev, struct usb_setup_packet *setu
  
  static int set_report_cb(const struct device *dev, struct usb_setup_packet *setup, int32_t *len,
                           uint8_t **data) {
