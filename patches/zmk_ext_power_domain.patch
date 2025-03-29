@@ -1,8 +1,8 @@
 diff --git a/app/Kconfig b/app/Kconfig
-index c1d88a5..d220869 100644
+index 4a68cce..13455d7 100644
 --- a/app/Kconfig
 +++ b/app/Kconfig
-@@ -418,6 +418,16 @@ endif # ZMK_SLEEP
+@@ -414,6 +414,16 @@ endif # ZMK_SLEEP
  config ZMK_EXT_POWER
      bool "Enable support to control external power output"
  
