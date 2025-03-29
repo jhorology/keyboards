@@ -1,5 +1,5 @@
 diff --git a/quantum/process_keycode/process_magic.c b/quantum/process_keycode/process_magic.c
-index 3b35884d68..c4ce1022b6 100644
+index 3b35884d..c4ce1022 100644
 --- a/quantum/process_keycode/process_magic.c
 +++ b/quantum/process_keycode/process_magic.c
 @@ -17,6 +17,7 @@
@@ -137,7 +137,7 @@ index 3b35884d68..c4ce1022b6 100644
                      PLAY_SONG(cg_norm_song);
  #endif
 diff --git a/tmk_core/protocol/chibios/usb_main.c b/tmk_core/protocol/chibios/usb_main.c
-index 2a287e0d98..6d5a7d1557 100644
+index 5a535441..cfb55efa 100644
 --- a/tmk_core/protocol/chibios/usb_main.c
 +++ b/tmk_core/protocol/chibios/usb_main.c
 @@ -38,6 +38,8 @@
@@ -159,7 +159,7 @@ index 2a287e0d98..6d5a7d1557 100644
      descriptor.ud_string = NULL;
      descriptor.ud_size   = get_usb_descriptor(setup->wValue.word, setup->wIndex, setup->wLength, (const void **const) & descriptor.ud_string);
 diff --git a/tmk_core/protocol/lufa/lufa.c b/tmk_core/protocol/lufa/lufa.c
-index 81da035f0c..9501f0cfdf 100644
+index 81da035f..9501f0cf 100644
 --- a/tmk_core/protocol/lufa/lufa.c
 +++ b/tmk_core/protocol/lufa/lufa.c
 @@ -863,6 +863,10 @@ void protocol_post_task(void) {
@@ -174,7 +174,7 @@ index 81da035f0c..9501f0cfdf 100644
      return get_usb_descriptor(wValue, wIndex, USB_ControlRequest.wLength, DescriptorAddress);
  }
 diff --git a/tmk_core/protocol/vusb/vusb.c b/tmk_core/protocol/vusb/vusb.c
-index fdbfcc17dc..e51ee2e759 100644
+index fdbfcc17..e51ee2e7 100644
 --- a/tmk_core/protocol/vusb/vusb.c
 +++ b/tmk_core/protocol/vusb/vusb.c
 @@ -49,6 +49,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.

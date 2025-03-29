@@ -1,5 +1,5 @@
 diff --git a/quantum/process_keycode/process_tap_dance.c b/quantum/process_keycode/process_tap_dance.c
-index 11df62763d..b194579567 100644
+index 11df6276..b1945795 100644
 --- a/quantum/process_keycode/process_tap_dance.c
 +++ b/quantum/process_keycode/process_tap_dance.c
 @@ -132,6 +132,10 @@ bool preprocess_tap_dance(uint16_t keycode, keyrecord_t *record) {
