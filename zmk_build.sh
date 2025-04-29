@@ -575,6 +575,10 @@ _fedora_install_packages() {
        make gcc SDL2-devel file-libs \
        tio fd-find ripgrep fzf iwyu
   # gcc-multilib g++-multilib
+
+  # node_mdoule dependecies
+  sudo dnf install pango-devel giflib-devel
+
   sudo dnf autoremove
   sudo dnf clean all
 
@@ -652,9 +656,18 @@ _install_zephyr_sdk() {
 
   cd "${ZEPHYR_SDK_INSTALL_DIR}/zephyr-sdk-${ZEPHYR_SDK_VERSION}"
 
-  # wget2 as wget in fedora40
+  # support for setup script issues on fedora
   if [[ $os == "fedora" ]]; then
+
+    # wget2 as wget in fedora40
     sed -i -e "s/wget -q --show-progress/wget -q/g" setup.sh
+
+    # fc42 ERROR: Host tools installation failed
+    if grep 42 /etc/fedora-release > /dev/null; then
+      if [[ -f zephyr-sdk-x86_64-hosttools-standalone-0.9.sh ]]; then
+        sed -i -e "s/xargs -n100/xargs -n10/g"  zephyr-sdk-x86_64-hosttools-standalone-0.9.sh
+      fi
+    fi
   fi
 
   for toolchain in $TARGET_TOOLCHAINS; do
