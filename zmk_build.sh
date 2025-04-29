@@ -600,7 +600,6 @@ _activate_python_venv() {
   if [[ ! -d .venv ]]; then
     python3 -m venv .venv
     source .venv/bin/activate
-    pip3 install rustenv
   else
     source .venv/bin/activate
   fi
@@ -628,6 +627,7 @@ _install_python_packages() {
   pip3 install ninja
   pip3 install pip-review
   pip3 install doc2dash
+  pip3 install rustenv
   pip3 cache purge
 }
 
@@ -1000,15 +1000,37 @@ _flash() {
   local -A props=("${(Pkv@)target}")
   _${os}_flash_${props[firmware_type]} $target $firmware
 }
+
+_macos_uf2_volume() {
+  local target=$1
+  local -A props=("${(Pkv@)target}")
+  if [[ -d /Volumes/$props[dfu_volume] ]]; then
+    echo /Volumes/$props[dfu_volume]
+    return
+  fi
+
+  # For macos languages ​​other than en_US, the FAT16 volume name will may be "NO NAME".
+  # The volume name and Board-ID are the same because they are custom bootloader.
+  for dfu_volume in /Volumes/NO\ NAME*; do
+    if [[ -f "$dfu_volume/INFO_UF2.TXT" ]]; then
+      if grep "Board-ID: $props[dfu_volume]" "$dfu_volume/INFO_UF2.TXT" > /dev/null; then
+        echo $dfu_volume
+        return
+      fi
+    fi
+  done
+  echo ""
+}
+
 _macos_flash_uf2() {
   local target=$1
   local firmware=$2
   local -A props=("${(Pkv@)target}")
-  local dfu_volume=/Volumes/$props[dfu_volume]
 
-  echo -n "waiting for DFU volume [$dfu_volume] to be mounted..."
+  echo -n "waiting for DFU volume [$props[dfu_volume]] to be mounted..."
   while true; do
-    if [[ -d $dfu_volume ]]; then
+    local dfu_volume=$(_macos_uf2_volume $target)
+    if [[ ! -z $dfu_volume ]]; then
       echo ""
       echo "copying firmware [$firmware] to volume [$dfu_volume]..."
       sleep 1
