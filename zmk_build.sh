@@ -1024,7 +1024,7 @@ _macos_uf2_volume() {
 
   # For macos languages ​​other than en_US, the FAT16 volume name will may be "NO NAME".
   # The volume name and Board-ID are the same because they are custom bootloader.
-  for dfu_volume in /Volumes/NO\ NAME*; do
+  for dfu_volume in /Volumes/NO\ NAME*(N); do
     if [[ -f "$dfu_volume/INFO_UF2.TXT" ]]; then
       if grep "Board-ID: $props[dfu_volume]" "$dfu_volume/INFO_UF2.TXT" > /dev/null; then
         echo $dfu_volume
