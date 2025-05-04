@@ -1,5 +1,5 @@
 diff --git a/app/include/zmk/hid.h b/app/include/zmk/hid.h
-index 4c963be..72897c3 100644
+index 6f9e2ee..ad56fc4 100644
 --- a/app/include/zmk/hid.h
 +++ b/app/include/zmk/hid.h
 @@ -16,6 +16,10 @@
@@ -54,7 +54,7 @@ index ae0e5e7..dbf215c 100644
  
      LOG_ERR("Unsupported usage page %d", usage_page);
 diff --git a/app/src/hid.c b/app/src/hid.c
-index c050f06..40d13b1 100644
+index cf5a557..c825890 100644
 --- a/app/src/hid.c
 +++ b/app/src/hid.c
 @@ -13,7 +13,8 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);

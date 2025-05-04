@@ -12,7 +12,7 @@ index a2ef318..5765fff 100644
 +
  void zmk_endpoints_clear_current(void);
 diff --git a/app/include/zmk/hid.h b/app/include/zmk/hid.h
-index 4c963be..cca89c1 100644
+index 6f9e2ee..026fca6 100644
 --- a/app/include/zmk/hid.h
 +++ b/app/include/zmk/hid.h
 @@ -76,6 +76,7 @@
@@ -217,7 +217,7 @@ index ae0e5e7..d3df793 100644
  
  static void update_current_endpoint(void) {
 diff --git a/app/src/hid.c b/app/src/hid.c
-index c050f06..30d8f00 100644
+index cf5a557..e496514 100644
 --- a/app/src/hid.c
 +++ b/app/src/hid.c
 @@ -33,6 +33,24 @@ static struct zmk_hid_mouse_report mouse_report = {

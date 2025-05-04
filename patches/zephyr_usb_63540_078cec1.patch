@@ -1,17 +1,5 @@
-From 078cec1e1f3aaf608af3b3115b5e7ea576ea864e Mon Sep 17 00:00:00 2001
-From: Alexander Kaiser <akaiser@urbansky.com>
-Date: Wed, 4 Oct 2023 10:10:15 -0600
-Subject: [PATCH] usb: msc: Added check for negative overflow length
-
-Added a check for when current_offset plus size is less than BLOCK_SIZE.
-
-Signed-off-by: Alexander Kaiser <akaiser@urbansky.com>
----
- subsys/usb/device/class/msc.c | 4 ++++
- 1 file changed, 4 insertions(+)
-
 diff --git a/subsys/usb/device/class/msc.c b/subsys/usb/device/class/msc.c
-index 6eae1f6a3a..37871ffdc3 100644
+index 6eae1f6a..37871ffd 100644
 --- a/subsys/usb/device/class/msc.c
 +++ b/subsys/usb/device/class/msc.c
 @@ -818,6 +818,10 @@ static void thread_memory_write_done(void)
@@ -25,6 +13,3 @@ index 6eae1f6a3a..37871ffdc3 100644
  	if (overflowed_len > 0) {
  		memmove(page, &page[BLOCK_SIZE], overflowed_len);
  	}
--- 
-2.43.0
-

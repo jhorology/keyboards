@@ -1,5 +1,5 @@
 diff --git a/app/Kconfig b/app/Kconfig
-index 4a68cce..13455d7 100644
+index 6b4e350..24c3148 100644
 --- a/app/Kconfig
 +++ b/app/Kconfig
 @@ -414,6 +414,16 @@ endif # ZMK_SLEEP
