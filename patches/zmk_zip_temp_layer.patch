@@ -1,0 +1,44 @@
+diff --git a/app/src/pointing/input_processor_temp_layer.c b/app/src/pointing/input_processor_temp_layer.c
+index 8a13a3e..6533ef8 100644
+--- a/app/src/pointing/input_processor_temp_layer.c
++++ b/app/src/pointing/input_processor_temp_layer.c
+@@ -123,7 +123,7 @@ static void layer_disable_callback(struct k_work *work) {
+ 
+     struct layer_state_action action = {.layer = layer_index, .activate = false};
+ 
+-    int ret = k_msgq_put(&temp_layer_action_msgq, &action, K_MSEC(10));
++    k_msgq_put(&temp_layer_action_msgq, &action, K_MSEC(10));
+     k_work_submit(&layer_action_work);
+ }
+ 
+@@ -134,10 +134,8 @@ static int handle_layer_state_changed(const struct device *dev, const zmk_event_
+     if (ret < 0) {
+         return ret;
+     }
+-    if (data->state.toggle_layer == 0) {
+-        return ZMK_EV_EVENT_BUBBLE;
+-    }
+-    if (!zmk_keymap_layer_active(zmk_keymap_layer_index_to_id(data->state.toggle_layer))) {
++    if (data->state.toggle_layer != 0 &&
++        !zmk_keymap_layer_active(zmk_keymap_layer_index_to_id(data->state.toggle_layer))) {
+         LOG_DBG("Deactivating layer that was activated by this processor");
+         data->state.is_active = false;
+         k_work_cancel_delayable(&layer_disable_works[data->state.toggle_layer]);
+@@ -190,7 +188,7 @@ static int handle_keycode_state_changed(const struct device *dev, const zmk_even
+         return ret;
+     }
+ 
+-    LOG_DBG("Setting last_tapped_timestamp to: %d", ev->timestamp);
++    LOG_DBG("Setting last_tapped_timestamp to: %lld", ev->timestamp);
+     data->state.last_tapped_timestamp = ev->timestamp;
+ 
+     ret = k_mutex_unlock(&data->lock);
+@@ -254,7 +252,7 @@ static int temp_layer_handle_event(const struct device *dev, struct input_event
+         !should_quick_tap(cfg, data->state.last_tapped_timestamp, k_uptime_get())) {
+         struct layer_state_action action = {.layer = param1, .activate = true};
+ 
+-        int ret = k_msgq_put(&temp_layer_action_msgq, &action, K_MSEC(10));
++        k_msgq_put(&temp_layer_action_msgq, &action, K_MSEC(10));
+         k_work_submit(&layer_action_work);
+     }
+ 
