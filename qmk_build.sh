@@ -146,6 +146,7 @@ macos_install_packages() {
 }
 
 fedora_install_packages() {
+  sudo dnf -y copr enable erovia/dfu-programmer
   sudo dnf -y install \
        clang diffutils git gcc glibc-headers kernel-devel kernel-headers \
        make unzip wget zip python3 avr-binutils avr-gcc avr-gcc-c++ avr-libc \
