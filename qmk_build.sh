@@ -173,14 +173,14 @@ fedora_install_packages() {
 setup_qmk() {
   cd $PROJECT
   if [[ ! -d qmk_firmware ]]; then
-    git clone --depth=1 -b master --recurse-submodules --shallow-submodules --sparse https://github.com/qmk/qmk_firmware.git
-    for f in $(find $PROJECT/qmk_firmware -name .gitmodules); do
-      cd $(dirname $f)
-      for m in $(grep "path = " .gitmodules | awk '{print $3}');
-      do
-        git config -f .gitmodules submodule.lib/$m.shallow true
-      done
-    done
+    git clone --depth=1 -b master --recurse-submodules --sparse https://github.com/qmk/qmk_firmware.git
+    # for f in $(find $PROJECT/qmk_firmware -name .gitmodules); do
+    #   cd $(dirname $f)
+    #   for m in $(grep "path = " .gitmodules | awk '{print $3}');
+    #   do
+    #     git config -f .gitmodules submodule.lib/$m.shallow true
+    #   done
+    # done
     cd $PROJECT/qmk_firmware
     cat <<EOF >> .git/info/sparse-checkout
 /builddefs/
@@ -210,7 +210,7 @@ setup_via() {
     local local_rev=$(git rev-parse $VIA_APP_BRANCH)
     local remote_rev=$(git ls-remote --heads origin $VIA_APP_BRANCH | awk '{print $1}')
     if [[ $local_rev != $remote_rev ]]; then
-      git reset --hard HEAD
+      git reset --hard --recurse-submodules HEAD
       cp package.json package.json.old
       git pull
       for patch in $(ls -v $PROJECT/patches/via_app_*.patch); do
