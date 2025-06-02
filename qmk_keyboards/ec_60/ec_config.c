@@ -1,7 +1,5 @@
 #include "ec_config.h"
 
-#include <eeprom.h>
-
 #include "ec_60.h"
 #include "ec_auto_calibration.h"
 #include "ec_switch_matrix.h"
@@ -46,9 +44,9 @@ static inline ec_preset_t *get_key_preset(uint8_t row, uint8_t col) {
 }
 
 static inline void defer_eeprom_update_preset(uint8_t preset_index) {
-  defer_eeprom_update_block(
+  defer_nvm_via_update_block(
     EC_VIA_CUSTOM_CHANNEL_ID_START + preset_index, 0, &ec_eeprom_config.presets[preset_index],
-    (void *)(EC_VIA_EEPROM_PRESETS + sizeof(ec_preset_t) * preset_index), sizeof(ec_preset_t));
+    EC_VIA_EEPROM_PRESETS_OFFSET + sizeof(ec_preset_t) * preset_index, sizeof(ec_preset_t));
 }
 
 //  static routine
@@ -165,16 +163,16 @@ void ec_config_reset(void) {
   ec_eeprom_config.selected_preset_map_index = 0;
 
   // Write default value to EEPROM now
-  eeprom_update_block(&ec_eeprom_config, (void *)VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR,
-                      sizeof(ec_eeprom_config_t));
+  nvm_via_update_custom_config(&ec_eeprom_config, VIA_EEPROM_CUSTOM_CONFIG_USER_OFFSET,
+                               sizeof(ec_eeprom_config_t));
 #ifdef EC_DEBUG_ENABLE
   ec_eeprom_config_reseted = true;
 #endif /* EC_DEBUG  */
 }
 
 void ec_config_init(void) {
-  eeprom_read_block(&ec_eeprom_config, (void *)VIA_EEPROM_CUSTOM_CONFIG_USER_ADDR,
-                    sizeof(ec_eeprom_config_t));
+  nvm_via_read_custom_config(&ec_eeprom_config, VIA_EEPROM_CUSTOM_CONFIG_USER_OFFSET,
+                             sizeof(ec_eeprom_config_t));
   int16_t result = is_eeprom_valid();
 #ifdef EC_DEBUG_ENABLE
   ec_eeprom_config_error = result;
@@ -207,24 +205,25 @@ void ec_config_set_preset_map(uint8_t preset_map_index) {
   if (ec_eeprom_config.selected_preset_map_index != preset_map_index) {
     ec_eeprom_config.selected_preset_map_index = preset_map_index;
     MATRIX_LOOP(ec_config_update_key(row, col);)
-    eeprom_update_word((void *)EC_VIA_EEPROM_PRESET_MAP,
-                       ec_eeprom_config.selected_preset_map_index);
+    nvm_via_update_word(EC_VIA_EEPROM_PRESET_MAP_OFFSET,
+                        ec_eeprom_config.selected_preset_map_index);
   }
 }
 
 void ec_config_save_calibration_data(void) {
-  eeprom_update_block(&ec_eeprom_config.bottoming_reading[0][0],
-                      (void *)EC_VIA_EEPROM_BOTTOMING_READING, MATRIX_COLS * MATRIX_ROWS * 2);
-  eeprom_update_block(&ec_eeprom_config.noise_floor[0][0], (void *)EC_VIA_EEPROM_NOISE_FLOOR,
-                      MATRIX_COLS * MATRIX_ROWS * 2);
+  nvm_via_update_custom_config(&ec_eeprom_config.bottoming_reading[0][0],
+                               EC_VIA_EEPROM_BOTTOMING_READING_OFFSET,
+                               MATRIX_COLS * MATRIX_ROWS * 2);
+  nvm_via_update_custom_config(&ec_eeprom_config.noise_floor[0][0],
+                               EC_VIA_EEPROM_NOISE_FLOOR_OFFSET, MATRIX_COLS * MATRIX_ROWS * 2);
 }
 
 void ec_config_save_calibration_key(uint8_t row, uint8_t col) {
   uint16_t offset = (row * MATRIX_COLS + col) * 2;
-  eeprom_update_word((void *)(EC_VIA_EEPROM_BOTTOMING_READING + offset),
-                     ec_eeprom_config.bottoming_reading[row][col]);
-  eeprom_update_word((void *)(EC_VIA_EEPROM_NOISE_FLOOR + offset),
-                     ec_eeprom_config.noise_floor[row][col]);
+  nvm_via_update_word(EC_VIA_EEPROM_BOTTOMING_READING_OFFSET + offset,
+                      ec_eeprom_config.bottoming_reading[row][col]);
+  nvm_via_update_word(EC_VIA_EEPROM_NOISE_FLOOR_OFFSET + offset,
+                      ec_eeprom_config.noise_floor[row][col]);
 }
 
 void ec_config_send_calibration_data(void) {

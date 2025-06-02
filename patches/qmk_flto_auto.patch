@@ -1,5 +1,5 @@
 diff --git a/builddefs/common_rules.mk b/builddefs/common_rules.mk
-index e45063cf..1229d58b 100644
+index d6f91b10..0e5731b4 100644
 --- a/builddefs/common_rules.mk
 +++ b/builddefs/common_rules.mk
 @@ -58,7 +58,7 @@ endif

@@ -103,7 +103,7 @@ typedef struct {
 } via_custom_command_t;
 
 #define VIA_CUSTOM_COMMAND(data) \
-  { .command_id = data[0], .channel_id = data[1], .value_id = data[2], .data = &data[3] }
+  {.command_id = data[0], .channel_id = data[1], .value_id = data[2], .data = &data[3]}
 
 uint8_t via_read_dropdown_value(via_custom_command_t *command);
 void via_write_dropdown_value(via_custom_command_t *command, uint8_t value);
@@ -122,8 +122,11 @@ void via_write_keycode_value(via_custom_command_t *command, uint16_t keycode);
 
 bool via_custom_value_command_user(via_custom_command_t *command);
 
-void defer_eeprom_update_byte(uint8_t channel_id, uint8_t value_id, void *adrs, uint8_t value);
-void defer_eeprom_update_word(uint8_t channel_id, uint8_t value_id, void *adrs, uint16_t value);
-void defer_eeprom_update_dword(uint8_t channel_id, uint8_t value_id, void *adrs, uint32_t value);
-void defer_eeprom_update_block(uint8_t channel_id, uint8_t value_id, void *block_adrs,
-                               void *eeprom_adrs, uint32_t block_size);
+void defer_nvm_via_update_byte(uint8_t channel_id, uint8_t value_id, uint32_t offset,
+                               uint8_t value);
+void defer_nvm_via_update_word(uint8_t channel_id, uint8_t value_id, uint32_t offset,
+                               uint16_t value);
+void defer_nvm_via_update_dword(uint8_t channel_id, uint8_t value_id, uint32_t offset,
+                                uint32_t value);
+void defer_nvm_via_update_block(uint8_t channel_id, uint8_t value_id, void *block_adrs,
+                                uint32_t offset, uint32_t block_size);

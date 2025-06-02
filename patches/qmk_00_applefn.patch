@@ -1,8 +1,8 @@
 diff --git a/builddefs/common_features.mk b/builddefs/common_features.mk
-index c88ce360..5faa0502 100644
+index ca60873b..1c98ce90 100644
 --- a/builddefs/common_features.mk
 +++ b/builddefs/common_features.mk
-@@ -855,6 +855,13 @@ ifeq ($(strip $(JOYSTICK_ENABLE)), yes)
+@@ -861,6 +861,13 @@ ifeq ($(strip $(JOYSTICK_ENABLE)), yes)
      endif
  endif
  
@@ -17,32 +17,30 @@ index c88ce360..5faa0502 100644
  VALID_USBPD_DRIVER_TYPES = custom vendor
  USBPD_DRIVER ?= vendor
 diff --git a/drivers/bluetooth/bluetooth.c b/drivers/bluetooth/bluetooth.c
-index d5382401..96e854ad 100644
+index e61e24e1..3dde65eb 100644
 --- a/drivers/bluetooth/bluetooth.c
 +++ b/drivers/bluetooth/bluetooth.c
-@@ -60,3 +60,7 @@ void bluetooth_send_consumer(uint16_t usage) {
-     rn42_send_consumer(usage);
- #endif
- }
+@@ -30,3 +30,5 @@ __attribute__((weak)) void bluetooth_send_consumer(uint16_t usage) {}
+ __attribute__((weak)) void bluetooth_send_system(uint16_t usage) {}
+ 
+ __attribute__((weak)) void bluetooth_send_raw_hid(uint8_t *data, uint8_t length) {}
 +
-+void bluetooth_send_apple(bool pressed, uint8_t usageIndex);
-+// TODO not implemented yet
-+}
++__attribute__((weak)) void bluetooth_send_apple(bool pressed, uint8_t usageIndex) {}
 diff --git a/drivers/bluetooth/bluetooth.h b/drivers/bluetooth/bluetooth.h
-index 2e4d0df5..fa95a758 100644
+index bbd41a91..0380048d 100644
 --- a/drivers/bluetooth/bluetooth.h
 +++ b/drivers/bluetooth/bluetooth.h
-@@ -50,3 +50,5 @@ void bluetooth_send_mouse(report_mouse_t *report);
-  * \param usage The consumer usage to send.
+@@ -89,3 +89,5 @@ void bluetooth_send_system(uint16_t usage);
+  * \param length The length of the buffer. Always 32.
   */
- void bluetooth_send_consumer(uint16_t usage);
+ void bluetooth_send_raw_hid(uint8_t *data, uint8_t length);
 +
 +void bluetooth_send_apple(bool pressed, uint8_t usageIndex);
 diff --git a/tmk_core/protocol/host.c b/tmk_core/protocol/host.c
-index df805c82..271415f3 100644
+index 4874d7c1..d18f5388 100644
 --- a/tmk_core/protocol/host.c
 +++ b/tmk_core/protocol/host.c
-@@ -43,6 +43,7 @@ extern keymap_config_t keymap_config;
+@@ -69,6 +69,7 @@ extern keymap_config_t keymap_config;
  static host_driver_t *driver;
  static uint16_t       last_system_usage   = 0;
  static uint16_t       last_consumer_usage = 0;
@@ -50,7 +48,7 @@ index df805c82..271415f3 100644
  
  void host_set_driver(host_driver_t *d) {
      driver = d;
-@@ -162,6 +163,28 @@ void host_consumer_send(uint16_t usage) {
+@@ -211,6 +212,28 @@ void host_consumer_send(uint16_t usage) {
      (*driver->send_extra)(&report);
  }
  
@@ -79,7 +77,7 @@ index df805c82..271415f3 100644
  #ifdef JOYSTICK_ENABLE
  void host_joystick_send(joystick_t *joystick) {
      if (!driver) return;
-@@ -260,3 +283,7 @@ uint16_t host_last_system_usage(void) {
+@@ -318,3 +341,7 @@ uint16_t host_last_system_usage(void) {
  uint16_t host_last_consumer_usage(void) {
      return last_consumer_usage;
  }
@@ -88,15 +86,16 @@ index df805c82..271415f3 100644
 +    return (last_apple_usages & usage_mask) != 0;
 +}
 diff --git a/tmk_core/protocol/host.h b/tmk_core/protocol/host.h
-index d824fca0..d82272ec 100644
+index a0b1e73d..f7008d6a 100644
 --- a/tmk_core/protocol/host.h
 +++ b/tmk_core/protocol/host.h
-@@ -39,10 +39,12 @@ void    host_nkro_send(report_nkro_t *report);
+@@ -40,11 +40,13 @@ void    host_nkro_send(report_nkro_t *report);
  void    host_mouse_send(report_mouse_t *report);
  void    host_system_send(uint16_t usage);
  void    host_consumer_send(uint16_t usage);
 +void    host_apple_send(bool pressed, uint8_t usageIndex);
  void    host_programmable_button_send(uint32_t data);
+ void    host_raw_hid_send(uint8_t *data, uint8_t length);
  
  uint16_t host_last_system_usage(void);
  uint16_t host_last_consumer_usage(void);
@@ -105,7 +104,7 @@ index d824fca0..d82272ec 100644
  #ifdef __cplusplus
  }
 diff --git a/tmk_core/protocol/report.h b/tmk_core/protocol/report.h
-index d854f51d..e374e9b3 100644
+index 9053b0bb..24656d2d 100644
 --- a/tmk_core/protocol/report.h
 +++ b/tmk_core/protocol/report.h
 @@ -35,6 +35,7 @@ enum hid_report_ids {
@@ -117,10 +116,10 @@ index d854f51d..e374e9b3 100644
      REPORT_ID_NKRO,
      REPORT_ID_JOYSTICK,
 diff --git a/tmk_core/protocol/usb_descriptor.c b/tmk_core/protocol/usb_descriptor.c
-index c7fb660b..43daf6d3 100644
+index ceab9eef..f822db8e 100644
 --- a/tmk_core/protocol/usb_descriptor.c
 +++ b/tmk_core/protocol/usb_descriptor.c
-@@ -362,6 +362,52 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
+@@ -386,6 +386,52 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
          HID_RI_REPORT_SIZE(8, 16),
          HID_RI_INPUT(8, HID_IOF_DATA | HID_IOF_ARRAY | HID_IOF_ABSOLUTE),
      HID_RI_END_COLLECTION(0),
@@ -174,10 +173,10 @@ index c7fb660b..43daf6d3 100644
  
  #ifdef PROGRAMMABLE_BUTTON_ENABLE
 diff --git a/tmk_core/protocol/vusb/vusb.c b/tmk_core/protocol/vusb/vusb.c
-index fdbfcc17..5e9763c0 100644
+index 1f0f8266..3304f4a4 100644
 --- a/tmk_core/protocol/vusb/vusb.c
 +++ b/tmk_core/protocol/vusb/vusb.c
-@@ -580,6 +580,52 @@ const PROGMEM uchar shared_hid_report[] = {
+@@ -611,6 +611,52 @@ const PROGMEM uchar shared_hid_report[] = {
      0x75, 0x10,               //   Report Size (16)
      0x81, 0x00,               //   Input (Data, Array, Absolute)
      0xC0,                     // End Collection

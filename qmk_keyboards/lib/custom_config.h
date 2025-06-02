@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <nvm/nvm_via.h>
 #include <quantum.h>
 #include <via.h>
 
@@ -97,3 +98,33 @@ uint16_t dynamic_tap_dance_tapping_term(uint8_t index);
 
 void dynamic_non_mac_fn_reset(const uint16_t *keycodes, uint8_t len);
 uint16_t dynamic_non_mac_fn_keycode(non_mac_fn_key_t fn_key);
+
+static inline uint8_t nvm_via_read_byte(uint32_t offset) {
+  uint8_t value = 0;
+  nvm_via_read_custom_config((void *)&value, offset, 1);
+  return value;
+}
+
+static inline uint16_t nvm_via_read_word(uint32_t offset) {
+  uint16_t value = 0;
+  nvm_via_read_custom_config((void *)&value, offset, 2);
+  return value;
+}
+
+static inline uint16_t nvm_via_read_dword(uint32_t offset) {
+  uint32_t value = 0;
+  nvm_via_read_custom_config((void *)&value, offset, 4);
+  return value;
+}
+
+static inline void nvm_via_update_byte(uint32_t offset, uint8_t value) {
+  nvm_via_update_custom_config((void *)&value, offset, 1);
+}
+
+static inline void nvm_via_update_word(uint32_t offset, uint16_t value) {
+  nvm_via_update_custom_config((void *)&value, offset, 2);
+}
+
+static inline void nvm_via_update_dword(uint32_t offset, uint32_t value) {
+  nvm_via_update_custom_config((void *)&value, offset, 4);
+}

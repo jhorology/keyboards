@@ -89,14 +89,14 @@ void custom_config_reset() {
     RADIAL_CONTROLLER_KEY_ANGULAR_SPEED_DEFAULT - RADIAL_CONTROLLER_KEY_ANGULAR_SPEED_OFFSET;
   rc_config.fine_tune_ratio = RADIAL_CONTROLLER_FINE_TUNE_RATIO_DEFAULT;
   rc_config.fine_tune_mods = RADIAL_CONTROLLER_FINE_TUNE_MODS_DEFAULT;
-  eeprom_update_dword((uint32_t *)RADIAL_CONTROLLER_EEPROM_ADDR, rc_config.raw);
+  nvm_via_update_dword(VIA_RADIAL_CONTROLLER_EEPROM_OFFSET, rc_config.raw);
 #endif
 }
 
 void custom_config_init() {
   kb_config.raw = eeconfig_read_kb();
 #ifdef RADIAL_CONTROLLER_ENABLE
-  rc_config.raw = eeprom_read_dword((uint32_t *)RADIAL_CONTROLLER_EEPROM_ADDR);
+  rc_config.raw = nvm_via_read_dword(VIA_RADIAL_CONTROLLER_EEPROM_OFFSET);
 #endif
 #ifdef CUSTOM_CONFIG_RHID_MODE_PIN
   setPinOutput(CUSTOM_CONFIG_RHID_MODE_PIN);
@@ -297,9 +297,9 @@ void dynamic_tap_dance_reset() {
     } else {
       data = initial_data;
     }
-    eeprom_update_block((uint8_t *)&data,
-                        (uint8_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + sizeof(tap_dance_entry_t) * i),
-                        sizeof(tap_dance_entry_t));
+    nvm_via_update_custom_config(
+      (void *)&data, VIA_DYNAMIC_TAP_DANCE_EEPROM_OFFSET + sizeof(tap_dance_entry_t) * i,
+      sizeof(tap_dance_entry_t));
   }
 }
 
@@ -308,9 +308,9 @@ uint16_t dynamic_tap_dance_keycode(uint8_t index, tap_dance_event_t event) {
   if (index < TAP_DANCE_ENTRIES) {
     switch (event) {
       case TD_SINGLE_TAP ... TD_TAP_HOLD:
-        keycode = eeprom_read_word((uint16_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR +
-                                                sizeof(tap_dance_entry_t) * index +
-                                                (event - TD_SINGLE_TAP) * 2));
+        keycode =
+          nvm_via_read_word(VIA_DYNAMIC_TAP_DANCE_EEPROM_OFFSET +
+                            sizeof(tap_dance_entry_t) * index + (event - TD_SINGLE_TAP) * 2);
       default:
         break;
     }
@@ -324,7 +324,7 @@ uint16_t dynamic_tap_dance_keycode(uint8_t index, tap_dance_event_t event) {
 uint16_t dynamic_tap_dance_tapping_term(uint8_t index) {
   uint16_t tapping_term =
     (index < TAP_DANCE_ENTRIES
-       ? eeprom_read_word((uint16_t *)(DYNAMIC_TAP_DANCE_EEPROM_ADDR + 8 + 10 * index))
+       ? nvm_via_read_word(VIA_DYNAMIC_TAP_DANCE_EEPROM_OFFSET + 8 + 10 * index)
        : TAPPING_TERM) &
     0x03ff;  // highest 6bits are reserved for future use
 #ifdef CONSOLE_ENABLE
@@ -336,13 +336,12 @@ uint16_t dynamic_tap_dance_tapping_term(uint8_t index) {
 // none mac fn functions
 
 void dynamic_non_mac_fn_reset(const uint16_t *keycodes, uint8_t len) {
-  uint16_t *adrs = (uint16_t *)DYNAMIC_NON_MAC_FN_EEPROM_ADDR;
   for (uint8_t i = 0; i < NON_MAC_FN_KEY_ENTRIES; i++) {
-    eeprom_update_word(adrs++, i < len ? pgm_read_word(&keycodes[i]) : KC_NO);
+    nvm_via_update_word(VIA_DYNAMIC_NON_MAC_FN_EEPROM_OFFSET + i * 2,
+                        i < len ? pgm_read_word(&keycodes[i]) : KC_NO);
   }
 }
 
 uint16_t dynamic_non_mac_fn_keycode(non_mac_fn_key_t fn_key) {
-  uint16_t *adrs = (uint16_t *)DYNAMIC_NON_MAC_FN_EEPROM_ADDR;
-  return eeprom_read_word(adrs + fn_key);
+  return nvm_via_read_word(VIA_DYNAMIC_NON_MAC_FN_EEPROM_OFFSET + fn_key * 2);
 }
