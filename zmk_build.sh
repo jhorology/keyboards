@@ -70,7 +70,7 @@ WIN_HARDWARE_ID1="VID_1D50&PID_615E"
 # DOCSETS_DIR="$HOME/Library/Application Support/Dash/DockSets"
 ZMK_STUDIO_BRANCH=main
 PROTOC_INSTALL_DIR=$PROJECT/.local
-PROTOC_VERSION=28.2
+PROTOC_VERSION=31.1
 
 _error_exit() {
   print -Pr "%F{red}Error: $2" >&2
