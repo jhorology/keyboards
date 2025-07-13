@@ -342,7 +342,7 @@ macos_uf2_flash() {
 fedora_uf2_flash() {
   local firmware=$1
   local volume_name=$2
-  local dfu_drive=$(/mnt/c/Windows/System32/wbem/WMIC.exe logicaldisk get deviceid, volumename | grep $volume_name | awk '{print $1}')
+  local dfu_drive=$(/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -c \(Get-CimInstance -query \"select DeviceID from Win32_LogicalDisk where VolumeName=\'${volume_name}\'\"\).DeviceID 2>/dev/null | tr -d '\r')
   if [[ ! -z $dfu_drive ]]; then
     echo
     echo "copying firmware [${firmware}] to drive [${dfu_drive}]..."

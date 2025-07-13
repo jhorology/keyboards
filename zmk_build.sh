@@ -61,7 +61,7 @@ WITH_EMACS=true
 DOCSETS_DIR=$HOME/.docsets
 WIN_USBIPD="/mnt/c/Program Files/usbipd-win/usbipd.exe"
 WIN_SUDO="/mnt/c/Windows/System32/sudo.exe"
-WIN_WMIC="/mnt/c/Windows/System32/wbem/WMIC.exe"
+WIN_POWERSHELL="/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe"
 WIN_TERMINAL="Microsoft/WindowsApps/wt.exe"
 WIN_SIMPLE_COM="/mnt/c/Program Files/YaSuenag/SimpleCom/SimpleCom.exe"
 WIN_HARDWARE_ID0="VID_05AC&PID_024F"
@@ -1065,7 +1065,7 @@ _fedora_flash_uf2() {
 
   echo -n "waiting for DFU volume to be mounted..."
   while true; do
-    dfu_drive=$($WIN_WMIC logicaldisk get deviceid, volumename | grep $props[dfu_volume] | awk '{print $1}')
+    dfu_drive=$(_win_drive "$props[dfu_volume]")
     if [[ ! -z $dfu_drive ]]; then
       echo ""
       echo "copying firmware [$firmware] to drive [$dfu_drive]..."
@@ -1301,7 +1301,7 @@ _win_env() {
 
 _list_com_ports() {
   # TODOk if multiple ZMK keyboards are connected
-  $WIN_WMIC path Win32_SerialPort get deviceid, PNPDeviceID 2> /dev/null | grep -e $WIN_HARDWARE_ID0 -e $WIN_HARDWARE_ID1 | awk '{print $1}'
+  $WIN_POWERSHELL -c "Get-CimInstance -query 'select DeviceID, PNPDeviceID from Win32_SerialPort' | ft DeviceID, PNPDeviceID" 2> /dev/null | grep -e $WIN_HARDWARE_ID0 -e $WIN_HARDWARE_ID1 | awk '{print $1}'
 }
 
 _wait_com_port() {
@@ -1316,6 +1316,12 @@ _wait_com_port() {
 _open_windows_terminal() {
   local com_port=$1
   $(wslpath $(_win_env LOCALAPPDATA))/$WIN_TERMINAL --window new $(wslpath -w $WIN_SIMPLE_COM) $com_port
+}
+
+# get windows drive letter from volume name
+_win_drive() {
+  local volume_name=$1
+  $WIN_POWERSHELL -c \(Get-CimInstance -query \"select DeviceID from Win32_LogicalDisk where VolumeName=\'${volume_name}\'\"\).DeviceID 2>/dev/null | tr -d '\r'
 }
 
 main
