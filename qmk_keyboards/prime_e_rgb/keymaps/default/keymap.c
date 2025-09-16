@@ -66,8 +66,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   // +Shift key for RGB decrement functions
   [3] = LAYOUT(
     QK_BOOT,  KC_F16,  KC_F17,  KC_F18,  _______, _______,    _______, _______, KC_F13,  KC_F14,  KC_F15, TERM_LCK,KC_ESC,
-    _______, _______,  _______, _______, _______, _______,    _______, _______, RGB_TOG, RGB_VAI, RGB_HUI, _______,
-    _______, RHID_OFF, AUT_ON,  MAC_ON,  USJ_OFF, NK_ON,      CL_NORM, AG_NORM, BS_NORM, RGB_MOD, RGB_SPI, RGB_SAI, _______,
+    _______, _______,  _______, _______, _______, _______,    _______, _______, UG_TOGG, UG_VALU, UG_HUEU, _______,
+    _______, RHID_OFF, AUT_ON,  MAC_ON,  USJ_OFF, NK_ON,      CL_NORM, AG_NORM, BS_NORM, UG_NEXT, UG_SPDU, UG_SATU, _______,
     _______, AG_TOGG,                   _______, _______,     _______, _______,                            _______, _______
   ),
 
