@@ -13,7 +13,7 @@
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
-static int auto_switch_layer_listener(const zmk_event_t *eh) {
+static int auto_switch_layer_listener(const zmk_event_t* eh) {
   struct zmk_endpoint_instance endpoint = zmk_endpoints_selected();
   enum usb_host_os os = zmk_usb_host_os_detected();
   LOG_DBG("os: %d endpoint: %d", os, endpoint.transport);
@@ -21,7 +21,7 @@ static int auto_switch_layer_listener(const zmk_event_t *eh) {
     uint8_t layer = os == USB_HOST_OS_DARWIN ? CONFIG_ZMK_USB_AUTO_SWITCH_LAYER_IF_DARWIN
                                              : CONFIG_ZMK_USB_AUTO_SWITCH_LAYER_UNLESS_DARWIN;
     LOG_DBG("layer_to: %d", layer);
-    zmk_keymap_layer_to(layer);
+    zmk_keymap_layer_to(layer, true);
   }
   return ZMK_EV_EVENT_BUBBLE;
 }
