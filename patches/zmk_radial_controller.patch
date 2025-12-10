@@ -12,7 +12,7 @@ index a2ef318..5765fff 100644
 +
  void zmk_endpoints_clear_current(void);
 diff --git a/app/include/zmk/hid.h b/app/include/zmk/hid.h
-index 6f9e2ee..026fca6 100644
+index 962180e..561dfbd 100644
 --- a/app/include/zmk/hid.h
 +++ b/app/include/zmk/hid.h
 @@ -76,6 +76,7 @@
@@ -87,7 +87,7 @@ index 6f9e2ee..026fca6 100644
  };
  
  #if IS_ENABLED(CONFIG_ZMK_USB_BOOT)
-@@ -345,6 +403,23 @@ struct zmk_hid_mouse_resolution_feature_report {
+@@ -341,6 +399,23 @@ struct zmk_hid_mouse_resolution_feature_report {
  
  #endif // IS_ENABLED(CONFIG_ZMK_POINTING)
  
@@ -111,7 +111,7 @@ index 6f9e2ee..026fca6 100644
  zmk_mod_flags_t zmk_hid_get_explicit_mods(void);
  int zmk_hid_register_mod(zmk_mod_t modifier);
  int zmk_hid_unregister_mod(zmk_mod_t modifier);
-@@ -384,6 +459,14 @@ void zmk_hid_mouse_clear(void);
+@@ -380,6 +455,14 @@ void zmk_hid_mouse_clear(void);
  
  #endif // IS_ENABLED(CONFIG_ZMK_POINTING)
  
@@ -126,7 +126,7 @@ index 6f9e2ee..026fca6 100644
  struct zmk_hid_keyboard_report *zmk_hid_get_keyboard_report(void);
  struct zmk_hid_consumer_report *zmk_hid_get_consumer_report(void);
  
-@@ -394,3 +477,7 @@ zmk_hid_boot_report_t *zmk_hid_get_boot_report();
+@@ -390,3 +473,7 @@ zmk_hid_boot_report_t *zmk_hid_get_boot_report();
  #if IS_ENABLED(CONFIG_ZMK_POINTING)
  struct zmk_hid_mouse_report *zmk_hid_get_mouse_report();
  #endif // IS_ENABLED(CONFIG_ZMK_POINTING)
@@ -303,7 +303,7 @@ index cf5a557..e496514 100644
 +
 +#endif // IS_ENABLED(CONFIG_ZMK_RADIAL_CONTROLLER)
 diff --git a/app/src/hog.c b/app/src/hog.c
-index d56eacf..8b2551b 100644
+index c7d9b86..1959cab 100644
 --- a/app/src/hog.c
 +++ b/app/src/hog.c
 @@ -90,6 +90,15 @@ static struct hids_report mouse_feature = {
@@ -322,7 +322,7 @@ index d56eacf..8b2551b 100644
  static bool host_requests_notification = false;
  static uint8_t ctrl_point;
  // static uint8_t proto_mode;
-@@ -203,6 +212,19 @@ static ssize_t write_hids_mouse_feature_report(struct bt_conn *conn,
+@@ -222,6 +231,19 @@ static ssize_t write_hids_mouse_feature_report(struct bt_conn *conn,
  
  #endif // IS_ENABLED(CONFIG_ZMK_POINTING)
  
@@ -342,7 +342,7 @@ index d56eacf..8b2551b 100644
  // static ssize_t write_proto_mode(struct bt_conn *conn,
  //                                 const struct bt_gatt_attr *attr,
  //                                 const void *buf, uint16_t len, uint16_t offset,
-@@ -269,6 +291,15 @@ BT_GATT_SERVICE_DEFINE(
+@@ -288,6 +310,15 @@ BT_GATT_SERVICE_DEFINE(
  
  #endif // IS_ENABLED(CONFIG_ZMK_POINTING)
  
@@ -358,7 +358,7 @@ index d56eacf..8b2551b 100644
  #if IS_ENABLED(CONFIG_ZMK_HID_INDICATORS)
      BT_GATT_CHARACTERISTIC(BT_UUID_HIDS_REPORT,
                             BT_GATT_CHRC_READ | BT_GATT_CHRC_WRITE | BT_GATT_CHRC_WRITE_WITHOUT_RESP,
-@@ -443,6 +474,59 @@ int zmk_hog_send_mouse_report(struct zmk_hid_mouse_report_body *report) {
+@@ -462,6 +493,59 @@ int zmk_hog_send_mouse_report(struct zmk_hid_mouse_report_body *report) {
  };
  #endif // IS_ENABLED(CONFIG_ZMK_POINTING)
  

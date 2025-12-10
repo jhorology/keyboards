@@ -1,0 +1,5 @@
+board:
+  name: cyber60_rev_d
+  vendor: 4pplet
+  socs:
+    - name: nrf52840

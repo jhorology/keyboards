@@ -10,19 +10,9 @@ HOST_OS=$(uname)
 [[ $HOST_OS = Linux ]] && HOST_OS=linux
 HOST_ARCHITECTURE=$(uname -m)
 [[ $HOST_OS = macos ]] && [[ $HOST_ARCHITECTURE = arm64 ]] && HOST_ARCHITECTURE=aarch64
-ZEPHYR_VERSION=3.5.0
+ZEPHYR_VERSION=4.1.0
+# ZEPHYR_SDK_VERSION=0.16.9
 ZEPHYR_SDK_VERSION=0.16.9
-
-# failed to build on error with 17.0
-# ..../.local/zephyr-sdk-0.17.0/arm-zephyr-eabi/picolibc/include/sys/_stdint.h:14:13: error: expected ';' before 'typedef'
-# 14 | _BEGIN_STD_C
-#         |             ^
-#         |             ;
-#         ......
-#         18 | typedef __int8_t int8_t ;
-#         | ~~~~~~~
-#         c
-# ZEPHYR_SDK_VERSION=0.17.0
 
 # it is recommended to extract the Zephyr SDK bundle at one of the following default locations:
 #
@@ -626,9 +616,11 @@ _activate_direnv() {
 
 _install_python_packages() {
   pip3 install west
-  pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v$ZEPHYR_VERSION/scripts/requirements.txt
-  pip3 install -r https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v$ZEPHYR_VERSION/doc/requirements.txt
+  pip3 install -r https://raw.githubusercontent.com/zmkfirmware/zephyr/refs/heads/v4.1.0%2Bzmk-fixes/scripts/requirements.txt
+  pip3 install -r https://raw.githubusercontent.com/zmkfirmware/zephyr/refs/heads/v4.1.0%2Bzmk-fixes/doc/requirements.txt
   pip3 install ninja
+  pip3 install protobuf
+  pip3 install grpcio-tools
   pip3 install pip-review
   pip3 install doc2dash
   pip3 install rustenv
@@ -859,9 +851,9 @@ _update_zmk() {
     fi
     west update -n
     if $WITH_PATCH; then
-      cd zephyr
-      git apply -3 --verbose ../patches/zephyr_*.patch
-      cd ..
+      # cd zephyr
+      # git apply -3 --verbose ../patches/zephyr_*.patch
+      # cd ..
       cd zmk
       # zmk draft
       local draft_patches=(../patches/draft_zmk_*.patch(N))
@@ -880,7 +872,7 @@ _build() {
   local target=$1
   local -A props=("${(Pkv@)target}")
   local opts=(--board $props[board] --build-dir build/$target)
-  local defs=("-DZMK_CONFIG='$PROJECT/zmk_keyboards'")
+  local defs=("-DZMK_CONFIG='$PROJECT/zmk_keyboards/config'")
 
   cd $PROJECT
 
@@ -923,6 +915,8 @@ _build() {
     defs+=("-DSHIELD='$props[shields]'")
   fi
 
+  defs+=(-DZMK_EXTRA_MODULES="$PROJECT/zmk_keyboards")
+
   if (( $#with_compile_db )); then
     defs+=(-DCMAKE_EXPORT_COMPILE_COMMANDS=ON)
     _dot_clangd
@@ -933,7 +927,7 @@ _build() {
   fi
 
   if $props[ble]; then
-    defs+=(-DEXTRA_CONF_FILE="$PROJECT/zmk_keyboards/ble_default.conf")
+    defs+=(-DEXTRA_CONF_FILE="$PROJECT/zmk_keyboards/config/ble_default.conf")
   fi
 
   print -Pr  "%F{green}---------------- start west build -- command-line----------------------"
