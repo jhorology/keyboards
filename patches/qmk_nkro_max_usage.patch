@@ -1,5 +1,5 @@
 diff --git a/tmk_core/protocol/report.h b/tmk_core/protocol/report.h
-index 9053b0bb..2e67ad89 100644
+index 9053b0bb3f..2e67ad89f6 100644
 --- a/tmk_core/protocol/report.h
 +++ b/tmk_core/protocol/report.h
 @@ -134,7 +134,8 @@ enum desktop_usages {

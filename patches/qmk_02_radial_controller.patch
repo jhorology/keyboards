@@ -1,5 +1,5 @@
 diff --git a/tmk_core/protocol.mk b/tmk_core/protocol.mk
-index 81520c1b..2aff01b0 100644
+index 81520c1bc8..2aff01b0e1 100644
 --- a/tmk_core/protocol.mk
 +++ b/tmk_core/protocol.mk
 @@ -84,6 +84,10 @@ ifeq ($(strip $(DIGITIZER_ENABLE)), yes)
@@ -14,7 +14,7 @@ index 81520c1b..2aff01b0 100644
      OPT_DEFS += -DSHARED_EP_ENABLE
  endif
 diff --git a/tmk_core/protocol/chibios/usb_endpoints.c b/tmk_core/protocol/chibios/usb_endpoints.c
-index 856df624..e5567e81 100644
+index 00536845b2..f0dd10a79e 100644
 --- a/tmk_core/protocol/chibios/usb_endpoints.c
 +++ b/tmk_core/protocol/chibios/usb_endpoints.c
 @@ -64,6 +64,10 @@ usb_endpoint_in_t usb_endpoints_in[USB_ENDPOINT_IN_COUNT] = {
@@ -40,7 +40,7 @@ index 856df624..e5567e81 100644
  
  usb_endpoint_out_t usb_endpoints_out[USB_ENDPOINT_OUT_COUNT] = {
 diff --git a/tmk_core/protocol/chibios/usb_endpoints.h b/tmk_core/protocol/chibios/usb_endpoints.h
-index a4e5ed88..9565b21d 100644
+index 9fad83726e..e39cabc2b4 100644
 --- a/tmk_core/protocol/chibios/usb_endpoints.h
 +++ b/tmk_core/protocol/chibios/usb_endpoints.h
 @@ -27,6 +27,10 @@
@@ -66,10 +66,10 @@ index a4e5ed88..9565b21d 100644
      USB_ENDPOINT_IN_CONSOLE,
  #endif
 diff --git a/tmk_core/protocol/chibios/usb_main.c b/tmk_core/protocol/chibios/usb_main.c
-index f9d7f5c4..5d38a75f 100644
+index b8497684d6..2fc320422e 100644
 --- a/tmk_core/protocol/chibios/usb_main.c
 +++ b/tmk_core/protocol/chibios/usb_main.c
-@@ -501,6 +501,12 @@ void send_digitizer(report_digitizer_t *report) {
+@@ -489,6 +489,12 @@ void send_digitizer(report_digitizer_t *report) {
  #endif
  }
  
@@ -83,10 +83,10 @@ index f9d7f5c4..5d38a75f 100644
   *                   Console functions
   * ---------------------------------------------------------
 diff --git a/tmk_core/protocol/host.c b/tmk_core/protocol/host.c
-index 4874d7c1..234785c5 100644
+index f4fa9064e0..9eb06b4d24 100644
 --- a/tmk_core/protocol/host.c
 +++ b/tmk_core/protocol/host.c
-@@ -311,6 +311,13 @@ void host_raw_hid_send(uint8_t *data, uint8_t length) {
+@@ -351,6 +351,13 @@ void host_raw_hid_send(uint8_t *data, uint8_t length) {
  }
  #endif
  
@@ -101,10 +101,10 @@ index 4874d7c1..234785c5 100644
      return last_system_usage;
  }
 diff --git a/tmk_core/protocol/host.h b/tmk_core/protocol/host.h
-index a0b1e73d..d4dde501 100644
+index 7ff6d0df08..25891e45ff 100644
 --- a/tmk_core/protocol/host.h
 +++ b/tmk_core/protocol/host.h
-@@ -41,6 +41,7 @@ void    host_mouse_send(report_mouse_t *report);
+@@ -44,6 +44,7 @@ void    host_mouse_send(report_mouse_t *report);
  void    host_system_send(uint16_t usage);
  void    host_consumer_send(uint16_t usage);
  void    host_programmable_button_send(uint32_t data);
@@ -113,7 +113,7 @@ index a0b1e73d..d4dde501 100644
  
  uint16_t host_last_system_usage(void);
 diff --git a/tmk_core/protocol/host_driver.h b/tmk_core/protocol/host_driver.h
-index c2835aaa..a6de19ca 100644
+index c2835aaa99..a6de19ca80 100644
 --- a/tmk_core/protocol/host_driver.h
 +++ b/tmk_core/protocol/host_driver.h
 @@ -37,3 +37,4 @@ typedef struct {
@@ -122,10 +122,10 @@ index c2835aaa..a6de19ca 100644
  void send_programmable_button(report_programmable_button_t *report);
 +void send_radial_controller(report_radial_controller_t *report);
 diff --git a/tmk_core/protocol/lufa/lufa.c b/tmk_core/protocol/lufa/lufa.c
-index d5946813..c824f99a 100644
+index 3e442ba033..0241d9e9ea 100644
 --- a/tmk_core/protocol/lufa/lufa.c
 +++ b/tmk_core/protocol/lufa/lufa.c
-@@ -388,6 +388,11 @@ void EVENT_USB_Device_ConfigurationChanged(void) {
+@@ -375,6 +375,11 @@ void EVENT_USB_Device_ConfigurationChanged(void) {
      ConfigSuccess &= Endpoint_ConfigureEndpoint((DIGITIZER_IN_EPNUM | ENDPOINT_DIR_IN), EP_TYPE_INTERRUPT, DIGITIZER_EPSIZE, 1);
  #endif
  
@@ -137,7 +137,7 @@ index d5946813..c824f99a 100644
      usb_device_state_set_configuration(USB_DeviceState == DEVICE_STATE_Configured, USB_Device_ConfigurationNumber);
  }
  
-@@ -584,6 +589,12 @@ void send_digitizer(report_digitizer_t *report) {
+@@ -571,6 +576,12 @@ void send_digitizer(report_digitizer_t *report) {
  #endif
  }
  
@@ -151,7 +151,7 @@ index d5946813..c824f99a 100644
   * sendchar
   ******************************************************************************/
 diff --git a/tmk_core/protocol/report.h b/tmk_core/protocol/report.h
-index 9053b0bb..636fb8bb 100644
+index 9053b0bb3f..636fb8bb0c 100644
 --- a/tmk_core/protocol/report.h
 +++ b/tmk_core/protocol/report.h
 @@ -246,6 +246,11 @@ typedef int16_t joystick_axis_t;
@@ -167,7 +167,7 @@ index 9053b0bb..636fb8bb 100644
  #ifdef JOYSTICK_SHARED_EP
      uint8_t report_id;
 diff --git a/tmk_core/protocol/usb_descriptor.c b/tmk_core/protocol/usb_descriptor.c
-index ceab9eef..8b9e4a24 100644
+index ceab9eef9a..8b9e4a24cc 100644
 --- a/tmk_core/protocol/usb_descriptor.c
 +++ b/tmk_core/protocol/usb_descriptor.c
 @@ -449,6 +449,38 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
@@ -283,7 +283,7 @@ index ceab9eef..8b9e4a24 100644
              }
  
 diff --git a/tmk_core/protocol/usb_descriptor.h b/tmk_core/protocol/usb_descriptor.h
-index 1de8c5ec..36acaa93 100644
+index 366a380fdd..c98c44c73e 100644
 --- a/tmk_core/protocol/usb_descriptor.h
 +++ b/tmk_core/protocol/usb_descriptor.h
 @@ -144,6 +144,13 @@ typedef struct {

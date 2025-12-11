@@ -1,8 +1,8 @@
 diff --git a/quantum/via.c b/quantum/via.c
-index 3682b4ab..2f12e105 100644
+index 0a4eb29401..65a3fbf180 100644
 --- a/quantum/via.c
 +++ b/quantum/via.c
-@@ -279,7 +279,7 @@ __attribute__((weak)) bool via_command_kb(uint8_t *data, uint8_t length) {
+@@ -287,7 +287,7 @@ __attribute__((weak)) bool via_command_kb(uint8_t *data, uint8_t length) {
      return false;
  }
  
@@ -12,7 +12,7 @@ index 3682b4ab..2f12e105 100644
      uint8_t *command_data = &(data[1]);
  
 diff --git a/quantum/via.h b/quantum/via.h
-index 9f0eef10..cc6f451a 100644
+index 9f0eef10f7..cc6f451a66 100644
 --- a/quantum/via.h
 +++ b/quantum/via.h
 @@ -152,6 +152,7 @@ void via_set_device_indication(uint8_t value);

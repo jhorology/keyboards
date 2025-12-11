@@ -1,8 +1,8 @@
 diff --git a/builddefs/common_features.mk b/builddefs/common_features.mk
-index ca60873b..1c98ce90 100644
+index cd4e67a4bd..4c56dde09b 100644
 --- a/builddefs/common_features.mk
 +++ b/builddefs/common_features.mk
-@@ -861,6 +861,13 @@ ifeq ($(strip $(JOYSTICK_ENABLE)), yes)
+@@ -868,6 +868,13 @@ ifeq ($(strip $(JOYSTICK_ENABLE)), yes)
      endif
  endif
  
@@ -17,7 +17,7 @@ index ca60873b..1c98ce90 100644
  VALID_USBPD_DRIVER_TYPES = custom vendor
  USBPD_DRIVER ?= vendor
 diff --git a/drivers/bluetooth/bluetooth.c b/drivers/bluetooth/bluetooth.c
-index e61e24e1..3dde65eb 100644
+index e61e24e1f2..3dde65eba3 100644
 --- a/drivers/bluetooth/bluetooth.c
 +++ b/drivers/bluetooth/bluetooth.c
 @@ -30,3 +30,5 @@ __attribute__((weak)) void bluetooth_send_consumer(uint16_t usage) {}
@@ -27,7 +27,7 @@ index e61e24e1..3dde65eb 100644
 +
 +__attribute__((weak)) void bluetooth_send_apple(bool pressed, uint8_t usageIndex) {}
 diff --git a/drivers/bluetooth/bluetooth.h b/drivers/bluetooth/bluetooth.h
-index bbd41a91..0380048d 100644
+index bbd41a9194..0380048d7d 100644
 --- a/drivers/bluetooth/bluetooth.h
 +++ b/drivers/bluetooth/bluetooth.h
 @@ -89,3 +89,5 @@ void bluetooth_send_system(uint16_t usage);
@@ -37,10 +37,10 @@ index bbd41a91..0380048d 100644
 +
 +void bluetooth_send_apple(bool pressed, uint8_t usageIndex);
 diff --git a/tmk_core/protocol/host.c b/tmk_core/protocol/host.c
-index 4874d7c1..d18f5388 100644
+index f4fa9064e0..1fe11f2bab 100644
 --- a/tmk_core/protocol/host.c
 +++ b/tmk_core/protocol/host.c
-@@ -69,6 +69,7 @@ extern keymap_config_t keymap_config;
+@@ -70,6 +70,7 @@ extern keymap_config_t keymap_config;
  static host_driver_t *driver;
  static uint16_t       last_system_usage   = 0;
  static uint16_t       last_consumer_usage = 0;
@@ -48,7 +48,7 @@ index 4874d7c1..d18f5388 100644
  
  void host_set_driver(host_driver_t *d) {
      driver = d;
-@@ -211,6 +212,28 @@ void host_consumer_send(uint16_t usage) {
+@@ -251,6 +252,28 @@ void host_consumer_send(uint16_t usage) {
      (*driver->send_extra)(&report);
  }
  
@@ -77,7 +77,7 @@ index 4874d7c1..d18f5388 100644
  #ifdef JOYSTICK_ENABLE
  void host_joystick_send(joystick_t *joystick) {
      if (!driver) return;
-@@ -318,3 +341,7 @@ uint16_t host_last_system_usage(void) {
+@@ -358,3 +381,7 @@ uint16_t host_last_system_usage(void) {
  uint16_t host_last_consumer_usage(void) {
      return last_consumer_usage;
  }
@@ -86,10 +86,10 @@ index 4874d7c1..d18f5388 100644
 +    return (last_apple_usages & usage_mask) != 0;
 +}
 diff --git a/tmk_core/protocol/host.h b/tmk_core/protocol/host.h
-index a0b1e73d..f7008d6a 100644
+index 7ff6d0df08..33a67097ea 100644
 --- a/tmk_core/protocol/host.h
 +++ b/tmk_core/protocol/host.h
-@@ -40,11 +40,13 @@ void    host_nkro_send(report_nkro_t *report);
+@@ -43,11 +43,13 @@ void    host_nkro_send(report_nkro_t *report);
  void    host_mouse_send(report_mouse_t *report);
  void    host_system_send(uint16_t usage);
  void    host_consumer_send(uint16_t usage);
@@ -104,7 +104,7 @@ index a0b1e73d..f7008d6a 100644
  #ifdef __cplusplus
  }
 diff --git a/tmk_core/protocol/report.h b/tmk_core/protocol/report.h
-index 9053b0bb..24656d2d 100644
+index 9053b0bb3f..24656d2d6d 100644
 --- a/tmk_core/protocol/report.h
 +++ b/tmk_core/protocol/report.h
 @@ -35,6 +35,7 @@ enum hid_report_ids {
@@ -116,7 +116,7 @@ index 9053b0bb..24656d2d 100644
      REPORT_ID_NKRO,
      REPORT_ID_JOYSTICK,
 diff --git a/tmk_core/protocol/usb_descriptor.c b/tmk_core/protocol/usb_descriptor.c
-index ceab9eef..f822db8e 100644
+index ceab9eef9a..f822db8e01 100644
 --- a/tmk_core/protocol/usb_descriptor.c
 +++ b/tmk_core/protocol/usb_descriptor.c
 @@ -386,6 +386,52 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
@@ -173,7 +173,7 @@ index ceab9eef..f822db8e 100644
  
  #ifdef PROGRAMMABLE_BUTTON_ENABLE
 diff --git a/tmk_core/protocol/vusb/vusb.c b/tmk_core/protocol/vusb/vusb.c
-index 1f0f8266..3304f4a4 100644
+index 1f0f82664b..3304f4a42b 100644
 --- a/tmk_core/protocol/vusb/vusb.c
 +++ b/tmk_core/protocol/vusb/vusb.c
 @@ -611,6 +611,52 @@ const PROGMEM uchar shared_hid_report[] = {

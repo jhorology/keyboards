@@ -1,5 +1,5 @@
 diff --git a/drivers/encoder/encoder_quadrature.c b/drivers/encoder/encoder_quadrature.c
-index 086f5003..f9c1ff5a 100644
+index 3dfdb27e8d..7caa413a56 100644
 --- a/drivers/encoder/encoder_quadrature.c
 +++ b/drivers/encoder/encoder_quadrature.c
 @@ -69,7 +69,11 @@ static uint8_t encoder_resolutions[NUM_ENCODERS] = ENCODER_RESOLUTIONS;

@@ -1,8 +1,8 @@
 diff --git a/quantum/action.c b/quantum/action.c
-index dd82c9ec..dbd00a6a 100644
+index aacafbe2ff..5483ea3059 100644
 --- a/quantum/action.c
 +++ b/quantum/action.c
-@@ -299,7 +299,7 @@ void process_record(keyrecord_t *record) {
+@@ -304,7 +304,7 @@ void process_record(keyrecord_t *record) {
  }
  
  void process_record_handler(keyrecord_t *record) {
@@ -12,7 +12,7 @@ index dd82c9ec..dbd00a6a 100644
      if (record->keycode) {
          action = action_for_keycode(record->keycode);
 diff --git a/quantum/action.h b/quantum/action.h
-index 7616486c..0acc6152 100644
+index a459c438c1..eb3ccd4ed6 100644
 --- a/quantum/action.h
 +++ b/quantum/action.h
 @@ -50,7 +50,7 @@ typedef struct keyrecord_t {
@@ -25,10 +25,10 @@ index 7616486c..0acc6152 100644
  #endif
  } keyrecord_t;
 diff --git a/quantum/quantum.c b/quantum/quantum.c
-index 0bb6ee0a..65a9c0f7 100644
+index 128f8fb66d..771c68dedc 100644
 --- a/quantum/quantum.c
 +++ b/quantum/quantum.c
-@@ -244,7 +244,7 @@ void soft_reset_keyboard(void) {
+@@ -247,7 +247,7 @@ void soft_reset_keyboard(void) {
  
  /* Convert record into usable keycode via the contained event. */
  uint16_t get_record_keycode(keyrecord_t *record, bool update_layer_cache) {

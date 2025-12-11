@@ -1,8 +1,8 @@
 diff --git a/quantum/process_keycode/process_tap_dance.c b/quantum/process_keycode/process_tap_dance.c
-index 11df6276..b1945795 100644
+index 399f71a827..1360c22eb7 100644
 --- a/quantum/process_keycode/process_tap_dance.c
 +++ b/quantum/process_keycode/process_tap_dance.c
-@@ -132,6 +132,10 @@ bool preprocess_tap_dance(uint16_t keycode, keyrecord_t *record) {
+@@ -172,6 +172,10 @@ bool preprocess_tap_dance(uint16_t keycode, keyrecord_t *record) {
  
      if (!record->event.pressed) return false;
  
@@ -12,4 +12,4 @@ index 11df6276..b1945795 100644
 +
      if (!active_td || keycode == active_td) return false;
  
-     action                             = tap_dance_get(QK_TAP_DANCE_GET_INDEX(active_td));
+     action = tap_dance_get(QK_TAP_DANCE_GET_INDEX(active_td));
