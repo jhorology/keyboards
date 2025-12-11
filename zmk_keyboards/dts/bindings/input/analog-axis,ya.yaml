@@ -38,7 +38,7 @@ properties:
   velocity-integral:
     type: boolean
     description: |
-        If set, Outputs non-zero values ​​consecutively as relative vaalue even if they are the same value.
+        If set, Outputs non-zero values ​​consecutively as relative value even if they are the same value.
         it can be used as the amount of movement per poll-period-ms.
 
 child-binding:

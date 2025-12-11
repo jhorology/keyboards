@@ -19,8 +19,32 @@ index 770c6ee..9b24bf3 100644
  config ZMK_PM
      bool
  
+diff --git a/app/boards/nicekeyboards/nice_nano/nice_nano_1_0_0.overlay b/app/boards/nicekeyboards/nice_nano/nice_nano_1_0_0.overlay
+index 6c1590b..cf77c56 100644
+--- a/app/boards/nicekeyboards/nice_nano/nice_nano_1_0_0.overlay
++++ b/app/boards/nicekeyboards/nice_nano/nice_nano_1_0_0.overlay
+@@ -13,6 +13,7 @@
+     EXT_POWER {
+         compatible = "zmk,ext-power-generic";
+         control-gpios = <&gpio0 13 GPIO_ACTIVE_LOW>;
++        #power-domain-cells = <0>;
+     };
+ 
+     vbatt: vbatt {
+diff --git a/app/boards/nicekeyboards/nice_nano/nice_nano_2_0_0.overlay b/app/boards/nicekeyboards/nice_nano/nice_nano_2_0_0.overlay
+index 34c635f..789fc7c 100644
+--- a/app/boards/nicekeyboards/nice_nano/nice_nano_2_0_0.overlay
++++ b/app/boards/nicekeyboards/nice_nano/nice_nano_2_0_0.overlay
+@@ -14,6 +14,7 @@
+         compatible = "zmk,ext-power-generic";
+         control-gpios = <&gpio0 13 GPIO_ACTIVE_HIGH>;
+         init-delay-ms = <50>;
++        #power-domain-cells = <0>;
+     };
+ 
+     vbatt: vbatt {
 diff --git a/app/dts/bindings/zmk,ext-power-generic.yaml b/app/dts/bindings/zmk,ext-power-generic.yaml
-index cb2a16b..5158e76 100644
+index cb2a16b..09d8448 100644
 --- a/app/dts/bindings/zmk,ext-power-generic.yaml
 +++ b/app/dts/bindings/zmk,ext-power-generic.yaml
 @@ -6,6 +6,8 @@ description: |
@@ -32,8 +56,15 @@ index cb2a16b..5158e76 100644
  compatible: "zmk,ext-power-generic"
  
  properties:
+@@ -20,3 +22,6 @@ properties:
+     type: int
+     description: Number of milliseconds to delay after initializing driver
+     required: false
++
++  "#power-domain-cells":
++    const: 0
 diff --git a/app/src/ext_power_generic.c b/app/src/ext_power_generic.c
-index 3975e03..9017f1b 100644
+index 3975e03..59f3b4b 100644
 --- a/app/src/ext_power_generic.c
 +++ b/app/src/ext_power_generic.c
 @@ -34,6 +34,26 @@ struct ext_power_generic_data {
@@ -50,7 +81,7 @@ index 3975e03..9017f1b 100644
 +    struct pd_visitor_context *visitor_context = context;
 +
 +    /* Only run action if the device is on the specified domain */
-+    if (!dev->pm || (dev->pm->domain != visitor_context->domain)) {
++    if (!dev->pm || (dev->pm_base->domain != visitor_context->domain)) {
 +        return 0;
 +    }
 +

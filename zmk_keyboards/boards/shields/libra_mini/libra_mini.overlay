@@ -49,6 +49,7 @@
 / {
   chosen {
     zmk,kscan = &kscan0;
+    zmk,physical-layout = &layout0;
   };
 
   default_transform: keymap_transform_0 {
@@ -182,7 +183,7 @@
     compatible = "analog-axis,ya";
     poll-period-ms = <15>;
     velocity-integral;
-    power-domain = <&{/EXT_POWER}>;
+    power-domains = <&{/EXT_POWER}>;
     axis-x {
       io-channels = <&adc 3>;
       easing;
