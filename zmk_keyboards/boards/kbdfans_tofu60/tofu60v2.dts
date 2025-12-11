@@ -5,12 +5,13 @@
 
 /dts-v1/;
 
-#include <rpi_pico/rp2040.dtsi>
-#include <dt-bindings/zmk/matrix_transform.h>
+#include <raspberrypi/rpi_pico/rp2040.dtsi>
+#include <arm/raspberrypi/rp2040-boot-mode-retention.dtsi>
 #include <physical_layouts.dtsi>
 
-#if __has_include(<dt-bindings/my/kbdfans_tofu60_v2-transform-option.h>)
-#include <dt-bindings/my/kbdfans_tofu60_v2-transform-option.h>
+#include <dt-bindings/zmk/matrix_transform.h>
+#if __has_include(<dt-bindings/my/kbdfans_tofu60v2-transform-option.h>)
+#include <dt-bindings/my/kbdfans_tofu60v2-transform-option.h>
 #else
 
 /*
@@ -42,15 +43,10 @@
   chosen {
     zephyr,sram = &sram0;
     zephyr,flash = &flash0;
+    zephyr,flash-controller = &ssi;
     zephyr,code-partition = &code_partition;
     zmk,kscan = &kscan0;
-    // zmk,matrix_transform = &default_transform;
-  };
-
-  xtal_clk: xtal-clk {
-    compatible = "fixed-clock";
-    clock-frequency = <12000000>;
-    #clock-cells = <0>;
+    zmk,physical-layout = &default_layout;
   };
 
   default_transform: keymap_transform_0 {
@@ -301,6 +297,15 @@
       read-only;
     };
   };
+};
+
+&timer {
+  status = "okay";
+};
+
+&rtc {
+  clocks = <&clocks RPI_PICO_CLKID_CLK_RTC>;
+  status = "okay";
 };
 
 zephyr_udc0: &usbd {

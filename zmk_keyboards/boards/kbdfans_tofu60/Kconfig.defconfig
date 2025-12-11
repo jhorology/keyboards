@@ -1,12 +1,12 @@
 # Copyright (c) 2023 The ZMK Contributors
 # SPDX-License-Identifier: MIT
 
-if BOARD_KBDFANS_TOFU60_V2
+if BOARD_TOFU60V2
 
 config ZMK_KEYBOARD_NAME
-    default "kbdfans tofu60"
+    default "kbdfans tofu60 2.0"
 
 config RP2_FLASH_W25Q080
     default y
 
-endif # BOARD_KBDFANS_TOFU60_V2
+endif # BOARD_TOFU60V2

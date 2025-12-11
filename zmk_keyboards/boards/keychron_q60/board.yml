@@ -1,0 +1,5 @@
+board:
+  name: q60
+  vendor: keychron
+  socs:
+    - name: stm32l432xx

@@ -10,7 +10,7 @@ HOST_OS=$(uname)
 [[ $HOST_OS = Linux ]] && HOST_OS=linux
 HOST_ARCHITECTURE=$(uname -m)
 [[ $HOST_OS = macos ]] && [[ $HOST_ARCHITECTURE = arm64 ]] && HOST_ARCHITECTURE=aarch64
-ZEPHYR_VERSION=4.1.0
+vZEPHYR_VERSION=4.1.0
 # ZEPHYR_SDK_VERSION=0.16.9
 ZEPHYR_SDK_VERSION=0.16.9
 
@@ -59,8 +59,6 @@ WIN_HARDWARE_ID1="VID_1D50&PID_615E"
 
 # DOCSETS_DIR="$HOME/Library/Application Support/Dash/DockSets"
 ZMK_STUDIO_BRANCH=main
-PROTOC_INSTALL_DIR=$PROJECT/.local
-PROTOC_VERSION=31.1
 
 _error_exit() {
   print -Pr "%F{red}Error: $2" >&2
@@ -172,7 +170,7 @@ declare -A q60=(
   [name]=keychron_q60
   [ble]=false
   [studio]=true
-  [board]=keychron_q60
+  [board]=q60
   [firmware_type]=bin
   [dfu_vid]=0483
   [dfu_pid]=df11
@@ -192,10 +190,10 @@ declare -A qk60=(
 )
 
 declare -A tf60=(
-  [name]=tofu60_v2_hhkb
+  [name]=tofu60v2_hhkb
   [ble]=false
   [studio]=true
-  [board]=kbdfans_tofu60_v2
+  [board]=tofu60v2
   [firmware_type]=uf2
   [dfu_volume]=RPI-RP2
 )
@@ -462,8 +460,6 @@ setup() {
   _${os}_install_packages
   _install_zephyr_sdk
 
-  _install_protoc
-
   _activate_python_venv
   _install_python_packages
 
@@ -673,43 +669,6 @@ _install_zephyr_sdk() {
   for sdk in zephyr-sdk-*; do
     if [[ $sdk != zephyr-sdk-${ZEPHYR_SDK_VERSION} ]]; then
       rm -rf $sdk
-    fi
-  done
-}
-
-_install_protoc() {
-  local protoc_dir="${PROTOC_INSTALL_DIR}/protoc-${PROTOC_VERSION}"
-  if [[ ! -d $protoc_dir ]]; then
-    mkdir -p $protoc_dir
-    cd $protoc_dir
-
-    # https://github.com/protocolbuffers/protobuf/releases/download/v28.2/protoc-28.2-osx-x86_64.zip
-    # https://github.com/protocolbuffers/protobuf/releases/download/v28.2/protoc-28.2-osx-aarch_64.zip
-    # https://github.com/protocolbuffers/protobuf/releases/download/v28.2/protoc-28.2-osx-universal_binary.zip
-    # https://github.com/protocolbuffers/protobuf/releases/download/v28.2/protoc-28.2-linux-x86_64.zip
-    # https://github.com/protocolbuffers/protobuf/releases/download/v28.2/protoc-28.2-linux-aarch_64.zip
-
-    local file=protoc-${PROTOC_VERSION}-
-    if [[ $HOST_OS == macos ]]; then
-      file=${file}osx-
-    elif [[ $HOST_OS == linux ]]; then
-      file=${file}linux-
-    fi
-    if [[ $HOST_ARCHITECTURE == aarch64 ]]; then
-      file=${file}aarch_64.zip
-    elif [[ $HOST_ARCHITECTURE == x86_64 ]]; then
-      file=${file}x86_64.zip
-    fi
-    wget "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/$file"
-    unzip $file
-    rm -f $file
-  fi
-
-  # remove old protoc
-  cd "$PROTOC_INSTALL_DIR"
-  for protoc in protoc-*; do
-    if [[ $protoc != protoc-${PROTOC_VERSION} ]]; then
-      rm -rf $protoc
     fi
   done
 }

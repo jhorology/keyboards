@@ -1,9 +1,9 @@
 # Copyright (c) 2023 The ZMK Contributors
 # SPDX-License-Identifier: MIT
 
-if BOARD_KEYCHRON_Q60
+if BOARD_Q60
 
 config ZMK_KEYBOARD_NAME
     default "Keychron Q60"
 
-endif # BOARD_KEYCHRON_Q60
+endif # BOARD_Q60
