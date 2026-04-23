@@ -1,8 +1,8 @@
 diff --git a/app/Kconfig b/app/Kconfig
-index 770c6ee..9b24bf3 100644
+index 8c0675e..48d49cf 100644
 --- a/app/Kconfig
 +++ b/app/Kconfig
-@@ -410,6 +410,16 @@ endif # ZMK_SLEEP
+@@ -422,6 +422,16 @@ endif # ZMK_SLEEP
  config ZMK_EXT_POWER
      bool "Enable support to control external power output"
  
@@ -19,10 +19,10 @@ index 770c6ee..9b24bf3 100644
  config ZMK_PM
      bool
  
-diff --git a/app/boards/nicekeyboards/nice_nano/nice_nano_1_0_0.overlay b/app/boards/nicekeyboards/nice_nano/nice_nano_1_0_0.overlay
+diff --git a/app/boards/nicekeyboards/nice_nano/nice_nano_nrf52840_zmk_1_0_0.overlay b/app/boards/nicekeyboards/nice_nano/nice_nano_nrf52840_zmk_1_0_0.overlay
 index 6c1590b..cf77c56 100644
---- a/app/boards/nicekeyboards/nice_nano/nice_nano_1_0_0.overlay
-+++ b/app/boards/nicekeyboards/nice_nano/nice_nano_1_0_0.overlay
+--- a/app/boards/nicekeyboards/nice_nano/nice_nano_nrf52840_zmk_1_0_0.overlay
++++ b/app/boards/nicekeyboards/nice_nano/nice_nano_nrf52840_zmk_1_0_0.overlay
 @@ -13,6 +13,7 @@
      EXT_POWER {
          compatible = "zmk,ext-power-generic";
@@ -31,10 +31,10 @@ index 6c1590b..cf77c56 100644
      };
  
      vbatt: vbatt {
-diff --git a/app/boards/nicekeyboards/nice_nano/nice_nano_2_0_0.overlay b/app/boards/nicekeyboards/nice_nano/nice_nano_2_0_0.overlay
+diff --git a/app/boards/nicekeyboards/nice_nano/nice_nano_nrf52840_zmk_2_0_0.overlay b/app/boards/nicekeyboards/nice_nano/nice_nano_nrf52840_zmk_2_0_0.overlay
 index 34c635f..789fc7c 100644
---- a/app/boards/nicekeyboards/nice_nano/nice_nano_2_0_0.overlay
-+++ b/app/boards/nicekeyboards/nice_nano/nice_nano_2_0_0.overlay
+--- a/app/boards/nicekeyboards/nice_nano/nice_nano_nrf52840_zmk_2_0_0.overlay
++++ b/app/boards/nicekeyboards/nice_nano/nice_nano_nrf52840_zmk_2_0_0.overlay
 @@ -14,6 +14,7 @@
          compatible = "zmk,ext-power-generic";
          control-gpios = <&gpio0 13 GPIO_ACTIVE_HIGH>;

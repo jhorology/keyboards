@@ -14,7 +14,7 @@
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 static int auto_switch_layer_listener(const zmk_event_t* eh) {
-  struct zmk_endpoint_instance endpoint = zmk_endpoints_selected();
+  struct zmk_endpoint_instance endpoint = zmk_endpoint_get_selected();
   enum usb_host_os os = zmk_usb_host_os_detected();
   LOG_DBG("os: %d endpoint: %d", os, endpoint.transport);
   if (endpoint.transport == ZMK_TRANSPORT_USB && os != USB_HOST_OS_UNDEFINED) {

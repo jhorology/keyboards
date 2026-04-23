@@ -81,7 +81,7 @@ struct output_status {
 
 static struct output_status status = {.output_num = 0xff, .is_connected = false};
 
-static void play_output_status(struct output_status *status) {
+static void play_output_status(struct output_status* status) {
   if (!state.on || status->output_num > 9) return;
 
   uint8_t code = morse_num_codes[status->output_num];
@@ -100,9 +100,9 @@ static int zmk_beep_update(void) { return 0; }
 
 #if IS_ENABLED(CONFIG_SETTINGS)
 
-static int beep_settings_load_cb(const char *name, size_t len, settings_read_cb read_cb,
-                                 void *cb_arg) {
-  const char *next;
+static int beep_settings_load_cb(const char* name, size_t len, settings_read_cb read_cb,
+                                 void* cb_arg) {
+  const char* next;
   if (settings_name_steq(name, "state", &next) && !next) {
     if (len != sizeof(state)) {
       return -EINVAL;
@@ -119,7 +119,7 @@ static int beep_settings_load_cb(const char *name, size_t len, settings_read_cb 
 
 SETTINGS_STATIC_HANDLER_DEFINE(beep, "beep", NULL, beep_settings_load_cb, NULL, NULL);
 
-static void beep_save_work_handler(struct k_work *work) {
+static void beep_save_work_handler(struct k_work* work) {
   settings_save_one("beep/state", &state, sizeof(state));
 }
 
@@ -173,10 +173,10 @@ bool zmk_beep_is_on(void) { return state.on; }
 
 // <--- API
 
-static int output_status_listener(const zmk_event_t *eh) {
+static int output_status_listener(const zmk_event_t* eh) {
   uint8_t output_num = 0;
   bool is_connected;
-  switch (zmk_endpoints_selected().transport) {
+  switch (zmk_endpoint_get_selected().transport) {
     case ZMK_TRANSPORT_USB:
       output_num = 6;
       is_connected = zmk_usb_get_conn_state() == ZMK_USB_CONN_HID;
@@ -184,6 +184,8 @@ static int output_status_listener(const zmk_event_t *eh) {
     case ZMK_TRANSPORT_BLE:
       output_num = zmk_ble_active_profile_index() + 1;
       is_connected = zmk_ble_active_profile_is_connected();
+      break;
+    case ZMK_TRANSPORT_NONE:
       break;
   }
   if (output_num > 0 && (output_num != status.output_num || is_connected != status.is_connected)) {

@@ -11,8 +11,8 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #define ZMK_EVENT_PRESENTER(e, state_type, update_code, get_code)                               \
   static void display_##e##_update_cb(state_type state) { __DEBRACKET update_code }             \
-  static state_type display_##e##_state_get(const zmk_event_t *eh) {                            \
-    const struct zmk_##e##_changed *ev = as_zmk_##e##_changed(eh);                              \
+  static state_type display_##e##_state_get(const zmk_event_t* eh) {                            \
+    const struct zmk_##e##_changed* ev = as_zmk_##e##_changed(eh);                              \
     __DEBRACKET get_code                                                                        \
   }                                                                                             \
   ZMK_DISPLAY_WIDGET_LISTENER(e, state_type, display_##e##_update_cb, display_##e##_state_get); \
@@ -21,11 +21,11 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define _LV_ZMK_EVENT_DECLARE(e) lv_event_code_t LV_ZMK_EVENT_CODE(e);
 LV_ZMK_EVENT_FOR_EACH(_LV_ZMK_EVENT_DECLARE, ())
 
-static lv_obj_t *status_screen;
+static lv_obj_t* status_screen;
 static uint8_t broadcast_depth;
 static struct lv_zmk_status zmk_status;
 
-static void send_event(lv_obj_t *obj, lv_event_code_t event_code, lv_zmk_event_interests mask,
+static void send_event(lv_obj_t* obj, lv_event_code_t event_code, lv_zmk_event_interests mask,
                        uint8_t depth);
 
 #define SEND_EVENT(e) send_event(status_screen, LV_ZMK_EVENT_CODE(e), LV_ZMK_EVENT_INTEREST(e), 0)
@@ -63,7 +63,7 @@ ZMK_EVENT_PRESENTER(endpoint, struct zmk_endpoint_instance,
                     (zmk_status.usb_selected = state.transport == ZMK_TRANSPORT_USB;
                      zmk_status.ble_selected = state.transport == ZMK_TRANSPORT_BLE;
                      SEND_EVENT(endpoint);),
-                    (return (ev != NULL) ? ev->endpoint : zmk_endpoints_selected();))
+                    (return (ev != NULL) ? ev->endpoint : zmk_endpoint_get_selected();))
 
 #endif
 
@@ -95,7 +95,7 @@ ZMK_EVENT_PRESENTER(ble_active_profile, struct ble_active_profile,
 struct layer_state {
   uint8_t index;
   uint16_t layers_state;
-  const char *name;
+  const char* name;
 };
 ZMK_EVENT_PRESENTER(layer_state, struct layer_state,
                     (zmk_status.layer_index = state.index + 1;
@@ -154,9 +154,9 @@ ZMK_EVENT_PRESENTER(
 #endif
 
 /* TODO use pre-registration list instead of broadcast  */
-static void send_event(lv_obj_t *obj, lv_event_code_t event_code, lv_zmk_event_interests mask,
+static void send_event(lv_obj_t* obj, lv_event_code_t event_code, lv_zmk_event_interests mask,
                        uint8_t depth) {
-  lv_zmk_event_interests *interests = (lv_zmk_event_interests *)lv_obj_get_user_data(obj);
+  lv_zmk_event_interests* interests = (lv_zmk_event_interests*)lv_obj_get_user_data(obj);
   LOG_DBG("event: %d, mask: 0x%04x, depth: %d", event_code, mask, depth);
   if (interests != NULL) {
     LOG_DBG("interests: 0x%04x", *interests);
@@ -175,10 +175,9 @@ static void send_event(lv_obj_t *obj, lv_event_code_t event_code, lv_zmk_event_i
 }
 
 #define EVENT_CODE_REGISTER(e) LV_ZMK_EVENT_CODE(e) = lv_event_register_id();
-void zmk_status_presenter_init(void) { LV_ZMK_EVENT_FOR_EACH(EVENT_CODE_REGISTER, ()) }
-
+void zmk_status_presenter_init(void){LV_ZMK_EVENT_FOR_EACH(EVENT_CODE_REGISTER, ())}
 #define ZMK_EVENT_INIT_FUNC(e) e##_init();
-void zmk_status_presenter_dispatch(lv_obj_t *container, uint8_t depth) {
+void zmk_status_presenter_dispatch(lv_obj_t* container, uint8_t depth) {
   status_screen = container;
   broadcast_depth = depth;
   /* TODO pre-registration  */

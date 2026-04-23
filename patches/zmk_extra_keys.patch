@@ -38,10 +38,10 @@ index 962180e..e8db17d 100644
      uint8_t keys[DIV_ROUND_UP(ZMK_HID_KEYBOARD_NKRO_MAX_USAGE + 1, 8)];
  #elif IS_ENABLED(CONFIG_ZMK_HID_REPORT_TYPE_HKRO)
 diff --git a/app/src/endpoints.c b/app/src/endpoints.c
-index ae0e5e7..dbf215c 100644
+index 17cdc5d..558af40 100644
 --- a/app/src/endpoints.c
 +++ b/app/src/endpoints.c
-@@ -195,6 +195,11 @@ int zmk_endpoints_send_report(uint16_t usage_page) {
+@@ -255,6 +255,11 @@ int zmk_endpoint_send_report(uint16_t usage_page) {
  
      case HID_USAGE_CONSUMER:
          return send_consumer_report();
@@ -54,7 +54,7 @@ index ae0e5e7..dbf215c 100644
  
      LOG_ERR("Unsupported usage page %d", usage_page);
 diff --git a/app/src/hid.c b/app/src/hid.c
-index cf5a557..c825890 100644
+index d8700c3..527c7d0 100644
 --- a/app/src/hid.c
 +++ b/app/src/hid.c
 @@ -13,7 +13,8 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);

@@ -1,16 +1,18 @@
 diff --git a/app/include/zmk/endpoints.h b/app/include/zmk/endpoints.h
-index a2ef318..5765fff 100644
+index c10e387..17416f7 100644
 --- a/app/include/zmk/endpoints.h
 +++ b/app/include/zmk/endpoints.h
-@@ -74,4 +74,8 @@ int zmk_endpoints_send_report(uint16_t usage_page);
- int zmk_endpoints_send_mouse_report();
+@@ -106,6 +106,10 @@ int zmk_endpoint_send_report(uint16_t usage_page);
+ int zmk_endpoint_send_mouse_report();
  #endif // IS_ENABLED(CONFIG_ZMK_POINTING)
  
 +#if IS_ENABLED(CONFIG_ZMK_RADIAL_CONTROLLER)
 +int zmk_endpoints_send_radial_controller_report();
 +#endif // IS_ENABLED(CONFIG_ZMK_RADIAL_CONTROLLER)
 +
- void zmk_endpoints_clear_current(void);
+ /**
+  * Clears all HID reports for the selected endpoint.
+  */
 diff --git a/app/include/zmk/hid.h b/app/include/zmk/hid.h
 index 962180e..561dfbd 100644
 --- a/app/include/zmk/hid.h
@@ -159,10 +161,10 @@ index 785f6af..75e1d34 100644
 +#endif // IS_ENABLED(CONFIG_ZMK_RADIAL_CONTROLLER)
  void zmk_usb_hid_set_protocol(uint8_t protocol);
 diff --git a/app/src/endpoints.c b/app/src/endpoints.c
-index ae0e5e7..d3df793 100644
+index 17cdc5d..651bc2d 100644
 --- a/app/src/endpoints.c
 +++ b/app/src/endpoints.c
-@@ -237,6 +237,37 @@ int zmk_endpoints_send_mouse_report() {
+@@ -300,6 +300,37 @@ int zmk_endpoint_send_mouse_report() {
  }
  #endif // IS_ENABLED(CONFIG_ZMK_POINTING)
  
@@ -199,8 +201,8 @@ index ae0e5e7..d3df793 100644
 +
  #if IS_ENABLED(CONFIG_SETTINGS)
  
- static int endpoints_handle_set(const char *name, size_t len, settings_read_cb read_cb,
-@@ -335,9 +366,15 @@ void zmk_endpoints_clear_current(void) {
+ // Type for the deprecated SETTING_PREFERRED_TRANSPORT_V1 setting. To maintain backwards
+@@ -474,9 +505,15 @@ void zmk_endpoint_clear_reports(void) {
  #if IS_ENABLED(CONFIG_ZMK_POINTING)
      zmk_hid_mouse_clear();
  #endif // IS_ENABLED(CONFIG_ZMK_POINTING)
@@ -208,8 +210,8 @@ index ae0e5e7..d3df793 100644
 +    zmk_hid_radial_controller_clear();
 +#endif // IS_ENABLED(CONFIG_ZMK_RADIAL_CONTROLER)
  
-     zmk_endpoints_send_report(HID_USAGE_KEY);
-     zmk_endpoints_send_report(HID_USAGE_CONSUMER);
+     zmk_endpoint_send_report(HID_USAGE_KEY);
+     zmk_endpoint_send_report(HID_USAGE_CONSUMER);
 +#if IS_ENABLED(CONFIG_ZMK_RADIAL_CONTROLLER)
 +    zmk_endpoints_send_radial_controller_report();
 +#endif // IS_ENABLED(CONFIG_ZMK_RADIAL_CONTROLER)
@@ -217,7 +219,7 @@ index ae0e5e7..d3df793 100644
  
  static void update_current_endpoint(void) {
 diff --git a/app/src/hid.c b/app/src/hid.c
-index cf5a557..e496514 100644
+index d8700c3..046f1d5 100644
 --- a/app/src/hid.c
 +++ b/app/src/hid.c
 @@ -33,6 +33,24 @@ static struct zmk_hid_mouse_report mouse_report = {
