@@ -45,6 +45,7 @@
     zephyr,flash = &flash0;
     zephyr,flash-controller = &ssi;
     zephyr,code-partition = &code_partition;
+    // zephyr,settings_partition = &storage_partition;
     zmk,kscan = &kscan0;
     zmk,physical-layout = &default_layout;
   };
@@ -271,8 +272,8 @@
 
 &flash0 {
   /*
-   * Winbond W25Q16 16Mbit 2Mbytes
-   * jeced-id EF,40,15
+   * Winbond W25Q16 16Mbit 2MB
+   * jedec-id EF,40,15
    */
   reg = <0x10000000 DT_SIZE_M(2)>;
 
@@ -287,15 +288,20 @@
       read-only;
     };
 
-    /*
-     * Usable flash. Starts at 0x100, after the bootloader. The partition
-     * size is 2MB minus the 0x100 bytes taken by the bootloader.
-     * JEDEC ID = [ef 40 15];
-     */
     code_partition: partition@100 {
-      reg = <0x100 (DT_SIZE_M(2) - 0x100)>;
+      reg = <0x00000100 (DT_SIZE_K(1920) - 0x100)>;
       read-only;
     };
+
+    /*
+     TODO need to invastigate actual flash size
+     Enabling this causes a hang, JEDEC ID seems to be fake.
+    */
+    /*
+    storage_partition: partition@1e0000 {
+      reg = <0x001e0000 DT_SIZE_K(128)>;
+    };
+    */
   };
 };
 

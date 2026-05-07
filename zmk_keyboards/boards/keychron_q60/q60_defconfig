@@ -6,14 +6,21 @@ CONFIG_ARM_MPU=y
 CONFIG_CLOCK_CONTROL=y
 CONFIG_PINCTRL=y
 
+# settings
 CONFIG_SETTINGS=y
+CONFIG_SETTINGS_NVS=y
+CONFIG_MPU_ALLOW_FLASH_WRITE=y
+CONFIG_NVS=y
+CONFIG_FLASH=y
+CONFIG_FLASH_PAGE_LAYOUT=y0
+CONFIG_FLASH_MAP=y
 
 # Use polling instead of intrrupt for kscan
 # some gpio input pins are exists on same EXTI line.
 CONFIG_ZMK_KSCAN_MATRIX_POLLING=y
 
 # Increase stack size
-# default 1024
+# default 1024XB
 CONFIG_SYSTEM_WORKQUEUE_STACK_SIZE=2048
 
 # USB

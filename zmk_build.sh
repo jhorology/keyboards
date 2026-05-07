@@ -100,7 +100,7 @@ declare -A cz42l=(
   [name]=cz42_left
   [ble]=true
   [studio]=true
-  [board]=nice_nano_v2
+  [board]=nice_nano@2.0.0//zmk
   [shields]="cz42_left;gooddisplay_adapter;gooddisplay_gdew0102t4"
   [firmware_type]=uf2
   [dfu_volume]=CZ42_L
@@ -110,7 +110,7 @@ declare -A cz42r=(
   [name]=cz42_right
   [ble]=true
   [studio]=false
-  [board]=nice_nano_v2
+  [board]=nice_nano@2.0.0//zmk
   [shields]="cz42_right;gooddisplay_adapter;gooddisplay_gdew0102t4"
   [firmware_type]=uf2
   [dfu_volume]=CZ42_R
@@ -139,7 +139,7 @@ declare -A libra=(
   [name]=libra_mini
   [ble]=true
   [studio]=true
-  [board]=nice_nano@2.0.0
+  [board]=nice_nano@2.0.0//zmk
   [shields]=libra_mini
   [firmware_type]=uf2
   [dfu_volume]=LIBRA_MINI
@@ -208,7 +208,9 @@ declare -A ju60=(
 )
 
 ALL_TARGETS=(cz42l cz42r d60 fk68 libra rz42l rz42r q60 qk60 tf60 ju60)
-TARGETS=(cz42l cz42r d60 fk68 libra rz42l rz42r q60 tf60 ju60)
+
+# keyboards that have completed migration to zephyr 4.1
+TARGETS=(libra q60 tf60 ju60)
 
 
 cd $PROJECT
@@ -810,16 +812,21 @@ _update_zmk() {
     fi
     west update -n
     if $WITH_PATCH; then
-      # cd zephyr
-      # git apply -3 --verbose ../patches/zephyr_*.patch
-      # cd ..
+      cd zephyr
+      local zephyr_patches=(../patches/zephyr_*.patch(N))
+      if [[ ! -z $zephyr_patches ]]; then
+        git apply -3 --verbose $zephyr_patches
+      fi
+      cd ..
       cd zmk
-      # zmk draft
       local draft_patches=(../patches/draft_zmk_*.patch(N))
-     if [[ ! -z $draft_patches ]]; then
+      local zmk_patches=(../patches/zmk_*.patch(N))
+      if [[ ! -z $draft_patches ]]; then
         git apply -3 --verbose $draft_patches
       fi
-      git apply -3 --verbose ../patches/zmk_*.patch
+      if [[ ! -z $zmk_patches ]]; then
+        git apply -3 --verbose $zmk_patches
+      fi
       cd ..
     fi
 

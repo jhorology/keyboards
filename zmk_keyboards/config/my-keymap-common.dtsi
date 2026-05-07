@@ -8,6 +8,7 @@
 #include <dt-bindings/zmk/rgb.h>
 #include <dt-bindings/zmk/ext_power.h>
 #include <dt-bindings/zmk/beep.h>
+#include <dt-bindings/zmk/host_transform.h>
 
 #define ______ &trans
 
@@ -58,13 +59,13 @@
 //--------------------------------------------
 
 // mod + emacs commands leader key
-// hold   mod
-// single tap emacs command leader key
+// hold: mod
+// tap:  emacs command leader key
 #define _MOD_EMACS(mod) &safe_mod_leader mod RA(X)
 
 // mod + spacemacs evil leader key
-// hold   mod
-// single tap spacemacs leader key
+// hold: mod
+// tap:  spacemacs leader key
 #define _MOD_EVIL(mod) &safe_mod_leader mod RA(M)
 
 // keychron DIP SW
@@ -268,19 +269,26 @@
 
 #define _BT_MAC1 &ble_desktop 0 _MAC_BASE_LAYER
 #define _BT_MAC2 &ble_desktop 1 _MAC_BASE_LAYER
-#define _BT_WIN &ble_desktop 2 _WIN_BASE_LAYER
+#define _BT_WIN1 &ble_desktop 2 _WIN_BASE_LAYER
+#define _BT_WIN2 &ble_win_laptop 3 _WIN_BASE_LAYER
 // for iOS
-#define _BT_IOS &ble_mobile3 _MAC_BASE_LAYER
+#define _BT_IOS &ble_mobile4 _MAC_BASE_LAYER
 // for Android
-#define _BT_AOS &ble_mobile4 _WIN_BASE_LAYER
+#define _BT_AOS &ble_mobile5 _WIN_BASE_LAYER
 #define _BT_OFF0 &bt BT_DISC 0
 #define _BT_OFF1 &bt BT_DISC 1
 #define _BT_OFF2 &bt BT_DISC 2
 #define _BT_OFF3 &bt BT_DISC 3
 #define _BT_OFF4 &bt BT_DISC 4
+#define _BT_OFF5 &bt BT_DISC 5
 #define _BT_CLR &bt BT_CLR
 #define _BT_CLR_ALL &bt BT_CLR_ALL
 #define _USB &out_usb
+
+// windows laptop PC with keys swaped by registry
+//--------------------------------------------
+#define _WL_ON  &wl HT_ON
+#define _WL_OFF &wl HT_OFF
 
 // macro / behavior
 //--------------------------------------------
@@ -449,11 +457,27 @@
       compatible = "zmk,behavior-soft-off";
       #binding-cells = <0>;
     };
+
+    // for windows laptop pc with keys swapped by registry
+    /omit-if-no-ref/ wl:  remap_win_laptop {
+      compatible = "zmk,behavior-host-transform";
+      #binding-cells = <1>;
+      map = <
+      // from to
+         LCTL CAPS
+         CAPS LCTL
+         LWIN LALT
+         LALT LWIN
+         BSPC BSLH
+         BSLH BSPC
+       >;
+      save-state;
+    };
   };
 
   macros {
-    // Select BT 0-2 profile & output for Desktop PC
-    // param_1: index number(0-2) of bt profile
+    // Select BT 0-3 profile & output for Desktop PC
+    // param_1: index number(0-3) of bt profile
     // param_2: base layer
     /omit-if-no-ref/ ble_desktop: ble_desktop {
       display-name = "BT(1-3) Profile & Layer for Desktop";
@@ -463,44 +487,66 @@
         = <&macro_param_1to2>
         , <&macro_tap &bt BT_SEL MACRO_PLACEHOLDER>
         , <&macro_tap &out OUT_BLE>
-        , <&macro_tap &bt BT_DISC 3> /* disconnect mobile device */
         , <&macro_tap &bt BT_DISC 4> /* disconnect mobile device */
+        , <&macro_tap &bt BT_DISC 5> /* disconnect mobile device */
+        , <&macro_tap &wl HT_OFF>    /* windows laptop mode off */
         , <&macro_param_2to1>
         , <&macro_tap &to MACRO_PLACEHOLDER>
         ;
     };
 
-    // Select BT 3 profile & output for Mobile Device
-    // param_1: base layer
-    /omit-if-no-ref/ ble_mobile3: ble_mobile3 {
-      display-name = "BT4 Profile & Layer for Mobile";
-      compatible = "zmk,behavior-macro-one-param";
-      #binding-cells = <1>;
-      bindings
-        = <&macro_tap &bt BT_SEL 3>
-        , <&macro_tap &out OUT_BLE>
-        , <&macro_tap &bt BT_DISC 4> /* disconnect other mobile device */
-        , <&macro_param_1to1>
-        , <&macro_tap &to MACRO_PLACEHOLDER>
-        ;
+    // Select BT 0-3 profile & output for Windows Laptop PC
+    // param_1: index number(0-3) of bt profile
+    // param_2: base layer
+    /omit-if-no-ref/ ble_win_laptop: ble_win_laptop {
+        display-name = "BT(1-3) Profile & Layer for Desktop";
+        compatible = "zmk,behavior-macro-two-param";
+        #binding-cells = <2>;
+        bindings
+          = <&macro_param_1to2>
+          , <&macro_tap &bt BT_SEL MACRO_PLACEHOLDER>
+          , <&macro_tap &out OUT_BLE>
+          , <&macro_tap &bt BT_DISC 4> /* disconnect mobile device */
+          , <&macro_tap &bt BT_DISC 5> /* disconnect mobile device */
+          , <&macro_tap &wl HT_ON>     /* windows laptop mode on */
+          , <&macro_param_2to1>
+          , <&macro_tap &to MACRO_PLACEHOLDER>
+          ;
     };
 
     // Select BT 4 profile & output for Mobile Device
     // param_1: base layer
     /omit-if-no-ref/ ble_mobile4: ble_mobile4 {
-      display-name = "BT5 Profile & Layer for Mobile";
+      display-name = "BT4 Profile & Layer for Mobile";
       compatible = "zmk,behavior-macro-one-param";
       #binding-cells = <1>;
       bindings
         = <&macro_tap &bt BT_SEL 4>
         , <&macro_tap &out OUT_BLE>
-        , <&macro_tap &bt BT_DISC 3> /* disconnect other mobile device */
+        , <&macro_tap &bt BT_DISC 5> /* disconnect other mobile device */
+        , <&macro_tap &wl HT_OFF>    /* windows laptop mode off */
         , <&macro_param_1to1>
         , <&macro_tap &to MACRO_PLACEHOLDER>
         ;
     };
 
-    // Select BT 4 profile & output for Mobile Device
+    // Select BT 5 profile & output for Mobile Device
+    // param_1: base layer
+    /omit-if-no-ref/ ble_mobile5: ble_mobile5 {
+      display-name = "BT5 Profile & Layer for Mobile";
+      compatible = "zmk,behavior-macro-one-param";
+      #binding-cells = <1>;
+      bindings
+        = <&macro_tap &bt BT_SEL 5>
+        , <&macro_tap &out OUT_BLE>
+        , <&macro_tap &bt BT_DISC 4> /* disconnect other mobile device */
+        , <&macro_tap &wl HT_OFF>    /* windows laptop mode off */
+        , <&macro_param_1to1>
+        , <&macro_tap &to MACRO_PLACEHOLDER>
+        ;
+    };
+
+    // Select USB output
     // param_1: base layer
     /omit-if-no-ref/ out_usb: out_usb {
       display-name = "USB output";
@@ -510,6 +556,7 @@
         = <&macro_tap &out OUT_USB>
         , <&macro_tap &bt BT_DISC 3> /* disconnect mobile device */
         , <&macro_tap &bt BT_DISC 4> /* disconnect mobile device */
+        , <&macro_tap &wl HT_OFF>    /* windows laptop mode off */
         ;
     };
 

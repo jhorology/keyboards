@@ -1,0 +1,15 @@
+description: "Host Transform Control (Low-level Filter)"
+
+compatible: "zmk,behavior-host-transform"
+
+include: one_param.yaml
+
+properties:
+  map:
+    type: array
+    required: true
+    description: "Sequence of <from-keycode to-keycode> pairs."
+
+  save-state:
+    type: boolean
+    description: "Save the enabled state to flash using the device name as key"

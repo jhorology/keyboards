@@ -7,8 +7,40 @@
 
 #include <st/l4/stm32l432Xc.dtsi>
 #include <st/l4/stm32l432k(b-c)ux-pinctrl.dtsi>
+
 #include <physical_layouts.dtsi>
 #include <dt-bindings/zmk/matrix_transform.h>
+
+
+/*
+  #include <zephyr/arch/cpu.h>
+
+  static void identify_stm32_truth(void) {
+    uint32_t pkg = (sys_read32(0x4002201C) >> 8) & 0x07;
+    uint32_t flash = sys_read16(0x1FFF75E0);
+    uint32_t devid = sys_read32(0xE0042000) & 0xFFF;
+
+    LOG_INF("--- PHYSICAL CHIP SCAN ---");
+    LOG_INF("Device ID: 0x%03x", devid);
+    LOG_INF("Package ID: %u (3=32pin/K, 4=48pin/C, 5=64pin/R...)", pkg);
+    LOG_INF("Flash Size: %u KB", flash);
+
+    if (devid == 0x435) {
+      LOG_INF("Model: STM32L432 - RAM is ALWAYS 64KB");
+    } else if (devid == 0x462) {
+      LOG_INF("Model: STM32L422 - RAM is ALWAYS 40KB");
+    } else {
+      LOG_INF("Model: Unknown STM32L4 (ID: 0x%x)", devid);
+    }
+    LOG_INF("--------------------------");
+   }
+
+  Outputs:
+    Device ID: 0x435
+    Package ID: 0 (3=32pin/K, 4=48pin/C, 5=64pin/R...)
+    Flash Size: 128 KB
+    Model: STM32L432 - RAM is 64KB
+*/
 
 / {
 
@@ -16,6 +48,7 @@
     zephyr,sram = &sram0;
     zephyr,flash = &flash0;
     zephyr,code-partition = &code_partition;
+    zephyr,settings_partition = &storage_partition;
     zmk,kscan = &kscan0;
     zmk,physical-layout = &layout0;
   };
@@ -171,21 +204,23 @@
 };
 
 &flash0 {
+  /* L432Xc = 256KB -> 128KB */
+  reg = <0x08000000 DT_SIZE_K(128)>;
   partitions {
     compatible = "fixed-partitions";
     #address-cells = <1>;
     #size-cells = <1>;
 
     code_partition: partition@0 {
-      reg = <0x0 (DT_SIZE_M(256) - DT_SIZE_K(32))>;
+      reg = <0x00000000 DT_SIZE_K(120)>;
       read-only;
     };
 
     /*
-     * 36 KiB for file system partition
+     * 8 KiB for nvs partition
      */
-    storage_partition: partition@38000 {
-      reg = <(DT_SIZE_K(256) - DT_SIZE_K(32)) DT_SIZE_K(32)>;
+    storage_partition: partition@1e000 {
+      reg = <0x0001e000 DT_SIZE_K(8)>;
     };
   };
 };

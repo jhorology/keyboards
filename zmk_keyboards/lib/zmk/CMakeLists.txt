@@ -22,6 +22,7 @@ if ((NOT CONFIG_ZMK_SPLIT) OR CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
   endif()
 
   target_sources(app PRIVATE behaviors/behavior_hold_tap_dance.c)
+  target_sources(app PRIVATE behaviors/behavior_host_transform.c)
 
 endif()
 
