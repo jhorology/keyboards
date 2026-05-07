@@ -59,11 +59,10 @@ static int ht_remap_keycode(const struct device* dev, const zmk_event_t* eh) {
     if (ev->usage_page == ZMK_HID_USAGE_PAGE(config->map[i]) &&
         ev->keycode == ZMK_HID_USAGE_ID(config->map[i])) {
       data->processing = true;
-      raise_zmk_keycode_state_changed(
-        (struct zmk_keycode_state_changed){.usage_page = ZMK_HID_USAGE_PAGE(config->map[i + 1]),
-                                           .keycode = ZMK_HID_USAGE_ID(config->map[i + 1]),
-                                           .state = ev->state,
-                                           .implicit_modifiers = ev->implicit_modifiers});
+      struct zmk_keycode_state_changed new_ev = *ev;
+      new_ev.usage_page = ZMK_HID_USAGE_PAGE(config->map[i + 1]);
+      new_ev.keycode = ZMK_HID_USAGE_ID(config->map[i + 1]);
+      raise_zmk_keycode_state_changed(new_ev);
       data->processing = false;
       return ZMK_EV_EVENT_HANDLED;
     }
@@ -117,6 +116,7 @@ static void ht_save_state_work(struct k_work* work) {
   int err = settings_save_one(path, &data->state, sizeof(data->state));
   if (err) {
     LOG_ERR("Failed to save settings [%s]: %d (err %d)", path, data->state, err);
+    return;
   }
   LOG_INF("Saved settings [%s]: %d", path, data->state);
 }
