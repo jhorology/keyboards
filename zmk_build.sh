@@ -481,7 +481,7 @@ pip_upgrade() {
   cd $PROJECT
   _install_python_packages
   pip-review -a
-  pip3 cache purge
+  pip cache purge
 }
 
 rust_upgrade() {
@@ -590,7 +590,7 @@ _macos_install_packages() {
 _activate_python_venv() {
   cd $PROJECT
   if [[ ! -d .venv ]]; then
-    python3 -m venv .venv
+    python -m venv .venv
     source .venv/bin/activate
   else
     source .venv/bin/activate
@@ -613,16 +613,16 @@ _activate_direnv() {
 
 
 _install_python_packages() {
-  pip3 install west
-  pip3 install -r https://raw.githubusercontent.com/zmkfirmware/zephyr/refs/heads/v4.1.0%2Bzmk-fixes/scripts/requirements.txt
-  pip3 install -r https://raw.githubusercontent.com/zmkfirmware/zephyr/refs/heads/v4.1.0%2Bzmk-fixes/doc/requirements.txt
-  pip3 install ninja
-  pip3 install protobuf
-  pip3 install grpcio-tools
-  pip3 install pip-review
-  pip3 install doc2dash
-  pip3 install rustenv
-  pip3 cache purge
+  pip install west
+  pip install -r https://raw.githubusercontent.com/zmkfirmware/zephyr/refs/heads/v4.1.0%2Bzmk-fixes/scripts/requirements.txt
+  pip install -r https://raw.githubusercontent.com/zmkfirmware/zephyr/refs/heads/v4.1.0%2Bzmk-fixes/doc/requirements.txt
+  pip install ninja
+  pip install protobuf
+  pip install grpcio-tools
+  pip install pip-review
+  pip install doc2dash
+  pip install rustenv
+  pip cache purge
 }
 
 _install_rust_packages() {
