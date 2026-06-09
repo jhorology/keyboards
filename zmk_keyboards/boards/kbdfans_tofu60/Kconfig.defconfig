@@ -9,4 +9,7 @@ config ZMK_KEYBOARD_NAME
 config RP2_FLASH_W25Q080
     default y
 
+# config RP2_FLASH_GENERIC_03H
+#    default y
+
 endif # BOARD_TOFU60V2

@@ -45,7 +45,7 @@
     zephyr,flash = &flash0;
     zephyr,flash-controller = &ssi;
     zephyr,code-partition = &code_partition;
-    // zephyr,settings_partition = &storage_partition;
+    zephyr,settings_partition = &storage_partition;
     zmk,kscan = &kscan0;
     zmk,physical-layout = &default_layout;
   };
@@ -289,19 +289,13 @@
     };
 
     code_partition: partition@100 {
-      reg = <0x00000100 (DT_SIZE_K(1920) - 0x100)>;
+      reg = <0x100 0x1DFF00>;
       read-only;
     };
 
-    /*
-     TODO need to invastigate actual flash size
-     Enabling this causes a hang, JEDEC ID seems to be fake.
-    */
-    /*
-    storage_partition: partition@1e0000 {
-      reg = <0x001e0000 DT_SIZE_K(128)>;
+    storage_partition: partition@60000 {
+      reg = <0x1E0000 DT_SIZE_K(128)>;
     };
-    */
   };
 };
 
@@ -316,6 +310,11 @@
 
 zephyr_udc0: &usbd {
   status = "okay";
+};
+
+&vreg {
+  regulator-always-on;
+  regulator-allowed-modes = <REGULATOR_RPI_PICO_MODE_NORMAL>;
 };
 
 &gpio0 {

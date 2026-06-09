@@ -10,7 +10,12 @@ CONFIG_CLOCK_CONTROL=y
 # Code partition needed to target the correct flash range
 CONFIG_USE_DT_CODE_PARTITION=y
 
+CONFIG_FLASH=y
+CONFIG_FLASH_PAGE_LAYOUT=y
+CONFIG_FLASH_MAP=y
 CONFIG_SETTINGS=y
+CONFIG_SETTINGS_NVS=y
+CONFIG_NVS=y
 
 # Output UF2 by default, native bootloader supports it.
 CONFIG_BUILD_OUTPUT_UF2=y
