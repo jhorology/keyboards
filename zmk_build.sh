@@ -190,10 +190,10 @@ declare -A qk60=(
 )
 
 declare -A tf60=(
-  [name]=tofu60v2_hhkb
+  [name]=tofu60_v2_hhkb
   [ble]=false
   [studio]=true
-  [board]=tofu60v2
+  [board]=tofu60_v2
   [firmware_type]=uf2
   [dfu_volume]=RPI-RP2
 )
@@ -207,10 +207,19 @@ declare -A ju60=(
   [dfu_volume]=CYBER60_D
 )
 
-ALL_TARGETS=(cz42l cz42r d60 fk68 libra rz42l rz42r q60 qk60 tf60 ju60)
+declare -A tb60=(
+  [name]=tofu60_v3_ble_tsangan
+  [ble]=true
+  [studio]=true
+  [board]=tofu60_v3_ble
+  [firmware_type]=uf2
+  [dfu_volume]=TOFU60
+)
+
+ALL_TARGETS=(cz42l cz42r d60 fk68 libra rz42l rz42r q60 qk60 tf60 ju60 tb60)
 
 # keyboards that have completed migration to zephyr 4.1
-TARGETS=(libra q60 tf60 ju60)
+TARGETS=(libra q60 tf60 ju60 tb60)
 
 
 cd $PROJECT

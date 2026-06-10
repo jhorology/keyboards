@@ -1,0 +1,346 @@
+
+// SPDX-License-Identifier: MIT
+
+/dts-v1/;
+#include <nordic/nrf52840_qiaa.dtsi>
+#include <common/nordic/nrf52840_uf2_boot_mode.dtsi>
+#include <physical_layouts.dtsi>
+#include <dt-bindings/zmk/matrix_transform.h>
+#include <dt-bindings/led/led.h>
+#include "tofu60_v3_ble-pinctrl.dtsi"
+
+/*
+  see
+   https://github.com/yangdigi/zmk-keyboards-klink
+   https://github.com/openkbd/zmk-config-tofu60-ble-3.0
+*/
+
+/*
+                                  585   595
+         row0  row1  row2  row3   SCK  MOSI       LED.B LED.G LED.R
+           10     9     8     7     6     5     4     3     2     1
+      ------+-----+-----+-----+-----+-----+-----+-----+-----+-----+------
+   11 +  12                                                         |   |
+   13 +  14                                                         |---|
+   15 +  16                                                         |   |
+   17 +  18 VBAT         EBYTE E73-2G4M08S1C                        |   |
+   19 +  20                                                         |   |
+   21 +  22                                 595                     | O |
+   23 +  34                                  CS                     |---|
+   25 +              28    30    32    34    36   38    40    42    |   |
+      ------+-----+-----+-----+-----+-----+-----+-----+-----+-----+------
+           26    27    29    31    33    35    37    39    41    43
+          RST                                            row4
+
+   1   P1.11         B19   Common I/O
+   2   P1.10         A20   Common I/O   Low frequency I/ O, standard drive
+   3   P0.03         B13   Common I/O   Analog input 1, low frequency I/O, standard drive
+   4   AI4(P0.28)    B11   Common I/O   Analog input 4
+   5   GND           -     -            Single ground line，connect to the power reference ground
+   6   P1.13         A16   Common I/O   Low frequency I/O,  standard drive２
+   7   AI0(P0.02)    A12   Common I/O   Analog input 0, low frequency I/O, standard drive
+   8   AI5(P0.29)    A10   Common I/O   Analog input 5, low frequency I/O, standard drive
+   9   AI7(P0.31)    A8    Common I/O   Analog input 7, low frequency I/O, standard
+  10   AI6(P0.30)    B9    Common I/O   Analog input 6, low frequency I/O, standard drive
+
+  11   XL1(P0.00)    D2    Common I/O   Connect to 32.768 kHz crystal
+    12 P0.26         G1    Common I/O
+  13   XL2(P0.01)    F2    Common I/O   Connect to 32.768 kHz crystal
+    14 P0.06         L1    Common I/O
+  15   AI3(P0.05)    K2    Common I/O   Analog input 3
+    16 P0.08         N1    Common I/O
+  17   P1.09         R1    Common I/O
+    18 AI2(P0.04)    J1    Common I/O   Analog input 2
+  19   VDD           -     -            Power supply
+    20 P0.12         U1    Common I/O
+  21   GND           -     -            ground line. connect to the power reference ground
+    22 P0.07         M2    Common I/O
+  23   VDH           VDDH  -            High-voltage power supply
+    24 GND           -     -            ground line. connect to the power reference ground
+  25   DCH           DCCH  -            DC/DC Converter output
+
+  26   P0.18         RESET Common I/O   QSPI/CSN/external reset
+  27   VBS           VBUS  -            USB power supply. 5V input. used to USB3.3V voltage regulator
+    28 P0.15         AD10  Common I/O
+  29   D-            D-    -            USB D-
+    30 P0.17         AD12  Common I/O
+  31   D+            D+    -            USB D+
+    32 P0.20         AD16  Common I/O
+  33   P0.13         AD8   Common I/O
+    34 P0.22         AD18  Common I/O   QSPI
+  35   P0.24         AD20  Common I/O
+    36 P1.00         AD22  Common I/O
+  37   SWD           SWDIO -            Serial debug programming port data
+    38 P1.02         P1.02 Common I/O
+  39   SWC           AC24  -            Serial debug programming port clock
+    40 P1.04         U24   Common I/O   Low frequency I/O, standard drive
+  41   NF1(P0.09)    L24   Common I/O   NFC input
+    42 P1.06         R24   Common I/O   Low frequency I/O, standard drive
+  43   NF2(p0.10)    J24   Common I/O   NFC input
+
+
+                  col13 col12 col11 col10  col9                 col7  col6  col5  col4  col3  col2  col1
+        s15   s14   s13   s12   s11   s10    s9                   s7    s6    s5    s4    s3    s2    s1
+  GND    QH    QG    QF    QE    QD    QC    QB            GND    QH    QG    QF    QE    QD    QC    QB
+    8     7     6     5     4     3     2     1              8     7     6     5     4     3     2     1
+  ----------------------------------------------           ----------------------------------------------
+  |                                          o |           |                                          o |
+  |          U12  74HC595A                     |           |          U11  74HC595A                     |
+  |                                            |           |                                            |
+  ----------------------------------------------           ----------------------------------------------
+    9    10    11    12    13    14    15    16              9    10    11    12    13    14    15    16
+   QH' SRCLR  SRCLK RCLK   OE   SER    QA   VCC             QH' SRCLR  SRCLK RCLK   OE   SER    QA   VCC
+                     CS   GND          S8                                     CS   GND   MOSI   S0
+                                     col8                                                     col0
+
+*/
+
+/ {
+  chosen {
+    zephyr,code-partition = &code_partition;
+    zephyr,sram = &sram0;
+    zephyr,flash = &flash0;
+    zmk,battery = &vbatt;
+    zmk,physical-layout = &tsangan_layout;
+  };
+
+  vbatt: vbatt {
+    compatible = "zmk,battery-voltage-divider";
+    io-channels = <&adc 2>;
+    output-ohms = <2000000>;
+    full-ohms = <(2000000 + 820000)>;
+  };
+
+
+  leds {
+    compatible = "gpio-leds";
+    led_0: led_red {
+      gpios = <&gpio1 11 GPIO_ACTIVE_LOW>;
+      status = "okay";
+    };
+    led_1: led_green {
+      gpios = <&gpio1 10 GPIO_ACTIVE_LOW>;
+      status = "okay";
+    };
+    led_2: led_blue {
+      gpios = <&gpio0 3 GPIO_ACTIVE_LOW>;
+      status = "okay";
+    };
+  };
+
+  aliases {
+    ledred   = &led_0;
+    ledgreen = &led_1;
+    ledblue  = &led_2;
+  };
+
+  tsangan_transform: keymap_transform_0 {
+    compatible = "zmk,matrix-transform";
+    columns = <14>;
+    rows = <5>;
+    map =
+      <
+       RC(0,0) RC(0,1) RC(0,2) RC(0,3) RC(0,4) RC(0,5) RC(0,6) RC(0,7) RC(0,8) RC(0,9) RC(0,10) RC(0,11) RC(0,12) RC(2,12) RC(0,13)
+       RC(1,0)    RC(1,1) RC(1,2) RC(1,3) RC(1,4) RC(1,5) RC(1,6) RC(1,7) RC(1,8) RC(1,9) RC(1,10) RC(1,11) RC(1,12)       RC(1,13)
+       RC(2,0)       RC(2,1) RC(2,2) RC(2,3) RC(2,4) RC(2,5) RC(2,6) RC(2,7) RC(2,8) RC(2,9) RC(2,10) RC(2,11)             RC(2,13)
+       RC(3,0)          RC(3,1) RC(3,2) RC(3,3) RC(3,4) RC(3,5) RC(3,6) RC(3,7) RC(3,8) RC(3,9) RC(3,10)          RC(3,11) RC(3,13)
+       RC(4,0)   RC(4,1)   RC(4,2)                      RC(4,5)                                      RC(4,10)   RC(4,11)   RC(4,13)
+      >;
+  };
+
+  kscan0: kscan_0 {
+    compatible = "zmk,kscan-gpio-matrix";
+    wakeup-source;
+
+    diode-direction = "col2row";
+    col-gpios
+      = <&shifter 0 GPIO_ACTIVE_LOW>
+      , <&shifter 1 GPIO_ACTIVE_LOW>
+      , <&shifter 2 GPIO_ACTIVE_LOW>
+      , <&shifter 3 GPIO_ACTIVE_LOW>
+      , <&shifter 4 GPIO_ACTIVE_LOW>
+      , <&shifter 5 GPIO_ACTIVE_LOW>
+      , <&shifter 6 GPIO_ACTIVE_LOW>
+      , <&shifter 7 GPIO_ACTIVE_LOW>
+      , <&shifter 8 GPIO_ACTIVE_LOW>
+      , <&shifter 9 GPIO_ACTIVE_LOW>
+      , <&shifter 10 GPIO_ACTIVE_LOW>
+      , <&shifter 11 GPIO_ACTIVE_LOW>
+      , <&shifter 12 GPIO_ACTIVE_LOW>
+      , <&shifter 13 GPIO_ACTIVE_LOW>
+      ;
+
+    row-gpios
+      = <&gpio0 30 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
+      , <&gpio0 31 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
+      , <&gpio0 29 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
+      , <&gpio0  2 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
+      , <&gpio0  9 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
+      ;
+  };
+
+  tsangan_layout: layout0 {
+    compatible = "zmk,physical-layout";
+    display-name = "TSANGAN";
+    kscan = <&kscan0>;
+    transform = <&tsangan_transform>;
+    keys  //                   w   h    x    y     rot    rx    ry
+      = <&key_physical_attrs 100 100    0    0       0     0     0>
+      , <&key_physical_attrs 100 100  100    0       0     0     0>
+      , <&key_physical_attrs 100 100  200    0       0     0     0>
+      , <&key_physical_attrs 100 100  300    0       0     0     0>
+      , <&key_physical_attrs 100 100  400    0       0     0     0>
+      , <&key_physical_attrs 100 100  500    0       0     0     0>
+      , <&key_physical_attrs 100 100  600    0       0     0     0>
+      , <&key_physical_attrs 100 100  700    0       0     0     0>
+      , <&key_physical_attrs 100 100  800    0       0     0     0>
+      , <&key_physical_attrs 100 100  900    0       0     0     0>
+      , <&key_physical_attrs 100 100 1000    0       0     0     0>
+      , <&key_physical_attrs 100 100 1100    0       0     0     0>
+      , <&key_physical_attrs 100 100 1200    0       0     0     0>
+      , <&key_physical_attrs 100 100 1300    0       0     0     0>
+      , <&key_physical_attrs 100 100 1400    0       0     0     0>
+      , <&key_physical_attrs 150 100    0  100       0     0     0>
+      , <&key_physical_attrs 100 100  150  100       0     0     0>
+      , <&key_physical_attrs 100 100  250  100       0     0     0>
+      , <&key_physical_attrs 100 100  350  100       0     0     0>
+      , <&key_physical_attrs 100 100  450  100       0     0     0>
+      , <&key_physical_attrs 100 100  550  100       0     0     0>
+      , <&key_physical_attrs 100 100  650  100       0     0     0>
+      , <&key_physical_attrs 100 100  750  100       0     0     0>
+      , <&key_physical_attrs 100 100  850  100       0     0     0>
+      , <&key_physical_attrs 100 100  950  100       0     0     0>
+      , <&key_physical_attrs 100 100 1050  100       0     0     0>
+      , <&key_physical_attrs 100 100 1150  100       0     0     0>
+      , <&key_physical_attrs 100 100 1250  100       0     0     0>
+      , <&key_physical_attrs 150 100 1350  100       0     0     0>
+      , <&key_physical_attrs 175 100    0  200       0     0     0>
+      , <&key_physical_attrs 100 100  175  200       0     0     0>
+      , <&key_physical_attrs 100 100  275  200       0     0     0>
+      , <&key_physical_attrs 100 100  375  200       0     0     0>
+      , <&key_physical_attrs 100 100  475  200       0     0     0>
+      , <&key_physical_attrs 100 100  575  200       0     0     0>
+      , <&key_physical_attrs 100 100  675  200       0     0     0>
+      , <&key_physical_attrs 100 100  775  200       0     0     0>
+      , <&key_physical_attrs 100 100  875  200       0     0     0>
+      , <&key_physical_attrs 100 100  975  200       0     0     0>
+      , <&key_physical_attrs 100 100 1075  200       0     0     0>
+      , <&key_physical_attrs 100 100 1175  200       0     0     0>
+      , <&key_physical_attrs 225 100 1275  200       0     0     0>
+      , <&key_physical_attrs 225 100    0  300       0     0     0>
+      , <&key_physical_attrs 100 100  225  300       0     0     0>
+      , <&key_physical_attrs 100 100  325  300       0     0     0>
+      , <&key_physical_attrs 100 100  425  300       0     0     0>
+      , <&key_physical_attrs 100 100  525  300       0     0     0>
+      , <&key_physical_attrs 100 100  625  300       0     0     0>
+      , <&key_physical_attrs 100 100  725  300       0     0     0>
+      , <&key_physical_attrs 100 100  825  300       0     0     0>
+      , <&key_physical_attrs 100 100  925  300       0     0     0>
+      , <&key_physical_attrs 100 100 1025  300       0     0     0>
+      , <&key_physical_attrs 100 100 1125  300       0     0     0>
+      , <&key_physical_attrs 175 100 1225  300       0     0     0>
+      , <&key_physical_attrs 100 100 1400  300       0     0     0>
+      , <&key_physical_attrs 150 100    0  400       0     0     0>
+      , <&key_physical_attrs 100 100  150  400       0     0     0>
+      , <&key_physical_attrs 150 100  250  400       0     0     0>
+      , <&key_physical_attrs 700 100  400  400       0     0     0>
+      , <&key_physical_attrs 150 100 1100  400       0     0     0>
+      , <&key_physical_attrs 100 100 1250  400       0     0     0>
+      , <&key_physical_attrs 150 100 1350  400       0     0     0>
+      ;
+  };
+};
+
+&reg1 {
+  regulator-initial-mode = <NRF5X_REG_MODE_DCDC>;
+};
+
+&adc {
+  status = "okay";
+};
+
+&gpiote {
+  status = "okay";
+};
+
+&gpio0 {
+  status = "okay";
+};
+
+&gpio1 {
+  status = "okay";
+};
+
+// use NFC pin as GPIO
+&uicr {
+  nfct-pins-as-gpios;
+};
+
+zephyr_udc0: &usbd {
+  status = "okay";
+};
+
+&spi0 {
+  compatible = "nordic,nrf-spim";
+  pinctrl-0 = <&spi3_default>;
+  pinctrl-1 = <&spi3_sleep>;
+  pinctrl-names = "default", "sleep";
+  status = "okay";
+  cs-gpios = <&gpio1 0 GPIO_ACTIVE_LOW>;
+  shifter: 595@0 {
+    compatible = "zmk,gpio-595";
+    status = "okay";
+    gpio-controller;
+    spi-max-frequency = <400000>;
+    // spi-max-frequency = <8000000>; //default 400K to 8M, spim3 max 32M
+    reg = <0>;
+    #gpio-cells = <2>;
+    ngpios = <16>;
+  };
+};
+
+
+&flash0 {
+  /*
+   * For more information, see:
+   * http://docs.zephyrproject.org/latest/devices/dts/flash_partitions.html
+   */
+  partitions {
+    compatible = "fixed-partitions";
+    #address-cells = <1>;
+    #size-cells = <1>;
+
+    /*
+     * The original configuration seems to be No SoftDevice,
+     * I've updated the bootloader, but you need to be careful
+     *
+     * No SoftDevice   = 0x01000
+     * SoftDevice ~6.x = 0x26000
+     * SoftDevice  7.x = 0x27000
+     */
+    sd_partition: partition@0 {
+      reg = <0x00000000 0x00026000>;
+    };
+
+    code_partition: partition@26000 {
+      reg = <0x00026000 0x000c6000>;
+    };
+
+    /*
+     * The flash starting at 0x000ec000 and ending at
+     * 0x000f3fff is reserved for use by the application.
+     */
+
+    /*
+     * Storage partition will be used by FCB/LittleFS/NVS
+     * if enabled.
+     */
+    storage_partition: partition@ec000 {
+      reg = <0x000ec000 0x00008000>;
+    };
+
+    boot_partition: partition@f4000 {
+      reg = <0x000f4000 0x0000c000>;
+    };
+  };
+};

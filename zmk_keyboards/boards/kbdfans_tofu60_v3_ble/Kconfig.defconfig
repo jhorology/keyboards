@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: MIT
+
+if BOARD_TOFU60_V3_BLE
+
+config ZMK_KEYBOARD_NAME
+    default "TOFU60 3.0 BLE"
+
+if USB_DEVICE_STACK
+
+config USB_NRFX
+    default y
+
+endif # USB_DEVICE_STACK
+
+config BT_CTLR
+    default BT
+
+endif # BOARD_TOFU60_V3_BLE

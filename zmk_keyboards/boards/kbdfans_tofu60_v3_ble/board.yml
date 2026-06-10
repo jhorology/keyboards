@@ -1,0 +1,5 @@
+board:
+  name: tofu60_v3_ble
+  vendor: kbdfans
+  socs:
+    - name: nrf52840

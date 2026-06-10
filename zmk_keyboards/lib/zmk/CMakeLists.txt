@@ -26,10 +26,8 @@ if ((NOT CONFIG_ZMK_SPLIT) OR CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
 
 endif()
 
-
-
 # TODO generalize
-if (CONFIG_BOARD_CYBER60_REV_D)
+if (CONFIG_BOARD_CYBER60_REV_D OR CONFIG_BOARD_TOFU60_V3_BLE)
   target_sources(app PRIVATE cyber60_led.c)
 endif()
 
