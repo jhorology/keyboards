@@ -2,7 +2,7 @@
 
 &pinctrl {
 
-  spi3_default: spi3_default {
+  spi0_default: spi0_default {
     group1 {
       psels
         = <NRF_PSEL(SPIM_SCK, 1, 13)>
@@ -11,7 +11,7 @@
     };
   };
 
-  spi3_sleep: spi3_sleep {
+  spi0_sleep: spi0_sleep {
     group1 {
       psels
         = <NRF_PSEL(SPIM_SCK, 1, 13)>

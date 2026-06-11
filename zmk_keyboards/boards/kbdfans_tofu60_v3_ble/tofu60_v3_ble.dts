@@ -16,21 +16,21 @@
 */
 
 /*
-                                  585   595
-         row0  row1  row2  row3   SCK  MOSI       LED.B LED.G LED.R
-           10     9     8     7     6     5     4     3     2     1
-      ------+-----+-----+-----+-----+-----+-----+-----+-----+-----+------
-   11 +  12                                                         |   |
-   13 +  14                                                         |---|
-   15 +  16                                                         |   |
-   17 +  18 VBAT         EBYTE E73-2G4M08S1C                        |   |
-   19 +  20                                                         |   |
-   21 +  22                                 595                     | O |
-   23 +  34                                  CS                     |---|
-   25 +              28    30    32    34    36   38    40    42    |   |
-      ------+-----+-----+-----+-----+-----+-----+-----+-----+-----+------
-           26    27    29    31    33    35    37    39    41    43
-          RST                                            row4
+                                      585         595
+             row0  row1  row2  row3   SCK        MOSI LED.B LED.G LED.R
+               10     9     8     7     6     5     4     3     2     1
+          ------+-----+-----+-----+-----+-----+-----+-----+-----+-----+------
+       11 +  12                                                         |   |
+       13 +  14                                                         |---|
+  VBAT 15 +  16                                                         |   |
+       17 +  18              EBYTE E73-2G4M08S1C                        |   |
+       19 +  20                                                         |   |
+       21 +  22                                 595                     | O |
+       23 +  34                                  CS                     |---|
+       25 +              28    30    32    34    36   38    40    42    |   |
+          ------+-----+-----+-----+-----+-----+-----+-----+-----+-----+------
+               26    27    29    31    33    35    37    39    41    43
+              RST                                            row4
 
    1   P1.11         B19   Common I/O
    2   P1.10         A20   Common I/O   Low frequency I/ O, standard drive
@@ -106,11 +106,10 @@
 
   vbatt: vbatt {
     compatible = "zmk,battery-voltage-divider";
-    io-channels = <&adc 2>;
-    output-ohms = <2000000>;
-    full-ohms = <(2000000 + 820000)>;
+    io-channels = <&adc 3>;               // AI3 P0.05
+    output-ohms = <2000000>;              // R5=2M
+    full-ohms = <2820000>;                // R5=2M + R4=820K
   };
-
 
   leds {
     compatible = "gpio-leds";
@@ -251,8 +250,13 @@
   };
 };
 
+// LDO
+&reg0 {
+  status = "disabled";
+};
+
 &reg1 {
-  regulator-initial-mode = <NRF5X_REG_MODE_DCDC>;
+   regulator-initial-mode = <NRF5X_REG_MODE_LDO>;
 };
 
 &adc {
@@ -282,8 +286,8 @@ zephyr_udc0: &usbd {
 
 &spi0 {
   compatible = "nordic,nrf-spim";
-  pinctrl-0 = <&spi3_default>;
-  pinctrl-1 = <&spi3_sleep>;
+  pinctrl-0 = <&spi0_default>;
+  pinctrl-1 = <&spi0_sleep>;
   pinctrl-names = "default", "sleep";
   status = "okay";
   cs-gpios = <&gpio1 0 GPIO_ACTIVE_LOW>;
@@ -292,7 +296,6 @@ zephyr_udc0: &usbd {
     status = "okay";
     gpio-controller;
     spi-max-frequency = <400000>;
-    // spi-max-frequency = <8000000>; //default 400K to 8M, spim3 max 32M
     reg = <0>;
     #gpio-cells = <2>;
     ngpios = <16>;
