@@ -1,2 +1,3 @@
 add_subdirectory_ifdef(CONFIG_DISPLAY display)
 add_subdirectory_ifdef(CONFIG_INPUT input)
+add_subdirectory_ifdef(CONFIG_SNLED27351 led_strip)

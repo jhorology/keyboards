@@ -736,9 +736,11 @@ _download_fonts() {
   # completly free for any prupose
   # http://fontlab.web.fc2.com/extra-small-font.html
   if [[ ! -d extra-small-font ]]; then
-    wget https://ftp.vector.co.jp/66/05/114/extra-small-font.zip
-    unzip extra-small-font.zip
-    rm -f extra-small-font.zip
+    # maybe site down?
+    if wget --tries=2 https://ftp.vector.co.jp/66/05/114/extra-small-font.zip; then
+      unzip extra-small-font.zip
+      rm -f extra-small-font.zip
+    fi
   fi
 
   # OFL-1.1 license
@@ -910,6 +912,11 @@ _build() {
   print -Pr  "%F{green}-----------------------------------------------------------------------"
 
   west build $opts[*] zmk/app -- $defs[*]
+
+  if ! $PROJECT/scripts/check_code_partition.sh build/$target; then
+    print -Pr "%F{red}Flash partition check failed (see above)%f" >&2
+    return 1
+  fi
 
   if (( $#with_ram_report )); then
     west build --target ram_report --build-dir build/$target

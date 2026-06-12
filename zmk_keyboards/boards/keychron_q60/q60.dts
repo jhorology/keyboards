@@ -10,6 +10,9 @@
 
 #include <physical_layouts.dtsi>
 #include <dt-bindings/zmk/matrix_transform.h>
+#include <dt-bindings/i2c/i2c.h>
+
+#include "q60-snled27351.dtsi"
 
 
 /*
@@ -51,6 +54,7 @@
     zephyr,settings_partition = &storage_partition;
     zmk,kscan = &kscan0;
     zmk,physical-layout = &layout0;
+    zmk,underglow = &rgb_matrix;
   };
 
   default_transform: keymap_transform_0 {
@@ -195,11 +199,12 @@
   apb2-prescaler = <1>;
 };
 
-/* TODO WS2812 controller */
+
 &i2c1 {
   pinctrl-0 = <&i2c1_scl_pb6 &i2c1_sda_pb7>;
   pinctrl-names = "default";
-  clock-frequency = <I2C_BITRATE_FAST>;
+  clock-frequency = <I2C_BITRATE_FAST>;         // 400KHz
+  // clock-frequency = <I2C_BITRATE_FAST_PLUS>; // 1MHz
   status = "okay";
 };
 
@@ -212,15 +217,16 @@
     #size-cells = <1>;
 
     code_partition: partition@0 {
+      /* 120 KiB: studio + USB logging builds exceed the old 120 KiB limit */
       reg = <0x00000000 DT_SIZE_K(120)>;
       read-only;
     };
 
     /*
-     * 8 KiB for nvs partition
+     * 8 KiB for nvs partition (1 flash page; must stay clear of linked firmware)
      */
-    storage_partition: partition@1e000 {
-      reg = <0x0001e000 DT_SIZE_K(8)>;
+    storage_partition: partition@1f800 {
+      reg = <0x0001f800 DT_SIZE_K(8)>;
     };
   };
 };

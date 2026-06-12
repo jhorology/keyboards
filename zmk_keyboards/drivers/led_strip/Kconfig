@@ -1,0 +1,11 @@
+# Copyright (c) 2026 The ZMK Contributors
+# SPDX-License-Identifier: MIT
+
+config SNLED27351
+    bool "Sonix SNLED27351 I2C RGB LED matrix driver"
+    default y
+    depends on DT_HAS_SONIX_SNLED27351_ENABLED
+    select I2C
+    select LED_STRIP
+    help
+      Enable the SNLED27351 I2C RGB LED matrix driver for ZMK RGB underglow.
