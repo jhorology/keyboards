@@ -1,8 +1,8 @@
 diff --git a/drivers/encoder/encoder_quadrature.c b/drivers/encoder/encoder_quadrature.c
-index 3dfdb27e8d..7caa413a56 100644
+index b3aeb136b2..a3940c9531 100644
 --- a/drivers/encoder/encoder_quadrature.c
 +++ b/drivers/encoder/encoder_quadrature.c
-@@ -69,7 +69,11 @@ static uint8_t encoder_resolutions[NUM_ENCODERS] = ENCODER_RESOLUTIONS;
+@@ -67,7 +67,11 @@ static uint8_t encoder_resolutions[NUM_ENCODERS] = ENCODER_RESOLUTIONS;
  #    define ENCODER_CLOCKWISE false
  #    define ENCODER_COUNTER_CLOCKWISE true
  #endif

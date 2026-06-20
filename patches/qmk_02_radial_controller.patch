@@ -151,7 +151,7 @@ index 3e442ba033..0241d9e9ea 100644
   * sendchar
   ******************************************************************************/
 diff --git a/tmk_core/protocol/report.h b/tmk_core/protocol/report.h
-index 9053b0bb3f..636fb8bb0c 100644
+index ec220c6938..ca000a7030 100644
 --- a/tmk_core/protocol/report.h
 +++ b/tmk_core/protocol/report.h
 @@ -246,6 +246,11 @@ typedef int16_t joystick_axis_t;
@@ -167,10 +167,10 @@ index 9053b0bb3f..636fb8bb0c 100644
  #ifdef JOYSTICK_SHARED_EP
      uint8_t report_id;
 diff --git a/tmk_core/protocol/usb_descriptor.c b/tmk_core/protocol/usb_descriptor.c
-index ceab9eef9a..8b9e4a24cc 100644
+index 38abb3781c..6aea346df3 100644
 --- a/tmk_core/protocol/usb_descriptor.c
 +++ b/tmk_core/protocol/usb_descriptor.c
-@@ -449,6 +449,38 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
+@@ -454,6 +454,38 @@ const USB_Descriptor_HIDReport_Datatype_t PROGMEM SharedReport[] = {
  };
  #endif
  
@@ -209,7 +209,7 @@ index ceab9eef9a..8b9e4a24cc 100644
  #ifdef RAW_ENABLE
  const USB_Descriptor_HIDReport_Datatype_t PROGMEM RawReport[] = {
      HID_RI_USAGE_PAGE(16, RAW_USAGE_PAGE), // Vendor Defined
-@@ -1097,6 +1129,46 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor = {
+@@ -1102,6 +1134,46 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor = {
          .PollingIntervalMS      = USB_POLLING_INTERVAL_MS
      },
  #endif
@@ -256,7 +256,7 @@ index ceab9eef9a..8b9e4a24cc 100644
  };
  
  /*
-@@ -1300,6 +1372,12 @@ uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const
+@@ -1305,6 +1377,12 @@ uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const
  
                      break;
  #endif
@@ -269,7 +269,7 @@ index ceab9eef9a..8b9e4a24cc 100644
              }
  
              break;
-@@ -1355,6 +1433,12 @@ uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const
+@@ -1360,6 +1438,12 @@ uint16_t get_usb_descriptor(const uint16_t wValue, const uint16_t wIndex, const
                      Address = &DigitizerReport;
                      Size    = sizeof(DigitizerReport);
                      break;

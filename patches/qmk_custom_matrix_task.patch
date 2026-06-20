@@ -1,8 +1,8 @@
 diff --git a/quantum/keyboard.c b/quantum/keyboard.c
-index e0c9373165..87531f0a31 100644
+index 5a80facf57..2a6b45839f 100644
 --- a/quantum/keyboard.c
 +++ b/quantum/keyboard.c
-@@ -582,6 +582,10 @@ static inline void generate_tick_event(void) {
+@@ -576,6 +576,10 @@ static inline void generate_tick_event(void) {
  
  matrix_row_t matrix_previous[MATRIX_ROWS];
  
@@ -13,7 +13,7 @@ index e0c9373165..87531f0a31 100644
  /**
   * @brief This task scans the keyboards matrix and processes any key presses
   * that occur.
-@@ -641,6 +645,7 @@ static bool matrix_task(void) {
+@@ -635,6 +639,7 @@ static bool matrix_task(void) {
  
      return matrix_changed;
  }
