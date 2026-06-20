@@ -99,15 +99,15 @@ void custom_config_init() {
   rc_config.raw = nvm_via_read_dword(VIA_RADIAL_CONTROLLER_EEPROM_OFFSET);
 #endif
 #ifdef CUSTOM_CONFIG_RHID_MODE_PIN
-  setPinOutput(CUSTOM_CONFIG_RHID_MODE_PIN);
+  gpio_set_pin_output(CUSTOM_CONFIG_RHID_MODE_PIN);
 #endif
 #ifdef CUSTOM_CONFIG_MAC_MODE_PIN
   // write pin at initialize time only. mac mode is never changed without restart.
-  setPinOutput(CUSTOM_CONFIG_MAC_MODE_PIN);
-  writePin(CUSTOM_CONFIG_MAC_MODE_PIN, kb_config.mac);
+  gpio_set_pin_output(CUSTOM_CONFIG_MAC_MODE_PIN);
+  gpio_write_pin(CUSTOM_CONFIG_MAC_MODE_PIN, kb_config.mac);
 #endif
 #ifdef CUSTOM_CONFIG_USJ_MODE_PIN
-  setPinOutput(CUSTOM_CONFIG_USJ_MODE_PIN);
+  gpio_set_pin_output(CUSTOM_CONFIG_USJ_MODE_PIN);
 #endif
 #ifdef CUSTOM_CONFIG_FORCE_RHID
   _custom_config_raw_hid_set_enable(CUSTOM_CONFIG_FORCE_RHID);
@@ -163,7 +163,7 @@ void custom_config_raw_hid_toggle_enable() { custom_config_raw_hid_set_enable(!k
 static void _custom_config_raw_hid_set_enable(bool enable) {
   kb_config.raw_hid = enable;
 #ifdef CUSTOM_CONFIG_RHID_MODE_PIN
-  writePin(CUSTOM_CONFIG_RHID_MODE_PIN, enable);
+  gpio_write_pin(CUSTOM_CONFIG_RHID_MODE_PIN, enable);
 #endif
 }
 
@@ -183,7 +183,7 @@ void custom_config_usj_toggle_enable() { custom_config_usj_set_enable(!kb_config
 static void _custom_config_usj_set_enable(bool enable) {
   kb_config.usj = enable;
 #ifdef CUSTOM_CONFIG_USJ_MODE_PIN
-  writePin(CUSTOM_CONFIG_USJ_MODE_PIN, enable);
+  gpio_write_pin(CUSTOM_CONFIG_USJ_MODE_PIN, enable);
 #endif
 }
 

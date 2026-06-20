@@ -88,23 +88,23 @@ static inline void select_col(uint8_t col) {
   uint8_t changes = matrix_col_channels[col] ^ amux_col_ch;
   amux_col_ch = matrix_col_channels[col];
 #if AMUX_COUNT >= 1
-  if (changes & 0x10) writePin(amux_en_pins[0], amux_col_ch & 0x10);
+  if (changes & 0x10) gpio_write_pin(amux_en_pins[0], amux_col_ch & 0x10);
 #endif
 #if AMUX_COUNT >= 2
-  if (changes & 0x20) writePin(amux_en_pins[1], amux_col_ch & 0x20);
+  if (changes & 0x20) gpio_write_pin(amux_en_pins[1], amux_col_ch & 0x20);
 #endif
 #if AMUX_COUNT >= 3
-  if (changes & 0x40) writePin(amux_en_pins[2], amux_col_ch & 0x40);
+  if (changes & 0x40) gpio_write_pin(amux_en_pins[2], amux_col_ch & 0x40);
 #endif
 #if AMUX_COUNT >= 4
-  if (changes & 0x80) writePin(amux_en_pins[3], amux_col_ch & 0x80);
+  if (changes & 0x80) gpio_write_pin(amux_en_pins[3], amux_col_ch & 0x80);
 #endif
 #if AMUX_COUNT >= 5
 #  error Unsupported AMUX_COUNT, maximum is 4
 #endif
-  if (changes & 1) writePin(amux_sel_pins[0], amux_col_ch & 1);
-  if (changes & 2) writePin(amux_sel_pins[1], amux_col_ch & 2);
-  if (changes & 4) writePin(amux_sel_pins[2], amux_col_ch & 4);
+  if (changes & 1) gpio_write_pin(amux_sel_pins[0], amux_col_ch & 1);
+  if (changes & 2) gpio_write_pin(amux_sel_pins[1], amux_col_ch & 2);
+  if (changes & 4) gpio_write_pin(amux_sel_pins[2], amux_col_ch & 4);
 }
 
 static inline bool is_actuated(ec_key_config_t *key, uint16_t sw_value) {
@@ -163,8 +163,8 @@ static uint16_t ec_readkey(uint32_t strobe_pin) {
            (uint32_t)RTC_DISCHARGE_TIME) {
     }
     // charge peak hold capacitor
-    writePinHigh(DISCHARGE_PIN);
-    writePinHigh(strobe_pin);
+    gpio_write_pin_high(DISCHARGE_PIN);
+    gpio_write_pin_high(strobe_pin);
 
     last_key_scan_time = chSysGetRealtimeCounterX();
     while (TIMER_DIFF_32(chSysGetRealtimeCounterX(), last_key_scan_time) <
@@ -173,9 +173,9 @@ static uint16_t ec_readkey(uint32_t strobe_pin) {
     // wait_us(CHARGE_TIME);
     // Read the ADC value
     sw_value = adc_read(adcMux);
-    writePinLow(strobe_pin);
+    gpio_write_pin_low(strobe_pin);
     // Discharge peak hold capacitor
-    writePinLow(DISCHARGE_PIN);
+    gpio_write_pin_low(DISCHARGE_PIN);
     last_key_scan_time = chSysGetRealtimeCounterX();
   }
   return sw_value;
@@ -185,19 +185,19 @@ static uint16_t ec_readkey(uint32_t strobe_pin) {
 static void init_row(void) {
   // Set all row pins as output and low
   for (uint8_t idx = 0; idx < MATRIX_ROWS; idx++) {
-    setPinOutput(row_pins[idx]);
-    writePinLow(row_pins[idx]);
+    gpio_set_pin_output(row_pins[idx]);
+    gpio_write_pin_low(row_pins[idx]);
   }
 }
 
 // Initialize the multiplexers
 static void init_amux(void) {
   for (uint8_t idx = 0; idx < AMUX_COUNT; idx++) {
-    setPinOutput(amux_en_pins[idx]);
-    writePinHigh(amux_en_pins[idx]);
+    gpio_set_pin_output(amux_en_pins[idx]);
+    gpio_write_pin_high(amux_en_pins[idx]);
   }
   for (uint8_t idx = 0; idx < AMUX_SEL_PINS_COUNT; idx++) {
-    setPinOutput(amux_sel_pins[idx]);
+    gpio_set_pin_output(amux_sel_pins[idx]);
   }
 }
 
@@ -245,8 +245,8 @@ static uint16_t ec_test_readkey(uint32_t strobe_pin, uint32_t charge_index,
            DISCHARGE_STEP(discharge_index)) {
     }
     // charge peak hold capacitor
-    writePinHigh(DISCHARGE_PIN);
-    writePinHigh(strobe_pin);
+    gpio_write_pin_high(DISCHARGE_PIN);
+    gpio_write_pin_high(strobe_pin);
 
     if (charge_index) {
       last_key_scan_time = chSysGetRealtimeCounterX();
@@ -258,9 +258,9 @@ static uint16_t ec_test_readkey(uint32_t strobe_pin, uint32_t charge_index,
     // Read the ADC value
     sw_value = adc_read(adcMux);
 
-    writePinLow(strobe_pin);
+    gpio_write_pin_low(strobe_pin);
     // Discharge peak hold capacitor
-    writePinLow(DISCHARGE_PIN);
+    gpio_write_pin_low(DISCHARGE_PIN);
     last_key_scan_time = chSysGetRealtimeCounterX();
   }
   return sw_value;
@@ -329,8 +329,8 @@ void matrix_init(void) {
   adc_read(adcMux);
 
   // Initialize discharge pin as discharge mode
-  writePinLow(DISCHARGE_PIN);
-  setPinOutputOpenDrain(DISCHARGE_PIN);
+  gpio_write_pin_low(DISCHARGE_PIN);
+  gpio_set_pin_output_open_drain(DISCHARGE_PIN);
 
   // Initialize drive lines
   init_row();
