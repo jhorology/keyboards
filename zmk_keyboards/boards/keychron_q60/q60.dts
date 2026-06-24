@@ -225,8 +225,8 @@
     /*
      * 8 KiB for nvs partition (1 flash page; must stay clear of linked firmware)
      */
-    storage_partition: partition@1f800 {
-      reg = <0x0001f800 DT_SIZE_K(8)>;
+    storage_partition: partition@1e000 {
+      reg = <0x0001e000 DT_SIZE_K(8)>;
     };
   };
 };
