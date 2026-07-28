@@ -30,7 +30,7 @@ static void style_init(struct portrait_mono_styles *styles) {
   lv_style_set_pad_all(&styles->container, 0);
   lv_style_set_pad_gap(&styles->container, 0);
   lv_style_set_border_width(&styles->container, 0);
-  lv_style_set_size(&styles->container, LV_SIZE_CONTENT);
+  lv_style_set_size(&styles->container, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
 }
 
 static lv_obj_t *container_create(lv_obj_t *parent) {
@@ -74,7 +74,12 @@ static inline lv_obj_t *content_create(lv_obj_t *parent) {
 }
 
 static inline lv_obj_t *kbd_logo_create(lv_obj_t *parent) {
-  lv_obj_t *kbd_logo = lv_img_create(parent);
+  lv_obj_t *container = container_create(parent);
+  lv_obj_set_width(container, lv_pct(100));
+  lv_obj_set_flex_flow(container, LV_FLEX_FLOW_COLUMN);
+  lv_obj_set_flex_align(container, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+
+  lv_obj_t *kbd_logo = lv_img_create(container);
 #if IS_ENABLED(CONFIG_ZMK_CUSTOM_KEYBOARD_LOGO)
   lv_img_set_src(kbd_logo, &keyboard_logo);
 #else
@@ -85,7 +90,7 @@ static inline lv_obj_t *kbd_logo_create(lv_obj_t *parent) {
   lv_obj_set_style_img_recolor_opa(kbd_logo, LV_OPA_COVER, LV_PART_MAIN);
   lv_obj_set_style_img_recolor(kbd_logo, color, LV_PART_MAIN);
 #endif
-  return kbd_logo;
+  return container;
 }
 
 lv_obj_t *zmk_display_status_screen() {
@@ -95,10 +100,6 @@ lv_obj_t *zmk_display_status_screen() {
   lv_obj_t *screen = lv_obj_create(NULL);
   lv_obj_set_scrollbar_mode(screen, LV_SCROLLBAR_MODE_OFF);
   lv_obj_set_style_pad_all(screen, 0, LV_PART_MAIN);
-  lv_obj_set_flex_flow(screen, LV_FLEX_FLOW_COLUMN);
-  lv_obj_set_flex_align(screen, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
-  lv_obj_set_style_pad_row(screen, MARGIN, LV_PART_MAIN);
-
   lv_obj_set_flex_flow(screen, LV_FLEX_FLOW_COLUMN);
   lv_obj_set_flex_align(screen, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
   lv_obj_set_style_pad_row(screen, MARGIN, LV_PART_MAIN);

@@ -37,6 +37,8 @@ function(generate_lv_image_for_target
     --force
     ${ARGN} # Extra arguments are passed to lv_img_conv
     ${input_file}
+    COMMAND
+    ${PYTHON_EXECUTABLE} ${WEST_TOPDIR}/scripts/patch_lv_img.py ${output_file}
   )
   add_dependencies(${target} ${gen_target})
   target_sources(${target} PRIVATE ${output_file})

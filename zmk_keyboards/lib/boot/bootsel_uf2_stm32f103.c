@@ -21,7 +21,7 @@ void sys_arch_reboot(int type) {
 }
 
 #if IS_ENABLED(CONFIG_BOOTSEL_UF2_STM32F103_ON_FATAL_ERROR)
-void k_sys_fatal_error_handler(unsigned int reason, const z_arch_esf_t *esf) {
+void k_sys_fatal_error_handler(unsigned int reason, const struct arch_esf *esf) {
   ARG_UNUSED(reason);
   ARG_UNUSED(esf);
 

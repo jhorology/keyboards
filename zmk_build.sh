@@ -67,22 +67,21 @@ _error_exit() {
 
 # prefix for platform spcific functions
 case $HOST_OS in
-  macos )
-    os=macos
-    ;;
-  linux )
-    if [[ -f /etc/fedora-release ]]; then
-      os=fedora
-    else
-      # TODO
-      _error_exit 1 'unsupported platform.'
-    fi
-    ;;
-  * )
+macos)
+  os=macos
+  ;;
+linux)
+  if [[ -f /etc/fedora-release ]]; then
+    os=fedora
+  else
+    # TODO
     _error_exit 1 'unsupported platform.'
-    ;;
+  fi
+  ;;
+*)
+  _error_exit 1 'unsupported platform.'
+  ;;
 esac
-
 
 # keyboard deinitions
 #  properties:
@@ -120,7 +119,7 @@ declare -A d60=(
   [name]=d60_lite_hhkb_ec11
   [ble]=true
   [studio]=true
-  [board]=bt60
+  [board]=bt60@2.0.0//zmk
   [firmware_type]=uf2
   [dfu_volume]=CKP
 )
@@ -153,7 +152,6 @@ declare -A rz42l=(
   [board]=rz42_left
   [firmware_type]=uf2
   [dfu_volume]=RZ42_L
-  [log_opts]="CONFIG_INPUT_LOG_LEVEL_DBG,CONFIG_DISPLAY_LOG_LEVEL_DBG"
 )
 
 declare -A rz42r=(
@@ -163,7 +161,6 @@ declare -A rz42r=(
   [board]=rz42_right
   [firmware_type]=uf2
   [dfu_volume]=RZ42_R
-  [log_opts]="CONFIG_INPUT_LOG_LEVEL_DBG,CONFIG_DISPLAY_LOG_LEVEL_DBG"
 )
 
 declare -A q60=(
@@ -218,80 +215,77 @@ declare -A tb60=(
 
 ALL_TARGETS=(cz42l cz42r d60 fk68 libra rz42l rz42r q60 qk60 tf60 ju60 tb60)
 
-# keyboards that have completed migration to zephyr 4.1
-TARGETS=(libra q60 tf60 ju60 tb60)
-
+TARGETS=(cz42l cz42r d60 fk68 libra rz42l rz42r q60 tf60 ju60 tb60)
 
 cd $PROJECT
 #  override configuration
 # -----------------------------------
-[ -s .zmk_config ] &&  source .zmk_config
-
+[ -s .zmk_config ] && source .zmk_config
 
 THIS_SCRIPT=$0
 
 # options
 # -----------------------------------
 zparseopts -D -E -F -- \
-           {h,-help}=help  \
-           -clean=clean \
-           -clean-modules=clean_modules \
-           -clean-tools=clean_tools \
-           -clean-all=clean_all \
-           -setup=setup \
-           -pip-upgrade=pip_upgrade \
-           -zephyr-doc2dash=zephyr_doc2dash \
-           -studio-app=studio_app \
-           -studio-web=studio_web \
-           {c,-with-clean}=with_clean \
-           {g,-with-compile-db}=with_compile_db \
-           {w,-without-update}=without_update \
-           {n,-without-patch}=without_patch \
-           {f,-with-flash}=with_flash \
-           {p,-with-pp}=with_pp \
-           {l,-with-logging}=with_logging \
-           {s,-with-shell}=with_shell \
-           {z,-with-studio}=with_studio \
-           {x,-without-studio}=without_studio \
-           {r,-with-ram-report}=with_ram_report \
-           -without-emacs=without_emacs \
-  || return
+  {h,-help}=help \
+  -clean=clean \
+  -clean-modules=clean_modules \
+  -clean-tools=clean_tools \
+  -clean-all=clean_all \
+  -setup=setup \
+  -pip-upgrade=pip_upgrade \
+  -zephyr-doc2dash=zephyr_doc2dash \
+  -studio-app=studio_app \
+  -studio-web=studio_web \
+  {c,-with-clean}=with_clean \
+  {g,-with-compile-db}=with_compile_db \
+  {w,-without-update}=without_update \
+  {n,-without-patch}=without_patch \
+  {f,-with-flash}=with_flash \
+  {p,-with-pp}=with_pp \
+  {l,-with-logging}=with_logging \
+  {s,-with-shell}=with_shell \
+  {z,-with-studio}=with_studio \
+  {x,-without-studio}=without_studio \
+  {r,-with-ram-report}=with_ram_report \
+  -without-emacs=without_emacs ||
+  return
 
-(( $#@ )) && TARGETS=("$@")
+(($#@)) && TARGETS=("$@")
 
 # subcommand --help
 # -----------------------------------
 help_usage() {
   print -rC1 -- \
-        "" \
-        "Usage:" \
-        "    $THIS_SCRIPT:t <-h|--help>                     help" \
-        "    $THIS_SCRIPT:t --clean                         clean generated files" \
-        "    $THIS_SCRIPT:t --clean-modules                 clean source moudules & generated files" \
-        "    $THIS_SCRIPT:t --clean-tools                   clean zephyr sdk & build tools" \
-        "    $THIS_SCRIPT:t --clean-all                     clean all" \
-        "    $THIS_SCRIPT:t --setup                         setup zephyr sdk & projtect build tools" \
-        "    $THIS_SCRIPT:t --pip-upgrade                   upgrade python packages" \
-        "    $THIS_SCRIPT:t --zephyr-doc2dash               generate zephyr docsets" \
-        "    $THIS_SCRIPT:t --studio-web                    launch ZMK Studio web" \
-        "    $THIS_SCRIPT:t --studio-app                    launch ZMK Studio app" \
-        "    $THIS_SCRIPT:t [build options...] [TARGETS..]  build firmwares" \
-        "" \
-        "build options:" \
-        "    -c,--with-clean       clean up generated files" \
-        "    -g,--with-compile-db  generate compile_command.json" \
-        "    -w,--without-update   don't sync remote repository" \
-        "    -n,--without-patch    don't apply patches" \
-        "    -f,--with-flash       post build copy firmware to DFU drive" \
-        "    -p,--with-pp          Save preprocessor output" \
-        "    -l,--with-logging     Enable USB logging" \
-        "    -s,--with-shell       Enable Shell" \
-        "    -z,--with-studio      Enable ZMK Studio" \
-        "    -x,--without-studio   Disable ZMK Studio" \
-        "    -r,--with-ram-report  Enable ram_report" \
-        "    --without-emacs       don't generate emacs settings when --with-comile-db" \
-       "" \
-        "available targets:"
+    "" \
+    "Usage:" \
+    "    $THIS_SCRIPT:t <-h|--help>                     help" \
+    "    $THIS_SCRIPT:t --clean                         clean generated files" \
+    "    $THIS_SCRIPT:t --clean-modules                 clean source moudules & generated files" \
+    "    $THIS_SCRIPT:t --clean-tools                   clean zephyr sdk & build tools" \
+    "    $THIS_SCRIPT:t --clean-all                     clean all" \
+    "    $THIS_SCRIPT:t --setup                         setup zephyr sdk & projtect build tools" \
+    "    $THIS_SCRIPT:t --pip-upgrade                   upgrade python packages" \
+    "    $THIS_SCRIPT:t --zephyr-doc2dash               generate zephyr docsets" \
+    "    $THIS_SCRIPT:t --studio-web                    launch ZMK Studio web" \
+    "    $THIS_SCRIPT:t --studio-app                    launch ZMK Studio app" \
+    "    $THIS_SCRIPT:t [build options...] [TARGETS..]  build firmwares" \
+    "" \
+    "build options:" \
+    "    -c,--with-clean       clean up generated files" \
+    "    -g,--with-compile-db  generate compile_command.json" \
+    "    -w,--without-update   don't sync remote repository" \
+    "    -n,--without-patch    don't apply patches" \
+    "    -f,--with-flash       post build copy firmware to DFU drive" \
+    "    -p,--with-pp          Save preprocessor output" \
+    "    -l,--with-logging     Enable USB logging" \
+    "    -s,--with-shell       Enable Shell" \
+    "    -z,--with-studio      Enable ZMK Studio" \
+    "    -x,--without-studio   Disable ZMK Studio" \
+    "    -r,--with-ram-report  Enable ram_report" \
+    "    --without-emacs       don't generate emacs settings when --with-comile-db" \
+    "" \
+    "available targets:"
   for target in $ALL_TARGETS; do
     local -A props=("${(Pkv@)target}")
     print -rC2 -- "   ${target}=("
@@ -299,20 +293,20 @@ help_usage() {
     print -rC2 -- "     [ble]=$props[ble]"
     print -rC2 -- "     [studio]=$props[studio]"
     print -rC2 -- "     [board]=$props[board]"
-    if (( ${+props[shields]} )); then
+    if ((${+props[shields]})); then
       print -rC2 -- "     [shields]=$props[shields]"
     fi
     print -rC2 -- "     [firmware_type=$props[firmware_type]"
     case $props[firmware_type] in
-      uf2)
-        print -rC2 -- "     [dfu_volume]=$props[dfu_volume]"
-        ;;
-      bin)
-        print -rC2 -- "     [dfu_vid]=$props[dfu_vid]"
-        print -rC2 -- "     [dfu_pid]=$props[dfu_pid]"
-        ;;
+    uf2)
+      print -rC2 -- "     [dfu_volume]=$props[dfu_volume]"
+      ;;
+    bin)
+      print -rC2 -- "     [dfu_vid]=$props[dfu_vid]"
+      print -rC2 -- "     [dfu_pid]=$props[dfu_pid]"
+      ;;
     esac
-    if (( ${+props[log_opts]} )); then
+    if ((${+props[log_opts]})); then
       print -rC2 -- "     [log_opts]=$props[log_opts]"
     fi
     print -rC2 -- "   )"
@@ -322,22 +316,22 @@ help_usage() {
 main() {
   #  sub commands
   # -----------------------------------
-  if (( $#help )); then
+  if (($#help)); then
     help_usage
     return
-  elif (( $#clean )); then
+  elif (($#clean)); then
     clean
     return
-  elif (( $#clean_all )); then
+  elif (($#clean_all)); then
     clean_all
     return
-  elif (( $#clean_tools )); then
+  elif (($#clean_tools)); then
     clean_tools
     return
-  elif (( $#clean_modules )); then
+  elif (($#clean_modules)); then
     clean_modules
     return
-  elif (( $#setup )); then
+  elif (($#setup)); then
     setup
     return
   fi
@@ -346,16 +340,16 @@ main() {
 
   #  sub commands
   # -----------------------------------
-  if (( $#pip_upgrade )); then
+  if (($#pip_upgrade)); then
     pip_upgrade
     return
-  elif (( $#zephyr_doc2dash )); then
+  elif (($#zephyr_doc2dash)); then
     zephyr_doc2dash
     return
-  elif (( $#studio_app )); then
+  elif (($#studio_app)); then
     studio_app
     return
-  elif (( $#studio_web )); then
+  elif (($#studio_web)); then
     studio_web
     return
   fi
@@ -366,15 +360,15 @@ main() {
       unknown_targets+=($target)
     fi
   done
-  if (( $#unknown_targets )); then
+  if (($#unknown_targets)); then
     _error_exit 1 "Unknown target(s): $unknown_targets"
   fi
 
   # build option parameters
   # -----------------------------------
-  (( $#without_update )) && WITH_UPDATE=false
-  (( $#without_patch )) && WITH_PATCH=false
-  (( $#without_emacs )) && WITH_EMACS=false
+  (($#without_update)) && WITH_UPDATE=false
+  (($#without_patch)) && WITH_PATCH=false
+  (($#without_emacs)) && WITH_EMACS=false
 
   [[ -d modules ]] || WITH_UPDATE=true
   [[ -d zephyr ]] || WITH_UPDATE=true
@@ -396,14 +390,14 @@ main() {
   for target in $TARGETS; do
     _build $target
     local firmware_file=$(_dist_firmware $target)
-    if (( $#with_flash )); then
-      (( $#with_logging )) && sudo echo -n
-      (( $#with_shell )) && sudo echo -n
+    if (($#with_flash)); then
+      (($#with_logging)) && sudo echo -n
+      (($#with_shell)) && sudo echo -n
       _flash $target $firmware_file
-      if (( $#with_logging )); then
+      if (($#with_logging)); then
         _${os}_log_console $target $firmware_file
       fi
-      if (( $#with_shell )); then
+      if (($#with_shell)); then
         _${os}_shell_console $target $firmware_file
       fi
     fi
@@ -519,15 +513,15 @@ zephyr_doc2dash() {
 
   mkdir -p $DOCSETS_DIR
   doc2dash --name Zephyr \
-           --icon $PROJECT/zephyr/doc/_static/images/kite.png \
-           --index-page index.html \
-           --force \
-           --destination $DOCSETS_DIR \
-           --enable-js \
-           --online-redirect-url https://docs.zephyrproject.org/$ZEPHYR_VERSION \
-           html
+    --icon $PROJECT/zephyr/doc/_static/images/kite.png \
+    --index-page index.html \
+    --force \
+    --destination $DOCSETS_DIR \
+    --enable-js \
+    --online-redirect-url https://docs.zephyrproject.org/$ZEPHYR_VERSION \
+    html
   # hide left sidebar
-  cat <<EOF >> $DOCSETS_DIR/Zephyr.docset/Contents/Resources/Documents/_static/css/theme.css
+  cat <<EOF >>$DOCSETS_DIR/Zephyr.docset/Contents/Resources/Documents/_static/css/theme.css
 .wy-nav-side{display:none}
 .wy-nav-content-wrap{margin-left:unset}
 EOF
@@ -554,23 +548,21 @@ studio_web() {
 
   cd $PROJECT/zmk-studio
 
-  _open_browser 2 http://localhost:5173 &!
+  _open_browser 2 http://localhost:5173 &|
 
   npm run dev
 }
 
-
 # routines
 #-------------------------------------------
-
 
 _fedora_install_packages() {
   # --no-best some copr repos doesn't support fc41 yet
   sudo dnf update --no-best
   # https://docs.zephyrproject.org/3.5.0/develop/getting_started/index.html#select-and-update-os
   sudo dnf install -y wget git cmake gperf python3 dtc wget xz file \
-       make gcc SDL2-devel file-libs \
-       tio fd-find ripgrep fzf iwyu
+    make gcc SDL2-devel file-libs \
+    tio fd-find ripgrep fzf iwyu
   # gcc-multilib g++-multilib
 
   # node_mdoule dependecies
@@ -579,7 +571,7 @@ _fedora_install_packages() {
   sudo dnf autoremove
   sudo dnf clean all
 
-  winget=$(/mnt/c/Windows/System32/cmd.exe /C "where winget" 2> /dev/null || true)
+  winget=$(/mnt/c/Windows/System32/cmd.exe /C "where winget" 2>/dev/null || true)
   if [[ ! -z $winget ]]; then
     winget=${winget%$'\r'}
     winget=$(wslpath -u $winget)
@@ -591,8 +583,8 @@ _macos_install_packages() {
   # https://docs.zephyrproject.org/3.5.0/develop/getting_started/index.html#select-and-update-os
   brew update
   brew install wget git cmake gperf python3 qemu dtc libmagic \
-       doxygen graphviz librsvg \
-       tio fd iwyu
+    doxygen graphviz librsvg \
+    tio fd iwyu
   brew cleanup
 }
 
@@ -620,7 +612,6 @@ _activate_direnv() {
   eval "$(direnv export zsh)"
 }
 
-
 _install_python_packages() {
   pip install west
   pip install -r https://raw.githubusercontent.com/zmkfirmware/zephyr/refs/heads/v4.1.0%2Bzmk-fixes/scripts/requirements.txt
@@ -635,7 +626,7 @@ _install_python_packages() {
 }
 
 _install_rust_packages() {
-  # cargo install icu_tool
+
 }
 
 _install_zephyr_sdk() {
@@ -643,7 +634,7 @@ _install_zephyr_sdk() {
     mkdir -p "$ZEPHYR_SDK_INSTALL_DIR"
     cd "$ZEPHYR_SDK_INSTALL_DIR"
     sdk_minimal_file_name="zephyr-sdk-${ZEPHYR_SDK_VERSION}_${HOST_OS}-${HOST_ARCHITECTURE}_minimal.tar"
-    if [[ ZEPHYR_SDK_VERSION > "0.15.2" ]] ;then
+    if [[ ZEPHYR_SDK_VERSION > "0.15.2" ]]; then
       sdk_minimal_file_name=${sdk_minimal_file_name}.xz
     else
       sdk_minimal_file_name=${sdk_minimal_file_name}.gz
@@ -662,9 +653,9 @@ _install_zephyr_sdk() {
     sed -i -e "s/wget -q --show-progress/wget -q/g" setup.sh
 
     # fc42 ERROR: Host tools installation failed
-    if grep 42 /etc/fedora-release > /dev/null; then
+    if grep 42 /etc/fedora-release >/dev/null; then
       if [[ -f zephyr-sdk-x86_64-hosttools-standalone-0.9.sh ]]; then
-        sed -i -e "s/xargs -n100/xargs -n10/g"  zephyr-sdk-x86_64-hosttools-standalone-0.9.sh
+        sed -i -e "s/xargs -n100/xargs -n10/g" zephyr-sdk-x86_64-hosttools-standalone-0.9.sh
       fi
     fi
   fi
@@ -727,7 +718,7 @@ _download_fonts() {
   # unknown license
   # https://www.2112.net/rushfonts
   if [[ ! -d rushfonts ]]; then
-    mkdir  rushfonts
+    mkdir rushfonts
     wget https://www.2112.net/rushfonts/rushfonts.zip
     unzip -o rushfonts.zip -d rushfonts
     rm -f rushfonts.zip
@@ -796,7 +787,7 @@ _open_browser() {
   if [[ $os == "macos" ]]; then
     open $2
   elif [[ $os = "fedora" ]]; then
-    /mnt/c/Windows/System32/cmd.exe /c start $2 2> /dev/null
+    /mnt/c/Windows/System32/cmd.exe /c start $2 2>/dev/null
   fi
 }
 
@@ -853,48 +844,48 @@ _build() {
 
   cd $PROJECT
 
-  if (( $#with_clean )); then
+  if (($#with_clean)); then
     rm -rf build/$target
   fi
 
-  if $WITH_UPDATE || ((  $#with_clean )); then
+  if $WITH_UPDATE || (($#with_clean)); then
     opts+=(--pristine=always)
   else
     opts+=(--pristine=auto)
   fi
 
-  if (( $#with_studio )) || $props[studio] && ! (( $#without_studio )); then
+  if (($#with_studio)) || $props[studio] && ! (($#without_studio)); then
     if ! $props[ble]; then
       opts+=(--snippet studio-rpc-usb-uart)
     fi
     defs+=(-DCONFIG_ZMK_STUDIO=y)
-    if (( $#with_logging )); then
+    if (($#with_logging)); then
       defs+=(-DCONFIG_ZMK_STUDIO_LOG_LEVEL_DBG=y)
     fi
   fi
 
-  if (( $#with_logging )); then
+  if (($#with_logging)); then
     opts+=(--snippet usb-logging)
-    if (( ${+props[log_opts]} )); then
+    if ((${+props[log_opts]})); then
       for log_opt in ${(@s/,/)props[log_opts]}; do
         defs+=("-D$log_opt=y")
       done
     fi
   fi
 
-  if (( $#with_shell )); then
+  if (($#with_shell)); then
     opts+=(--snippet usb-shell)
   fi
 
-  (( $#with_pp )) && defs+=(-DEXTRA_CFLAGS=-save-temps=obj)
+  (($#with_pp)) && defs+=(-DEXTRA_CFLAGS=-save-temps=obj)
 
-  if (( ${+props[shields]} )); then
+  if ((${+props[shields]})); then
     defs+=("-DSHIELD='$props[shields]'")
   fi
 
   defs+=(-DZMK_EXTRA_MODULES="$PROJECT/zmk_keyboards")
 
-  if (( $#with_compile_db )); then
+  if (($#with_compile_db)); then
     defs+=(-DCMAKE_EXPORT_COMPILE_COMMANDS=ON)
     _dot_clangd
     if $WITH_EMACS; then
@@ -907,9 +898,9 @@ _build() {
     defs+=(-DEXTRA_CONF_FILE="$PROJECT/zmk_keyboards/config/ble_default.conf")
   fi
 
-  print -Pr  "%F{green}---------------- start west build -- command-line----------------------"
+  print -Pr "%F{green}---------------- start west build -- command-line----------------------"
   print -r "west build $opts[*] zmk/app -- $defs[*]"
-  print -Pr  "%F{green}-----------------------------------------------------------------------"
+  print -Pr "%F{green}-----------------------------------------------------------------------"
 
   west build $opts[*] zmk/app -- $defs[*]
 
@@ -918,17 +909,17 @@ _build() {
     return 1
   fi
 
-  if (( $#with_ram_report )); then
+  if (($#with_ram_report)); then
     west build --target ram_report --build-dir build/$target
   fi
 
-  if (( $#with_compile_db )); then
+  if (($#with_compile_db)); then
     mv $PROJECT/build/$target/compile_commands.json $PROJECT
   fi
 }
 
 _dot_clangd() {
-  cat <<EOS > $PROJECT/.clangd
+  cat <<EOS >$PROJECT/.clangd
 CompileFlags:
   Remove: [-mfp16-format*, -fno-reorder-functions, -fno-printf-return-value]
 EOS
@@ -937,7 +928,7 @@ EOS
 
 _dot_dir_locals() {
   local target=$1
-  cat <<EOS > $PROJECT/.dir-locals.el
+  cat <<EOS >$PROJECT/.dir-locals.el
 ((nil . ((projectile-git-use-fd . t)
          (projectile-git-fd-args . "--hidden --no-ignore -0 --exclude '\.*' --type f --strip-cwd-prefix")
          (counsel-rg-base-command . ("rg" "--no-ignore" "--max-columns" "240" "--with-filename" "--no-heading" "--line-number" "--color" "never" "%s"))
@@ -947,7 +938,7 @@ EOS
 }
 
 _dot_projectile() {
-  cat <<EOS > $PROJECT/.projectile
+  cat <<EOS >$PROJECT/.projectile
 -/dist
 -/node_modules
 -/xpacks
@@ -975,9 +966,9 @@ _dist_firmware() {
   mkdir -p dist
   local src=build/$target/zephyr/zmk.$props[firmware_type]
   local variant=""
-  (( $#with_logging )) && variant="${variant}_logging"
-  (( $#with_shell )) && variant="${variant}_shell"
-  (( $#with_studio )) || $props[studio] && ! (( $#without_studio )) && variant="${variant}_studio"
+  (($#with_logging)) && variant="${variant}_logging"
+  (($#with_shell)) && variant="${variant}_shell"
+  (($#with_studio)) || $props[studio] && ! (($#without_studio)) && variant="${variant}_studio"
   local dst=dist/${props[name]}_${version}${variant}.$props[firmware_type]
   cp $src $dst
   echo $dst
@@ -1002,7 +993,7 @@ _macos_uf2_volume() {
   # The volume name and Board-ID are the same because they are custom bootloader.
   for dfu_volume in /Volumes/NO\ NAME*(N); do
     if [[ -f "$dfu_volume/INFO_UF2.TXT" ]]; then
-      if grep "Board-ID: $props[dfu_volume]" "$dfu_volume/INFO_UF2.TXT" > /dev/null; then
+      if grep "Board-ID: $props[dfu_volume]" "$dfu_volume/INFO_UF2.TXT" >/dev/null; then
         echo $dfu_volume
         return
       fi
@@ -1069,7 +1060,7 @@ _fedora_flash_bin() {
   sudo echo -n
   echo -n "waiting for target DFU device to be connected.."
   while true; do
-    dfu_device=$($WIN_USBIPD list 2> /dev/null | grep "$hardware_id" || echo -n "")
+    dfu_device=$($WIN_USBIPD list 2>/dev/null | grep "$hardware_id" || echo -n "")
     if [[ ! -z $dfu_device ]]; then
       if [[ $dfu_device =~ "Not shared" ]]; then
         $WIN_SUDO --inline "$(wslpath -w $WIN_USBIPD)" bind --hardware-id $hardware_id
@@ -1135,7 +1126,7 @@ _macos_log_console() {
   elif [[ $#tty_devs -gt 1 ]]; then
     # sort asc
     tty_devs=(${(o)tty_devs})
-    if (( $#with_studio )) || $props[studio] && ! (( $#without_studio )) && ! $props[ble]; then
+    if (($#with_studio)) || $props[studio] && ! (($#without_studio)) && ! $props[ble]; then
       # studio enabled
       # 1 - studio uart
       # 2 - loggging uart
@@ -1152,7 +1143,7 @@ _macos_log_console() {
   mkdir -p logs
   rm -f $log_file
 
-  if (( $#with_shell )); then
+  if (($#with_shell)); then
     # open with another terminal window
     _macos_open_log_window $log_file $tty_dev
   else
@@ -1178,7 +1169,7 @@ _fedora_log_console() {
   if [[ $#com_ports = 1 ]]; then
     com_port=$com_ports[1]
   elif [[ $#com_ports -gt 1 ]]; then
-    if (( $#with_studio )) || $props[studio] && ! (( $#without_studio )) && ! $props[ble]; then
+    if (($#with_studio)) || $props[studio] && ! (($#without_studio)) && ! $props[ble]; then
       # studio enabled
       # 1 - studio uart
       # 2 - loggging uart
@@ -1227,7 +1218,7 @@ _macos_shell_console() {
     fi
   done
 
-  if (( $#cu_devs)); then
+  if (($#cu_devs)); then
     # sort desc
     echo "cu_devs=(${cu_devs})"
     cu_devs=(${(O)cu_devs})
@@ -1235,7 +1226,7 @@ _macos_shell_console() {
     # last element
     cu_dev=${cu_devs[1]}
   else
-     _error_exit 1 'cu device not found'
+    _error_exit 1 'cu device not found'
   fi
 
   echo "\nFound cu device [$cu_dev]. To exit shell, [~] <wait a second> [.][enter]"
@@ -1259,7 +1250,7 @@ _fedora_shell_console() {
 
   local com_ports=($(_list_com_ports))
 
-  if (( $#com_ports )); then
+  if (($#com_ports)); then
     # last element
     com_port=$com_ports[-1]
   else
@@ -1277,7 +1268,7 @@ _win_env() {
 
 _list_com_ports() {
   # TODOk if multiple ZMK keyboards are connected
-  $WIN_POWERSHELL -c "Get-CimInstance -query 'select DeviceID, PNPDeviceID from Win32_SerialPort' | ft DeviceID, PNPDeviceID" 2> /dev/null | grep -e $WIN_HARDWARE_ID0 -e $WIN_HARDWARE_ID1 | awk '{print $1}'
+  $WIN_POWERSHELL -c "Get-CimInstance -query 'select DeviceID, PNPDeviceID from Win32_SerialPort' | ft DeviceID, PNPDeviceID" 2>/dev/null | grep -e $WIN_HARDWARE_ID0 -e $WIN_HARDWARE_ID1 | awk '{print $1}'
 }
 
 _wait_com_port() {

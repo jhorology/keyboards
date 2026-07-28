@@ -1,10 +1,6 @@
 # Copyright (c) 2023 The ZMK Contributors
 # SPDX-License-Identifier: MIT
 
-CONFIG_SOC_SERIES_STM32F1X=y
-CONFIG_SOC_STM32F103XB=y
-CONFIG_BOARD_QK60_WIRED=y
-
 # unknown stm32F103 clone seems dosen't support
 # default y
 CONFIG_STACK_ALIGN_DOUBLE_WORD=n

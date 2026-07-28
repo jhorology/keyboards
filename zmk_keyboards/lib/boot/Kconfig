@@ -30,7 +30,7 @@ endif # BOOTSEL_STM32
 
 config BOOTSEL_UF2_STM32F103
     bool "Enable bootsel for uf2-stm32f103 bootlader"
-    depends on SOC_SERIES_STM32F1X
+    depends on SOC_SERIES_STM32F1X || SOC_FAMILY_STM32 || SOC_SOC_STM32F103XB
     default n
     help
       see details on https://github.com/mmoskal/uf2-stm32f103

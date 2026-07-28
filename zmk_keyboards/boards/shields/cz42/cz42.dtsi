@@ -9,7 +9,7 @@
 
 / {
   chosen {
-    zmk,kscan = &kscan0;
+    zmk,physical-layout = &layout0;
   };
 
   default_transform: keymap_transform_0 {
@@ -38,10 +38,10 @@
       ;
   };
 
-  soft_off_wakers: soft_off_wakers {
-    compatible = "zmk,soft-off-wakeup-sources";
-    wakeup-sources = <&kscan0>;
-  };
+  // soft_off_wakers: soft_off_wakers {
+  //  compatible = "zmk,soft-off-wakeup-sources";
+  //  wakeup-sources = <&kscan0>;
+  // };
 
   layout0: layout0 {
     compatible = "zmk,physical-layout";

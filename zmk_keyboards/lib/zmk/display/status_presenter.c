@@ -161,7 +161,7 @@ static void send_event(lv_obj_t* obj, lv_event_code_t event_code, lv_zmk_event_i
   if (interests != NULL) {
     LOG_DBG("interests: 0x%04x", *interests);
     if (*interests & mask) {
-      lv_event_send(obj, event_code, &zmk_status);
+      lv_obj_send_event(obj, event_code, &zmk_status);
       /* it is parent's responsibility to propagate events to children. */
       return;
     }

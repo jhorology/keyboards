@@ -38,7 +38,7 @@ static void style_init(struct portrait_mono_styles *styles) {
   lv_style_set_pad_all(&styles->container, 0);
   lv_style_set_pad_gap(&styles->container, 0);
   lv_style_set_border_width(&styles->container, 0);
-  lv_style_set_size(&styles->container, LV_SIZE_CONTENT);
+  lv_style_set_size(&styles->container, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
 }
 
 static lv_obj_t *container_create(lv_obj_t *parent) {

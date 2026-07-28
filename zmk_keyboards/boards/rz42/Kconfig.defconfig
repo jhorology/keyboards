@@ -1,40 +1,46 @@
 # Copyright (c) 2024 The ZMK Contributors
 # SPDX-License-Identifier: MIT
 
-if SHIELD_CZ42_LEFT
+if BOARD_RZ42_LEFT
 
 config ZMK_KEYBOARD_NAME
-    default "CZ42"
+    default "RZ42"
 
 config ZMK_SPLIT_ROLE_CENTRAL
     default y
 
-endif # SHIELD_CZ42_LEFT
-
-if SHIELD_CZ42_RIGHT
-
 config ZMK_USB
-    default n
+    default y
 
-endif # SHIELD_CZ42_RIGHT
+endif # BOARD_RZ42_LEFT
 
-if SHIELD_CZ42_LEFT || SHIELD_CZ42_RIGHT
+if BOARD_RZ42_LEFT || BOARD_RZ42_RIGHT
 
 config ZMK_SPLIT
     default y
 
+config ZMK_BLE
+    default y
+
+if USB_DEVICE_STACK
+
+config USB_NRFX
+    default y
+
+endif # USB_DEVICE_STACK
+
 config ZMK_RGB_UNDERGLOW
     default y
-    select WS2812_STRIP
+    select WS2812_STRIP_SPI
 
 if ZMK_RGB_UNDERGLOW
 
 config SPI
     default y
 
-config WS2812_STRIP
+config WS2812_STRIP_SPI
     default y
 
 endif # ZMK_RGB_UNDERGLOW
 
-endif # SHIELD_CZ42_LEFT || SHIELD_CZ42_RIGHT
+endif # BOARD_RZ42_LEFT || BOARD_RZ42_RIGHT

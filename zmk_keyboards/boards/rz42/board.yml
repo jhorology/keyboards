@@ -1,0 +1,9 @@
+boards:
+  - name: rz42_left
+    vendor: zmk
+    socs:
+      - name: nrf52840
+  - name: rz42_right
+    vendor: zmk
+    socs:
+      - name: nrf52840
